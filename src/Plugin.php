@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work;
 
+use CB\Work\Admin\Menu;
 use CB\Work\Admin\Page;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
@@ -27,6 +28,7 @@ final class Plugin {
 		ServicePricingDomain::init();
 
 		if ( is_admin() ) {
+			Menu::init();
 			Page::init();
 			ServicePricing::init();
 			TaxRateActions::init();

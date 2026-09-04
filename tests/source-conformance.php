@@ -4,6 +4,7 @@ declare(strict_types=1);
 $root = dirname( __DIR__ );
 $required = [
 	'core-blueprint-work.php',
+	'src/Admin/Menu.php',
 	'src/Admin/Page.php',
 	'src/Admin/ServicePricing.php',
 	'src/Admin/TaxRateActions.php',
@@ -36,6 +37,7 @@ foreach ( $required as $relative ) {
 
 $bootstrap  = file_get_contents( $root . '/core-blueprint-work.php' );
 $suite      = file_get_contents( $root . '/src/Integration/Suite.php' );
+$menu       = file_get_contents( $root . '/src/Admin/Menu.php' );
 $page       = file_get_contents( $root . '/src/Admin/Page.php' );
 $taxActions = file_get_contents( $root . '/src/Admin/TaxRateActions.php' );
 $pricingUi  = file_get_contents( $root . '/src/Admin/ServicePricing.php' );
@@ -69,15 +71,16 @@ $checks = [
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
 	'pricing resolver validates tax through Work public API' => str_contains( $resolver, 'TaxRates::is_available' ),
-	'admin page requests Base nav-tabs component' => str_contains( $page, "'nav-tabs'" ),
-	'admin page uses Base nav-tab markup' => str_contains( $page, 'nav-tab-wrapper cb-core-tab-wrapper' ) && str_contains( $page, 'nav-tab-active' ),
+	'Work owns a standalone operational top-level menu' => str_contains( $menu, 'add_menu_page(' ) && str_contains( $menu, "TOP_LEVEL_SLUG = 'core-blueprint-work'" ),
+	'operational menu mounts Services exactly through Work ownership' => str_contains( $menu, 'add_submenu_page(' ) && str_contains( $menu, 'PostTypes::SERVICE' ),
+	'Core Blueprint Work page is settings-only' => str_contains( $page, "SLUG = 'core-blueprint-work-settings'" ) && ! str_contains( $page, 'render_services' ) && ! str_contains( $page, 'VIEW_SERVICES' ),
+	'Core Blueprint settings page does not request operational nav tabs' => ! str_contains( $page, "'nav-tabs'" ) && ! str_contains( $page, 'nav-tab-wrapper' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,
-	'VAT configured heading uses panel-safe h2 rather than raw h3' => ! str_contains( $page, '<h3' ) && str_contains( $page, "Configured VAT rates" ),
-	'VAT actions return to Work Settings' => str_contains( $taxActions, "'view'           => Page::VIEW_SETTINGS" ),
+	'VAT configured heading uses panel-safe h2 rather than raw h3' => ! str_contains( $page, '<h3' ) && str_contains( $page, 'Configured VAT rates' ),
+	'VAT actions return to Work Settings without legacy view routing' => str_contains( $taxActions, "'page'           => Page::SLUG" ) && ! str_contains( $taxActions, "'view'" ),
 	'service editor links to Work Settings for VAT' => str_contains( $pricingUi, 'Page::settings_url()' ),
-	'Work does not register standalone product submenus' => ! str_contains( $allSource, 'add_submenu_page(' ),
-	'admin page avoids unsupported Base tables requirement' => ! str_contains( $page, "'tables'" ),
-	'architecture records VAT as Work Settings' => str_contains( $arch, 'VAT rates live under `Work → Settings`' ),
+	'admin settings page avoids unsupported Base tables requirement' => ! str_contains( $page, "'tables'" ),
+	'architecture separates operational Work from Core Blueprint settings' => str_contains( $arch, 'operational product work lives in the product' ) && str_contains( $arch, '`Core Blueprint → Work` is settings-only' ),
 	'architecture separates commercial recurrence from work recurrence' => str_contains( $arch, 'commercial cadence, not Work Item recurrence' ),
 	'architecture forbids direct sibling SQL' => str_contains( $arch, 'No direct sibling-table reads/writes.' ),
 	'no CRM private namespace dependency in Work source' => ! str_contains( $allSource, 'CB\\CRM\\' ),

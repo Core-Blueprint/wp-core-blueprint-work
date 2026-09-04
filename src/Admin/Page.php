@@ -7,17 +7,12 @@ use CB\Core\Admin\Page as PageContract;
 use CB\Core\Admin\PageRegistry;
 use CB\Core\UI\Notice;
 use CB\Work\Capabilities;
-use CB\Work\Content\PostTypes;
-use CB\Work\Content\ServicePricing;
 use CB\Work\Database\Schema;
-use CB\Work\PublicApi\Services;
 use CB\Work\Repository\TaxRates;
 defined( 'ABSPATH' ) || exit;
 
 final class Page implements PageContract {
-	public const SLUG = 'core-blueprint-work';
-	public const VIEW_SERVICES = 'services';
-	public const VIEW_SETTINGS = 'settings';
+	public const SLUG = 'core-blueprint-work-settings';
 
 	private static bool $initialized = false;
 
@@ -33,7 +28,7 @@ final class Page implements PageContract {
 		PageRegistry::register(
 			new self(),
 			[
-				'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'actions', 'badges', 'empty-state', 'nav-tabs' ],
+				'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'actions', 'badges', 'empty-state' ],
 			]
 		);
 	}
@@ -43,7 +38,7 @@ final class Page implements PageContract {
 	}
 
 	public function title(): string {
-		return __( 'Work', 'core-blueprint-work' );
+		return __( 'Work Settings', 'core-blueprint-work' );
 	}
 
 	public function menu_title(): string {
@@ -58,93 +53,34 @@ final class Page implements PageContract {
 		return null;
 	}
 
-	public static function view_url( string $view = self::VIEW_SERVICES ): string {
-		if ( ! in_array( $view, [ self::VIEW_SERVICES, self::VIEW_SETTINGS ], true ) ) {
-			$view = self::VIEW_SERVICES;
-		}
-		return admin_url( 'admin.php?page=' . self::SLUG . '&view=' . $view );
-	}
-
 	public static function settings_url(): string {
-		return self::view_url( self::VIEW_SETTINGS );
+		return admin_url( 'admin.php?page=' . self::SLUG );
 	}
 
 	public function render(): void {
 		if ( ! current_user_can( $this->capability() ) ) {
-			wp_die( esc_html__( 'You do not have permission to access Work.', 'core-blueprint-work' ) );
+			wp_die( esc_html__( 'You do not have permission to access Work settings.', 'core-blueprint-work' ) );
 		}
 
-		$view         = self::current_view();
 		$notice       = isset( $_GET['cb-work-notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['cb-work-notice'] ) ) : '';
 		$schema_ready = CB_WORK_SCHEMA_VERSION === (string) get_option( Schema::OPTION, '0' );
-		$services     = $schema_ready && self::VIEW_SERVICES === $view ? Services::all( 20 ) : [];
-		$rates        = $schema_ready && self::VIEW_SETTINGS === $view ? TaxRates::all( true ) : [];
+		$rates        = $schema_ready ? TaxRates::all( true ) : [];
 		?>
-		<div class="wrap cb-core-wrap cb-work-wrap">
-			<h1 class="cb-core-title"><?php esc_html_e( 'Core Blueprint Work', 'core-blueprint-work' ); ?></h1>
-			<p class="cb-core-intro"><?php esc_html_e( 'Manage the service catalog and settings that Work will use for projects, time and billing-ready records.', 'core-blueprint-work' ); ?></p>
-
-			<nav class="nav-tab-wrapper cb-core-tab-wrapper" aria-label="<?php esc_attr_e( 'Work sections', 'core-blueprint-work' ); ?>">
-				<a class="nav-tab <?php echo self::VIEW_SERVICES === $view ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( self::view_url( self::VIEW_SERVICES ) ); ?>" <?php echo self::VIEW_SERVICES === $view ? 'aria-current="page"' : ''; ?>><?php esc_html_e( 'Services', 'core-blueprint-work' ); ?></a>
-				<a class="nav-tab <?php echo self::VIEW_SETTINGS === $view ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( self::view_url( self::VIEW_SETTINGS ) ); ?>" <?php echo self::VIEW_SETTINGS === $view ? 'aria-current="page"' : ''; ?>><?php esc_html_e( 'Settings', 'core-blueprint-work' ); ?></a>
-			</nav>
+		<div class="wrap cb-core-wrap cb-work-settings-wrap">
+			<h1 class="cb-core-title"><?php esc_html_e( 'Core Blueprint Work Settings', 'core-blueprint-work' ); ?></h1>
+			<p class="cb-core-intro"><?php esc_html_e( 'Configure Work-wide settings. Day-to-day operational work is managed from the separate Work menu.', 'core-blueprint-work' ); ?></p>
 
 			<?php self::render_notice( $notice ); ?>
 			<?php if ( ! $schema_ready ) : ?>
 				<?php echo Notice::render( [
 					'variant' => Notice::ERROR,
 					'title'   => __( 'Work storage unavailable', 'core-blueprint-work' ),
-					'message' => __( 'The Work database schema is not ready. Service and VAT management stays read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
+					'message' => __( 'The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
 				] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML. ?>
 			<?php return; endif; ?>
 
-			<?php if ( self::VIEW_SETTINGS === $view ) : ?>
-				<?php self::render_settings( $rates ); ?>
-			<?php else : ?>
-				<?php self::render_services( $services ); ?>
-			<?php endif; ?>
+			<?php self::render_settings( $rates ); ?>
 		</div>
-		<?php
-	}
-
-	private static function current_view(): string {
-		$view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : self::VIEW_SERVICES;
-		return in_array( $view, [ self::VIEW_SERVICES, self::VIEW_SETTINGS ], true ) ? $view : self::VIEW_SERVICES;
-	}
-
-	/** @param array<int,array<string,mixed>> $services */
-	private static function render_services( array $services ): void {
-		?>
-		<section class="cb-core-panel" id="services">
-			<div class="cb-core-actions">
-				<div>
-					<h2><?php esc_html_e( 'Services', 'core-blueprint-work' ); ?></h2>
-					<p><?php esc_html_e( 'Define the standard commercial model, price and VAT treatment for each service.', 'core-blueprint-work' ); ?></p>
-				</div>
-				<p>
-					<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . PostTypes::SERVICE ) ); ?>"><?php esc_html_e( 'Add Service', 'core-blueprint-work' ); ?></a>
-					<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . PostTypes::SERVICE ) ); ?>"><?php esc_html_e( 'Manage Services', 'core-blueprint-work' ); ?></a>
-				</p>
-			</div>
-
-			<?php if ( [] === $services ) : ?>
-				<p><?php esc_html_e( 'No Work services exist yet. Add your first service to define its default pricing and VAT behavior.', 'core-blueprint-work' ); ?></p>
-			<?php else : ?>
-				<table class="widefat striped">
-					<thead><tr><th><?php esc_html_e( 'Service', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Default pricing', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Action', 'core-blueprint-work' ); ?></th></tr></thead>
-					<tbody>
-					<?php foreach ( $services as $service ) : ?>
-						<tr>
-							<td><strong><?php echo esc_html( (string) $service['title'] ); ?></strong></td>
-							<td><?php echo esc_html( ServicePricing::summary( $service['pricing'] ) ); ?></td>
-							<td><?php echo esc_html( (string) $service['status'] ); ?></td>
-							<td><a class="button button-small" href="<?php echo esc_url( admin_url( 'post.php?post=' . (int) $service['id'] . '&action=edit' ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a></td>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; ?>
-		</section>
 		<?php
 	}
 
