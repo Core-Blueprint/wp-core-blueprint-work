@@ -21,4 +21,9 @@ final class TaxRates {
 	public static function available( ?string $on_date = null ): array {
 		return \CB\Work\Repository\TaxRates::available( $on_date );
 	}
+
+	public static function is_available( int $id, ?string $on_date = null ): bool {
+		$rate = self::get( $id );
+		return null !== $rate && \CB\Work\Repository\TaxRates::is_available( $rate, $on_date );
+	}
 }

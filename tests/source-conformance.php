@@ -15,6 +15,9 @@ $required = [
 	'src/Integration/Suite.php',
 	'src/Lifecycle.php',
 	'src/Plugin.php',
+	'src/Pricing/Resolver.php',
+	'src/PublicApi/Pricing.php',
+	'src/PublicApi/PricingProviders.php',
 	'src/PublicApi/Services.php',
 	'src/PublicApi/TaxRates.php',
 	'src/Repository/TaxRates.php',
@@ -38,7 +41,11 @@ $taxActions = file_get_contents( $root . '/src/Admin/TaxRateActions.php' );
 $pricingUi  = file_get_contents( $root . '/src/Admin/ServicePricing.php' );
 $arch       = file_get_contents( $root . '/docs/ARCHITECTURE.md' );
 $service    = file_get_contents( $root . '/src/Content/PostTypes.php' );
-$public     = file_get_contents( $root . '/src/PublicApi/Services.php' ) . file_get_contents( $root . '/src/PublicApi/TaxRates.php' );
+$public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
+	. file_get_contents( $root . '/src/PublicApi/TaxRates.php' )
+	. file_get_contents( $root . '/src/PublicApi/Pricing.php' )
+	. file_get_contents( $root . '/src/PublicApi/PricingProviders.php' );
+$resolver   = file_get_contents( $root . '/src/Pricing/Resolver.php' );
 $allSource  = '';
 foreach ( new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root . '/src' ) ) as $file ) {
 	if ( $file->isFile() && 'php' === strtolower( $file->getExtension() ) ) {
@@ -58,7 +65,10 @@ $checks = [
 	'suite relies on Core API rather than requires_base' => ! str_contains( $suite, "'requires_base'" ),
 	'suite exposes factual service and VAT health' => str_contains( $suite, 'services · %2$d VAT rates' ),
 	'Work owns canonical service post type' => str_contains( $service, "SERVICE = 'cb_work_service'" ),
-	'public sibling contracts exist' => str_contains( $public, 'Supported read-only' ),
+	'public sibling contracts exist' => str_contains( $public, 'Supported read-only' ) && str_contains( $public, 'Supported effective-pricing contract' ),
+	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
+	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
+	'pricing resolver validates tax through Work public API' => str_contains( $resolver, 'TaxRates::is_available' ),
 	'admin page requests Base nav-tabs component' => str_contains( $page, "'nav-tabs'" ),
 	'admin page uses Base nav-tab markup' => str_contains( $page, 'nav-tab-wrapper cb-core-tab-wrapper' ) && str_contains( $page, 'nav-tab-active' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,
