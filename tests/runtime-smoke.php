@@ -13,6 +13,8 @@ namespace {
 	$GLOBALS['options'] = [];
 	$GLOBALS['post_types'] = [];
 	$GLOBALS['post_meta'] = [];
+	$GLOBALS['menus'] = [];
+	$GLOBALS['submenus'] = [];
 	$GLOBALS['roles'] = [
 		'administrator' => new class { public array $caps = []; public function add_cap( string $cap ): void { $this->caps[] = $cap; } },
 		'cb_operator' => new class { public array $caps = []; public function add_cap( string $cap ): void { $this->caps[] = $cap; } },
@@ -77,6 +79,14 @@ namespace {
 	function register_post_type( string $type, array $args ): void { $GLOBALS['post_types'][ $type ] = $args; }
 	function register_post_meta( string $type, string $key, array $args ): void { $GLOBALS['post_meta'][ $type ][ $key ] = $args; }
 	function wp_count_posts( string $post_type ): object { return (object) [ 'publish' => 2, 'draft' => 1, 'trash' => 4 ]; }
+	function add_menu_page( string $page_title, string $menu_title, string $capability, string $menu_slug, callable $callback, string $icon_url = '', int|float|null $position = null ): string {
+		$GLOBALS['menus'][ $menu_slug ] = compact( 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'icon_url', 'position' );
+		return 'toplevel_page_' . $menu_slug;
+	}
+	function add_submenu_page( string $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, callable|string $callback = '', int|float|null $position = null ): string {
+		$GLOBALS['submenus'][ $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
+		return $parent_slug . '_page_' . sanitize_key( $menu_slug );
+	}
 
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
@@ -125,26 +135,34 @@ namespace {
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_service']['_cb_work_service_pricing_model'] ), 'Service pricing model meta registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
 
+	do_action( 'admin_menu' );
+	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Services are mounted under the Work menu.' );
+
 	do_action( 'cb_core_register_extensions' );
 	$extension = \CB\Core\ExtensionRegistry::$registrations['core-blueprint-work'] ?? null;
 	assert_true( is_array( $extension ), 'Extension registers through Base public contract.' );
 	assert_true( ! array_key_exists( 'requires_base', $extension ), 'Extension does not pin an internal Base RC.' );
+	assert_true( str_contains( (string) ( $extension['menu_url'] ?? '' ), 'page=core-blueprint-work' ), 'Suite extension link opens operational Work.' );
 
 	$status_defs = apply_filters( 'cb_core_module_status_definitions', [] );
 	$status = ( $status_defs['work']['provider'] )();
 	assert_true( 'ok' === ( $status['state'] ?? '' ), 'Work health is ok after schema/runtime boot.' );
 	assert_true( '3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual product counts.' );
+	assert_true( str_contains( (string) ( $status['url'] ?? '' ), 'page=core-blueprint-work' ), 'Work health opens the operational Work workspace.' );
 
 	do_action( 'cb_core_register_pages' );
-	$page = \CB\Core\Admin\PageRegistry::$registrations['core-blueprint-work'] ?? null;
-	assert_true( is_array( $page ), 'Work page registers through Base PageRegistry.' );
+	$page = \CB\Core\Admin\PageRegistry::$registrations['core-blueprint-work-settings'] ?? null;
+	assert_true( is_array( $page ), 'Work settings register through Base PageRegistry.' );
 	$components = $page[1]['components'] ?? [];
-	assert_true( in_array( 'nav-tabs', $components, true ), 'Work page requests Base nav-tabs foundation.' );
-	assert_true( ! in_array( 'tables', $components, true ), 'Work page does not request unsupported tables component.' );
-	assert_true( str_contains( \CB\Work\Admin\Page::settings_url(), 'page=core-blueprint-work&view=settings' ), 'VAT Settings route remains inside Work page.' );
+	assert_true( ! in_array( 'nav-tabs', $components, true ), 'Work settings do not request operational nav tabs.' );
+	assert_true( ! in_array( 'tables', $components, true ), 'Work settings do not request unsupported tables component.' );
+	assert_true( str_contains( \CB\Work\Admin\Page::settings_url(), 'page=core-blueprint-work-settings' ), 'VAT Settings route stays in Core Blueprint settings.' );
+	assert_true( ! str_contains( \CB\Work\Admin\Page::settings_url(), 'view=' ), 'VAT Settings route has no legacy operational view parameter.' );
 
 	do_action( 'cb_core_dashboard_register_cards' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
+	assert_true( str_contains( (string) \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace']['url'], 'page=core-blueprint-work' ), 'Work workspace shortcut opens operational Work.' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work services shortcut registers.' );
 
 	$catalog = apply_filters( 'cb_core_capability_catalog', [] );

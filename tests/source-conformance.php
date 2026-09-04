@@ -66,6 +66,7 @@ $checks = [
 	'suite registers through canonical extension hook' => str_contains( $suite, 'cb_core_register_extensions' ),
 	'suite relies on Core API rather than requires_base' => ! str_contains( $suite, "'requires_base'" ),
 	'suite exposes factual service and VAT health' => str_contains( $suite, 'services · %2$d VAT rates' ),
+	'suite links extension/status/dashboard to operational Work' => str_contains( $suite, 'Menu::TOP_LEVEL_SLUG' ) && ! str_contains( $suite, 'Page::SLUG' ),
 	'Work owns canonical service post type' => str_contains( $service, "SERVICE = 'cb_work_service'" ),
 	'public sibling contracts exist' => str_contains( $public, 'Supported read-only' ) && str_contains( $public, 'Supported effective-pricing contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),

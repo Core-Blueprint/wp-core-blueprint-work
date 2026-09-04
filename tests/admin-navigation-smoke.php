@@ -7,6 +7,7 @@ $page = file_get_contents( $root . '/src/Admin/Page.php' );
 $postTypes = file_get_contents( $root . '/src/Content/PostTypes.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 $taxActions = file_get_contents( $root . '/src/Admin/TaxRateActions.php' );
+$suite = file_get_contents( $root . '/src/Integration/Suite.php' );
 
 $checks = [
 	'Work owns a normal top-level WP Admin menu' => str_contains( $menu, 'add_menu_page(' ) && str_contains( $menu, "TOP_LEVEL_SLUG = 'core-blueprint-work'" ),
@@ -17,6 +18,7 @@ $checks = [
 	'Core Blueprint Work settings do not expose operational nav tabs' => ! str_contains( $page, 'nav-tab-wrapper' ) && ! str_contains( $page, "'nav-tabs'" ),
 	'Work boot owns both navigation surfaces' => str_contains( $plugin, 'Menu::init();' ) && str_contains( $plugin, 'Page::init();' ),
 	'VAT actions return only to Work settings' => str_contains( $taxActions, "'page'           => Page::SLUG" ) && ! str_contains( $taxActions, "'view'" ),
+	'Suite links open operational Work rather than settings' => str_contains( $suite, 'Menu::TOP_LEVEL_SLUG' ) && ! str_contains( $suite, 'Page::SLUG' ),
 ];
 
 $failed = false;
