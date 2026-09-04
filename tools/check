@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+while IFS= read -r -d '' file; do
+	php -l "$file" >/dev/null
+done < <(find "$ROOT" -type f -name '*.php' -print0)
+
+php "$ROOT/tests/source-conformance.php"
+php "$ROOT/tests/runtime-smoke.php"
+php "$ROOT/tests/missing-base-smoke.php"
+
+echo "Core Blueprint Work checks passed."
