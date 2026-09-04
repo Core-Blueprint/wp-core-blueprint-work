@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 namespace CB\Work\Support;
-
 defined( 'ABSPATH' ) || exit;
 
 final class Requirements {
@@ -40,8 +39,10 @@ final class Requirements {
 			'\\CB\\Core\\ExtensionRegistry',
 			'\\CB\\Core\\Admin\\PageRegistry',
 			'\\CB\\Core\\Dashboard\\CardRegistry',
+			'\\CB\\Core\\Database\\SchemaRegistry',
 			'\\CB\\Core\\Governance\\Audit',
 			'\\CB\\Core\\Governance\\EventRegistry',
+			'\\CB\\Core\\UI\\Notice',
 		];
 		foreach ( $required_contracts as $class ) {
 			if ( ! class_exists( $class ) ) {

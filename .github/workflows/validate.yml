@@ -1,0 +1,61 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+      - 'work-v1-*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: work-validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: PHP 8.4 checks and package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@2.37.2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Run Work checks
+        shell: bash
+        run: bash tools/check
+
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: find assets -type f -name '*.js' -print0 | xargs -0 -r -n1 node --check
+
+      - name: Resolve package version
+        id: package
+        shell: bash
+        run: echo "version=$(php -r '$s=file_get_contents("core-blueprint-work.php"); preg_match("/Version:\\s+([^\\r\\n]+)/", $s, $m); echo trim($m[1] ?? "");')" >> "$GITHUB_OUTPUT"
+
+      - name: Build canonical plugin ZIP
+        shell: bash
+        run: bash tools/build-release
+
+      - name: Verify canonical ZIP root
+        shell: bash
+        run: test "$(unzip -Z1 "build/core-blueprint-work-${{ steps.package.outputs.version }}.zip" | head -n1 | cut -d/ -f1)" = 'core-blueprint-work'
+
+      - name: Upload validated plugin ZIP
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: core-blueprint-work-${{ steps.package.outputs.version }}
+          path: build/core-blueprint-work-${{ steps.package.outputs.version }}.zip
+          if-no-files-found: error
+          retention-days: 14

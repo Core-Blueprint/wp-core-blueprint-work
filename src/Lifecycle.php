@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work;
 
+use CB\Work\Database\Schema;
 use CB\Work\Support\Requirements;
-
 defined( 'ABSPATH' ) || exit;
 
 final class Lifecycle {
@@ -23,6 +23,7 @@ final class Lifecycle {
 		}
 
 		Capabilities::install();
+		Schema::register();
 	}
 
 	public static function deactivate(): void {

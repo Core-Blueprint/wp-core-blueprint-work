@@ -6,9 +6,11 @@ namespace CB\Work\Integration;
 use CB\Core\Dashboard\CardRegistry;
 use CB\Core\ExtensionRegistry;
 use CB\Work\Admin\Page;
+use CB\Work\Content\PostTypes;
+use CB\Work\Database\Schema;
 use CB\Work\Plugin;
+use CB\Work\Repository\TaxRates;
 use CB\Work\Support\Requirements;
-
 defined( 'ABSPATH' ) || exit;
 
 final class Suite {
@@ -30,11 +32,11 @@ final class Suite {
 
 	public static function register_extension(): void {
 		ExtensionRegistry::register( [
-			'id'            => self::EXTENSION_ID,
-			'plugin_file'   => CB_WORK_BASENAME,
-			'requires_api'  => CB_WORK_REQUIRED_API,
-			'menu_url'      => admin_url( 'admin.php?page=' . Page::SLUG ),
-			'status_id'     => self::STATUS_ID,
+			'id'           => self::EXTENSION_ID,
+			'plugin_file'  => CB_WORK_BASENAME,
+			'requires_api' => CB_WORK_REQUIRED_API,
+			'menu_url'     => admin_url( 'admin.php?page=' . Page::SLUG ),
+			'status_id'    => self::STATUS_ID,
 		] );
 	}
 
@@ -63,6 +65,22 @@ final class Suite {
 			];
 		}
 
+		$installed_schema = (string) get_option( Schema::OPTION, '0' );
+		if ( version_compare( $installed_schema, CB_WORK_SCHEMA_VERSION, '<' ) ) {
+			return [
+				'state'  => 'warn',
+				'detail' => self::i18n_ready() ? __( 'Work database upgrade pending.', 'core-blueprint-work' ) : 'Work database upgrade pending.',
+				'url'    => $url,
+			];
+		}
+		if ( version_compare( $installed_schema, CB_WORK_SCHEMA_VERSION, '>' ) ) {
+			return [
+				'state'  => 'warn',
+				'detail' => self::i18n_ready() ? __( 'Work database schema is newer than this plugin build.', 'core-blueprint-work' ) : 'Work database schema is newer than this plugin build.',
+				'url'    => $url,
+			];
+		}
+
 		if ( ! Plugin::is_booted() ) {
 			return [
 				'state'  => 'warn',
@@ -73,8 +91,12 @@ final class Suite {
 
 		return [
 			'state'  => 'ok',
-			'detail' => self::i18n_ready() ? __( 'Work workspace available', 'core-blueprint-work' ) : 'Work workspace available',
-			'url'    => $url,
+			'detail' => sprintf(
+				self::i18n_ready() ? __( '%1$d services · %2$d VAT rates', 'core-blueprint-work' ) : '%1$d services · %2$d VAT rates',
+				self::service_count(),
+				TaxRates::count()
+			),
+			'url' => $url,
 		];
 	}
 
@@ -90,6 +112,26 @@ final class Suite {
 			'capability' => \CB\Work\Capabilities::MANAGE,
 			'order'      => 10,
 		] );
+		CardRegistry::register_shortcut( self::EXTENSION_ID, [
+			'id'         => 'services',
+			'label'      => self::i18n_ready() ? __( 'Services', 'core-blueprint-work' ) : 'Services',
+			'url'        => admin_url( 'edit.php?post_type=' . PostTypes::SERVICE ),
+			'capability' => \CB\Work\Capabilities::MANAGE,
+			'order'      => 20,
+		] );
+	}
+
+	private static function service_count(): int {
+		$counts = wp_count_posts( PostTypes::SERVICE );
+		$total  = 0;
+		if ( is_object( $counts ) ) {
+			foreach ( get_object_vars( $counts ) as $status => $count ) {
+				if ( ! in_array( $status, [ 'trash', 'auto-draft' ], true ) ) {
+					$total += (int) $count;
+				}
+		}
+		}
+		return $total;
 	}
 
 	private static function i18n_ready(): bool {
