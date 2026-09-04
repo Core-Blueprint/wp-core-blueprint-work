@@ -8,6 +8,18 @@ Work owns the service catalog and VAT/tax catalog, projects, work items, recurre
 
 The extension is builder-agnostic. Public data, query, condition and action contracts are implemented before optional builder adapters. Bricks is the first supported adapter, never a dependency.
 
+## Current implementation
+
+Phase B adds the canonical Work service and VAT authority:
+
+- `cb_work_service` WordPress-native service records;
+- hourly, fixed-price and recurring service defaults;
+- standard amount/currency and VAT treatment;
+- Work-owned VAT rates with immutable historical semantics through activation/deactivation;
+- supported read-only PHP contracts under `CB\Work\PublicApi` for sibling integrations.
+
+CRM migration and customer-specific overrides are intentionally deferred to Phase C.
+
 ## Requirements
 
 - WordPress 7.0+

@@ -4,8 +4,12 @@ declare(strict_types=1);
 namespace CB\Work;
 
 use CB\Work\Admin\Page;
+use CB\Work\Admin\ServicePricing;
+use CB\Work\Admin\TaxRateActions;
+use CB\Work\Content\PostTypes;
+use CB\Work\Content\ServicePricing as ServicePricingDomain;
+use CB\Work\Governance\Events;
 use CB\Work\Support\Requirements;
-
 defined( 'ABSPATH' ) || exit;
 
 final class Plugin {
@@ -18,9 +22,14 @@ final class Plugin {
 		self::$booted = true;
 
 		Capabilities::init();
+		Events::init();
+		PostTypes::init();
+		ServicePricingDomain::init();
 
 		if ( is_admin() ) {
 			Page::init();
+			ServicePricing::init();
+			TaxRateActions::init();
 		}
 	}
 
