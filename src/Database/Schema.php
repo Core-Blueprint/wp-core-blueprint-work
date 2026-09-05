@@ -20,6 +20,9 @@ final class Schema {
 				[ self::class, 'work_types_table' ],
 				[ self::class, 'assignments_table' ],
 				[ self::class, 'relations_table' ],
+				[ self::class, 'recurrence_rules_table' ],
+				[ self::class, 'recurrence_assignments_table' ],
+				[ self::class, 'recurrence_occurrences_table' ],
 			],
 			'install'    => [ self::class, 'install' ],
 		] );
@@ -43,6 +46,21 @@ final class Schema {
 	public static function relations_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_item_relations';
+	}
+
+	public static function recurrence_rules_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_recurrence_rules';
+	}
+
+	public static function recurrence_assignments_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_recurrence_rule_assignments';
+	}
+
+	public static function recurrence_occurrences_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_recurrence_occurrences';
 	}
 
 	public static function install(): bool {
@@ -100,6 +118,58 @@ final class Schema {
 			UNIQUE KEY relation (work_item_id,provider,relation_type,external_id),
 			KEY work_item_id (work_item_id),
 			KEY external_ref (provider,relation_type,external_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::recurrence_rules_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			title varchar(190) NOT NULL,
+			description longtext NOT NULL,
+			customer_provider varchar(64) NOT NULL DEFAULT '',
+			customer_type varchar(64) NOT NULL DEFAULT '',
+			customer_id varchar(191) NOT NULL DEFAULT '',
+			project_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			service_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			work_type_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			priority varchar(32) NOT NULL DEFAULT 'normal',
+			billing_disposition varchar(32) NOT NULL DEFAULT '',
+			frequency varchar(16) NOT NULL,
+			interval_count smallint unsigned NOT NULL DEFAULT 1,
+			start_on date NOT NULL,
+			end_on date NULL,
+			next_occurrence_on date NOT NULL,
+			create_ahead_days smallint unsigned NOT NULL DEFAULT 14,
+			due_offset_days smallint unsigned NOT NULL DEFAULT 0,
+			is_active tinyint(1) unsigned NOT NULL DEFAULT 1,
+			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
+			updated_by bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY active_next (is_active,next_occurrence_on),
+			KEY project_id (project_id),
+			KEY service_id (service_id),
+			KEY work_type_id (work_type_id),
+			KEY customer (customer_provider,customer_type,customer_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::recurrence_assignments_table() . " (
+			rule_id bigint(20) unsigned NOT NULL,
+			user_id bigint(20) unsigned NOT NULL,
+			assigned_at datetime NOT NULL,
+			PRIMARY KEY  (rule_id,user_id),
+			KEY user_id (user_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::recurrence_occurrences_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			rule_id bigint(20) unsigned NOT NULL,
+			occurrence_on date NOT NULL,
+			work_item_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			generated_at datetime NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY rule_occurrence (rule_id,occurrence_on),
+			KEY work_item_id (work_item_id)
 		) {$charset};" );
 
 		/*
