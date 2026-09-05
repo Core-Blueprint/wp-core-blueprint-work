@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Repository;
 
+use CB\Work\Content\PostTypes;
+use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
 use CB\Work\Domain\WorkItemPriority;
@@ -12,6 +14,10 @@ use CB\Work\PublicApi\Services;
 defined( 'ABSPATH' ) || exit;
 
 final class WorkItems {
+	public static function init(): void {
+		add_action( 'before_delete_post', [ self::class, 'before_delete_post' ], 10, 2 );
+	}
+
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 100, array $statuses = [] ): array {
 		return self::query( $limit, $statuses );
@@ -27,54 +33,83 @@ final class WorkItems {
 
 	/** @return array<string,mixed>|null */
 	public static function get( int $id ): ?array {
-		if ( ! self::schema_ready() || $id <= 0 ) {
+		$post = $id > 0 ? get_post( $id ) : null;
+		if (
+			! $post instanceof \WP_Post
+			|| PostTypes::WORK_ITEM !== $post->post_type
+			|| in_array( $post->post_status, [ 'trash', 'auto-draft' ], true )
+		) {
 			return null;
 		}
-		global $wpdb;
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . Schema::work_items_table() . ' WHERE id = %d LIMIT 1', $id ),
-			ARRAY_A
-		);
-		return is_array( $row ) ? self::hydrate( $row ) : null;
+		return self::hydrate( $post );
 	}
 
 	public static function count(): int {
-		if ( ! self::schema_ready() ) {
-			return 0;
+		$counts = wp_count_posts( PostTypes::WORK_ITEM );
+		$total  = 0;
+		if ( is_object( $counts ) ) {
+			foreach ( get_object_vars( $counts ) as $status => $count ) {
+				if ( ! in_array( $status, [ 'trash', 'auto-draft', 'inherit' ], true ) ) {
+					$total += max( 0, (int) $count );
+				}
+			}
 		}
-		global $wpdb;
-		return max( 0, (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Schema::work_items_table() ) );
+		return $total;
 	}
 
 	public static function count_for_project( int $project_id ): int {
-		if ( ! self::schema_ready() || $project_id <= 0 ) {
+		if ( $project_id <= 0 ) {
 			return 0;
 		}
-		global $wpdb;
-		return max( 0, (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM ' . Schema::work_items_table() . ' WHERE project_id = %d', $project_id ) ) );
+		$query = new \WP_Query( [
+			'post_type'              => PostTypes::WORK_ITEM,
+			'post_status'            => self::managed_post_statuses(),
+			'posts_per_page'         => 1,
+			'fields'                 => 'ids',
+			'no_found_rows'          => false,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'meta_query'             => [
+				[
+					'key'   => WorkItemMeta::PROJECT_ID,
+					'value' => $project_id,
+					'type'  => 'NUMERIC',
+				],
+			],
+		] );
+		return max( 0, (int) $query->found_posts );
 	}
 
 	/** @return array<string,int> */
 	public static function counts_by_status(): array {
 		$counts = array_fill_keys( WorkItemStatus::all(), 0 );
-		if ( ! self::schema_ready() ) {
-			return $counts;
-		}
-		global $wpdb;
-		$rows = $wpdb->get_results( 'SELECT status, COUNT(*) AS total FROM ' . Schema::work_items_table() . ' GROUP BY status', ARRAY_A );
-		if ( ! is_array( $rows ) ) {
-			return $counts;
-		}
-		foreach ( $rows as $row ) {
-			$status = (string) ( $row['status'] ?? '' );
-			if ( WorkItemStatus::is_valid( $status ) ) {
-				$counts[ $status ] = max( 0, (int) ( $row['total'] ?? 0 ) );
+		$query = new \WP_Query( [
+			'post_type'              => PostTypes::WORK_ITEM,
+			'post_status'            => self::managed_post_statuses(),
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => true,
+			'update_post_term_cache' => false,
+		] );
+		foreach ( $query->posts as $post_id ) {
+			$status = sanitize_key( (string) get_post_meta( (int) $post_id, WorkItemMeta::STATUS, true ) );
+			if ( ! WorkItemStatus::is_valid( $status ) ) {
+				$status = WorkItemStatus::PLANNED;
 			}
+			$counts[ $status ]++;
 		}
 		return $counts;
 	}
 
-	/** @param array<string,mixed> $input */
+	/**
+	 * Programmatic Work Item creation through the canonical CPT domain.
+	 * Human administration uses the native Gutenberg Work Item editor.
+	 *
+	 * @param array<string,mixed> $input
+	 */
 	public static function create( array $input ): int {
 		if ( ! self::schema_ready() ) {
 			return 0;
@@ -84,63 +119,43 @@ final class WorkItems {
 			return 0;
 		}
 
-		global $wpdb;
-		$now = current_time( 'mysql', true );
-		$wpdb->query( 'START TRANSACTION' );
-		$ok = $wpdb->insert(
-			Schema::work_items_table(),
-			[
-				'title'               => $normalized['title'],
-				'description'         => $normalized['description'],
-				'customer_provider'   => $normalized['customer']['provider'],
-				'customer_type'       => $normalized['customer']['type'],
-				'customer_id'         => $normalized['customer']['id'],
-				'project_id'          => $normalized['project_id'] > 0 ? $normalized['project_id'] : null,
-				'service_id'          => $normalized['service_id'] > 0 ? $normalized['service_id'] : null,
-				'work_type_id'        => $normalized['work_type_id'] > 0 ? $normalized['work_type_id'] : null,
-				'priority'            => $normalized['priority'],
-				'scheduled_on'        => $normalized['scheduled_on'],
-				'due_on'              => $normalized['due_on'],
-				'status'              => WorkItemStatus::PLANNED,
-				'billing_disposition' => $normalized['billing'],
-				'completed_at'        => null,
-				'completed_by'        => null,
-				'created_by'          => max( 0, (int) ( $input['created_by'] ?? 0 ) ),
-				'created_at'          => $now,
-				'updated_at'          => $now,
-			],
-			[ '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s' ]
-		);
-		if ( false === $ok ) {
-			$wpdb->query( 'ROLLBACK' );
+		$post_id = wp_insert_post( [
+			'post_type'    => PostTypes::WORK_ITEM,
+			'post_status'  => 'publish',
+			'post_title'   => $normalized['title'],
+			'post_content' => wp_kses_post( $normalized['description'] ),
+			'post_author'  => max( 0, (int) ( $input['created_by'] ?? get_current_user_id() ) ),
+		], true );
+		if ( is_wp_error( $post_id ) || $post_id <= 0 ) {
 			return 0;
 		}
 
-		$id = (int) $wpdb->insert_id;
-		if ( ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
-			$wpdb->query( 'ROLLBACK' );
+		WorkItemMeta::save_details( $post_id, $normalized );
+		WorkItemMeta::ensure_status( $post_id );
+		if ( ! self::replace_assignments( $post_id, $normalized['assignments'] ) ) {
+			wp_delete_post( $post_id, true );
 			return 0;
 		}
 
 		$relation = self::reference( $input, 'source_' );
 		if ( false === $relation ) {
-			$wpdb->query( 'ROLLBACK' );
+			wp_delete_post( $post_id, true );
 			return 0;
 		}
-		if ( '' !== $relation['provider'] && ! self::add_relation( $id, $relation['provider'], $relation['type'], $relation['id'] ) ) {
-			$wpdb->query( 'ROLLBACK' );
+		if ( '' !== $relation['provider'] && ! self::add_relation( $post_id, $relation['provider'], $relation['type'], $relation['id'] ) ) {
+			wp_delete_post( $post_id, true );
 			return 0;
 		}
 
-		$wpdb->query( 'COMMIT' );
-		do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
-		return $id;
+		WorkItemMeta::mark_initialized( $post_id );
+		do_action( 'cb_work_work_item_created', $post_id, self::get( $post_id ) );
+		return $post_id;
 	}
 
 	/** @param array<string,mixed> $input */
 	public static function update( int $id, array $input ): bool {
 		$current = self::get( $id );
-		if ( null === $current ) {
+		if ( null === $current || ! self::schema_ready() ) {
 			return false;
 		}
 		$normalized = self::normalize_write( $input, $current );
@@ -148,46 +163,62 @@ final class WorkItems {
 			return false;
 		}
 
-		global $wpdb;
-		$wpdb->query( 'START TRANSACTION' );
-		$updated = $wpdb->update(
-			Schema::work_items_table(),
-			[
-				'title'               => $normalized['title'],
-				'description'         => $normalized['description'],
-				'customer_provider'   => $normalized['customer']['provider'],
-				'customer_type'       => $normalized['customer']['type'],
-				'customer_id'         => $normalized['customer']['id'],
-				'project_id'          => $normalized['project_id'] > 0 ? $normalized['project_id'] : null,
-				'service_id'          => $normalized['service_id'] > 0 ? $normalized['service_id'] : null,
-				'work_type_id'        => $normalized['work_type_id'] > 0 ? $normalized['work_type_id'] : null,
-				'priority'            => $normalized['priority'],
-				'scheduled_on'        => $normalized['scheduled_on'],
-				'due_on'              => $normalized['due_on'],
-				'billing_disposition' => $normalized['billing'],
-				'updated_at'          => current_time( 'mysql', true ),
-			],
-			[ 'id' => $id ],
-			[ '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s' ],
-			[ '%d' ]
-		);
-		if ( false === $updated ) {
-			$wpdb->query( 'ROLLBACK' );
+		$result = wp_update_post( [
+			'ID'           => $id,
+			'post_title'   => $normalized['title'],
+			'post_content' => wp_kses_post( $normalized['description'] ),
+		], true );
+		if ( is_wp_error( $result ) || $result <= 0 ) {
 			return false;
 		}
 
+		WorkItemMeta::save_details( $id, $normalized );
+		WorkItemMeta::ensure_status( $id );
 		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
-			$wpdb->query( 'ROLLBACK' );
 			return false;
 		}
-		$wpdb->query( 'COMMIT' );
+		if ( ! WorkItemMeta::is_initialized( $id ) ) {
+			WorkItemMeta::mark_initialized( $id );
+		}
+		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+		return true;
+	}
+
+	/**
+	 * Persists Work Item meta-box values after WordPress has already saved the
+	 * Gutenberg title/content for the canonical CPT object.
+	 *
+	 * @param array<string,mixed> $input
+	 */
+	public static function save_editor( int $id, array $input ): bool {
+		$current = self::get( $id );
+		if ( null === $current || ! self::schema_ready() ) {
+			return false;
+		}
+		$normalized = self::normalize_write( $input, $current );
+		if ( null === $normalized ) {
+			return false;
+		}
+
+		$was_initialized = WorkItemMeta::is_initialized( $id );
+		WorkItemMeta::save_details( $id, $normalized );
+		WorkItemMeta::ensure_status( $id );
+		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
+			return false;
+		}
+
+		if ( ! $was_initialized ) {
+			WorkItemMeta::mark_initialized( $id );
+			do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
+			return true;
+		}
 		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
 		return true;
 	}
 
 	public static function transition_status( int $id, string $to, int $actor_user_id = 0 ): bool {
 		$item = self::get( $id );
-		$to = sanitize_key( $to );
+		$to   = sanitize_key( $to );
 		if ( null === $item || ! WorkItemStatus::is_valid( $to ) ) {
 			return false;
 		}
@@ -195,29 +226,14 @@ final class WorkItems {
 		if ( ! WorkItemStatus::can_transition( $from, $to ) ) {
 			return false;
 		}
-		global $wpdb;
-		$data = [
-			'status'     => $to,
-			'updated_at' => current_time( 'mysql', true ),
-		];
-		$formats = [ '%s', '%s' ];
-		if ( WorkItemStatus::COMPLETED === $to ) {
-			$data['completed_at'] = current_time( 'mysql', true );
-			$data['completed_by'] = max( 0, $actor_user_id );
-			$formats[] = '%s';
-			$formats[] = '%d';
-		}
-		$updated = $wpdb->update( Schema::work_items_table(), $data, [ 'id' => $id ], $formats, [ '%d' ] );
-		if ( false === $updated ) {
-			return false;
-		}
+		WorkItemMeta::set_status( $id, $to, $actor_user_id );
 		do_action( 'cb_work_work_item_status_changed', $id, $from, $to, self::get( $id ) );
 		return true;
 	}
 
 	/** @return int[] */
 	public static function assignments( int $work_item_id ): array {
-		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
+		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
 			return [];
 		}
 		global $wpdb;
@@ -227,7 +243,7 @@ final class WorkItems {
 
 	/** @return array<int,array<string,mixed>> */
 	public static function relations( int $work_item_id ): array {
-		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
+		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
 			return [];
 		}
 		global $wpdb;
@@ -240,12 +256,19 @@ final class WorkItems {
 
 	/** @param int[] $user_ids */
 	public static function replace_assignments( int $work_item_id, array $user_ids ): bool {
-		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
+		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
 			return false;
 		}
+		$user_ids = self::normalize_assignments( $user_ids );
+		if ( null === $user_ids ) {
+			return false;
+		}
+
 		global $wpdb;
+		$wpdb->query( 'START TRANSACTION' );
 		$deleted = $wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
 		if ( false === $deleted ) {
+			$wpdb->query( 'ROLLBACK' );
 			return false;
 		}
 		$now = current_time( 'mysql', true );
@@ -256,14 +279,16 @@ final class WorkItems {
 				[ '%d', '%d', '%s' ]
 			);
 			if ( false === $ok ) {
+				$wpdb->query( 'ROLLBACK' );
 				return false;
 			}
 		}
+		$wpdb->query( 'COMMIT' );
 		return true;
 	}
 
 	public static function add_relation( int $work_item_id, string $provider, string $relation_type, string $external_id ): bool {
-		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
+		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
 			return false;
 		}
 		$provider      = substr( sanitize_key( $provider ), 0, 64 );
@@ -287,37 +312,62 @@ final class WorkItems {
 		return false !== $ok;
 	}
 
-	/** @return array<int,array<string,mixed>> */
-	private static function query( int $limit, array $statuses = [], int $project_id = 0 ): array {
-		if ( ! self::schema_ready() ) {
-			return [];
+	public static function purge_links( int $work_item_id ): void {
+		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
+			return;
 		}
 		global $wpdb;
-		$limit    = max( 1, min( 500, $limit ) );
-		$statuses = array_values( array_filter( array_map( 'sanitize_key', $statuses ), [ WorkItemStatus::class, 'is_valid' ] ) );
+		$wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
+		$wpdb->delete( Schema::relations_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
+	}
 
-		$where = [];
-		$args  = [];
+	public static function before_delete_post( int $post_id, \WP_Post $post ): void {
+		if ( PostTypes::WORK_ITEM === $post->post_type ) {
+			self::purge_links( $post_id );
+		}
+	}
+
+	/** @return array<int,array<string,mixed>> */
+	private static function query( int $limit, array $statuses = [], int $project_id = 0 ): array {
+		$limit = max( 1, min( 500, $limit ) );
+		$statuses = array_values( array_filter( array_map( 'sanitize_key', $statuses ), [ WorkItemStatus::class, 'is_valid' ] ) );
+		$meta_query = [];
 		if ( $project_id > 0 ) {
-			$where[] = 'project_id = %d';
-			$args[]  = $project_id;
+			$meta_query[] = [
+				'key'   => WorkItemMeta::PROJECT_ID,
+				'value' => $project_id,
+				'type'  => 'NUMERIC',
+			];
 		}
 		if ( [] !== $statuses ) {
-			$where[] = 'status IN (' . implode( ',', array_fill( 0, count( $statuses ), '%s' ) ) . ')';
-			array_push( $args, ...$statuses );
+			$meta_query[] = [
+				'key'     => WorkItemMeta::STATUS,
+				'value'   => $statuses,
+				'compare' => 'IN',
+			];
 		}
 
-		$sql = 'SELECT * FROM ' . Schema::work_items_table();
-		if ( [] !== $where ) {
-			$sql .= ' WHERE ' . implode( ' AND ', $where );
+		$args = [
+			'post_type'           => PostTypes::WORK_ITEM,
+			'post_status'         => self::managed_post_statuses(),
+			'posts_per_page'      => 500,
+			'orderby'             => [ 'date' => 'DESC', 'ID' => 'DESC' ],
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+		];
+		if ( [] !== $meta_query ) {
+			$args['meta_query'] = count( $meta_query ) > 1 ? [ 'relation' => 'AND', ...$meta_query ] : $meta_query;
 		}
-		$sql .= " ORDER BY CASE status WHEN 'in_progress' THEN 0 WHEN 'planned' THEN 1 ELSE 2 END, COALESCE(due_on, '9999-12-31') ASC, id DESC LIMIT %d";
-		$args[] = $limit;
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$args ), ARRAY_A );
-		if ( ! is_array( $rows ) ) {
-			return [];
+
+		$query = new \WP_Query( $args );
+		$items = [];
+		foreach ( $query->posts as $post ) {
+			if ( $post instanceof \WP_Post ) {
+				$items[] = self::hydrate( $post );
+			}
 		}
-		return array_values( array_map( [ self::class, 'hydrate' ], $rows ) );
+		usort( $items, [ self::class, 'compare_workload' ] );
+		return array_slice( $items, 0, $limit );
 	}
 
 	/**
@@ -327,7 +377,7 @@ final class WorkItems {
 	 */
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
 		$title        = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
-		$description  = sanitize_textarea_field( (string) ( $input['description'] ?? ( $current['description'] ?? '' ) ) );
+		$description  = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
 		$customer     = self::reference( $input, 'customer_', $current );
 		$project_id   = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
 		$service_id   = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
@@ -379,31 +429,48 @@ final class WorkItems {
 		return [
 			'title'               => $title,
 			'description'         => $description,
-			'customer'            => $customer,
+			'customer_provider'   => $customer['provider'],
+			'customer_type'       => $customer['type'],
+			'customer_id'         => $customer['id'],
 			'project_id'          => $project_id,
 			'service_id'          => $service_id,
 			'work_type_id'        => $work_type_id,
 			'priority'            => $priority,
 			'scheduled_on'        => $scheduled_on,
 			'due_on'              => $due_on,
-			'billing'             => $billing,
+			'billing_disposition' => $billing,
 			'assignments'         => $assignments,
 			'assignments_changed' => $assignments_changed,
 		];
 	}
 
-	/** @param array<string,mixed> $row @return array<string,mixed> */
-	private static function hydrate( array $row ): array {
-		$id = (int) ( $row['id'] ?? 0 );
-		$row['id']                = $id;
-		$row['project_id']        = null === ( $row['project_id'] ?? null ) ? null : (int) $row['project_id'];
-		$row['service_id']        = null === ( $row['service_id'] ?? null ) ? null : (int) $row['service_id'];
-		$row['work_type_id']      = null === ( $row['work_type_id'] ?? null ) ? null : (int) $row['work_type_id'];
-		$row['completed_by']      = null === ( $row['completed_by'] ?? null ) ? null : (int) $row['completed_by'];
-		$row['created_by']        = (int) ( $row['created_by'] ?? 0 );
-		$row['assigned_user_ids'] = self::assignments( $id );
-		$row['relations']         = self::relations( $id );
-		return $row;
+	/** @return array<string,mixed> */
+	private static function hydrate( \WP_Post $post ): array {
+		$meta = WorkItemMeta::get( (int) $post->ID );
+		return [
+			'id'                  => (int) $post->ID,
+			'title'               => sanitize_text_field( (string) $post->post_title ),
+			'description'         => (string) $post->post_content,
+			'post_status'         => (string) $post->post_status,
+			'customer_provider'   => $meta['customer_provider'],
+			'customer_type'       => $meta['customer_type'],
+			'customer_id'         => $meta['customer_id'],
+			'project_id'          => $meta['project_id'],
+			'service_id'          => $meta['service_id'],
+			'work_type_id'        => $meta['work_type_id'],
+			'priority'            => $meta['priority'],
+			'scheduled_on'        => $meta['scheduled_on'],
+			'due_on'              => $meta['due_on'],
+			'status'              => $meta['status'],
+			'billing_disposition' => $meta['billing_disposition'],
+			'completed_at'        => $meta['completed_at'],
+			'completed_by'        => $meta['completed_by'],
+			'created_by'          => (int) $post->post_author,
+			'created_at'          => (string) $post->post_date_gmt,
+			'updated_at'          => (string) $post->post_modified_gmt,
+			'assigned_user_ids'   => self::assignments( (int) $post->ID ),
+			'relations'           => self::relations( (int) $post->ID ),
+		];
 	}
 
 	/**
@@ -460,6 +527,32 @@ final class WorkItems {
 		}
 		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
 		return $date && $date->format( 'Y-m-d' ) === $value ? $value : null;
+	}
+
+	/** @param array<string,mixed> $a @param array<string,mixed> $b */
+	private static function compare_workload( array $a, array $b ): int {
+		$rank = [ WorkItemStatus::IN_PROGRESS => 0, WorkItemStatus::PLANNED => 1 ];
+		$a_rank = $rank[ (string) $a['status'] ] ?? 2;
+		$b_rank = $rank[ (string) $b['status'] ] ?? 2;
+		if ( $a_rank !== $b_rank ) {
+			return $a_rank <=> $b_rank;
+		}
+		$a_due = (string) ( $a['due_on'] ?? '9999-12-31' );
+		$b_due = (string) ( $b['due_on'] ?? '9999-12-31' );
+		if ( $a_due !== $b_due ) {
+			return $a_due <=> $b_due;
+		}
+		return (int) $b['id'] <=> (int) $a['id'];
+	}
+
+	private static function exists( int $work_item_id ): bool {
+		$post = $work_item_id > 0 ? get_post( $work_item_id ) : null;
+		return $post instanceof \WP_Post && PostTypes::WORK_ITEM === $post->post_type && 'trash' !== $post->post_status;
+	}
+
+	/** @return string[] */
+	private static function managed_post_statuses(): array {
+		return [ 'publish', 'draft', 'pending', 'private', 'future' ];
 	}
 
 	private static function schema_ready(): bool {
