@@ -17,6 +17,7 @@ namespace {
 	$GLOBALS['cb_work_picker_calls'] = [];
 	$GLOBALS['cb_work_picker_enqueue_count'] = 0;
 	$GLOBALS['cb_work_screen'] = (object) [ 'post_type' => 'cb_work_item' ];
+	$GLOBALS['cb_work_audit_events'] = [];
 
 	function add_action( string $hook, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool { return true; }
 	function add_filter( string $hook, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool { return true; }
@@ -55,7 +56,7 @@ namespace {
 namespace CB\Core\Governance {
 	final class Audit {
 		public static function record( string $id, string $severity = 'info', array $context = [] ): bool {
-			unset( $id, $severity, $context );
+			$GLOBALS['cb_work_audit_events'][] = [ 'id' => $id, 'severity' => $severity, 'context' => $context ];
 			return true;
 		}
 	}
@@ -85,6 +86,11 @@ namespace CB\Work\Content {
 		public const PROJECT = 'cb_work_project';
 		public const WORK_ITEM = 'cb_work_item';
 	}
+
+	final class WorkItemMeta {
+		public static bool $initialized = false;
+		public static function is_initialized( int $post_id ): bool { unset( $post_id ); return self::$initialized; }
+	}
 }
 
 namespace CB\Work\Domain {
@@ -103,6 +109,7 @@ namespace CB\Work\Domain {
 
 namespace CB\Work\Governance {
 	final class Events {
+		public const WORK_ITEM_CREATED = 'work.item.created';
 		public const WORK_ITEM_STATUS_CHANGED = 'work.item.status.changed';
 		public const WORK_ITEM_UPDATED = 'work.item.updated';
 	}
@@ -136,7 +143,12 @@ namespace CB\Work\Repository {
 		public static ?array $current = null;
 		public static array $saved = [];
 		public static function get( int $id ): ?array { unset( $id ); return self::$current; }
-		public static function save_editor( int $id, array $input ): bool { unset( $id ); self::$saved = $input; return true; }
+		public static function save_editor( int $id, array $input ): bool {
+			unset( $id );
+			self::$saved = $input;
+			\CB\Work\Content\WorkItemMeta::$initialized = true;
+			return true;
+		}
 		public static function transition_status( int $id, string $status, int $actor_id = 0 ): bool { unset( $id, $status, $actor_id ); return true; }
 	}
 }
@@ -188,6 +200,10 @@ namespace {
 	assert_true( 'crm' === ( $saved['customer_provider'] ?? '' ) && 'contact' === ( $saved['customer_type'] ?? '' ) && '42' === ( $saved['customer_id'] ?? '' ), 'Editor save resolves the submitted CRM object through the documented adapter.' );
 	assert_true( '3,7' === ( $saved['assigned_user_ids'] ?? '' ), 'Editor save forwards ObjectPicker assignments to repository normalization.' );
 	assert_true( ! array_key_exists( 'customer_object_id', $saved ), 'Transient picker object id does not leak into canonical Work Item persistence.' );
+	assert_true( [ 'work.item.created' ] === array_column( $GLOBALS['cb_work_audit_events'], 'id' ), 'First canonical editor save records Work Item creation, not update.' );
+
+	\CB\Work\Admin\WorkItems::save( 123, $post, true );
+	assert_true( [ 'work.item.created', 'work.item.updated' ] === array_column( $GLOBALS['cb_work_audit_events'], 'id' ), 'Later canonical editor save records Work Item update.' );
 
 	echo "Work Item editor smoke passed.\n";
 }
