@@ -102,10 +102,10 @@ final class Operations {
 
 			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
 			<p class="description"><?php echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></p>
-			<?php if ( [] === $items ) : ?>
-				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
-			<?php elseif ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
+			<?php if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_calendar( $items, $project_map, $state ); ?>
+			<?php elseif ( [] === $items ) : ?>
+				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
 			<?php elseif ( WorkItemViewState::VIEW_KANBAN === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_kanban( $items, $project_map, $type_map, $state ); ?>
 			<?php elseif ( WorkItemViewState::VIEW_LIST === (string) $state['view'] ) : ?>
@@ -458,8 +458,8 @@ final class Operations {
 			<?php endfor; ?>
 			<?php for ( $day = 1; $day <= $days_in_month; $day++ ) : ?>
 				<?php
-				$date       = $month . '-' . str_pad( (string) $day, 2, '0', STR_PAD_LEFT );
-				$day_items  = $items_by_date[ $date ] ?? [];
+				$date      = $month . '-' . str_pad( (string) $day, 2, '0', STR_PAD_LEFT );
+				$day_items = $items_by_date[ $date ] ?? [];
 				?>
 				<td style="vertical-align:top;min-height:140px">
 					<strong><?php echo esc_html( (string) $day ); ?></strong>
