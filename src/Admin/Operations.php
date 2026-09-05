@@ -243,6 +243,10 @@ final class Operations {
 				<?php Pickers::customer( 'customer', 'cb-work-filter-customer', $selected_customer ); ?>
 			</p>
 			<p>
+				<label for="cb-work-filter-assignee"><strong><?php esc_html_e( 'Assignee', 'core-blueprint-work' ); ?></strong></label><br>
+				<?php Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) $state['assignee_id'] ); ?>
+			</p>
+			<p>
 				<label for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
 				<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
 				<label for="cb-work-filter-scheduled-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
