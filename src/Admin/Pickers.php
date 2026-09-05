@@ -26,7 +26,10 @@ final class Pickers {
 			return;
 		}
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
-		if ( PostTypes::PROJECT !== (string) $screen->post_type && Menu::WORK_ITEMS_SLUG !== $page ) {
+		if (
+			! in_array( (string) $screen->post_type, [ PostTypes::PROJECT, PostTypes::WORK_ITEM ], true )
+			&& Menu::WORK_ITEMS_SLUG !== $page
+		) {
 			return;
 		}
 		Assets::enqueue_object_picker();

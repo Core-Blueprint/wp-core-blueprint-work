@@ -42,7 +42,9 @@ final class Requirements {
 			'\\CB\\Core\\Database\\SchemaRegistry',
 			'\\CB\\Core\\Governance\\Audit',
 			'\\CB\\Core\\Governance\\EventRegistry',
+			'\\CB\\Core\\UI\\Assets',
 			'\\CB\\Core\\UI\\Notice',
+			'\\CB\\Core\\UI\\ObjectPicker',
 		];
 		foreach ( $required_contracts as $class ) {
 			if ( ! class_exists( $class ) ) {

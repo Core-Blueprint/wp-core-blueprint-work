@@ -10,16 +10,16 @@ The extension is builder-agnostic. Public data, query, condition and action cont
 
 ## Current implementation
 
-Through D1, Work provides:
+Through D1.2, Work provides:
 
 - canonical `cb_work_service` service records and Work-owned VAT/tax rates;
 - effective pricing resolution with optional customer-agreement providers;
-- relational Projects and Work Items;
+- WordPress-native CPT-backed Projects and Work Items;
 - Work Type classification;
 - planned / in-progress / completed / skipped / cancelled lifecycle;
 - low / normal / high / urgent priorities;
 - hourly / fixed / included / non-billable classification kept separate from completion state;
-- multiple WordPress-user assignments per Work Item;
+- multiple WordPress-user assignments per Work Item through relational child records;
 - generic provider/type/external-ID relations for future sibling integrations;
 - a normal top-level **Work** WP Admin menu for operational use;
 - settings-only `Core Blueprint → Work` configuration;
