@@ -6,6 +6,7 @@ namespace CB\Work\Admin;
 use CB\Core\Governance\Audit;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
+use CB\Work\Content\WorkItemMeta;
 use CB\Work\Domain\BillingDisposition;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
@@ -47,7 +48,7 @@ final class WorkItems {
 			$project_id = (int) $item['project_id'];
 		}
 
-		$selected_customer = null;
+		$selected_customer  = null;
 		$customer_unresolved = false;
 		if ( is_array( $item ) && '' !== (string) ( $item['customer_provider'] ?? '' ) ) {
 			$selected_customer = CRMCustomers::selected(
@@ -176,8 +177,9 @@ final class WorkItems {
 			return;
 		}
 
-		$input = isset( $_POST['cb_work_item'] ) && is_array( $_POST['cb_work_item'] ) ? wp_unslash( $_POST['cb_work_item'] ) : [];
-		$current = WorkItemRepository::get( $post_id );
+		$input           = isset( $_POST['cb_work_item'] ) && is_array( $_POST['cb_work_item'] ) ? wp_unslash( $_POST['cb_work_item'] ) : [];
+		$current         = WorkItemRepository::get( $post_id );
+		$was_initialized = WorkItemMeta::is_initialized( $post_id );
 		if ( array_key_exists( 'customer_object_id', $input ) ) {
 			$customer_id = absint( $input['customer_object_id'] );
 			$reference   = CRMCustomers::reference( $customer_id );
@@ -195,15 +197,21 @@ final class WorkItems {
 		}
 
 		$status = isset( $_POST['cb_work_item_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['cb_work_item_status'] ) ) : '';
-		$from = is_array( $current ) ? (string) ( $current['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
+		$from   = is_array( $current ) ? (string) ( $current['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
 
 		if ( ! WorkItemRepository::save_editor( $post_id, $input ) ) {
 			return;
 		}
+
+		Audit::record(
+			$was_initialized ? Events::WORK_ITEM_UPDATED : Events::WORK_ITEM_CREATED,
+			'notice',
+			[ 'work_item_id' => $post_id ]
+		);
+
 		if ( '' !== $status && $status !== $from && WorkItemRepository::transition_status( $post_id, $status, get_current_user_id() ) ) {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $post_id, 'from' => $from, 'to' => $status ] );
 		}
-		Audit::record( Events::WORK_ITEM_UPDATED, 'notice', [ 'work_item_id' => $post_id ] );
 	}
 
 	public static function title_placeholder( string $title, \WP_Post $post ): string {
