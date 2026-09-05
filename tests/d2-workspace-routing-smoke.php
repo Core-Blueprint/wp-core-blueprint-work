@@ -23,7 +23,8 @@ $checks = [
 	'view switcher and filter form preserve canonical view state' => str_contains( $operations, 'render_work_item_views( $state )' )
 		&& str_contains( $operations, "name=\"view\" value=\"<?php echo esc_attr( (string) \$state['view'] ); ?>\"" )
 		&& str_contains( $operations, "[ 'view' => (string) \$state['view'] ]" ),
-	'customer filtering stays on the shared Base ObjectPicker path' => str_contains( $operations, "Pickers::customer( 'customer', 'cb-work-filter-customer'" ),
+	'customer and assignee filtering stay on shared Base ObjectPicker paths' => str_contains( $operations, "Pickers::customer( 'customer', 'cb-work-filter-customer'" )
+		&& str_contains( $operations, "Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) \$state['assignee_id'] )" ),
 	'invalid customer state fails closed instead of broadening the dataset' => str_contains( $operations, "false === \$state['customer_valid']" )
 		&& str_contains( $operations, "? WorkItems::search( (array) \$state['query'] )" )
 		&& str_contains( $operations, "'items' => [], 'total' => 0" ),
