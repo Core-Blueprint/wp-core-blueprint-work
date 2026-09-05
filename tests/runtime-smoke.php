@@ -142,7 +142,7 @@ namespace {
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
-	assert_true( '1.0.0-rc6' === CB_WORK_VERSION, 'Candidate exposes unambiguous rc6 staging version.' );
+	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
 	assert_true( '1.3' === CB_WORK_SCHEMA_VERSION, 'D1.2 exposes schema version 1.3.' );
 	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
