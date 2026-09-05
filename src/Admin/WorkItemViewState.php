@@ -1,0 +1,175 @@
+<?php
+declare(strict_types=1);
+
+namespace CB\Work\Admin;
+
+use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkItemPriority;
+use CB\Work\Domain\WorkItemStatus;
+use CB\Work\Integration\CRMCustomers;
+use CB\Work\Query\WorkItemQuery;
+
+defined( 'ABSPATH' ) || exit;
+
+/** Canonical URL/view state for the operational Work Items workspace. */
+final class WorkItemViewState {
+	public const VIEW_LIST     = 'list';
+	public const VIEW_KANBAN   = 'kanban';
+	public const VIEW_TABLE    = 'table';
+	public const VIEW_CALENDAR = 'calendar';
+
+	/** @return string[] */
+	public static function views(): array {
+		return [ self::VIEW_LIST, self::VIEW_KANBAN, self::VIEW_TABLE, self::VIEW_CALENDAR ];
+	}
+
+	/**
+	 * @param array<string,mixed> $request
+	 * @return array<string,mixed>
+	 */
+	public static function from_request( array $request ): array {
+		$view = self::key( $request['view'] ?? self::VIEW_TABLE );
+		if ( ! in_array( $view, self::views(), true ) ) {
+			$view = self::VIEW_TABLE;
+		}
+
+		$status = self::key( $request['status'] ?? '' );
+		$statuses = [];
+		if ( 'active' === $status ) {
+			$statuses = WorkItemStatus::active();
+		} elseif ( WorkItemStatus::is_valid( $status ) ) {
+			$statuses = [ $status ];
+		} else {
+			$status = '';
+		}
+
+		$priority = self::key( $request['priority'] ?? '' );
+		if ( ! WorkItemPriority::is_valid( $priority ) ) {
+			$priority = '';
+		}
+
+		$billing = self::key( $request['billing'] ?? '' );
+		if ( ! BillingDisposition::is_valid( $billing ) ) {
+			$billing = '';
+		}
+
+		$customer_token = self::text( $request['customer'] ?? '' );
+		$customer       = null;
+		$customer_valid = true;
+		if ( '' !== $customer_token ) {
+			$reference = CRMCustomers::reference( $customer_token );
+			if ( is_array( $reference ) ) {
+				$customer = $reference;
+			} else {
+				$customer_valid = false;
+			}
+		}
+
+		$sort = self::key( $request['sort'] ?? WorkItemQuery::SORT_WORKLOAD );
+		if ( ! in_array( $sort, WorkItemQuery::sorts(), true ) ) {
+			$sort = WorkItemQuery::SORT_WORKLOAD;
+		}
+
+		$state = [
+			'view'           => $view,
+			'search'         => self::text( $request['s'] ?? '' ),
+			'status'         => $status,
+			'priority'       => $priority,
+			'project_id'     => absint( $request['project_id'] ?? 0 ),
+			'service_id'     => absint( $request['service_id'] ?? 0 ),
+			'work_type_id'   => absint( $request['work_type_id'] ?? 0 ),
+			'assignee_id'    => absint( $request['assignee_id'] ?? 0 ),
+			'billing'        => $billing,
+			'customer'       => $customer_token,
+			'customer_valid' => $customer_valid,
+			'scheduled_from' => self::date( $request['scheduled_from'] ?? '' ),
+			'scheduled_to'   => self::date( $request['scheduled_to'] ?? '' ),
+			'due_from'       => self::date( $request['due_from'] ?? '' ),
+			'due_to'         => self::date( $request['due_to'] ?? '' ),
+			'sort'           => $sort,
+			'page'           => max( 1, absint( $request['paged'] ?? 1 ) ),
+			'per_page'       => 50,
+		];
+
+		$state['query'] = WorkItemQuery::normalize( [
+			'search'               => $state['search'],
+			'statuses'             => $statuses,
+			'priorities'           => '' === $priority ? [] : [ $priority ],
+			'project_id'           => $state['project_id'],
+			'service_id'           => $state['service_id'],
+			'work_type_id'         => $state['work_type_id'],
+			'assignee_id'          => $state['assignee_id'],
+			'billing_dispositions' => '' === $billing ? [] : [ $billing ],
+			'customer'             => $customer,
+			'scheduled_from'       => $state['scheduled_from'],
+			'scheduled_to'         => $state['scheduled_to'],
+			'due_from'             => $state['due_from'],
+			'due_to'               => $state['due_to'],
+			'sort'                 => $sort,
+			'page'                 => $state['page'],
+			'per_page'             => $state['per_page'],
+		] );
+
+		return $state;
+	}
+
+	/**
+	 * @param array<string,mixed> $state
+	 * @param array<string,mixed> $overrides
+	 * @return array<string,string|int>
+	 */
+	public static function query_args( array $state, array $overrides = [] ): array {
+		$state = array_merge( $state, $overrides );
+		$args = [
+			'page' => Menu::WORK_ITEMS_SLUG,
+			'view' => (string) ( $state['view'] ?? self::VIEW_TABLE ),
+		];
+		$map = [
+			'search'         => 's',
+			'status'         => 'status',
+			'priority'       => 'priority',
+			'project_id'     => 'project_id',
+			'service_id'     => 'service_id',
+			'work_type_id'   => 'work_type_id',
+			'assignee_id'    => 'assignee_id',
+			'billing'        => 'billing',
+			'customer'       => 'customer',
+			'scheduled_from' => 'scheduled_from',
+			'scheduled_to'   => 'scheduled_to',
+			'due_from'       => 'due_from',
+			'due_to'         => 'due_to',
+			'sort'           => 'sort',
+			'page'           => 'paged',
+		];
+		foreach ( $map as $state_key => $query_key ) {
+			$value = $state[ $state_key ] ?? '';
+			if ( ( is_int( $value ) && $value > 0 ) || ( is_string( $value ) && '' !== $value ) ) {
+				if ( 'page' === $state_key && 1 === (int) $value ) {
+					continue;
+				}
+				if ( 'sort' === $state_key && WorkItemQuery::SORT_WORKLOAD === $value ) {
+					continue;
+				}
+				$args[ $query_key ] = $value;
+			}
+		}
+		return $args;
+	}
+
+	private static function key( mixed $raw ): string {
+		return sanitize_key( is_scalar( $raw ) ? (string) $raw : '' );
+	}
+
+	private static function text( mixed $raw ): string {
+		return sanitize_text_field( trim( is_scalar( $raw ) ? (string) $raw : '' ) );
+	}
+
+	private static function date( mixed $raw ): string {
+		$value = is_scalar( $raw ) ? trim( (string) $raw ) : '';
+		if ( '' === $value ) {
+			return '';
+		}
+		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
+		return $date && $date->format( 'Y-m-d' ) === $value ? $value : '';
+	}
+}
