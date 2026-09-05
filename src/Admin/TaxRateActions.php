@@ -55,7 +55,6 @@ final class TaxRateActions {
 			add_query_arg(
 				[
 					'page'           => Page::SLUG,
-					'view'           => Page::VIEW_SETTINGS,
 					'cb-work-notice' => sanitize_key( $notice ),
 				],
 				admin_url( 'admin.php' )
