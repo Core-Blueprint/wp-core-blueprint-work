@@ -58,7 +58,7 @@ final class WorkItemQuery {
 			'due_to'               => self::date( $input['due_to'] ?? '' ),
 			'sort'                 => $sort,
 			'page'                 => max( 1, absint( $input['page'] ?? 1 ) ),
-			'per_page'             => max( 1, min( 100, absint( $input['per_page'] ?? 50 ) ?: 50 ) ),
+			'per_page'             => max( 1, min( 500, absint( $input['per_page'] ?? 50 ) ?: 50 ) ),
 		];
 	}
 
