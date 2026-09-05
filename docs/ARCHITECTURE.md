@@ -182,8 +182,8 @@ Storage type is never a frontend contract.
 4. **C1 — Canonical admin navigation:** complete.
 5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; original relational object shapes later corrected pre-v1.
 6. **D1.1 — Project CPT + Admin UX correction:** complete and merged.
-7. **D1.2 — Work Item CPT conversion:** current phase; native Gutenberg Work Item object plus relational assignments/integration child records.
-8. **D2 — Operational Views Foundation:** one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar; reused globally and in Project context.
+7. **D1.2 — Work Item CPT conversion:** complete and merged; Golden Standard audit hardening follows without changing the canonical storage model.
+8. **D2 — Operational Views Foundation:** next phase; one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar, reused globally and in Project context.
 9. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
 10. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
 11. **E — Recurrence + Time.**
