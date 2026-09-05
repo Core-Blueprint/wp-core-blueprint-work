@@ -9,13 +9,13 @@ use CB\Work\Content\PostTypes;
 defined( 'ABSPATH' ) || exit;
 
 final class Menu {
-	public const TOP_LEVEL_SLUG   = 'core-blueprint-work';
-	public const WORK_ITEMS_SLUG  = 'core-blueprint-work-items';
-	public const WORK_TYPES_SLUG  = 'core-blueprint-work-types';
-	public const CONTEXT_OVERVIEW = 'overview';
+	public const TOP_LEVEL_SLUG     = 'core-blueprint-work';
+	public const WORK_ITEMS_SLUG    = 'core-blueprint-work-items';
+	public const WORK_TYPES_SLUG    = 'core-blueprint-work-types';
+	public const CONTEXT_OVERVIEW   = 'overview';
 	public const CONTEXT_WORK_ITEMS = 'work_items';
-	public const CONTEXT_PROJECTS = 'projects';
-	public const CONTEXT_SERVICES = 'services';
+	public const CONTEXT_PROJECTS   = 'projects';
+	public const CONTEXT_SERVICES   = 'services';
 	public const CONTEXT_WORK_TYPES = 'work_types';
 
 	public static function init(): void {
@@ -45,6 +45,21 @@ final class Menu {
 		return admin_url( self::projects_path() );
 	}
 
+	public static function new_work_item_url( int $project_id = 0 ): string {
+		$args = [ 'post_type' => PostTypes::WORK_ITEM ];
+		if ( $project_id > 0 ) {
+			$args['project_id'] = $project_id;
+		}
+		return add_query_arg( $args, admin_url( 'post-new.php' ) );
+	}
+
+	public static function edit_work_item_url( int $work_item_id ): string {
+		return add_query_arg(
+			[ 'post' => max( 0, $work_item_id ), 'action' => 'edit' ],
+			admin_url( 'post.php' )
+		);
+	}
+
 	public static function screen_context( ?\WP_Screen $screen = null ): string {
 		$screen = $screen ?? get_current_screen();
 		if ( ! $screen ) {
@@ -54,7 +69,7 @@ final class Menu {
 		if ( self::TOP_LEVEL_SLUG === $page ) {
 			return self::CONTEXT_OVERVIEW;
 		}
-		if ( self::WORK_ITEMS_SLUG === $page ) {
+		if ( self::WORK_ITEMS_SLUG === $page || PostTypes::WORK_ITEM === (string) $screen->post_type ) {
 			return self::CONTEXT_WORK_ITEMS;
 		}
 		if ( self::WORK_TYPES_SLUG === $page ) {

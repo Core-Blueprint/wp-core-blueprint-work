@@ -45,7 +45,15 @@ Future frontend/portal access remains a separate concern. D3 may expose Projects
 
 ### Work Items
 
-Work Items remain Work-owned relational records in `cb_work_items`. They are operational records, not content documents.
+Work Items are WordPress-native content using `cb_work_item`.
+
+- title/content live in `wp_posts`;
+- customer reference, Project, Service, Work Type, priority, planning dates, operational status, billing classification and completion facts live in registered Work-owned post meta;
+- Work Items are private by default and are not publicly queryable;
+- the native Gutenberg editor is the canonical individual Work Item edit surface;
+- the global **Work → Work Items** workspace remains the canonical all-work operational surface and links into the native editor.
+
+The relational `cb_work_items` table introduced in D1 was transitional. D1.2 removes it destructively rather than carrying migration, fallback or dual-read compatibility for disposable pre-v1 staging data.
 
 A Work Item may exist without a Project. When `project_id` is populated it is the WordPress post ID of a valid `cb_work_project`; the relation is a validated Work-owned soft reference, never an SQL foreign key.
 
@@ -61,15 +69,22 @@ Work Items retain:
 - many-to-many WordPress user assignments;
 - generic integration/source relations outside the normal human create flow.
 
+#### Work Item Gutenberg / REST boundary
+
+`cb_work_item` enables WordPress REST support only so Gutenberg can edit the private CPT. Work Item collection/item reads use a Work-owned REST controller that requires `cb_manage_work` before delegating to WordPress core.
+
+The WordPress publishing state is editor persistence state and is not the Work operational lifecycle. Work status remains the Work-owned `planned` / `in_progress` / terminal model. D3 remains the only place where authorization-aware frontend Work Item resources may be exposed, and those resources remain opt-in.
+
 ### Work Types
 
 Work Types remain a Work-owned relational operational catalog in `cb_work_types`. They are managed under the top-level Work product area, not under Core Blueprint settings.
 
 ### Assignments and integration relations
 
-- `cb_work_item_assignments` stores many-to-many WordPress user assignments.
-- `cb_work_item_relations` stores provider-neutral external/source metadata for integrations such as Helpdesk.
+- `cb_work_item_assignments` stores many-to-many WordPress user assignments keyed by the canonical `cb_work_item` post ID.
+- `cb_work_item_relations` stores provider-neutral external/source metadata keyed by the canonical `cb_work_item` post ID for integrations such as Helpdesk.
 - Raw provider/type/id fields are internal persistence metadata and are not primary user-facing controls.
+- high-volume child facts such as future time entries, recurrence executions and billing/history records remain Work-owned relational/custom-table data rather than WordPress posts.
 
 ## CRM customer integration
 
@@ -98,7 +113,7 @@ D1 billing dispositions:
 - `included`
 - `non_billable`
 
-Invoice/payment lifecycle remains outside D1.1.
+Invoice/payment lifecycle remains outside D1.2.
 
 ## Admin information architecture
 
@@ -112,39 +127,41 @@ Top-level Work contains:
 - Services;
 - Work Types.
 
-Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first Work surface because they are relational operational records.
+Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first global Work surface for operational management, while individual Work Item creation/editing uses the native Gutenberg CPT editor.
 
 ### Project context
 
 The native Project edit screen includes a contextual Work Items section that:
 
 - shows active Work Items for the current Project;
-- links to open/edit a Work Item;
-- creates a Work Item with the Project preselected;
+- links to the native Gutenberg Work Item editor;
+- creates a Work Item in Gutenberg with the Project preselected;
 - links to global Work Items with the Project filter active.
 
-This is a contextual view of the same Work Item records. Global **Work → Work Items** remains the canonical all-work management surface.
+This is a contextual view of the same canonical Work Item records. Global **Work → Work Items** remains the canonical all-work management surface.
 
 ### Work Item UX
 
-The Work Items screen is list/workload-first. Creation/editing prioritizes:
+The global Work Items screen is list/workload-first and will become the D2 multi-view workspace. Add/edit actions open the native Gutenberg Work Item screen.
 
-- Title;
+The Work Item editor uses Gutenberg title/content plus Work-owned meta boxes for:
+
 - Customer;
 - Project;
 - Service;
 - Work Type;
 - Priority;
-- Due date;
-- Assignees.
+- operational status;
+- due date;
+- assignees;
+- scheduled date;
+- billing classification.
 
-Description, scheduled date and billing classification are secondary details. External/source integration metadata is not exposed in the normal create/edit flow.
-
-Customer selection uses public CRM queries when available. Assignees use Base's public searchable Object Picker foundation over WordPress users. No jQuery is used.
+External/source integration metadata is not exposed in the normal create/edit flow. Customer selection uses public CRM queries when available. Assignees use Base's public searchable Object Picker foundation over WordPress users. No jQuery is used.
 
 ## Public contracts
 
-Read-only sibling contracts remain under `CB\Work\PublicApi` for Services, VAT, pricing, Projects, Work Items and Work Types. `PublicApi\Projects` resolves the Project CPT through the Work Project repository, hiding storage from consumers.
+Read-only sibling contracts remain under `CB\Work\PublicApi` for Services, VAT, pricing, Projects, Work Items and Work Types. `PublicApi\Projects` and `PublicApi\WorkItems` resolve the canonical CPT repositories while hiding storage from consumers.
 
 These sibling PHP contracts do not automatically grant frontend exposure. D3 owns the eventual frontend resource/query/condition/action boundary and its authorization/opt-in policy.
 
@@ -163,13 +180,14 @@ Storage type is never a frontend contract.
 2. **B — Services + VAT authority:** complete.
 3. **C — CRM / Work domain consolidation:** complete.
 4. **C1 — Canonical admin navigation:** complete.
-5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; relational Project storage superseded.
-6. **D1.1 — Project CPT + Admin UX correction:** current phase.
-7. **D2 — Operational Views Foundation:** one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar; reused globally and in Project context.
-8. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
-9. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
-10. **E — Recurrence + Time.**
-11. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
+5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; original relational object shapes later corrected pre-v1.
+6. **D1.1 — Project CPT + Admin UX correction:** complete and merged.
+7. **D1.2 — Work Item CPT conversion:** current phase; native Gutenberg Work Item object plus relational assignments/integration child records.
+8. **D2 — Operational Views Foundation:** one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar; reused globally and in Project context.
+9. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+10. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
+11. **E — Recurrence + Time.**
+12. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
 
 ## Non-goals
 
@@ -178,4 +196,4 @@ Storage type is never a frontend contract.
 - Work is not bookkeeping/accounting software.
 - No direct sibling-table reads/writes.
 - No hard dependency on CRM, Helpdesk, WooCommerce or Bricks.
-- No legacy Project compatibility system.
+- No legacy Project or Work Item compatibility system.

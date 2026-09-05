@@ -5,11 +5,8 @@ namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
-use CB\Work\Domain\BillingDisposition;
-use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Integration\CRMCustomers;
-use CB\Work\PublicApi\Services;
 use CB\Work\Repository\Projects;
 use CB\Work\Repository\WorkItems;
 use CB\Work\Repository\WorkTypes;
@@ -42,9 +39,6 @@ final class Operations {
 		}
 
 		$project_filter = isset( $_GET['project_id'] ) ? absint( $_GET['project_id'] ) : 0;
-		$edit_id        = isset( $_GET['edit'] ) ? absint( $_GET['edit'] ) : 0;
-		$editing        = $edit_id > 0 ? WorkItems::get( $edit_id ) : null;
-		$creating       = isset( $_GET['create'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_GET['create'] ) );
 		$items          = $project_filter > 0 ? WorkItems::for_project( $project_filter, 200 ) : WorkItems::all( 200 );
 		$projects       = Projects::all();
 		$project_map    = [];
@@ -56,15 +50,12 @@ final class Operations {
 		foreach ( $types as $type ) {
 			$type_map[ (int) $type['id'] ] = (string) $type['label'];
 		}
-		$services = Services::all( 250 );
 		?>
 		<div class="wrap cb-work-items-page">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h1>
-			<?php if ( ! $creating && null === $editing ) : ?>
-				<a class="page-title-action" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'create' => '1', 'project_id' => $project_filter ?: null ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
-			<?php endif; ?>
+			<a class="page-title-action" href="<?php echo esc_url( Menu::new_work_item_url( $project_filter ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 			<hr class="wp-header-end">
-			<p class="description"><?php esc_html_e( 'Manage actionable work across customers and Projects.', 'core-blueprint-work' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Manage actionable work across customers and Projects. Open a Work Item to edit it in Gutenberg.', 'core-blueprint-work' ); ?></p>
 			<?php self::render_notice(); ?>
 
 			<?php if ( $project_filter > 0 ) : ?>
@@ -73,10 +64,6 @@ final class Operations {
 					<?php echo esc_html( sprintf( __( 'Showing Work Items for Project: %s', 'core-blueprint-work' ), $project_name ) ); ?>
 					<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . Menu::WORK_ITEMS_SLUG ) ); ?>"><?php esc_html_e( 'View all Work Items', 'core-blueprint-work' ); ?></a>
 				</p></div>
-			<?php endif; ?>
-
-			<?php if ( $creating || null !== $editing ) : ?>
-				<?php self::render_work_item_form( $editing, $project_filter, $projects, $services, $types ); ?>
 			<?php endif; ?>
 
 			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
@@ -97,9 +84,8 @@ final class Operations {
 					</tr></thead>
 					<tbody>
 					<?php foreach ( $items as $item ) : ?>
-						<?php $edit_url = add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'edit' => (int) $item['id'], 'project_id' => $project_filter ?: null ], admin_url( 'admin.php' ) ); ?>
 						<tr>
-							<td><strong><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
+							<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
 							<td><?php echo esc_html( self::customer_label( $item ) ); ?></td>
 							<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
 							<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
@@ -167,64 +153,6 @@ final class Operations {
 		<?php
 	}
 
-	/**
-	 * @param array<string,mixed>|null $item
-	 * @param array<int,array<string,mixed>> $projects
-	 * @param array<int,array<string,mixed>> $services
-	 * @param array<int,array<string,mixed>> $types
-	 */
-	private static function render_work_item_form( ?array $item, int $project_filter, array $projects, array $services, array $types ): void {
-		$editing    = null !== $item;
-		$project_id = $editing ? (int) ( $item['project_id'] ?? 0 ) : $project_filter;
-		$selected_customer = $editing
-			? CRMCustomers::selected( (string) $item['customer_provider'], (string) $item['customer_type'], (string) $item['customer_id'] )
-			: null;
-		$cancel_url = add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'project_id' => $project_filter ?: null ], admin_url( 'admin.php' ) );
-		?>
-		<div class="card" style="max-width:none">
-			<h2><?php echo esc_html( $editing ? __( 'Edit Work Item', 'core-blueprint-work' ) : __( 'Add Work Item', 'core-blueprint-work' ) ); ?></h2>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="<?php echo esc_attr( $editing ? 'cb_work_update_work_item' : 'cb_work_create_work_item' ); ?>">
-				<?php if ( $editing ) : ?><input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>"><?php endif; ?>
-				<input type="hidden" name="return_project_id" value="<?php echo esc_attr( (string) $project_filter ); ?>">
-				<?php wp_nonce_field( $editing ? 'cb_work_update_work_item_' . (int) $item['id'] : 'cb_work_create_work_item' ); ?>
-
-				<table class="form-table" role="presentation"><tbody>
-					<tr><th><label for="cb-work-item-title"><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-item-title" class="regular-text" type="text" name="work_item[title]" value="<?php echo esc_attr( (string) ( $item['title'] ?? '' ) ); ?>" required></td></tr>
-					<tr><th><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th><td>
-						<?php if ( $editing && '' !== (string) ( $item['customer_provider'] ?? '' ) && null === $selected_customer ) : ?>
-							<p class="description"><?php esc_html_e( 'This Work Item already has a customer link that cannot be resolved for the current user. The link is preserved.', 'core-blueprint-work' ); ?></p>
-						<?php else : ?>
-							<?php Pickers::customer( 'work_item[customer_object_id]', 'cb-work-item-customer', $selected_customer ); ?>
-						<?php endif; ?>
-						<?php if ( $project_id > 0 ) : ?><p class="description"><?php esc_html_e( 'Leave empty to use the Project customer when one is linked.', 'core-blueprint-work' ); ?></p><?php endif; ?>
-					</td></tr>
-					<tr><th><label for="cb-work-item-project"><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-item-project" name="work_item[project_id]"><option value="0"><?php esc_html_e( 'No project', 'core-blueprint-work' ); ?></option><?php foreach ( $projects as $project ) : ?><option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( $project_id, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th><label for="cb-work-item-service"><?php esc_html_e( 'Service', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-item-service" name="work_item[service_id]"><option value="0"><?php esc_html_e( 'No service', 'core-blueprint-work' ); ?></option><?php foreach ( $services as $service ) : ?><option value="<?php echo esc_attr( (string) $service['id'] ); ?>" <?php selected( (int) ( $item['service_id'] ?? 0 ), (int) $service['id'] ); ?>><?php echo esc_html( (string) $service['title'] ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th><label for="cb-work-item-type"><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-item-type" name="work_item[work_type_id]"><option value="0"><?php esc_html_e( 'No classification', 'core-blueprint-work' ); ?></option><?php foreach ( $types as $type ) : ?><option value="<?php echo esc_attr( (string) $type['id'] ); ?>" <?php selected( (int) ( $item['work_type_id'] ?? 0 ), (int) $type['id'] ); ?>><?php echo esc_html( (string) $type['label'] ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th><label for="cb-work-item-priority"><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-item-priority" name="work_item[priority]"><?php foreach ( WorkItemPriority::all() as $priority ) : ?><option value="<?php echo esc_attr( $priority ); ?>" <?php selected( (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ), $priority ); ?>><?php echo esc_html( self::humanize( $priority ) ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th><label for="cb-work-item-due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-item-due" type="date" name="work_item[due_on]" value="<?php echo esc_attr( (string) ( $item['due_on'] ?? '' ) ); ?>"></td></tr>
-					<tr><th><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th><td><?php Pickers::assignees( 'work_item[assigned_user_ids]', 'cb-work-item-assignees', (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></td></tr>
-				</tbody></table>
-
-				<details>
-					<summary><strong><?php esc_html_e( 'More details', 'core-blueprint-work' ); ?></strong></summary>
-					<table class="form-table" role="presentation"><tbody>
-						<tr><th><label for="cb-work-item-description"><?php esc_html_e( 'Description / notes', 'core-blueprint-work' ); ?></label></th><td><textarea id="cb-work-item-description" class="large-text" rows="5" name="work_item[description]"><?php echo esc_textarea( (string) ( $item['description'] ?? '' ) ); ?></textarea></td></tr>
-						<tr><th><label for="cb-work-item-scheduled"><?php esc_html_e( 'Scheduled date', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-item-scheduled" type="date" name="work_item[scheduled_on]" value="<?php echo esc_attr( (string) ( $item['scheduled_on'] ?? '' ) ); ?>"><p class="description"><?php esc_html_e( 'When the work is planned to be performed. The due date remains the deadline.', 'core-blueprint-work' ); ?></p></td></tr>
-						<tr><th><label for="cb-work-item-billing"><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-item-billing" name="work_item[billing_disposition]"><option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option><?php foreach ( BillingDisposition::all() as $billing ) : ?><option value="<?php echo esc_attr( $billing ); ?>" <?php selected( (string) ( $item['billing_disposition'] ?? '' ), $billing ); ?>><?php echo esc_html( self::humanize( $billing ) ); ?></option><?php endforeach; ?></select></td></tr>
-					</tbody></table>
-				</details>
-
-				<p>
-					<?php submit_button( $editing ? __( 'Update Work Item', 'core-blueprint-work' ) : __( 'Add Work Item', 'core-blueprint-work' ), 'primary', 'submit', false ); ?>
-					<a class="button" href="<?php echo esc_url( $cancel_url ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a>
-				</p>
-			</form>
-		</div>
-		<?php
-	}
-
 	/** @param array<string,mixed> $item */
 	private static function transition_buttons( array $item, int $project_filter = 0 ): void {
 		$from = (string) ( $item['status'] ?? '' );
@@ -281,9 +209,6 @@ final class Operations {
 	private static function render_notice(): void {
 		$notice = isset( $_GET['cb-work-notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['cb-work-notice'] ) ) : '';
 		$messages = [
-			'work-item-created'            => [ 'success', __( 'Work Item created.', 'core-blueprint-work' ) ],
-			'work-item-updated'            => [ 'success', __( 'Work Item updated.', 'core-blueprint-work' ) ],
-			'work-item-invalid'            => [ 'error', __( 'Work Item could not be saved. Check its customer, Project, dates and classifications.', 'core-blueprint-work' ) ],
 			'work-item-transitioned'       => [ 'success', __( 'Work Item status updated.', 'core-blueprint-work' ) ],
 			'work-item-transition-invalid' => [ 'error', __( 'That Work Item status transition is not allowed.', 'core-blueprint-work' ) ],
 			'work-type-created'            => [ 'success', __( 'Work Type added.', 'core-blueprint-work' ) ],

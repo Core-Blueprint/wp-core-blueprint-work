@@ -82,11 +82,8 @@ final class Projects {
 			return;
 		}
 
-		$items = WorkItems::for_project( $project_id, 50, WorkItemStatus::active() );
-		$add_url = add_query_arg(
-			[ 'page' => Menu::WORK_ITEMS_SLUG, 'create' => '1', 'project_id' => $project_id ],
-			admin_url( 'admin.php' )
-		);
+		$items   = WorkItems::for_project( $project_id, 50, WorkItemStatus::active() );
+		$add_url = Menu::new_work_item_url( $project_id );
 		$all_url = add_query_arg(
 			[ 'page' => Menu::WORK_ITEMS_SLUG, 'project_id' => $project_id ],
 			admin_url( 'admin.php' )
@@ -109,9 +106,8 @@ final class Projects {
 				</tr></thead>
 				<tbody>
 				<?php foreach ( $items as $item ) : ?>
-					<?php $edit_url = add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'edit' => (int) $item['id'] ], admin_url( 'admin.php' ) ); ?>
 					<tr>
-						<td><strong><a href="<?php echo esc_url( $edit_url ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
+						<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
 						<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
 						<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
 						<td><?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></td>
