@@ -11,11 +11,15 @@ $checks = [
 	'Work Items workspace queries only through the canonical operational engine' => str_contains( $operations, 'WorkItems::search( (array) $state[\'query\'] )' )
 		&& ! str_contains( $operations, 'WorkItems::for_project( $project_filter' )
 		&& ! str_contains( $operations, 'WorkItems::all( 200 )' ),
-	'Table and List are the only enabled D2 renderers at this gate' => str_contains( $operations, '[ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST ]' )
+	'Table, List and Kanban are the only enabled D2 renderers at this gate' => str_contains( $operations, '[ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN ]' )
 		&& str_contains( $operations, 'render_work_item_table(' )
 		&& str_contains( $operations, 'render_work_item_list(' )
-		&& ! str_contains( $operations, 'render_work_item_kanban(' )
+		&& str_contains( $operations, 'render_work_item_kanban(' )
 		&& ! str_contains( $operations, 'render_work_item_calendar(' ),
+	'Kanban is a renderer over canonical status and the existing result set' => str_contains( $operations, '$lanes = array_fill_keys( WorkItemStatus::all(), [] );' )
+		&& str_contains( $operations, '$lanes[ $status ][] = $item;' )
+		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
+		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
 	'view switcher and filter form preserve canonical view state' => str_contains( $operations, 'render_work_item_views( $state )' )
 		&& str_contains( $operations, "name=\"view\" value=\"<?php echo esc_attr( (string) \$state['view'] ); ?>\"" )
 		&& str_contains( $operations, "[ 'view' => (string) \$state['view'] ]" ),
