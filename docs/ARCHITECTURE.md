@@ -142,7 +142,9 @@ This is a contextual view of the same canonical Work Item records. Global **Work
 
 ### Work Item UX
 
-The global Work Items screen is list/workload-first and will become the D2 multi-view workspace. Add/edit actions open the native Gutenberg Work Item screen.
+The global Work Items screen is the canonical D2 multi-view operational workspace. Table, List, Kanban and Calendar are renderers over one shared Work Item query/filter/view-state engine; they do not own separate persistence or business logic. Add/edit actions open the native Gutenberg Work Item screen.
+
+The shared operational filter contract covers status, priority, Project, Service, Work Type, customer, assignee, billing class, planning/due ranges and sorting. Calendar derives its scheduled range from canonical `calendar_month` state and groups the already queried Work Items by `scheduled_on`; Kanban groups the same result set by canonical Work Item status. Transition actions preserve sanitized canonical workspace state when returning to the operational view.
 
 The Work Item editor uses Gutenberg title/content plus Work-owned meta boxes for:
 
@@ -183,8 +185,8 @@ Storage type is never a frontend contract.
 5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; original relational object shapes later corrected pre-v1.
 6. **D1.1 — Project CPT + Admin UX correction:** complete and merged.
 7. **D1.2 — Work Item CPT conversion:** complete and merged; Golden Standard audit hardening follows without changing the canonical storage model.
-8. **D2 — Operational Views Foundation:** next phase; one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar, reused globally and in Project context.
-9. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+8. **D2 — Operational Views Foundation:** complete; one canonical Work Item query/filter/view-state engine powers Table, List, Kanban and Calendar while the native Gutenberg editor remains the individual edit surface.
+9. **D3 — Builder-neutral Frontend Resource Contracts:** next phase; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
 10. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
 11. **E — Recurrence + Time.**
 12. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
