@@ -18,5 +18,6 @@ php "$ROOT/tests/domain-smoke.php"
 php "$ROOT/tests/pricing-smoke.php"
 php "$ROOT/tests/runtime-smoke.php"
 php "$ROOT/tests/missing-base-smoke.php"
+php "$ROOT/tests/requirements-contract-smoke.php"
 
 echo "Core Blueprint Work checks passed."
