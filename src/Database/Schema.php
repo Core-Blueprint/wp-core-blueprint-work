@@ -18,7 +18,6 @@ final class Schema {
 			'tables'     => [
 				[ self::class, 'tax_rates_table' ],
 				[ self::class, 'work_types_table' ],
-				[ self::class, 'work_items_table' ],
 				[ self::class, 'assignments_table' ],
 				[ self::class, 'relations_table' ],
 			],
@@ -36,11 +35,6 @@ final class Schema {
 		return $wpdb->prefix . 'cb_work_types';
 	}
 
-	public static function work_items_table(): string {
-		global $wpdb;
-		return $wpdb->prefix . 'cb_work_items';
-	}
-
 	public static function assignments_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_item_assignments';
@@ -55,6 +49,7 @@ final class Schema {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$charset = $wpdb->get_charset_collate();
+		$previous_version = (string) get_option( self::OPTION, '0' );
 
 		dbDelta( 'CREATE TABLE ' . self::tax_rates_table() . " (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -86,37 +81,6 @@ final class Schema {
 			KEY active_sort (is_active,sort_order)
 		) {$charset};" );
 
-		dbDelta( 'CREATE TABLE ' . self::work_items_table() . " (
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			title varchar(190) NOT NULL,
-			description longtext NOT NULL,
-			customer_provider varchar(64) NOT NULL DEFAULT '',
-			customer_type varchar(64) NOT NULL DEFAULT '',
-			customer_id varchar(191) NOT NULL DEFAULT '',
-			project_id bigint(20) unsigned NULL,
-			service_id bigint(20) unsigned NULL,
-			work_type_id bigint(20) unsigned NULL,
-			priority varchar(16) NOT NULL DEFAULT 'normal',
-			scheduled_on date NULL,
-			due_on date NULL,
-			status varchar(32) NOT NULL DEFAULT 'planned',
-			billing_disposition varchar(32) NOT NULL DEFAULT '',
-			completed_at datetime NULL,
-			completed_by bigint(20) unsigned NULL,
-			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			KEY status (status),
-			KEY priority (priority),
-			KEY scheduled_on (scheduled_on),
-			KEY due_on (due_on),
-			KEY project_id (project_id),
-			KEY service_id (service_id),
-			KEY work_type_id (work_type_id),
-			KEY customer (customer_provider,customer_type,customer_id)
-		) {$charset};" );
-
 		dbDelta( 'CREATE TABLE ' . self::assignments_table() . " (
 			work_item_id bigint(20) unsigned NOT NULL,
 			user_id bigint(20) unsigned NOT NULL,
@@ -139,11 +103,27 @@ final class Schema {
 		) {$charset};" );
 
 		/*
-		 * D1.1 is a deliberate pre-v1 architecture correction. Projects are now
-		 * canonical WordPress content; the transitional relational table is
-		 * destroyed instead of retained as a compatibility or migration layer.
+		 * D1.1/D1.2 are deliberate pre-v1 architecture corrections. Projects and
+		 * Work Items are canonical WordPress content. Transitional Project/Work
+		 * Item tables are destroyed instead of preserved through migration,
+		 * fallback or dual-read compatibility. Old assignment/relation rows point
+		 * at disposable relational Work Item IDs and are cleared exactly once
+		 * when crossing into schema 1.3.
 		 */
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_projects' );
+		if ( false === $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_projects' ) ) {
+			return false;
+		}
+		if ( false === $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_items' ) ) {
+			return false;
+		}
+		if ( version_compare( $previous_version, '1.3', '<' ) ) {
+			if ( false === $wpdb->query( 'DELETE FROM ' . self::assignments_table() ) ) {
+				return false;
+			}
+			if ( false === $wpdb->query( 'DELETE FROM ' . self::relations_table() ) ) {
+				return false;
+			}
+		}
 
 		self::seed_default_work_types();
 		return true;
