@@ -9,7 +9,9 @@ use CB\Work\Admin\Menu;
 use CB\Work\Content\PostTypes;
 use CB\Work\Database\Schema;
 use CB\Work\Plugin;
+use CB\Work\Repository\Projects;
 use CB\Work\Repository\TaxRates;
+use CB\Work\Repository\WorkItems;
 use CB\Work\Support\Requirements;
 defined( 'ABSPATH' ) || exit;
 
@@ -92,7 +94,9 @@ final class Suite {
 		return [
 			'state'  => 'ok',
 			'detail' => sprintf(
-				self::i18n_ready() ? __( '%1$d services · %2$d VAT rates', 'core-blueprint-work' ) : '%1$d services · %2$d VAT rates',
+				self::i18n_ready() ? __( '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates', 'core-blueprint-work' ) : '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates',
+				WorkItems::count(),
+				Projects::count(),
 				self::service_count(),
 				TaxRates::count()
 			),
@@ -113,11 +117,25 @@ final class Suite {
 			'order'      => 10,
 		] );
 		CardRegistry::register_shortcut( self::EXTENSION_ID, [
+			'id'         => 'work-items',
+			'label'      => self::i18n_ready() ? __( 'Work Items', 'core-blueprint-work' ) : 'Work Items',
+			'url'        => admin_url( 'admin.php?page=' . Menu::WORK_ITEMS_SLUG ),
+			'capability' => \CB\Work\Capabilities::MANAGE,
+			'order'      => 20,
+		] );
+		CardRegistry::register_shortcut( self::EXTENSION_ID, [
+			'id'         => 'projects',
+			'label'      => self::i18n_ready() ? __( 'Projects', 'core-blueprint-work' ) : 'Projects',
+			'url'        => admin_url( 'admin.php?page=' . Menu::PROJECTS_SLUG ),
+			'capability' => \CB\Work\Capabilities::MANAGE,
+			'order'      => 30,
+		] );
+		CardRegistry::register_shortcut( self::EXTENSION_ID, [
 			'id'         => 'services',
 			'label'      => self::i18n_ready() ? __( 'Services', 'core-blueprint-work' ) : 'Services',
 			'url'        => admin_url( 'edit.php?post_type=' . PostTypes::SERVICE ),
 			'capability' => \CB\Work\Capabilities::MANAGE,
-			'order'      => 20,
+			'order'      => 40,
 		] );
 	}
 

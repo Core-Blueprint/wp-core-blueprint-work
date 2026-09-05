@@ -121,22 +121,29 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.0'; }
+		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.1'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
-	assert_true( '1.0.0-rc2.1' === CB_WORK_VERSION, 'Candidate exposes unambiguous rc2.1 staging version.' );
-	assert_true( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ), 'Work schema registers before Base sweep.' );
+	assert_true( '1.0.0-rc3' === CB_WORK_VERSION, 'Candidate exposes unambiguous rc3 staging version.' );
+	assert_true( '1.1' === CB_WORK_SCHEMA_VERSION, 'D1 exposes schema version 1.1.' );
+	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
+	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
+	assert_true( 6 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT plus five D1 operational tables.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
 	assert_true( isset( $GLOBALS['post_types']['cb_work_service'] ), 'Canonical Work service post type registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_service']['_cb_work_service_pricing_model'] ), 'Service pricing model meta registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items are mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-projects'] ), 'Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Services are mounted under the Work menu.' );
 
 	do_action( 'cb_core_register_extensions' );
@@ -148,7 +155,7 @@ namespace {
 	$status_defs = apply_filters( 'cb_core_module_status_definitions', [] );
 	$status = ( $status_defs['work']['provider'] )();
 	assert_true( 'ok' === ( $status['state'] ?? '' ), 'Work health is ok after schema/runtime boot.' );
-	assert_true( '3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual product counts.' );
+	assert_true( '2 work items · 2 projects · 3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual operational counts.' );
 	assert_true( str_contains( (string) ( $status['url'] ?? '' ), 'page=core-blueprint-work' ), 'Work health opens the operational Work workspace.' );
 
 	do_action( 'cb_core_register_pages' );
@@ -162,6 +169,8 @@ namespace {
 
 	do_action( 'cb_core_dashboard_register_cards' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
+	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['work-items'] ), 'Work Items shortcut registers.' );
+	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects'] ), 'Projects shortcut registers.' );
 	assert_true( str_contains( (string) \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace']['url'], 'page=core-blueprint-work' ), 'Work workspace shortcut opens operational Work.' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work services shortcut registers.' );
 

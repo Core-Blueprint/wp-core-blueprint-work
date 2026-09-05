@@ -10,15 +10,22 @@ The extension is builder-agnostic. Public data, query, condition and action cont
 
 ## Current implementation
 
-Phase B adds the canonical Work service and VAT authority:
+Through D1, Work provides:
 
-- `cb_work_service` WordPress-native service records;
-- hourly, fixed-price and recurring service defaults;
-- standard amount/currency and VAT treatment;
-- Work-owned VAT rates with immutable historical semantics through activation/deactivation;
+- canonical `cb_work_service` service records and Work-owned VAT/tax rates;
+- effective pricing resolution with optional customer-agreement providers;
+- relational Projects and Work Items;
+- Work Type classification;
+- planned / in-progress / completed / skipped / cancelled lifecycle;
+- low / normal / high / urgent priorities;
+- hourly / fixed / included / non-billable classification kept separate from completion state;
+- multiple WordPress-user assignments per Work Item;
+- generic provider/type/external-ID relations for future sibling integrations;
+- a normal top-level **Work** WP Admin menu for operational use;
+- settings-only `Core Blueprint → Work` configuration;
 - supported read-only PHP contracts under `CB\Work\PublicApi` for sibling integrations.
 
-CRM migration and customer-specific overrides are intentionally deferred to Phase C.
+Recurrence, timers/time entries, refined Today/Overdue/Upcoming views and billing/invoice lifecycle remain later phases.
 
 ## Requirements
 
