@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace {
 	define( 'ABSPATH', '/tmp/wp/' );
+	define( 'ARRAY_A', 'ARRAY_A' );
 	define( 'CB_WORK_SCHEMA_VERSION', '1.3' );
 
 	final class WP_Error {}
 
 	final class WP_Post {
+		public string $post_date_gmt = '2026-09-05 09:00:00';
+
 		public function __construct(
 			public int $ID,
 			public string $post_title,
