@@ -128,6 +128,8 @@ namespace CB\Core\Governance {
 }
 
 namespace CB\Core\UI {
+	final class Assets {}
+	final class ObjectPicker {}
 	final class Notice { public const SUCCESS = 'success'; public const INFO = 'info'; public const ERROR = 'error'; public static function render( array $args ): string { return '<div></div>'; } }
 }
 
