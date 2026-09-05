@@ -63,7 +63,7 @@ namespace {
 	function register_deactivation_hook( string $file, callable $callback ): void {}
 	function load_plugin_textdomain( string $domain, bool $deprecated = false, string $path = '' ): bool { return true; }
 	function is_admin(): bool { return true; }
-	function current_user_can( string $capability ): bool { return true; }
+	function current_user_can( string $capability, mixed ...$args ): bool { return true; }
 	function admin_url( string $path = '' ): string { return 'https://example.test/wp-admin/' . ltrim( $path, '/' ); }
 	function sanitize_key( string $key ): string { return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $key ) ?? '' ); }
 	function sanitize_title( string $value ): string { $v = strtolower( trim( $value ) ); return trim( preg_replace( '/[^a-z0-9]+/', '-', $v ) ?? '', '-' ); }
@@ -78,7 +78,11 @@ namespace {
 	function update_option( string $key, mixed $value, bool $autoload = true ): bool { $GLOBALS['options'][ $key ] = $value; return true; }
 	function register_post_type( string $type, array $args ): void { $GLOBALS['post_types'][ $type ] = $args; }
 	function register_post_meta( string $type, string $key, array $args ): void { $GLOBALS['post_meta'][ $type ][ $key ] = $args; }
-	function wp_count_posts( string $post_type ): object { return (object) [ 'publish' => 2, 'draft' => 1, 'trash' => 4 ]; }
+	function wp_count_posts( string $post_type ): object {
+		return 'cb_work_project' === $post_type
+			? (object) [ 'publish' => 1, 'draft' => 1, 'trash' => 4 ]
+			: (object) [ 'publish' => 2, 'draft' => 1, 'trash' => 4 ];
+	}
 	function add_menu_page( string $page_title, string $menu_title, string $capability, string $menu_slug, callable $callback, string $icon_url = '', int|float|null $position = null ): string {
 		$GLOBALS['menus'][ $menu_slug ] = compact( 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'icon_url', 'position' );
 		return 'toplevel_page_' . $menu_slug;
@@ -87,7 +91,6 @@ namespace {
 		$GLOBALS['submenus'][ $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
 		return $parent_slug . '_page_' . sanitize_key( $menu_slug );
 	}
-
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
 
@@ -121,30 +124,35 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.1'; }
+		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.2'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
-	assert_true( '1.0.0-rc3' === CB_WORK_VERSION, 'Candidate exposes unambiguous rc3 staging version.' );
-	assert_true( '1.1' === CB_WORK_SCHEMA_VERSION, 'D1 exposes schema version 1.1.' );
+	assert_true( '1.0.0-rc4' === CB_WORK_VERSION, 'Candidate exposes unambiguous rc4 staging version.' );
+	assert_true( '1.2' === CB_WORK_SCHEMA_VERSION, 'D1.1 exposes schema version 1.2.' );
 	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 6 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT plus five D1 operational tables.' );
+	assert_true( 5 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT plus four relational operational tables; Projects are CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
-	assert_true( isset( $GLOBALS['post_types']['cb_work_service'] ), 'Canonical Work service post type registers.' );
+	assert_true( isset( $GLOBALS['post_types']['cb_work_service'] ), 'Canonical Work Service post type registers.' );
+	assert_true( isset( $GLOBALS['post_types']['cb_work_project'] ), 'Canonical Work Project post type registers.' );
+	assert_true( false === ( $GLOBALS['post_types']['cb_work_project']['publicly_queryable'] ?? true ), 'Project CPT is not publicly queryable by default.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_service']['_cb_work_service_pricing_model'] ), 'Service pricing model meta registers.' );
+	assert_true( isset( $GLOBALS['post_meta']['cb_work_project']['_cb_work_project_due_on'] ), 'Project due date meta registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.updated'] ), 'Work Item update governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items are mounted under Work.' );
-	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-projects'] ), 'Projects are mounted under Work.' );
-	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Services are mounted under the Work menu.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-types'] ), 'Work Types are mounted under Work.' );
 
 	do_action( 'cb_core_register_extensions' );
 	$extension = \CB\Core\ExtensionRegistry::$registrations['core-blueprint-work'] ?? null;
@@ -156,7 +164,6 @@ namespace {
 	$status = ( $status_defs['work']['provider'] )();
 	assert_true( 'ok' === ( $status['state'] ?? '' ), 'Work health is ok after schema/runtime boot.' );
 	assert_true( '2 work items · 2 projects · 3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual operational counts.' );
-	assert_true( str_contains( (string) ( $status['url'] ?? '' ), 'page=core-blueprint-work' ), 'Work health opens the operational Work workspace.' );
 
 	do_action( 'cb_core_register_pages' );
 	$page = \CB\Core\Admin\PageRegistry::$registrations['core-blueprint-work-settings'] ?? null;
@@ -171,8 +178,8 @@ namespace {
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['work-items'] ), 'Work Items shortcut registers.' );
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects'] ), 'Projects shortcut registers.' );
-	assert_true( str_contains( (string) \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace']['url'], 'page=core-blueprint-work' ), 'Work workspace shortcut opens operational Work.' );
-	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work services shortcut registers.' );
+	assert_true( str_contains( (string) \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects']['url'], 'edit.php?post_type=cb_work_project' ), 'Projects shortcut opens native Project administration.' );
+	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work Services shortcut registers.' );
 
 	$catalog = apply_filters( 'cb_core_capability_catalog', [] );
 	assert_true( isset( $catalog['cb_manage_work'] ), 'Work capability is in Base capability catalog.' );

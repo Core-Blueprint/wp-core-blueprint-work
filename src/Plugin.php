@@ -6,12 +6,16 @@ namespace CB\Work;
 use CB\Work\Admin\Menu;
 use CB\Work\Admin\OperationalActions;
 use CB\Work\Admin\Page;
+use CB\Work\Admin\Pickers;
+use CB\Work\Admin\Projects;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
 use CB\Work\Content\PostTypes;
+use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Governance\Events;
 use CB\Work\Support\Requirements;
+
 defined( 'ABSPATH' ) || exit;
 
 final class Plugin {
@@ -26,11 +30,14 @@ final class Plugin {
 		Capabilities::init();
 		Events::init();
 		PostTypes::init();
+		ProjectMeta::init();
 		ServicePricingDomain::init();
 
 		if ( is_admin() ) {
 			Menu::init();
 			Page::init();
+			Pickers::init();
+			Projects::init();
 			ServicePricing::init();
 			TaxRateActions::init();
 			OperationalActions::init();

@@ -14,25 +14,15 @@ defined( 'ABSPATH' ) || exit;
 final class WorkItems {
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 100, array $statuses = [] ): array {
-		if ( ! self::schema_ready() ) {
+		return self::query( $limit, $statuses );
+	}
+
+	/** @return array<int,array<string,mixed>> */
+	public static function for_project( int $project_id, int $limit = 100, array $statuses = [] ): array {
+		if ( $project_id <= 0 ) {
 			return [];
 		}
-		global $wpdb;
-		$limit = max( 1, min( 500, $limit ) );
-		$statuses = array_values( array_filter( array_map( 'sanitize_key', $statuses ), [ WorkItemStatus::class, 'is_valid' ] ) );
-		$sql = 'SELECT * FROM ' . Schema::work_items_table();
-		$args = [];
-		if ( [] !== $statuses ) {
-			$sql .= ' WHERE status IN (' . implode( ',', array_fill( 0, count( $statuses ), '%s' ) ) . ')';
-			$args = $statuses;
-		}
-		$sql .= " ORDER BY CASE status WHEN 'in_progress' THEN 0 WHEN 'planned' THEN 1 ELSE 2 END, COALESCE(due_on, '9999-12-31') ASC, id DESC LIMIT %d";
-		$args[] = $limit;
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$args ), ARRAY_A );
-		if ( ! is_array( $rows ) ) {
-			return [];
-		}
-		return array_values( array_map( [ self::class, 'hydrate' ], $rows ) );
+		return self::query( $limit, $statuses, $project_id );
 	}
 
 	/** @return array<string,mixed>|null */
@@ -89,65 +79,33 @@ final class WorkItems {
 		if ( ! self::schema_ready() ) {
 			return 0;
 		}
+		$normalized = self::normalize_write( $input );
+		if ( null === $normalized ) {
+			return 0;
+		}
+
 		global $wpdb;
-
-		$title        = sanitize_text_field( (string) ( $input['title'] ?? '' ) );
-		$description  = sanitize_textarea_field( (string) ( $input['description'] ?? '' ) );
-		$reference    = self::reference( $input, 'customer_' );
-		$project_id   = max( 0, (int) ( $input['project_id'] ?? 0 ) );
-		$service_id   = max( 0, (int) ( $input['service_id'] ?? 0 ) );
-		$work_type_id = max( 0, (int) ( $input['work_type_id'] ?? 0 ) );
-		$priority     = sanitize_key( (string) ( $input['priority'] ?? WorkItemPriority::NORMAL ) );
-		$scheduled_on = self::date( (string) ( $input['scheduled_on'] ?? '' ) );
-		$due_on       = self::date( (string) ( $input['due_on'] ?? '' ) );
-		$billing      = sanitize_key( (string) ( $input['billing_disposition'] ?? '' ) );
-		$created_by   = max( 0, (int) ( $input['created_by'] ?? 0 ) );
-		$assignments  = self::normalize_assignments( $input['assigned_user_ids'] ?? [] );
-		$relation     = self::reference( $input, 'source_' );
-
-		if ( '' === $title || false === $reference || false === $relation || null === $assignments ) {
-			return 0;
-		}
-		if ( $project_id > 0 && null === Projects::get( $project_id ) ) {
-			return 0;
-		}
-		if ( $service_id > 0 && null === Services::get( $service_id ) ) {
-			return 0;
-		}
-		if ( $work_type_id > 0 && null === WorkTypes::get( $work_type_id ) ) {
-			return 0;
-		}
-		if ( ! WorkItemPriority::is_valid( $priority ) ) {
-			return 0;
-		}
-		if ( '' !== $billing && ! BillingDisposition::is_valid( $billing ) ) {
-			return 0;
-		}
-		if ( null !== $scheduled_on && null !== $due_on && $due_on < $scheduled_on ) {
-			return 0;
-		}
-
 		$now = current_time( 'mysql', true );
 		$wpdb->query( 'START TRANSACTION' );
 		$ok = $wpdb->insert(
 			Schema::work_items_table(),
 			[
-				'title'               => $title,
-				'description'         => $description,
-				'customer_provider'   => $reference['provider'],
-				'customer_type'       => $reference['type'],
-				'customer_id'         => $reference['id'],
-				'project_id'          => $project_id > 0 ? $project_id : null,
-				'service_id'          => $service_id > 0 ? $service_id : null,
-				'work_type_id'        => $work_type_id > 0 ? $work_type_id : null,
-				'priority'            => $priority,
-				'scheduled_on'        => $scheduled_on,
-				'due_on'              => $due_on,
+				'title'               => $normalized['title'],
+				'description'         => $normalized['description'],
+				'customer_provider'   => $normalized['customer']['provider'],
+				'customer_type'       => $normalized['customer']['type'],
+				'customer_id'         => $normalized['customer']['id'],
+				'project_id'          => $normalized['project_id'] > 0 ? $normalized['project_id'] : null,
+				'service_id'          => $normalized['service_id'] > 0 ? $normalized['service_id'] : null,
+				'work_type_id'        => $normalized['work_type_id'] > 0 ? $normalized['work_type_id'] : null,
+				'priority'            => $normalized['priority'],
+				'scheduled_on'        => $normalized['scheduled_on'],
+				'due_on'              => $normalized['due_on'],
 				'status'              => WorkItemStatus::PLANNED,
-				'billing_disposition' => $billing,
+				'billing_disposition' => $normalized['billing'],
 				'completed_at'        => null,
 				'completed_by'        => null,
-				'created_by'          => $created_by,
+				'created_by'          => max( 0, (int) ( $input['created_by'] ?? 0 ) ),
 				'created_at'          => $now,
 				'updated_at'          => $now,
 			],
@@ -159,7 +117,13 @@ final class WorkItems {
 		}
 
 		$id = (int) $wpdb->insert_id;
-		if ( ! self::replace_assignments( $id, $assignments ) ) {
+		if ( ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			return 0;
+		}
+
+		$relation = self::reference( $input, 'source_' );
+		if ( false === $relation ) {
 			$wpdb->query( 'ROLLBACK' );
 			return 0;
 		}
@@ -167,9 +131,58 @@ final class WorkItems {
 			$wpdb->query( 'ROLLBACK' );
 			return 0;
 		}
+
 		$wpdb->query( 'COMMIT' );
 		do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
 		return $id;
+	}
+
+	/** @param array<string,mixed> $input */
+	public static function update( int $id, array $input ): bool {
+		$current = self::get( $id );
+		if ( null === $current ) {
+			return false;
+		}
+		$normalized = self::normalize_write( $input, $current );
+		if ( null === $normalized ) {
+			return false;
+		}
+
+		global $wpdb;
+		$wpdb->query( 'START TRANSACTION' );
+		$updated = $wpdb->update(
+			Schema::work_items_table(),
+			[
+				'title'               => $normalized['title'],
+				'description'         => $normalized['description'],
+				'customer_provider'   => $normalized['customer']['provider'],
+				'customer_type'       => $normalized['customer']['type'],
+				'customer_id'         => $normalized['customer']['id'],
+				'project_id'          => $normalized['project_id'] > 0 ? $normalized['project_id'] : null,
+				'service_id'          => $normalized['service_id'] > 0 ? $normalized['service_id'] : null,
+				'work_type_id'        => $normalized['work_type_id'] > 0 ? $normalized['work_type_id'] : null,
+				'priority'            => $normalized['priority'],
+				'scheduled_on'        => $normalized['scheduled_on'],
+				'due_on'              => $normalized['due_on'],
+				'billing_disposition' => $normalized['billing'],
+				'updated_at'          => current_time( 'mysql', true ),
+			],
+			[ 'id' => $id ],
+			[ '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s' ],
+			[ '%d' ]
+		);
+		if ( false === $updated ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+
+		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		$wpdb->query( 'COMMIT' );
+		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+		return true;
 	}
 
 	public static function transition_status( int $id, string $to, int $actor_user_id = 0 ): bool {
@@ -253,9 +266,9 @@ final class WorkItems {
 		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
 			return false;
 		}
-		$provider = substr( sanitize_key( $provider ), 0, 64 );
+		$provider      = substr( sanitize_key( $provider ), 0, 64 );
 		$relation_type = substr( sanitize_key( $relation_type ), 0, 64 );
-		$external_id = substr( sanitize_text_field( $external_id ), 0, 191 );
+		$external_id   = substr( sanitize_text_field( $external_id ), 0, 191 );
 		if ( '' === $provider || '' === $relation_type || '' === $external_id ) {
 			return false;
 		}
@@ -264,32 +277,153 @@ final class WorkItems {
 			Schema::relations_table(),
 			[
 				'work_item_id' => $work_item_id,
-				'provider' => $provider,
-				'relation_type' => $relation_type,
-				'external_id' => $external_id,
-				'created_at' => current_time( 'mysql', true ),
+				'provider'     => $provider,
+				'relation_type'=> $relation_type,
+				'external_id'  => $external_id,
+				'created_at'   => current_time( 'mysql', true ),
 			],
 			[ '%d', '%s', '%s', '%s', '%s' ]
 		);
 		return false !== $ok;
 	}
 
+	/** @return array<int,array<string,mixed>> */
+	private static function query( int $limit, array $statuses = [], int $project_id = 0 ): array {
+		if ( ! self::schema_ready() ) {
+			return [];
+		}
+		global $wpdb;
+		$limit    = max( 1, min( 500, $limit ) );
+		$statuses = array_values( array_filter( array_map( 'sanitize_key', $statuses ), [ WorkItemStatus::class, 'is_valid' ] ) );
+
+		$where = [];
+		$args  = [];
+		if ( $project_id > 0 ) {
+			$where[] = 'project_id = %d';
+			$args[]  = $project_id;
+		}
+		if ( [] !== $statuses ) {
+			$where[] = 'status IN (' . implode( ',', array_fill( 0, count( $statuses ), '%s' ) ) . ')';
+			array_push( $args, ...$statuses );
+		}
+
+		$sql = 'SELECT * FROM ' . Schema::work_items_table();
+		if ( [] !== $where ) {
+			$sql .= ' WHERE ' . implode( ' AND ', $where );
+		}
+		$sql .= " ORDER BY CASE status WHEN 'in_progress' THEN 0 WHEN 'planned' THEN 1 ELSE 2 END, COALESCE(due_on, '9999-12-31') ASC, id DESC LIMIT %d";
+		$args[] = $limit;
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...$args ), ARRAY_A );
+		if ( ! is_array( $rows ) ) {
+			return [];
+		}
+		return array_values( array_map( [ self::class, 'hydrate' ], $rows ) );
+	}
+
+	/**
+	 * @param array<string,mixed>      $input
+	 * @param array<string,mixed>|null $current
+	 * @return array<string,mixed>|null
+	 */
+	private static function normalize_write( array $input, ?array $current = null ): ?array {
+		$title        = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
+		$description  = sanitize_textarea_field( (string) ( $input['description'] ?? ( $current['description'] ?? '' ) ) );
+		$customer     = self::reference( $input, 'customer_', $current );
+		$project_id   = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
+		$service_id   = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
+		$work_type_id = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
+		$priority     = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
+		$scheduled_on = self::date( (string) ( $input['scheduled_on'] ?? ( $current['scheduled_on'] ?? '' ) ) );
+		$due_on       = self::date( (string) ( $input['due_on'] ?? ( $current['due_on'] ?? '' ) ) );
+		$billing      = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
+
+		$assignments_changed = array_key_exists( 'assigned_user_ids', $input ) || null === $current;
+		$assignments = $assignments_changed
+			? self::normalize_assignments( $input['assigned_user_ids'] ?? [] )
+			: (array) ( $current['assigned_user_ids'] ?? [] );
+
+		if ( '' === $title || false === $customer || null === $assignments ) {
+			return null;
+		}
+
+		$project = null;
+		if ( $project_id > 0 ) {
+			$project = Projects::get( $project_id );
+			if ( null === $project ) {
+				return null;
+			}
+			if ( '' === $customer['provider'] && '' !== (string) ( $project['customer_provider'] ?? '' ) ) {
+				$customer = [
+					'provider' => (string) $project['customer_provider'],
+					'type'     => (string) $project['customer_type'],
+					'id'       => (string) $project['customer_id'],
+				];
+			}
+		}
+		if ( $service_id > 0 && null === Services::get( $service_id ) ) {
+			return null;
+		}
+		if ( $work_type_id > 0 && null === WorkTypes::get( $work_type_id ) ) {
+			return null;
+		}
+		if ( ! WorkItemPriority::is_valid( $priority ) ) {
+			return null;
+		}
+		if ( '' !== $billing && ! BillingDisposition::is_valid( $billing ) ) {
+			return null;
+		}
+		if ( null !== $scheduled_on && null !== $due_on && $due_on < $scheduled_on ) {
+			return null;
+		}
+
+		return [
+			'title'               => $title,
+			'description'         => $description,
+			'customer'            => $customer,
+			'project_id'          => $project_id,
+			'service_id'          => $service_id,
+			'work_type_id'        => $work_type_id,
+			'priority'            => $priority,
+			'scheduled_on'        => $scheduled_on,
+			'due_on'              => $due_on,
+			'billing'             => $billing,
+			'assignments'         => $assignments,
+			'assignments_changed' => $assignments_changed,
+		];
+	}
+
 	/** @param array<string,mixed> $row @return array<string,mixed> */
 	private static function hydrate( array $row ): array {
 		$id = (int) ( $row['id'] ?? 0 );
-		$row['id'] = $id;
-		$row['project_id'] = null === ( $row['project_id'] ?? null ) ? null : (int) $row['project_id'];
-		$row['service_id'] = null === ( $row['service_id'] ?? null ) ? null : (int) $row['service_id'];
-		$row['work_type_id'] = null === ( $row['work_type_id'] ?? null ) ? null : (int) $row['work_type_id'];
-		$row['completed_by'] = null === ( $row['completed_by'] ?? null ) ? null : (int) $row['completed_by'];
-		$row['created_by'] = (int) ( $row['created_by'] ?? 0 );
+		$row['id']                = $id;
+		$row['project_id']        = null === ( $row['project_id'] ?? null ) ? null : (int) $row['project_id'];
+		$row['service_id']        = null === ( $row['service_id'] ?? null ) ? null : (int) $row['service_id'];
+		$row['work_type_id']      = null === ( $row['work_type_id'] ?? null ) ? null : (int) $row['work_type_id'];
+		$row['completed_by']      = null === ( $row['completed_by'] ?? null ) ? null : (int) $row['completed_by'];
+		$row['created_by']        = (int) ( $row['created_by'] ?? 0 );
 		$row['assigned_user_ids'] = self::assignments( $id );
-		$row['relations'] = self::relations( $id );
+		$row['relations']         = self::relations( $id );
 		return $row;
 	}
 
-	/** @param array<string,mixed> $input @return array{provider:string,type:string,id:string}|false */
-	private static function reference( array $input, string $prefix ): array|false {
+	/**
+	 * @param array<string,mixed>      $input
+	 * @param array<string,mixed>|null $current
+	 * @return array{provider:string,type:string,id:string}|false
+	 */
+	private static function reference( array $input, string $prefix, ?array $current = null ): array|false {
+		$has_any = array_key_exists( $prefix . 'provider', $input )
+			|| array_key_exists( $prefix . 'type', $input )
+			|| array_key_exists( $prefix . 'id', $input );
+
+		if ( ! $has_any && null !== $current ) {
+			return [
+				'provider' => (string) ( $current[ $prefix . 'provider' ] ?? '' ),
+				'type'     => (string) ( $current[ $prefix . 'type' ] ?? '' ),
+				'id'       => (string) ( $current[ $prefix . 'id' ] ?? '' ),
+			];
+		}
+
 		$provider = substr( sanitize_key( (string) ( $input[ $prefix . 'provider' ] ?? '' ) ), 0, 64 );
 		$type     = substr( sanitize_key( (string) ( $input[ $prefix . 'type' ] ?? '' ) ), 0, 64 );
 		$id       = substr( sanitize_text_field( (string) ( $input[ $prefix . 'id' ] ?? '' ) ), 0, 191 );
@@ -304,8 +438,11 @@ final class WorkItems {
 
 	/** @return int[]|null */
 	private static function normalize_assignments( mixed $raw ): ?array {
+		if ( is_scalar( $raw ) ) {
+			$raw = '' === trim( (string) $raw ) ? [] : explode( ',', (string) $raw );
+		}
 		if ( ! is_array( $raw ) ) {
-			$raw = [];
+			return null;
 		}
 		$user_ids = array_values( array_unique( array_filter( array_map( 'absint', $raw ) ) ) );
 		foreach ( $user_ids as $user_id ) {

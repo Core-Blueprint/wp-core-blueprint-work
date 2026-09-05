@@ -5,16 +5,18 @@ namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
+
 defined( 'ABSPATH' ) || exit;
 
 final class Menu {
-	public const TOP_LEVEL_SLUG = 'core-blueprint-work';
-	public const WORK_ITEMS_SLUG = 'core-blueprint-work-items';
-	public const PROJECTS_SLUG = 'core-blueprint-work-projects';
+	public const TOP_LEVEL_SLUG   = 'core-blueprint-work';
+	public const WORK_ITEMS_SLUG  = 'core-blueprint-work-items';
+	public const WORK_TYPES_SLUG  = 'core-blueprint-work-types';
 	public const CONTEXT_OVERVIEW = 'overview';
 	public const CONTEXT_WORK_ITEMS = 'work_items';
 	public const CONTEXT_PROJECTS = 'projects';
 	public const CONTEXT_SERVICES = 'services';
+	public const CONTEXT_WORK_TYPES = 'work_types';
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
@@ -26,17 +28,41 @@ final class Menu {
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 10 );
-		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECTS_SLUG, [ Operations::class, 'render_projects' ], 20 );
-		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, 'edit.php?post_type=' . PostTypes::SERVICE, '', 30 );
+		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
+		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
+		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
+	}
+
+	public static function projects_path(): string {
+		return 'edit.php?post_type=' . PostTypes::PROJECT;
+	}
+
+	public static function services_path(): string {
+		return 'edit.php?post_type=' . PostTypes::SERVICE;
+	}
+
+	public static function projects_url(): string {
+		return admin_url( self::projects_path() );
 	}
 
 	public static function screen_context( ?\WP_Screen $screen = null ): string {
 		$screen = $screen ?? get_current_screen();
-		if ( ! $screen ) { return ''; }
+		if ( ! $screen ) {
+			return '';
+		}
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
-		if ( self::TOP_LEVEL_SLUG === $page ) { return self::CONTEXT_OVERVIEW; }
-		if ( self::WORK_ITEMS_SLUG === $page ) { return self::CONTEXT_WORK_ITEMS; }
-		if ( self::PROJECTS_SLUG === $page ) { return self::CONTEXT_PROJECTS; }
+		if ( self::TOP_LEVEL_SLUG === $page ) {
+			return self::CONTEXT_OVERVIEW;
+		}
+		if ( self::WORK_ITEMS_SLUG === $page ) {
+			return self::CONTEXT_WORK_ITEMS;
+		}
+		if ( self::WORK_TYPES_SLUG === $page ) {
+			return self::CONTEXT_WORK_TYPES;
+		}
+		if ( PostTypes::PROJECT === (string) $screen->post_type ) {
+			return self::CONTEXT_PROJECTS;
+		}
 		return PostTypes::SERVICE === (string) $screen->post_type ? self::CONTEXT_SERVICES : '';
 	}
 
@@ -52,11 +78,12 @@ final class Menu {
 
 	private static function submenu_slug( string $context ): string {
 		return match ( $context ) {
-			self::CONTEXT_OVERVIEW => self::TOP_LEVEL_SLUG,
+			self::CONTEXT_OVERVIEW   => self::TOP_LEVEL_SLUG,
 			self::CONTEXT_WORK_ITEMS => self::WORK_ITEMS_SLUG,
-			self::CONTEXT_PROJECTS => self::PROJECTS_SLUG,
-			self::CONTEXT_SERVICES => 'edit.php?post_type=' . PostTypes::SERVICE,
-			default => '',
+			self::CONTEXT_PROJECTS   => self::projects_path(),
+			self::CONTEXT_SERVICES   => self::services_path(),
+			self::CONTEXT_WORK_TYPES => self::WORK_TYPES_SLUG,
+			default                  => '',
 		};
 	}
 }

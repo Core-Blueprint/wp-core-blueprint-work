@@ -17,7 +17,6 @@ final class Schema {
 			'option_key' => self::OPTION,
 			'tables'     => [
 				[ self::class, 'tax_rates_table' ],
-				[ self::class, 'projects_table' ],
 				[ self::class, 'work_types_table' ],
 				[ self::class, 'work_items_table' ],
 				[ self::class, 'assignments_table' ],
@@ -30,11 +29,6 @@ final class Schema {
 	public static function tax_rates_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_tax_rates';
-	}
-
-	public static function projects_table(): string {
-		global $wpdb;
-		return $wpdb->prefix . 'cb_work_projects';
 	}
 
 	public static function work_types_table(): string {
@@ -77,23 +71,6 @@ final class Schema {
 			UNIQUE KEY code (code),
 			KEY active (is_active),
 			KEY country (country_code)
-		) {$charset};" );
-
-		dbDelta( 'CREATE TABLE ' . self::projects_table() . " (
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			title varchar(190) NOT NULL,
-			description longtext NOT NULL,
-			customer_provider varchar(64) NOT NULL DEFAULT '',
-			customer_type varchar(64) NOT NULL DEFAULT '',
-			customer_id varchar(191) NOT NULL DEFAULT '',
-			starts_on date NULL,
-			due_on date NULL,
-			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
-			created_at datetime NOT NULL,
-			updated_at datetime NOT NULL,
-			PRIMARY KEY  (id),
-			KEY customer (customer_provider,customer_type,customer_id),
-			KEY due_on (due_on)
 		) {$charset};" );
 
 		dbDelta( 'CREATE TABLE ' . self::work_types_table() . " (
@@ -160,6 +137,13 @@ final class Schema {
 			KEY work_item_id (work_item_id),
 			KEY external_ref (provider,relation_type,external_id)
 		) {$charset};" );
+
+		/*
+		 * D1.1 is a deliberate pre-v1 architecture correction. Projects are now
+		 * canonical WordPress content; the transitional relational table is
+		 * destroyed instead of retained as a compatibility or migration layer.
+		 */
+		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_projects' );
 
 		self::seed_default_work_types();
 		return true;
