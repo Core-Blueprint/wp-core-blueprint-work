@@ -9,6 +9,8 @@ done < <(find "$ROOT" -type f -name '*.php' -print0)
 
 php "$ROOT/tests/source-conformance.php"
 php "$ROOT/tests/admin-navigation-smoke.php"
+php "$ROOT/tests/d1-domain-smoke.php"
+php "$ROOT/tests/d1-schema-smoke.php"
 php "$ROOT/tests/domain-smoke.php"
 php "$ROOT/tests/pricing-smoke.php"
 php "$ROOT/tests/runtime-smoke.php"
