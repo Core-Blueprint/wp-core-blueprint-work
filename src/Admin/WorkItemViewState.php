@@ -70,6 +70,21 @@ final class WorkItemViewState {
 			$sort = WorkItemQuery::SORT_WORKLOAD;
 		}
 
+		$calendar_month = '';
+		$scheduled_from = self::date( $request['scheduled_from'] ?? '' );
+		$scheduled_to   = self::date( $request['scheduled_to'] ?? '' );
+		$per_page       = 50;
+		if ( self::VIEW_CALENDAR === $view ) {
+			$calendar_month = self::month( $request['calendar_month'] ?? '' );
+			if ( '' === $calendar_month ) {
+				$calendar_month = self::month( current_time( 'Y-m' ) );
+			}
+			$bounds         = self::month_bounds( $calendar_month );
+			$scheduled_from = $bounds['from'];
+			$scheduled_to   = $bounds['to'];
+			$per_page       = 500;
+		}
+
 		$state = [
 			'view'           => $view,
 			'search'         => self::text( $request['s'] ?? '' ),
@@ -82,13 +97,14 @@ final class WorkItemViewState {
 			'billing'        => $billing,
 			'customer'       => $customer_token,
 			'customer_valid' => $customer_valid,
-			'scheduled_from' => self::date( $request['scheduled_from'] ?? '' ),
-			'scheduled_to'   => self::date( $request['scheduled_to'] ?? '' ),
+			'calendar_month' => $calendar_month,
+			'scheduled_from' => $scheduled_from,
+			'scheduled_to'   => $scheduled_to,
 			'due_from'       => self::date( $request['due_from'] ?? '' ),
 			'due_to'         => self::date( $request['due_to'] ?? '' ),
 			'sort'           => $sort,
 			'page'           => max( 1, absint( $request['paged'] ?? 1 ) ),
-			'per_page'       => 50,
+			'per_page'       => $per_page,
 		];
 
 		$state['query'] = WorkItemQuery::normalize( [
@@ -134,6 +150,7 @@ final class WorkItemViewState {
 			'assignee_id'    => 'assignee_id',
 			'billing'        => 'billing',
 			'customer'       => 'customer',
+			'calendar_month' => 'calendar_month',
 			'scheduled_from' => 'scheduled_from',
 			'scheduled_to'   => 'scheduled_to',
 			'due_from'       => 'due_from',
@@ -142,6 +159,12 @@ final class WorkItemViewState {
 			'page'           => 'paged',
 		];
 		foreach ( $map as $state_key => $query_key ) {
+			if (
+				self::VIEW_CALENDAR === (string) ( $state['view'] ?? '' )
+				&& in_array( $state_key, [ 'scheduled_from', 'scheduled_to' ], true )
+			) {
+				continue;
+			}
 			$value = $state[ $state_key ] ?? '';
 			if ( ( is_int( $value ) && $value > 0 ) || ( is_string( $value ) && '' !== $value ) ) {
 				if ( 'page' === $state_key && 1 === (int) $value ) {
@@ -171,5 +194,26 @@ final class WorkItemViewState {
 		}
 		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
 		return $date && $date->format( 'Y-m-d' ) === $value ? $value : '';
+	}
+
+	private static function month( mixed $raw ): string {
+		$value = is_scalar( $raw ) ? trim( (string) $raw ) : '';
+		if ( 1 !== preg_match( '/^\d{4}-(0[1-9]|1[0-2])$/', $value ) ) {
+			return '';
+		}
+		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value . '-01' );
+		return $date && $date->format( 'Y-m' ) === $value ? $value : '';
+	}
+
+	/** @return array{from:string,to:string} */
+	private static function month_bounds( string $month ): array {
+		$first = \DateTimeImmutable::createFromFormat( '!Y-m-d', $month . '-01' );
+		if ( ! $first ) {
+			return [ 'from' => '', 'to' => '' ];
+		}
+		return [
+			'from' => $first->format( 'Y-m-d' ),
+			'to'   => $first->modify( 'last day of this month' )->format( 'Y-m-d' ),
+		];
 	}
 }
