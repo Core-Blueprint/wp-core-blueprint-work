@@ -48,7 +48,7 @@ final class WorkItems {
 			$project_id = (int) $item['project_id'];
 		}
 
-		$selected_customer  = null;
+		$selected_customer   = null;
 		$customer_unresolved = false;
 		if ( is_array( $item ) && '' !== (string) ( $item['customer_provider'] ?? '' ) ) {
 			$selected_customer = CRMCustomers::selected(
@@ -181,8 +181,10 @@ final class WorkItems {
 		$current         = WorkItemRepository::get( $post_id );
 		$was_initialized = WorkItemMeta::is_initialized( $post_id );
 		if ( array_key_exists( 'customer_object_id', $input ) ) {
-			$customer_id = absint( $input['customer_object_id'] );
-			$reference   = CRMCustomers::reference( $customer_id );
+			$customer_identifier = is_scalar( $input['customer_object_id'] )
+				? sanitize_text_field( (string) $input['customer_object_id'] )
+				: '';
+			$reference = CRMCustomers::reference( $customer_identifier );
 			if ( is_wp_error( $reference ) ) {
 				return;
 			}
