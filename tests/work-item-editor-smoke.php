@@ -119,13 +119,15 @@ namespace CB\Work\Integration {
 	final class CRMCustomers {
 		public static function available(): bool { return true; }
 		public static function selected( string $provider, string $type, string $id ): ?array {
-			if ( 'crm' === $provider && 'contact' === $type && '42' === $id ) {
-				return [ 'id' => 42, 'label' => 'Customer 42', 'meta' => 'Contact' ];
+			if ( 'crm' === $provider && 'organization' === $type && '42' === $id ) {
+				return [ 'id' => 'crm:organization:42', 'label' => 'Organization 42', 'meta' => 'Organization' ];
 			}
 			return null;
 		}
-		public static function reference( int $object_id ): array|null|\WP_Error {
-			return 42 === $object_id ? [ 'provider' => 'crm', 'type' => 'contact', 'id' => '42' ] : null;
+		public static function reference( string $identifier ): array|null|\WP_Error {
+			return 'crm:organization:42' === $identifier
+				? [ 'provider' => 'crm', 'type' => 'organization', 'id' => '42' ]
+				: null;
 		}
 		public static function search( string $term, int $limit = 20 ): array { unset( $term, $limit ); return []; }
 	}
@@ -188,7 +190,7 @@ namespace {
 	$_POST = [
 		'cb_work_work_item_nonce' => 'valid',
 		'cb_work_item' => [
-			'customer_object_id' => '42',
+			'customer_object_id' => 'crm:organization:42',
 			'assigned_user_ids'  => '3,7',
 			'project_id'         => '0',
 			'priority'           => 'normal',
@@ -197,7 +199,7 @@ namespace {
 	];
 	\CB\Work\Admin\WorkItems::save( 123, $post, false );
 	$saved = \CB\Work\Repository\WorkItems::$saved;
-	assert_true( 'crm' === ( $saved['customer_provider'] ?? '' ) && 'contact' === ( $saved['customer_type'] ?? '' ) && '42' === ( $saved['customer_id'] ?? '' ), 'Editor save resolves the submitted CRM object through the documented adapter.' );
+	assert_true( 'crm' === ( $saved['customer_provider'] ?? '' ) && 'organization' === ( $saved['customer_type'] ?? '' ) && '42' === ( $saved['customer_id'] ?? '' ), 'Editor save preserves the opaque Organization token and resolves it to canonical Work customer metadata.' );
 	assert_true( '3,7' === ( $saved['assigned_user_ids'] ?? '' ), 'Editor save forwards ObjectPicker assignments to repository normalization.' );
 	assert_true( ! array_key_exists( 'customer_object_id', $saved ), 'Transient picker object id does not leak into canonical Work Item persistence.' );
 	assert_true( [ 'work.item.created' ] === array_column( $GLOBALS['cb_work_audit_events'], 'id' ), 'First canonical editor save records Work Item creation, not update.' );

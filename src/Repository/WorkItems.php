@@ -10,6 +10,7 @@ use CB\Work\Domain\BillingDisposition;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\PublicApi\Services;
+use CB\Work\Query\WorkItemQuery;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +21,13 @@ final class WorkItems {
 
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 100, array $statuses = [] ): array {
-		return self::query( $limit, $statuses );
+		$result = self::search( [
+			'statuses' => $statuses,
+			'page'     => 1,
+			'per_page' => max( 1, min( 500, $limit ) ),
+			'sort'     => WorkItemQuery::SORT_WORKLOAD,
+		] );
+		return $result['items'];
 	}
 
 	/** @return array<int,array<string,mixed>> */
@@ -28,7 +35,83 @@ final class WorkItems {
 		if ( $project_id <= 0 ) {
 			return [];
 		}
-		return self::query( $limit, $statuses, $project_id );
+		$result = self::search( [
+			'statuses'   => $statuses,
+			'project_id' => $project_id,
+			'page'       => 1,
+			'per_page'   => max( 1, min( 500, $limit ) ),
+			'sort'       => WorkItemQuery::SORT_WORKLOAD,
+		] );
+		return $result['items'];
+	}
+
+	/**
+	 * Canonical operational Work Item query used by every D2 admin view.
+	 *
+	 * @param array<string,mixed> $criteria
+	 * @return array{items:array<int,array<string,mixed>>,total:int,page:int,per_page:int,pages:int}
+	 */
+	public static function search( array $criteria = [] ): array {
+		$criteria = WorkItemQuery::normalize( $criteria );
+		$page     = (int) $criteria['page'];
+		$per_page = (int) $criteria['per_page'];
+
+		$args = [
+			'post_type'              => PostTypes::WORK_ITEM,
+			'post_status'            => self::managed_post_statuses(),
+			'posts_per_page'         => -1,
+			'fields'                 => 'ids',
+			'ignore_sticky_posts'    => true,
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		];
+		if ( '' !== $criteria['search'] ) {
+			$args['s'] = $criteria['search'];
+		}
+
+		$meta_query = self::query_meta_filters( $criteria );
+		if ( [] !== $meta_query ) {
+			$args['meta_query'] = count( $meta_query ) > 1
+				? [ 'relation' => 'AND', ...$meta_query ]
+				: $meta_query;
+		}
+
+		if ( (int) $criteria['assignee_id'] > 0 ) {
+			$assigned_ids = self::assigned_work_item_ids( (int) $criteria['assignee_id'] );
+			if ( [] === $assigned_ids ) {
+				return self::empty_search_result( $page, $per_page );
+			}
+			$args['post__in'] = $assigned_ids;
+		}
+
+		$query = new \WP_Query( $args );
+		$ids   = array_values( array_unique( array_filter( array_map( 'absint', $query->posts ) ) ) );
+		if ( [] === $ids ) {
+			return self::empty_search_result( $page, $per_page );
+		}
+
+		update_meta_cache( 'post', $ids );
+		self::sort_query_ids( $ids, (string) $criteria['sort'] );
+
+		$total     = count( $ids );
+		$pages     = (int) ceil( $total / $per_page );
+		$page_ids  = array_slice( $ids, ( $page - 1 ) * $per_page, $per_page );
+		$items     = [];
+		foreach ( $page_ids as $post_id ) {
+			$post = get_post( $post_id );
+			if ( $post instanceof \WP_Post && PostTypes::WORK_ITEM === $post->post_type ) {
+				$items[] = self::hydrate( $post );
+			}
+		}
+
+		return [
+			'items'    => $items,
+			'total'    => $total,
+			'page'     => $page,
+			'per_page' => $per_page,
+			'pages'    => $pages,
+		];
 	}
 
 	/** @return array<string,mixed>|null */
@@ -52,7 +135,7 @@ final class WorkItems {
 				if ( ! in_array( $status, [ 'trash', 'auto-draft', 'inherit' ], true ) ) {
 					$total += max( 0, (int) $count );
 				}
-			}
+		}
 		}
 		return $total;
 	}
@@ -327,47 +410,115 @@ final class WorkItems {
 		}
 	}
 
-	/** @return array<int,array<string,mixed>> */
-	private static function query( int $limit, array $statuses = [], int $project_id = 0 ): array {
-		$limit = max( 1, min( 500, $limit ) );
-		$statuses = array_values( array_filter( array_map( 'sanitize_key', $statuses ), [ WorkItemStatus::class, 'is_valid' ] ) );
-		$meta_query = [];
-		if ( $project_id > 0 ) {
-			$meta_query[] = [
-				'key'   => WorkItemMeta::PROJECT_ID,
-				'value' => $project_id,
-				'type'  => 'NUMERIC',
-			];
+	/**
+	 * @param array<string,mixed> $criteria
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function query_meta_filters( array $criteria ): array {
+		$filters = [];
+		if ( [] !== $criteria['statuses'] ) {
+			$filters[] = [ 'key' => WorkItemMeta::STATUS, 'value' => $criteria['statuses'], 'compare' => 'IN' ];
 		}
-		if ( [] !== $statuses ) {
-			$meta_query[] = [
-				'key'     => WorkItemMeta::STATUS,
-				'value'   => $statuses,
-				'compare' => 'IN',
-			];
+		if ( [] !== $criteria['priorities'] ) {
+			$filters[] = [ 'key' => WorkItemMeta::PRIORITY, 'value' => $criteria['priorities'], 'compare' => 'IN' ];
 		}
-
-		$args = [
-			'post_type'           => PostTypes::WORK_ITEM,
-			'post_status'         => self::managed_post_statuses(),
-			'posts_per_page'      => 500,
-			'orderby'             => [ 'date' => 'DESC', 'ID' => 'DESC' ],
-			'ignore_sticky_posts' => true,
-			'no_found_rows'       => true,
-		];
-		if ( [] !== $meta_query ) {
-			$args['meta_query'] = count( $meta_query ) > 1 ? [ 'relation' => 'AND', ...$meta_query ] : $meta_query;
-		}
-
-		$query = new \WP_Query( $args );
-		$items = [];
-		foreach ( $query->posts as $post ) {
-			if ( $post instanceof \WP_Post ) {
-				$items[] = self::hydrate( $post );
+		foreach ( [
+			WorkItemMeta::PROJECT_ID   => (int) $criteria['project_id'],
+			WorkItemMeta::SERVICE_ID   => (int) $criteria['service_id'],
+			WorkItemMeta::WORK_TYPE_ID => (int) $criteria['work_type_id'],
+		] as $key => $value ) {
+			if ( $value > 0 ) {
+				$filters[] = [ 'key' => $key, 'value' => $value, 'type' => 'NUMERIC' ];
 			}
 		}
-		usort( $items, [ self::class, 'compare_workload' ] );
-		return array_slice( $items, 0, $limit );
+		if ( [] !== $criteria['billing_dispositions'] ) {
+			$filters[] = [ 'key' => WorkItemMeta::BILLING_DISPOSITION, 'value' => $criteria['billing_dispositions'], 'compare' => 'IN' ];
+		}
+		if ( is_array( $criteria['customer'] ) ) {
+			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_PROVIDER, 'value' => $criteria['customer']['provider'] ];
+			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_TYPE, 'value' => $criteria['customer']['type'] ];
+			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_ID, 'value' => $criteria['customer']['id'] ];
+		}
+		foreach ( [
+			[ 'from' => 'scheduled_from', 'to' => 'scheduled_to', 'key' => WorkItemMeta::SCHEDULED_ON ],
+			[ 'from' => 'due_from', 'to' => 'due_to', 'key' => WorkItemMeta::DUE_ON ],
+		] as $range ) {
+			if ( '' !== $criteria[ $range['from'] ] ) {
+				$filters[] = [ 'key' => $range['key'], 'value' => $criteria[ $range['from'] ], 'compare' => '>=', 'type' => 'DATE' ];
+			}
+			if ( '' !== $criteria[ $range['to'] ] ) {
+				$filters[] = [ 'key' => $range['key'], 'value' => $criteria[ $range['to'] ], 'compare' => '<=', 'type' => 'DATE' ];
+			}
+		}
+		return $filters;
+	}
+
+	/** @return int[] */
+	private static function assigned_work_item_ids( int $user_id ): array {
+		if ( $user_id <= 0 || ! self::schema_ready() ) {
+			return [];
+		}
+		global $wpdb;
+		$ids = $wpdb->get_col(
+			$wpdb->prepare( 'SELECT work_item_id FROM ' . Schema::assignments_table() . ' WHERE user_id = %d ORDER BY work_item_id ASC', $user_id )
+		);
+		return is_array( $ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) : [];
+	}
+
+	/** @param int[] $ids */
+	private static function sort_query_ids( array &$ids, string $sort ): void {
+		usort( $ids, static function ( int $a, int $b ) use ( $sort ): int {
+			if ( WorkItemQuery::SORT_TITLE === $sort ) {
+				$a_post = get_post( $a );
+				$b_post = get_post( $b );
+				$by_title = strcasecmp(
+					$a_post instanceof \WP_Post ? (string) $a_post->post_title : '',
+					$b_post instanceof \WP_Post ? (string) $b_post->post_title : ''
+				);
+				return 0 !== $by_title ? $by_title : $a <=> $b;
+			}
+			if ( WorkItemQuery::SORT_UPDATED === $sort ) {
+				$a_post = get_post( $a );
+				$b_post = get_post( $b );
+				$a_updated = $a_post instanceof \WP_Post ? (string) $a_post->post_modified_gmt : '';
+				$b_updated = $b_post instanceof \WP_Post ? (string) $b_post->post_modified_gmt : '';
+				return $a_updated !== $b_updated ? strcmp( $b_updated, $a_updated ) : $b <=> $a;
+			}
+
+			$key = WorkItemQuery::SORT_SCHEDULED === $sort ? WorkItemMeta::SCHEDULED_ON : WorkItemMeta::DUE_ON;
+			if ( WorkItemQuery::SORT_DUE === $sort || WorkItemQuery::SORT_SCHEDULED === $sort ) {
+				$a_date = (string) get_post_meta( $a, $key, true );
+				$b_date = (string) get_post_meta( $b, $key, true );
+				$a_date = '' !== $a_date ? $a_date : '9999-12-31';
+				$b_date = '' !== $b_date ? $b_date : '9999-12-31';
+				return $a_date !== $b_date ? strcmp( $a_date, $b_date ) : $b <=> $a;
+			}
+
+			$a_status = sanitize_key( (string) get_post_meta( $a, WorkItemMeta::STATUS, true ) );
+			$b_status = sanitize_key( (string) get_post_meta( $b, WorkItemMeta::STATUS, true ) );
+			if ( ! WorkItemStatus::is_valid( $a_status ) ) {
+				$a_status = WorkItemStatus::PLANNED;
+			}
+			if ( ! WorkItemStatus::is_valid( $b_status ) ) {
+				$b_status = WorkItemStatus::PLANNED;
+			}
+			$rank   = [ WorkItemStatus::IN_PROGRESS => 0, WorkItemStatus::PLANNED => 1 ];
+			$a_rank = $rank[ $a_status ] ?? 2;
+			$b_rank = $rank[ $b_status ] ?? 2;
+			if ( $a_rank !== $b_rank ) {
+				return $a_rank <=> $b_rank;
+			}
+			$a_due = (string) get_post_meta( $a, WorkItemMeta::DUE_ON, true );
+			$b_due = (string) get_post_meta( $b, WorkItemMeta::DUE_ON, true );
+			$a_due = '' !== $a_due ? $a_due : '9999-12-31';
+			$b_due = '' !== $b_due ? $b_due : '9999-12-31';
+			return $a_due !== $b_due ? strcmp( $a_due, $b_due ) : $b <=> $a;
+		} );
+	}
+
+	/** @return array{items:array<int,array<string,mixed>>,total:int,page:int,per_page:int,pages:int} */
+	private static function empty_search_result( int $page, int $per_page ): array {
+		return [ 'items' => [], 'total' => 0, 'page' => $page, 'per_page' => $per_page, 'pages' => 0 ];
 	}
 
 	/**
@@ -527,22 +678,6 @@ final class WorkItems {
 		}
 		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
 		return $date && $date->format( 'Y-m-d' ) === $value ? $value : null;
-	}
-
-	/** @param array<string,mixed> $a @param array<string,mixed> $b */
-	private static function compare_workload( array $a, array $b ): int {
-		$rank = [ WorkItemStatus::IN_PROGRESS => 0, WorkItemStatus::PLANNED => 1 ];
-		$a_rank = $rank[ (string) $a['status'] ] ?? 2;
-		$b_rank = $rank[ (string) $b['status'] ] ?? 2;
-		if ( $a_rank !== $b_rank ) {
-			return $a_rank <=> $b_rank;
-		}
-		$a_due = (string) ( $a['due_on'] ?? '9999-12-31' );
-		$b_due = (string) ( $b['due_on'] ?? '9999-12-31' );
-		if ( $a_due !== $b_due ) {
-			return $a_due <=> $b_due;
-		}
-		return (int) $b['id'] <=> (int) $a['id'];
 	}
 
 	private static function exists( int $work_item_id ): bool {

@@ -14,6 +14,8 @@ defined( 'ABSPATH' ) || exit;
 final class CRMCustomers {
 	private const CONTACT_QUERY      = '\CB\CRM\Frontend\Queries\Contacts';
 	private const ORGANIZATION_QUERY = '\CB\CRM\Frontend\Queries\Organizations';
+	private const PROVIDER           = 'crm';
+	private const TYPES              = [ 'contact', 'organization' ];
 
 	/** @var array<string,array{id:int,label:string,meta:string}|null> */
 	private static array $cache = [];
@@ -22,7 +24,7 @@ final class CRMCustomers {
 		return class_exists( self::CONTACT_QUERY ) && class_exists( self::ORGANIZATION_QUERY );
 	}
 
-	/** @return array<int,array{id:int,label:string,meta:string}>|\WP_Error */
+	/** @return array<int,array{id:string,label:string,meta:string}>|\WP_Error */
 	public static function search( string $term, int $limit = 20 ): array|\WP_Error {
 		if ( ! self::available() ) {
 			return new \WP_Error( 'work_crm_unavailable', __( 'CRM customer selection is unavailable.', 'core-blueprint-work' ) );
@@ -45,7 +47,7 @@ final class CRMCustomers {
 				continue;
 			}
 			$items[] = [
-				'id'    => $id,
+				'id'    => self::transport_identifier( 'contact', $id ),
 				'label' => sanitize_text_field( (string) ( $contact['display_name'] ?? '' ) ),
 				'meta'  => __( 'Contact', 'core-blueprint-work' ),
 			];
@@ -64,7 +66,7 @@ final class CRMCustomers {
 				continue;
 			}
 			$items[] = [
-				'id'    => $id,
+				'id'    => self::transport_identifier( 'organization', $id ),
 				'label' => sanitize_text_field( (string) ( $organization['name'] ?? '' ) ),
 				'meta'  => __( 'Organization', 'core-blueprint-work' ),
 			];
@@ -75,27 +77,42 @@ final class CRMCustomers {
 	}
 
 	/** @return array{provider:string,type:string,id:string}|null|\WP_Error */
-	public static function reference( int $object_id ): array|null|\WP_Error {
-		if ( $object_id <= 0 ) {
+	public static function reference( string $transport_identifier ): array|null|\WP_Error {
+		$transport_identifier = trim( $transport_identifier );
+		if ( '' === $transport_identifier ) {
 			return null;
 		}
-		$item = self::resolve( 'contact', $object_id );
+
+		$decoded = self::decode_transport_identifier( $transport_identifier );
+		if ( null === $decoded ) {
+			return new \WP_Error(
+				'work_invalid_customer_identifier',
+				__( 'The selected CRM customer identifier is invalid.', 'core-blueprint-work' )
+			);
+		}
+
+		$item = self::resolve( $decoded['type'], $decoded['id'] );
 		if ( is_wp_error( $item ) ) {
 			return $item;
 		}
-		if ( null !== $item ) {
-			return [ 'provider' => 'crm', 'type' => 'contact', 'id' => (string) $object_id ];
+		if ( null === $item ) {
+			return new \WP_Error(
+				'work_customer_not_found',
+				__( 'The selected CRM customer could not be resolved.', 'core-blueprint-work' )
+			);
 		}
-		$item = self::resolve( 'organization', $object_id );
-		if ( is_wp_error( $item ) ) {
-			return $item;
-		}
-		return null === $item ? null : [ 'provider' => 'crm', 'type' => 'organization', 'id' => (string) $object_id ];
+
+		return [
+			'provider' => self::PROVIDER,
+			'type'     => $decoded['type'],
+			'id'       => (string) $decoded['id'],
+		];
 	}
 
-	/** @return array{id:int,label:string,meta:string}|null */
+	/** @return array{id:string,label:string,meta:string}|null */
 	public static function selected( string $provider, string $type, string $id ): ?array {
-		if ( 'crm' !== sanitize_key( $provider ) || ! in_array( $type, [ 'contact', 'organization' ], true ) ) {
+		$type = sanitize_key( $type );
+		if ( self::PROVIDER !== sanitize_key( $provider ) || ! in_array( $type, self::TYPES, true ) ) {
 			return null;
 		}
 		$object_id = absint( $id );
@@ -103,7 +120,14 @@ final class CRMCustomers {
 			return null;
 		}
 		$item = self::resolve( $type, $object_id );
-		return is_array( $item ) ? $item : null;
+		if ( ! is_array( $item ) ) {
+			return null;
+		}
+		return [
+			'id'    => self::transport_identifier( $type, $object_id ),
+			'label' => $item['label'],
+			'meta'  => $item['meta'],
+		];
 	}
 
 	public static function label( string $provider, string $type, string $id ): string {
@@ -112,6 +136,22 @@ final class CRMCustomers {
 			return $item['label'];
 		}
 		return '' !== $provider ? __( 'Linked customer', 'core-blueprint-work' ) : '';
+	}
+
+	private static function transport_identifier( string $type, int $object_id ): string {
+		return self::PROVIDER . ':' . $type . ':' . $object_id;
+	}
+
+	/** @return array{type:string,id:int}|null */
+	private static function decode_transport_identifier( string $identifier ): ?array {
+		if ( 1 !== preg_match( '/^crm:(contact|organization):([1-9][0-9]*)$/', $identifier, $matches ) ) {
+			return null;
+		}
+		$object_id = absint( $matches[2] );
+		if ( $object_id <= 0 || (string) $object_id !== $matches[2] ) {
+			return null;
+		}
+		return [ 'type' => $matches[1], 'id' => $object_id ];
 	}
 
 	/** @return array{id:int,label:string,meta:string}|null|\WP_Error */

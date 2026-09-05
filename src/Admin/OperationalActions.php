@@ -61,11 +61,12 @@ final class OperationalActions {
 	}
 
 	private static function redirect_work_items( string $notice ): never {
-		$project_id = isset( $_POST['return_project_id'] ) ? absint( $_POST['return_project_id'] ) : 0;
-		$args = [ 'page' => Menu::WORK_ITEMS_SLUG, 'cb-work-notice' => sanitize_key( $notice ) ];
-		if ( $project_id > 0 ) {
-			$args['project_id'] = $project_id;
-		}
+		$return_state = isset( $_POST['return_state'] ) && is_array( $_POST['return_state'] )
+			? wp_unslash( $_POST['return_state'] )
+			: [];
+		$state = WorkItemViewState::from_request( $return_state );
+		$args  = WorkItemViewState::query_args( $state );
+		$args['cb-work-notice'] = sanitize_key( $notice );
 		wp_safe_redirect( add_query_arg( $args, admin_url( 'admin.php' ) ) );
 		exit;
 	}
