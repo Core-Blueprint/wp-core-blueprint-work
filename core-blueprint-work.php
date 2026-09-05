@@ -3,7 +3,7 @@
  * Plugin Name:       Core Blueprint Work
  * Plugin URI:        https://coreblueprint.io
  * Description:       First-party work management for services, projects, work items, time tracking and billing-ready reporting.
- * Version:           1.0.0-rc4
+ * Version:           1.0.0-rc5
  * Author:            Core Blueprint
  * Author URI:        https://coreblueprint.io
  * License:           GPL-2.0+
@@ -24,8 +24,8 @@ if ( defined( 'CB_WORK_FILE' ) ) {
 	return;
 }
 
-define( 'CB_WORK_VERSION', '1.0.0-rc4' );
-define( 'CB_WORK_SCHEMA_VERSION', '1.2' );
+define( 'CB_WORK_VERSION', '1.0.0-rc5' );
+define( 'CB_WORK_SCHEMA_VERSION', '1.3' );
 define( 'CB_WORK_REQUIRED_API', '1.0' );
 define( 'CB_WORK_FILE', __FILE__ );
 define( 'CB_WORK_DIR', plugin_dir_path( __FILE__ ) );
