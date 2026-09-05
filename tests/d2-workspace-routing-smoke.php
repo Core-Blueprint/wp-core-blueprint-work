@@ -5,25 +5,42 @@ $root = dirname( __DIR__ );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $actions    = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 
+$calendarDispatchPos = strpos( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' );
+$emptyStatePos       = strpos( $operations, "<?php elseif ( [] === \$items ) : ?>" );
+
 $checks = [
 	'Work Items workspace resolves canonical view state' => is_string( $operations )
 		&& str_contains( $operations, 'WorkItemViewState::from_request( $_GET )' ),
-	'Work Items workspace queries only through the canonical operational engine' => str_contains( $operations, 'WorkItems::search( (array) $state[\'query\'] )' )
+	'Work Items workspace queries only through the canonical operational engine' => 1 === substr_count( $operations, 'WorkItems::search( (array) $state[\'query\'] )' )
 		&& ! str_contains( $operations, 'WorkItems::for_project( $project_filter' )
 		&& ! str_contains( $operations, 'WorkItems::all( 200 )' ),
-	'Table, List and Kanban are the only enabled D2 renderers at this gate' => str_contains( $operations, '[ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN ]' )
+	'Table, List, Kanban and Calendar are the enabled D2 renderers' => str_contains( $operations, '[ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN, WorkItemViewState::VIEW_CALENDAR ]' )
 		&& str_contains( $operations, 'render_work_item_table(' )
 		&& str_contains( $operations, 'render_work_item_list(' )
 		&& str_contains( $operations, 'render_work_item_kanban(' )
-		&& ! str_contains( $operations, 'render_work_item_calendar(' ),
+		&& str_contains( $operations, 'render_work_item_calendar(' ),
 	'Kanban is a renderer over canonical status and the existing result set' => str_contains( $operations, '$lanes = array_fill_keys( WorkItemStatus::all(), [] );' )
 		&& str_contains( $operations, '$lanes[ $status ][] = $item;' )
 		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
 		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
+	'Calendar is a renderer over scheduled_on and the existing result set' => str_contains( $operations, "\$scheduled_on = (string) ( \$item['scheduled_on'] ?? '' );" )
+		&& str_contains( $operations, '$items_by_date[ $scheduled_on ][] = $item;' )
+		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' ),
+	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $operations, "[ 'calendar_month' => \$previous_month, 'page' => 1 ]" )
+		&& str_contains( $operations, "[ 'calendar_month' => \$next_month, 'page' => 1 ]" )
+		&& str_contains( $operations, 'Previous month' )
+		&& str_contains( $operations, 'Next month' ),
+	'Calendar remains rendered and navigable when a month has no Work Items' => false !== $calendarDispatchPos
+		&& false !== $emptyStatePos
+		&& $calendarDispatchPos < $emptyStatePos,
 	'view switcher and filter form preserve canonical view state' => str_contains( $operations, 'render_work_item_views( $state )' )
 		&& str_contains( $operations, "name=\"view\" value=\"<?php echo esc_attr( (string) \$state['view'] ); ?>\"" )
-		&& str_contains( $operations, "[ 'view' => (string) \$state['view'] ]" ),
-	'customer filtering stays on the shared Base ObjectPicker path' => str_contains( $operations, "Pickers::customer( 'customer', 'cb-work-filter-customer'" ),
+		&& str_contains( $operations, "WorkItemViewState::VIEW_CALENDAR => __( 'Calendar'" ),
+	'Calendar filters preserve month state instead of exposing derived scheduled bounds' => str_contains( $operations, "name=\"calendar_month\" value=\"<?php echo esc_attr( (string) \$state['calendar_month'] ); ?>\"" )
+		&& str_contains( $operations, 'if ( ! $is_calendar )' )
+		&& str_contains( $operations, "\$clear_state['calendar_month'] = (string) \$state['calendar_month'];" ),
+	'customer and assignee filtering stay on shared Base ObjectPicker paths' => str_contains( $operations, "Pickers::customer( 'customer', 'cb-work-filter-customer'" )
+		&& str_contains( $operations, "Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) \$state['assignee_id'] )" ),
 	'invalid customer state fails closed instead of broadening the dataset' => str_contains( $operations, "false === \$state['customer_valid']" )
 		&& str_contains( $operations, "? WorkItems::search( (array) \$state['query'] )" )
 		&& str_contains( $operations, "'items' => [], 'total' => 0" ),

@@ -43,7 +43,7 @@ final class Operations {
 		}
 
 		$state = WorkItemViewState::from_request( $_GET );
-		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN ], true ) ) {
+		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN, WorkItemViewState::VIEW_CALENDAR ], true ) ) {
 			$request         = $_GET;
 			$request['view'] = WorkItemViewState::VIEW_TABLE;
 			$state           = WorkItemViewState::from_request( $request );
@@ -102,7 +102,9 @@ final class Operations {
 
 			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
 			<p class="description"><?php echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></p>
-			<?php if ( [] === $items ) : ?>
+			<?php if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
+				<?php self::render_work_item_calendar( $items, $project_map, $state ); ?>
+			<?php elseif ( [] === $items ) : ?>
 				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
 			<?php elseif ( WorkItemViewState::VIEW_KANBAN === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_kanban( $items, $project_map, $type_map, $state ); ?>
@@ -170,9 +172,10 @@ final class Operations {
 	private static function render_work_item_views( array $state ): void {
 		$current = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
 		$views = [
-			WorkItemViewState::VIEW_TABLE  => __( 'Table', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_LIST   => __( 'List', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_KANBAN => __( 'Kanban', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_TABLE    => __( 'Table', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_LIST     => __( 'List', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_KANBAN   => __( 'Kanban', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_CALENDAR => __( 'Calendar', 'core-blueprint-work' ),
 		];
 		?>
 		<h2 class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
@@ -191,10 +194,18 @@ final class Operations {
 	 * @param array{id:string,label:string,meta:string}|null $selected_customer
 	 */
 	private static function render_work_item_filters( array $state, array $projects, array $services, array $types, ?array $selected_customer ): void {
+		$is_calendar = WorkItemViewState::VIEW_CALENDAR === (string) $state['view'];
+		$clear_state = [ 'view' => (string) $state['view'] ];
+		if ( $is_calendar ) {
+			$clear_state['calendar_month'] = (string) $state['calendar_month'];
+		}
 		?>
 		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="cb-work-items-filters">
 			<input type="hidden" name="page" value="<?php echo esc_attr( Menu::WORK_ITEMS_SLUG ); ?>">
 			<input type="hidden" name="view" value="<?php echo esc_attr( (string) $state['view'] ); ?>">
+			<?php if ( $is_calendar ) : ?>
+				<input type="hidden" name="calendar_month" value="<?php echo esc_attr( (string) $state['calendar_month'] ); ?>">
+			<?php endif; ?>
 			<div class="tablenav top">
 				<div class="alignleft actions">
 					<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
@@ -243,10 +254,16 @@ final class Operations {
 				<?php Pickers::customer( 'customer', 'cb-work-filter-customer', $selected_customer ); ?>
 			</p>
 			<p>
-				<label for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
-				<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
-				<label for="cb-work-filter-scheduled-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
-				<input id="cb-work-filter-scheduled-to" type="date" name="scheduled_to" value="<?php echo esc_attr( (string) $state['scheduled_to'] ); ?>">
+				<label for="cb-work-filter-assignee"><strong><?php esc_html_e( 'Assignee', 'core-blueprint-work' ); ?></strong></label><br>
+				<?php Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) $state['assignee_id'] ); ?>
+			</p>
+			<p>
+				<?php if ( ! $is_calendar ) : ?>
+					<label for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
+					<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
+					<label for="cb-work-filter-scheduled-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
+					<input id="cb-work-filter-scheduled-to" type="date" name="scheduled_to" value="<?php echo esc_attr( (string) $state['scheduled_to'] ); ?>">
+				<?php endif; ?>
 				<label for="cb-work-filter-due-from"><?php esc_html_e( 'Due from', 'core-blueprint-work' ); ?></label>
 				<input id="cb-work-filter-due-from" type="date" name="due_from" value="<?php echo esc_attr( (string) $state['due_from'] ); ?>">
 				<label for="cb-work-filter-due-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
@@ -260,7 +277,7 @@ final class Operations {
 					<option value="<?php echo esc_attr( WorkItemQuery::SORT_TITLE ); ?>" <?php selected( WorkItemQuery::SORT_TITLE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
 				</select>
 				<button class="button" type="submit"><?php esc_html_e( 'Apply filters', 'core-blueprint-work' ); ?></button>
-				<a class="button" href="<?php echo esc_url( self::work_items_url( [ 'view' => (string) $state['view'] ] ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+				<a class="button" href="<?php echo esc_url( self::work_items_url( $clear_state ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
 			</p>
 		</form>
 		<?php
@@ -381,6 +398,96 @@ final class Operations {
 				</section>
 			<?php endforeach; ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $items
+	 * @param array<int,string> $project_map
+	 * @param array<string,mixed> $state
+	 */
+	private static function render_work_item_calendar( array $items, array $project_map, array $state ): void {
+		$month = (string) ( $state['calendar_month'] ?? '' );
+		$first = \DateTimeImmutable::createFromFormat( '!Y-m-d', $month . '-01' );
+		if ( ! $first ) {
+			return;
+		}
+
+		$items_by_date = [];
+		foreach ( $items as $item ) {
+			$scheduled_on = (string) ( $item['scheduled_on'] ?? '' );
+			if ( ! str_starts_with( $scheduled_on, $month . '-' ) ) {
+				continue;
+			}
+			$items_by_date[ $scheduled_on ][] = $item;
+		}
+
+		$previous_month = $first->modify( '-1 month' )->format( 'Y-m' );
+		$next_month     = $first->modify( '+1 month' )->format( 'Y-m' );
+		$days_in_month  = (int) $first->format( 't' );
+		$leading_cells  = (int) $first->format( 'N' ) - 1;
+		$weekdays       = [
+			__( 'Monday', 'core-blueprint-work' ),
+			__( 'Tuesday', 'core-blueprint-work' ),
+			__( 'Wednesday', 'core-blueprint-work' ),
+			__( 'Thursday', 'core-blueprint-work' ),
+			__( 'Friday', 'core-blueprint-work' ),
+			__( 'Saturday', 'core-blueprint-work' ),
+			__( 'Sunday', 'core-blueprint-work' ),
+		];
+		?>
+		<div class="tablenav top cb-work-calendar-navigation">
+			<div class="alignleft actions">
+				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $previous_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Previous month', 'core-blueprint-work' ); ?></a>
+				<strong style="display:inline-block;padding:6px 12px"><?php echo esc_html( wp_date( 'F Y', $first->getTimestamp() ) ); ?></strong>
+				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $next_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Next month', 'core-blueprint-work' ); ?></a>
+			</div>
+		</div>
+		<table class="widefat cb-work-items-calendar" style="table-layout:fixed">
+			<thead><tr>
+				<?php foreach ( $weekdays as $weekday ) : ?>
+					<th scope="col"><?php echo esc_html( $weekday ); ?></th>
+				<?php endforeach; ?>
+			</tr></thead>
+			<tbody>
+			<tr>
+			<?php $cell = 0; ?>
+			<?php for ( $empty = 0; $empty < $leading_cells; $empty++ ) : ?>
+				<td class="cb-work-calendar-empty" aria-hidden="true"></td>
+				<?php $cell++; ?>
+			<?php endfor; ?>
+			<?php for ( $day = 1; $day <= $days_in_month; $day++ ) : ?>
+				<?php
+				$date      = $month . '-' . str_pad( (string) $day, 2, '0', STR_PAD_LEFT );
+				$day_items = $items_by_date[ $date ] ?? [];
+				?>
+				<td style="vertical-align:top;min-height:140px">
+					<strong><?php echo esc_html( (string) $day ); ?></strong>
+					<?php foreach ( $day_items as $item ) : ?>
+						<div class="card" style="max-width:none;margin:8px 0;padding:8px">
+							<strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong>
+							<p style="margin:6px 0">
+								<?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?> · <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
+								<strong><?php esc_html_e( 'Due:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?><br>
+								<strong><?php esc_html_e( 'Project:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br>
+								<strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?>
+							</p>
+							<?php self::transition_buttons( $item, $state ); ?>
+						</div>
+					<?php endforeach; ?>
+				</td>
+				<?php $cell++; ?>
+				<?php if ( 0 === $cell % 7 && $day < $days_in_month ) : ?>
+					</tr><tr>
+				<?php endif; ?>
+			<?php endfor; ?>
+			<?php while ( 0 !== $cell % 7 ) : ?>
+				<td class="cb-work-calendar-empty" aria-hidden="true"></td>
+				<?php $cell++; ?>
+			<?php endwhile; ?>
+			</tr>
+			</tbody>
+		</table>
 		<?php
 	}
 

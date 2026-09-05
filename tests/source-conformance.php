@@ -95,7 +95,7 @@ $settingsPos = strpos( $page, 'private static function render_settings' );
 $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
-	'candidate version is rc6' => 1 === preg_match( '/Version:\s+1\.0\.0-rc6/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc6'" ),
+	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
 	'D1.2 schema version is 1.3' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.3'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
@@ -132,7 +132,7 @@ $checks = [
 	'raw customer/source provider type id controls are absent from primary Work UI' => ! str_contains( $workItemsAdmin, 'source_provider' ) && ! str_contains( $workItemsAdmin, 'source_type' ) && ! str_contains( $workItemsAdmin, 'source_id' ),
 	'CRM customer picker uses documented public Frontend Queries only' => str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Contacts' ) && str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Organizations' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ) && ! str_contains( $crm, '$wpdb' ),
 	'CRM customer integration remains fail-soft' => str_contains( $crm, 'class_exists' ) && str_contains( $crm, 'public static function available' ),
-	'Base Object Picker provides customer and multi-user UX' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, "'multiple'      => true" ),
+	'Base Object Picker provides customer single-user and multi-user UX' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ),
 	'Core Blueprint Work page is settings-only' => str_contains( $page, "SLUG = 'core-blueprint-work-settings'" ) && ! str_contains( $page, 'render_services' ) && ! str_contains( $page, 'VIEW_SERVICES' ),
 	'Core Blueprint settings page does not request operational nav tabs' => ! str_contains( $page, "'nav-tabs'" ) && ! str_contains( $page, 'nav-tab-wrapper' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,

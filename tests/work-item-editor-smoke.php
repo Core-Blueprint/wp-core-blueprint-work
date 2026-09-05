@@ -43,7 +43,11 @@ namespace {
 	function wp_is_post_autosave( int $post_id ): bool { return false; }
 	function wp_verify_nonce( string $nonce, string $action ): bool { return '' !== $nonce && '' !== $action; }
 	function get_current_user_id(): int { return 7; }
-	function get_userdata( int $user_id ): object|false { return false; }
+	function get_userdata( int $user_id ): object|false {
+		return 7 === $user_id
+			? (object) [ 'ID' => 7, 'display_name' => 'Assignee Seven', 'user_login' => 'assignee7' ]
+			: false;
+	}
 	function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; }
 	function assert_true( bool $condition, string $message ): void {
 		if ( ! $condition ) {
@@ -186,6 +190,16 @@ namespace {
 	assert_true( 'cb_work_item[assigned_user_ids]' === ( $calls[1]['name'] ?? '' ), 'Assignee picker posts into the Work Item form payload.' );
 	assert_true( 'cb-work-item-assignees' === ( $calls[1]['id'] ?? '' ), 'Assignee picker receives a stable DOM id.' );
 	assert_true( true === ( $calls[1]['multiple'] ?? false ), 'Assignee picker stays multi-select.' );
+
+	ob_start();
+	\CB\Work\Admin\Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', 7 );
+	ob_end_clean();
+	$filter_call = $GLOBALS['cb_work_picker_calls'][2] ?? [];
+	assert_true( 'assignee_id' === ( $filter_call['name'] ?? '' ), 'Operational assignee filter posts the canonical assignee_id field.' );
+	assert_true( 'cb-work-filter-assignee' === ( $filter_call['id'] ?? '' ), 'Operational assignee filter receives a stable DOM id.' );
+	assert_true( false === ( $filter_call['multiple'] ?? true ), 'Operational assignee filter stays single-select.' );
+	assert_true( 'cb_work_search_users' === ( $filter_call['action'] ?? '' ), 'Single and multiple assignee pickers share the same Work-owned user search endpoint.' );
+	assert_true( '7' === (string) ( $filter_call['selected'][0]['id'] ?? '' ), 'Single assignee picker preserves the selected WordPress user.' );
 
 	$_POST = [
 		'cb_work_work_item_nonce' => 'valid',
