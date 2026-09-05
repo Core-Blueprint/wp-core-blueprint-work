@@ -8,8 +8,9 @@ use CB\Work\Capabilities;
 defined( 'ABSPATH' ) || exit;
 
 final class PostTypes {
-	public const SERVICE = 'cb_work_service';
-	public const PROJECT = 'cb_work_project';
+	public const SERVICE   = 'cb_work_service';
+	public const PROJECT   = 'cb_work_project';
+	public const WORK_ITEM = 'cb_work_item';
 
 	public static function init(): void {
 		add_action( 'init', [ self::class, 'register' ], 6 );
@@ -18,6 +19,7 @@ final class PostTypes {
 	public static function register(): void {
 		self::register_service();
 		self::register_project();
+		self::register_work_item();
 	}
 
 	private static function register_service(): void {
@@ -62,19 +64,49 @@ final class PostTypes {
 				'not_found'          => __( 'No projects found.', 'core-blueprint-work' ),
 				'not_found_in_trash' => __( 'No projects found in Trash.', 'core-blueprint-work' ),
 			],
-			'public'              => false,
-			'publicly_queryable'  => false,
-			'show_ui'             => true,
-			'show_in_menu'        => false,
-			'show_in_rest'        => true,
+			'public'                => false,
+			'publicly_queryable'    => false,
+			'show_ui'               => true,
+			'show_in_menu'          => false,
+			'show_in_rest'          => true,
 			'rest_controller_class' => ProjectRestController::class,
-			'exclude_from_search' => true,
-			'has_archive'         => false,
-			'rewrite'             => false,
-			'supports'            => [ 'title', 'editor' ],
-			'capability_type'     => [ 'cb_work_project', 'cb_work_projects' ],
-			'map_meta_cap'        => false,
-			'capabilities'        => self::capabilities(),
+			'exclude_from_search'   => true,
+			'has_archive'           => false,
+			'rewrite'               => false,
+			'supports'              => [ 'title', 'editor' ],
+			'capability_type'       => [ 'cb_work_project', 'cb_work_projects' ],
+			'map_meta_cap'          => false,
+			'capabilities'          => self::capabilities(),
+		] );
+	}
+
+	private static function register_work_item(): void {
+		register_post_type( self::WORK_ITEM, [
+			'labels' => [
+				'name'               => __( 'Work Items', 'core-blueprint-work' ),
+				'singular_name'      => __( 'Work Item', 'core-blueprint-work' ),
+				'add_new'            => __( 'Add Work Item', 'core-blueprint-work' ),
+				'add_new_item'       => __( 'Add Work Item', 'core-blueprint-work' ),
+				'edit_item'          => __( 'Edit Work Item', 'core-blueprint-work' ),
+				'new_item'           => __( 'New Work Item', 'core-blueprint-work' ),
+				'view_item'          => __( 'View Work Item', 'core-blueprint-work' ),
+				'search_items'       => __( 'Search Work Items', 'core-blueprint-work' ),
+				'not_found'          => __( 'No Work Items found.', 'core-blueprint-work' ),
+				'not_found_in_trash' => __( 'No Work Items found in Trash.', 'core-blueprint-work' ),
+			],
+			'public'                => false,
+			'publicly_queryable'    => false,
+			'show_ui'               => true,
+			'show_in_menu'          => false,
+			'show_in_rest'          => true,
+			'rest_controller_class' => WorkItemRestController::class,
+			'exclude_from_search'   => true,
+			'has_archive'           => false,
+			'rewrite'               => false,
+			'supports'              => [ 'title', 'editor' ],
+			'capability_type'       => [ 'cb_work_item', 'cb_work_items' ],
+			'map_meta_cap'          => false,
+			'capabilities'          => self::capabilities(),
 		] );
 	}
 
