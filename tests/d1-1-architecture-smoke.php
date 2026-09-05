@@ -14,9 +14,12 @@ $pickers = file_get_contents( $root . '/src/Admin/Pickers.php' );
 $crm = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
 $architecture = file_get_contents( $root . '/docs/ARCHITECTURE.md' );
 
+$projectRegistrationPos = strpos( $postTypes, 'private static function register_project' );
+$projectRegistration = false !== $projectRegistrationPos ? substr( $postTypes, $projectRegistrationPos ) : '';
+
 $checks = [
 	'Projects use canonical cb_work_project CPT' => str_contains( $postTypes, "PROJECT = 'cb_work_project'" ),
-	'Project CPT remains private and non-publicly-queryable' => str_contains( $postTypes, "'public'                => false" ) && str_contains( $postTypes, "'publicly_queryable'    => false" ) && str_contains( $postTypes, "'show_in_rest'          => true" ),
+	'Project CPT remains private and non-publicly-queryable' => 1 === preg_match( "/'public'\\s*=>\\s*false/", $projectRegistration ) && 1 === preg_match( "/'publicly_queryable'\\s*=>\\s*false/", $projectRegistration ) && 1 === preg_match( "/'show_in_rest'\\s*=>\\s*true/", $projectRegistration ),
 	'Project Gutenberg REST uses Work-owned controller' => str_contains( $postTypes, "'rest_controller_class' => ProjectRestController::class" ),
 	'Project REST reads require Work authorization' => str_contains( $projectRest, 'extends \\WP_REST_Posts_Controller' ) && substr_count( $projectRest, 'current_user_can( Capabilities::MANAGE )' ) >= 2 && str_contains( $projectRest, 'get_items_permissions_check' ) && str_contains( $projectRest, 'get_item_permissions_check' ),
 	'Project Gutenberg bridge is not the frontend resource contract' => str_contains( $architecture, 'Gutenberg' ) && str_contains( $architecture, 'not a frontend resource contract' ) && str_contains( $architecture, 'Bricks is the first officially supported builder adapter' ),
