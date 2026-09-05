@@ -6,40 +6,50 @@ namespace CB\Work\Admin;
 use CB\Core\Governance\Audit;
 use CB\Work\Capabilities;
 use CB\Work\Governance\Events;
-use CB\Work\Repository\Projects;
+use CB\Work\Integration\CRMCustomers;
 use CB\Work\Repository\WorkItems;
+use CB\Work\Repository\WorkTypes;
 
 defined( 'ABSPATH' ) || exit;
 
 final class OperationalActions {
 	public static function init(): void {
-		add_action( 'admin_post_cb_work_create_project', [ self::class, 'create_project' ] );
 		add_action( 'admin_post_cb_work_create_work_item', [ self::class, 'create_work_item' ] );
+		add_action( 'admin_post_cb_work_update_work_item', [ self::class, 'update_work_item' ] );
 		add_action( 'admin_post_cb_work_transition_work_item', [ self::class, 'transition_work_item' ] );
-	}
-
-	public static function create_project(): never {
-		self::guard( 'cb_work_create_project' );
-		$input = isset( $_POST['project'] ) && is_array( $_POST['project'] ) ? wp_unslash( $_POST['project'] ) : [];
-		$input['created_by'] = get_current_user_id();
-		$id = Projects::create( $input );
-		if ( $id > 0 ) {
-			Audit::record( Events::PROJECT_CREATED, 'notice', [ 'project_id' => $id ] );
-			self::redirect( Menu::PROJECTS_SLUG, 'project-created' );
-		}
-		self::redirect( Menu::PROJECTS_SLUG, 'project-invalid' );
+		add_action( 'admin_post_cb_work_create_work_type', [ self::class, 'create_work_type' ] );
+		add_action( 'admin_post_cb_work_toggle_work_type', [ self::class, 'toggle_work_type' ] );
 	}
 
 	public static function create_work_item(): never {
 		self::guard( 'cb_work_create_work_item' );
-		$input = isset( $_POST['work_item'] ) && is_array( $_POST['work_item'] ) ? wp_unslash( $_POST['work_item'] ) : [];
+		$input = self::work_item_input();
+		if ( is_wp_error( $input ) ) {
+			self::redirect_work_items( 'work-item-invalid' );
+		}
 		$input['created_by'] = get_current_user_id();
 		$id = WorkItems::create( $input );
 		if ( $id > 0 ) {
 			Audit::record( Events::WORK_ITEM_CREATED, 'notice', [ 'work_item_id' => $id ] );
-			self::redirect( Menu::WORK_ITEMS_SLUG, 'work-item-created' );
+			self::redirect_work_items( 'work-item-created' );
 		}
-		self::redirect( Menu::WORK_ITEMS_SLUG, 'work-item-invalid' );
+		self::redirect_work_items( 'work-item-invalid' );
+	}
+
+	public static function update_work_item(): never {
+		$id = isset( $_POST['work_item_id'] ) ? absint( $_POST['work_item_id'] ) : 0;
+		self::guard( 'cb_work_update_work_item_' . $id );
+		$current = WorkItems::get( $id );
+		if ( null === $current ) {
+			self::redirect_work_items( 'work-item-invalid' );
+		}
+
+		$input = self::work_item_input( $current );
+		if ( is_wp_error( $input ) || ! WorkItems::update( $id, $input ) ) {
+			self::redirect_work_items( 'work-item-invalid' );
+		}
+		Audit::record( Events::WORK_ITEM_UPDATED, 'notice', [ 'work_item_id' => $id ] );
+		self::redirect_work_items( 'work-item-updated' );
 	}
 
 	public static function transition_work_item(): never {
@@ -50,9 +60,57 @@ final class OperationalActions {
 		$from = is_array( $item ) ? (string) ( $item['status'] ?? '' ) : '';
 		if ( $id > 0 && WorkItems::transition_status( $id, $status, get_current_user_id() ) ) {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $id, 'from' => $from, 'to' => $status ] );
-			self::redirect( Menu::WORK_ITEMS_SLUG, 'work-item-transitioned' );
+			self::redirect_work_items( 'work-item-transitioned' );
 		}
-		self::redirect( Menu::WORK_ITEMS_SLUG, 'work-item-transition-invalid' );
+		self::redirect_work_items( 'work-item-transition-invalid' );
+	}
+
+	public static function create_work_type(): never {
+		self::guard( 'cb_work_create_work_type' );
+		$input = isset( $_POST['work_type'] ) && is_array( $_POST['work_type'] ) ? wp_unslash( $_POST['work_type'] ) : [];
+		$id = WorkTypes::create( $input );
+		if ( $id > 0 ) {
+			Audit::record( Events::WORK_TYPE_CREATED, 'notice', [ 'work_type_id' => $id ] );
+			self::redirect_work_types( 'work-type-created' );
+		}
+		self::redirect_work_types( 'work-type-invalid' );
+	}
+
+	public static function toggle_work_type(): never {
+		$id = isset( $_POST['work_type_id'] ) ? absint( $_POST['work_type_id'] ) : 0;
+		self::guard( 'cb_work_toggle_work_type_' . $id );
+		$active = isset( $_POST['active'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_POST['active'] ) );
+		if ( $id > 0 && WorkTypes::set_active( $id, $active ) ) {
+			Audit::record( Events::WORK_TYPE_STATUS_CHANGED, 'notice', [ 'work_type_id' => $id, 'active' => $active ] );
+			self::redirect_work_types( 'work-type-updated' );
+		}
+		self::redirect_work_types( 'work-type-invalid' );
+	}
+
+	/**
+	 * @param array<string,mixed>|null $current
+	 * @return array<string,mixed>|\WP_Error
+	 */
+	private static function work_item_input( ?array $current = null ): array|\WP_Error {
+		$input = isset( $_POST['work_item'] ) && is_array( $_POST['work_item'] ) ? wp_unslash( $_POST['work_item'] ) : [];
+
+		if ( array_key_exists( 'customer_object_id', $input ) ) {
+			$customer_id = absint( $input['customer_object_id'] );
+			$reference   = CRMCustomers::reference( $customer_id );
+			if ( is_wp_error( $reference ) ) {
+				return $reference;
+			}
+			$input['customer_provider'] = null === $reference ? '' : $reference['provider'];
+			$input['customer_type']     = null === $reference ? '' : $reference['type'];
+			$input['customer_id']       = null === $reference ? '' : $reference['id'];
+			unset( $input['customer_object_id'] );
+		} elseif ( null !== $current ) {
+			$input['customer_provider'] = (string) ( $current['customer_provider'] ?? '' );
+			$input['customer_type']     = (string) ( $current['customer_type'] ?? '' );
+			$input['customer_id']       = (string) ( $current['customer_id'] ?? '' );
+		}
+
+		return $input;
 	}
 
 	private static function guard( string $nonce_action ): void {
@@ -62,8 +120,21 @@ final class OperationalActions {
 		check_admin_referer( $nonce_action );
 	}
 
-	private static function redirect( string $page, string $notice ): never {
-		wp_safe_redirect( add_query_arg( [ 'page' => $page, 'cb-work-notice' => sanitize_key( $notice ) ], admin_url( 'admin.php' ) ) );
+	private static function redirect_work_items( string $notice ): never {
+		$project_id = isset( $_POST['return_project_id'] ) ? absint( $_POST['return_project_id'] ) : 0;
+		$args = [ 'page' => Menu::WORK_ITEMS_SLUG, 'cb-work-notice' => sanitize_key( $notice ) ];
+		if ( $project_id > 0 ) {
+			$args['project_id'] = $project_id;
+		}
+		wp_safe_redirect( add_query_arg( $args, admin_url( 'admin.php' ) ) );
+		exit;
+	}
+
+	private static function redirect_work_types( string $notice ): never {
+		wp_safe_redirect( add_query_arg(
+			[ 'page' => Menu::WORK_TYPES_SLUG, 'cb-work-notice' => sanitize_key( $notice ) ],
+			admin_url( 'admin.php' )
+		) );
 		exit;
 	}
 }

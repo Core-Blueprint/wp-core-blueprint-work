@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Repository;
 
 use CB\Work\Database\Schema;
+
 defined( 'ABSPATH' ) || exit;
 
 final class WorkTypes {
@@ -41,9 +42,10 @@ final class WorkTypes {
 			return 0;
 		}
 		global $wpdb;
-		$label = sanitize_text_field( (string) ( $input['label'] ?? '' ) );
-		$code  = substr( sanitize_title( (string) ( $input['code'] ?? $label ) ), 0, 64 );
-		$order = max( 0, (int) ( $input['sort_order'] ?? 0 ) );
+		$label    = sanitize_text_field( (string) ( $input['label'] ?? '' ) );
+		$code_raw = trim( (string) ( $input['code'] ?? '' ) );
+		$code     = substr( sanitize_title( '' === $code_raw ? $label : $code_raw ), 0, 64 );
+		$order    = max( 0, (int) ( $input['sort_order'] ?? 0 ) );
 		if ( '' === $label || '' === $code ) {
 			return 0;
 		}

@@ -13,6 +13,7 @@ use CB\Work\Repository\Projects;
 use CB\Work\Repository\TaxRates;
 use CB\Work\Repository\WorkItems;
 use CB\Work\Support\Requirements;
+
 defined( 'ABSPATH' ) || exit;
 
 final class Suite {
@@ -126,7 +127,7 @@ final class Suite {
 		CardRegistry::register_shortcut( self::EXTENSION_ID, [
 			'id'         => 'projects',
 			'label'      => self::i18n_ready() ? __( 'Projects', 'core-blueprint-work' ) : 'Projects',
-			'url'        => admin_url( 'admin.php?page=' . Menu::PROJECTS_SLUG ),
+			'url'        => Menu::projects_url(),
 			'capability' => \CB\Work\Capabilities::MANAGE,
 			'order'      => 30,
 		] );

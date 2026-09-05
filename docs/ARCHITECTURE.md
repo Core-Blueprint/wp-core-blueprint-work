@@ -2,58 +2,82 @@
 
 ## Product boundary
 
-Core Blueprint Work is the suite authority for operational work: service catalog and VAT/tax rates, projects, work items, recurrence, time tracking, billing-ready records, reporting and export.
+Core Blueprint Work is the suite authority for operational work: service catalog and VAT/tax rates, Projects, Work Items, recurrence, time tracking, billing-ready records, reporting and export.
 
-CRM remains authoritative for contacts, organizations and customer-specific commercial agreements. Helpdesk remains authoritative for tickets. Work never reads sibling private repositories or tables.
+CRM remains authoritative for Contacts, Organizations and customer-specific commercial agreements. Helpdesk remains authoritative for tickets. Work never reads sibling private repositories or tables.
 
-## Ownership
+## Permanent architecture rules
 
-### Work-owned
+- Work is builder-neutral and fully functional without any page builder. Frontend data, queries, conditions and governed actions belong to Work-owned public contracts.
+- Bricks is the first officially supported builder adapter. It remains thin, optional and replaceable; future builders must be addable without redesigning the Work domain.
+- Frontend capability is authorization-aware and opt-in. A CPT, REST support or builder adapter never implies public exposure.
+- Optional sibling integrations are fail-soft.
+- No cross-plugin SQL foreign keys or private table/class coupling.
+- Pre-v1 internal architecture is corrected directly: no legacy bridges, dual reads/writes or migration complexity for disposable staging data.
 
-- Service catalog and default service pricing.
-- VAT/tax rate catalog and validity windows.
-- Projects and work items.
-- Work Types and operational classification.
-- Recurrence/templates.
-- Server-authoritative time entries and timers.
-- Billable classification, rate snapshots, timesheet review/locking.
-- Billing-ready aggregation, reporting and export.
+## Ownership and storage
 
-### CRM-owned
+### Services
 
-- Contacts and organizations.
-- Customer-specific Service Agreements that reference Work Services.
-- Customer-specific pricing/tax overrides carried by those agreements.
+Services are WordPress-native content using `cb_work_service`. Standard pricing lives in Work-owned registered post meta using integer minor currency units. Supported pricing models are `hourly`, `fixed` and `recurring`; recurring commercial pricing is not Work Item recurrence.
 
-CRM resolves Work catalog defaults through the public Work pricing contract. Work may store soft references to CRM records but never foreign-key into CRM-owned tables.
+### VAT
 
-### Helpdesk-owned
+Work owns `cb_work_tax_rates`. Rates use stable IDs/codes and basis points. Historical references remain valid when a rate is deactivated.
 
-- Tickets, messages, attachments and ticket lifecycle.
+### Projects
 
-Optional Work automation consumes Helpdesk public lifecycle hooks (`cb_helpdesk_ticket_*`) and public authorization-aware ticket projections only. Helpdesk remains fully functional when Work is inactive, and Work remains fully functional when Helpdesk is inactive.
+Projects are WordPress-native content using `cb_work_project`.
 
-## Storage direction
+- title/content live in `wp_posts`;
+- customer reference, start date and due date live in registered Work-owned post meta;
+- Projects are private by default and are not publicly queryable;
+- native WordPress list/edit administration is the canonical Project management surface;
+- the Project editor uses Gutenberg through authenticated REST support without turning the CPT into a public frontend resource.
 
-- Services are WordPress-native `cb_work_service` content because they have a title and rich description.
-- Standard pricing is stored in Work-owned post meta using integer minor currency units; floating-point money is not stored.
-- Pricing models are `hourly`, `fixed` and `recurring`. Recurring service pricing has an explicit weekly/monthly/quarterly/yearly billing period. This is commercial cadence, not Work Item recurrence.
-- Work owns `cb_work_tax_rates`; tax percentages are integer basis points with optional country and validity windows.
-- Tax rates are deactivated instead of edited/deleted so historical references can remain reliable.
-- Phase C removed duplicate CRM Service/VAT ownership. CRM now references Work Services through public contracts and owns only customer-specific Service Agreements.
-- Projects, Work Types, Work Items, assignments and generic external relations are Work-owned relational tables registered through `CB\Core\Database\SchemaRegistry`.
-- Recurrence, time, timesheets and billing-ready records continue on the same Work-owned relational direction in later phases.
-- Cross-plugin references are soft provider/type/id references. No cross-plugin SQL foreign keys.
+The relational `cb_work_projects` table introduced in the first D1 implementation was transitional. D1.1 removes it destructively rather than preserving a compatibility layer.
 
-### D1 operational tables
+#### Gutenberg / REST boundary
 
-- `cb_work_projects` — optional grouping layer with optional soft customer reference.
-- `cb_work_types` — user-configurable work classification catalog; D1 seeds Support, Design, Development, Consultancy, Maintenance, Content and Administration by stable code.
-- `cb_work_items` — the central actionable entity.
-- `cb_work_item_assignments` — many-to-many WordPress user assignments.
-- `cb_work_item_relations` — generic provider/type/external-id relations for future Helpdesk and other integrations.
+`cb_work_project` enables WordPress REST support so the native block editor can operate. Project post reads use a Work-owned REST controller that requires the Work management capability before delegating to WordPress core. This REST route is authenticated admin editing infrastructure, not a frontend resource contract.
 
-A Work Item may exist without a Project. A customer reference is also optional at the storage level so Work remains usable without CRM, but any populated reference must be complete and explicit.
+Future frontend/portal access remains a separate concern. D3 may expose Projects through explicit, authorization-aware and opt-in builder-neutral resources. D4 may then expose those D3 resources to Bricks as the first officially supported builder adapter. Neither Gutenberg nor `show_in_rest` is used as a shortcut around that boundary.
+
+### Work Items
+
+Work Items remain Work-owned relational records in `cb_work_items`. They are operational records, not content documents.
+
+A Work Item may exist without a Project. When `project_id` is populated it is the WordPress post ID of a valid `cb_work_project`; the relation is a validated Work-owned soft reference, never an SQL foreign key.
+
+Work Items retain:
+
+- lifecycle/status;
+- priority;
+- customer reference;
+- optional Project;
+- optional Service and Work Type;
+- scheduled date and due date as separate semantics;
+- billing classification separate from completion state;
+- many-to-many WordPress user assignments;
+- generic integration/source relations outside the normal human create flow.
+
+### Work Types
+
+Work Types remain a Work-owned relational operational catalog in `cb_work_types`. They are managed under the top-level Work product area, not under Core Blueprint settings.
+
+### Assignments and integration relations
+
+- `cb_work_item_assignments` stores many-to-many WordPress user assignments.
+- `cb_work_item_relations` stores provider-neutral external/source metadata for integrations such as Helpdesk.
+- Raw provider/type/id fields are internal persistence metadata and are not primary user-facing controls.
+
+## CRM customer integration
+
+Work stores an optional provider/type/id customer reference but does not recreate CRM.
+
+When CRM is active, Work consumes only CRM's documented builder-neutral query contracts for Contacts and Organizations to provide a human customer picker. If CRM is unavailable or the current user is not authorized by CRM, customer selection becomes unavailable while Work itself remains usable.
+
+A Project customer may be inherited by a Work Item when the Work Item does not choose a different customer.
 
 ## Work Item lifecycle
 
@@ -65,9 +89,7 @@ Baseline status values:
 - `skipped`
 - `cancelled`
 
-`planned` and `in_progress` are active workload states. `completed`, `skipped` and `cancelled` are terminal in D1. Reopening is intentionally not implicit; a future reopen workflow must be explicit so completion history is not silently rewritten.
-
-Completion stores `completed_at` and `completed_by`. Billing classification remains a separate field and never doubles as completion/invoice state.
+`planned` and `in_progress` are active workload states. `completed`, `skipped` and `cancelled` remain terminal at this stage. Completion metadata and billing classification are separate.
 
 D1 billing dispositions:
 
@@ -76,65 +98,84 @@ D1 billing dispositions:
 - `included`
 - `non_billable`
 
-Invoice/payment lifecycle remains outside D1.
+Invoice/payment lifecycle remains outside D1.1.
 
 ## Admin information architecture
 
-The suite-wide navigation rule is explicit: operational product work lives in the product's own normal WordPress Admin menu; the `Core Blueprint` menu is reserved for suite and extension settings/configuration.
+Operational product work lives under the normal top-level **Work** menu. `Core Blueprint → Work` is settings/configuration only.
 
-Work therefore owns two distinct admin surfaces:
+Top-level Work contains:
 
-- Top-level `Work` is the canonical daily operational workspace.
-- D1 mounts `Overview`, `Work Items`, `Projects` and `Services` beneath this menu.
-- `Core Blueprint → Work` is settings-only. It must not become a second operational Work workspace.
-- VAT rates are configuration and live under `Core Blueprint → Work` settings; Work does not register a separate VAT submenu item in the operational menu.
-- The Service CPT remains hidden from WordPress automatic menu placement and is deliberately mounted beneath the top-level Work menu, preserving one canonical operational navigation owner.
+- Overview;
+- Work Items;
+- Projects;
+- Services;
+- Work Types.
 
-Operational Work screens use normal WordPress Admin interaction patterns. The Core Blueprint settings surface consumes the Base Core Admin page/foundation contract.
+Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first Work surface because they are relational operational records.
 
-The long-term operational overview should answer **“What do I still need to do?”** with workload views such as Today, Overdue, In Progress, Upcoming and Completed. D1 establishes the underlying status model and a basic testable operational surface; D2 can refine those daily-work views without changing the domain model.
+### Project context
 
-## Public contract direction
+The native Project edit screen includes a contextual Work Items section that:
 
-Phase B exposes read-only sibling integration contracts under `CB\Work\PublicApi\Services` and `CB\Work\PublicApi\TaxRates`. Phase C adds the Work-owned pricing provider seam and effective-pricing resolver. D1 adds read-only `Projects`, `WorkItems` and `WorkTypes` contracts.
+- shows active Work Items for the current Project;
+- links to open/edit a Work Item;
+- creates a Work Item with the Project preselected;
+- links to global Work Items with the Project filter active.
 
-D1 also emits post-persistence lifecycle hooks for future integrations:
+This is a contextual view of the same Work Item records. Global **Work → Work Items** remains the canonical all-work management surface.
 
-- `cb_work_project_created`
-- `cb_work_work_item_created`
-- `cb_work_work_item_status_changed`
+### Work Item UX
 
-These hooks expose Work-owned lifecycle facts without allowing sibling extensions to reach into private repositories/tables.
+The Work Items screen is list/workload-first. Creation/editing prioritizes:
 
-The builder-neutral frontend layer remains separate and will expose:
+- Title;
+- Customer;
+- Project;
+- Service;
+- Work Type;
+- Priority;
+- Due date;
+- Assignees.
 
-- `CB\Work\Frontend\Data\*` immutable/read-only projections.
-- `CB\Work\Frontend\Queries\*` authorization-aware reads.
-- `CB\Work\Frontend\Conditions\*` reusable conditions.
-- `CB\Work\Frontend\Actions\*` governed mutation entry points where frontend mutation is appropriate.
-- Post-persistence lifecycle hooks for sibling integrations.
+Description, scheduled date and billing classification are secondary details. External/source integration metadata is not exposed in the normal create/edit flow.
 
-Bricks is an optional thin adapter under `CB\Work\Integration\Builders\Bricks`; it never owns business logic, validation, authorization or persistence.
+Customer selection uses public CRM queries when available. Assignees use Base's public searchable Object Picker foundation over WordPress users. No jQuery is used.
 
-## v1 phases
+## Public contracts
 
-1. **A — First-party foundation:** identity, Base requirements, status, capability and initial admin shell. **Complete.**
-2. **B — Services + VAT authority:** Work service CPT, pricing/tax domain, Work tax schema, public read contracts. **Complete.**
-3. **C — CRM handoff:** remove duplicate CRM Service/VAT ownership, add CRM Service Agreements and route effective pricing through Work public contracts. **Complete.**
-4. **C1 — Canonical admin navigation:** top-level operational Work menu plus settings-only `Core Blueprint → Work` surface. **Complete.**
-5. **D1 — Projects + Work Items foundation:** relational Projects/Work Types/Work Items, lifecycle, priorities, assignments, generic external relations, read contracts and testable admin operations. **Current patch.**
-6. **D2 — Operational Work UX:** refine Today/Overdue/In Progress/Upcoming/Completed views and daily workflow ergonomics without redesigning the D1 domain.
-7. **E — Recurrence + Time:** recurring work/templates, server-authoritative timers, completed entries, billable classification and rate snapshots.
-8. **F — Timesheets + billing-ready output:** review/lock workflow, aggregation, reports and export.
-9. **G — Helpdesk integration:** optional ticket-to-work-item flows through Helpdesk public hooks/projections only.
-10. **H — Frontend contracts + Bricks adapter:** complete builder-neutral data/query/condition/action layer first; Bricks follows as an optional adapter.
-11. **I — Release closure:** localization EN/NL/DE/FR/ES/IT/PT, packaging, integration tests, live Dashboard smoke and suite regression.
+Read-only sibling contracts remain under `CB\Work\PublicApi` for Services, VAT, pricing, Projects, Work Items and Work Types. `PublicApi\Projects` resolves the Project CPT through the Work Project repository, hiding storage from consumers.
 
-## Non-goals for v1
+These sibling PHP contracts do not automatically grant frontend exposure. D3 owns the eventual frontend resource/query/condition/action boundary and its authorization/opt-in policy.
+
+Work lifecycle hooks include:
+
+- `cb_work_project_created`;
+- `cb_work_work_item_created`;
+- `cb_work_work_item_updated`;
+- `cb_work_work_item_status_changed`.
+
+Storage type is never a frontend contract.
+
+## Revised v1 sequence
+
+1. **A — First-party foundation:** complete.
+2. **B — Services + VAT authority:** complete.
+3. **C — CRM / Work domain consolidation:** complete.
+4. **C1 — Canonical admin navigation:** complete.
+5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; relational Project storage superseded.
+6. **D1.1 — Project CPT + Admin UX correction:** current phase.
+7. **D2 — Operational Views Foundation:** one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar; reused globally and in Project context.
+8. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+9. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
+10. **E — Recurrence + Time.**
+11. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
+
+## Non-goals
 
 - Work does not become a second CRM or Helpdesk.
 - Work is not a Jira clone and is not board-first.
-- Work is not a bookkeeping system.
+- Work is not bookkeeping/accounting software.
 - No direct sibling-table reads/writes.
-- No hard dependency on CRM, Helpdesk or Bricks.
-- No port of the legacy workspace Project Manager or Time Tracking implementation.
+- No hard dependency on CRM, Helpdesk, WooCommerce or Bricks.
+- No legacy Project compatibility system.
