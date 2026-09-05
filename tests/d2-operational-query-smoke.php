@@ -265,6 +265,29 @@ namespace {
 	assert_true( [ 'planned', 'in_progress' ] === $state['query']['statuses'], 'active status maps to the canonical active workload states.' );
 	assert_true( 2 === $state['query']['page'], 'view pagination flows into canonical query criteria.' );
 
+	$return_state = \CB\Work\Admin\WorkItemViewState::from_request( [
+		'view'       => 'list',
+		'status'     => 'active',
+		'priority'   => 'high',
+		'project_id' => '12',
+		'paged'      => '2',
+	] );
+	$return_args = \CB\Work\Admin\WorkItemViewState::query_args( $return_state );
+	unset( $return_args['page'] );
+	$restored_state = \CB\Work\Admin\WorkItemViewState::from_request( $return_args );
+	$redirect_args  = \CB\Work\Admin\WorkItemViewState::query_args( $restored_state );
+	assert_true(
+		[
+			'page'       => 'core-blueprint-work-items',
+			'view'       => 'list',
+			'status'     => 'active',
+			'priority'   => 'high',
+			'project_id' => 12,
+			'paged'      => 2,
+		] === $redirect_args,
+		'List + Project 12 + Active + High + page 2 survives the canonical transition return-state roundtrip exactly.'
+	);
+
 	$invalid_customer = \CB\Work\Admin\WorkItemViewState::from_request( [ 'customer' => 'crm:invalid:42' ] );
 	assert_true( false === $invalid_customer['customer_valid'], 'malformed customer filter is marked invalid instead of silently remapped.' );
 	assert_true( null === $invalid_customer['query']['customer'], 'invalid customer never reaches persistence criteria.' );
