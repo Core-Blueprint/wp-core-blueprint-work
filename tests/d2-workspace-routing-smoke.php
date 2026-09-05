@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $root = dirname( __DIR__ );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$actions    = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 
 $checks = [
 	'Work Items workspace resolves canonical view state' => is_string( $operations )
@@ -25,8 +26,18 @@ $checks = [
 	'workspace exposes canonical filter and pagination renderers' => str_contains( $operations, 'render_work_item_filters(' )
 		&& str_contains( $operations, 'render_work_item_pagination(' )
 		&& str_contains( $operations, 'WorkItemViewState::query_args( $state, $overrides )' ),
-	'Project context remains the native Work Item create/transition context' => str_contains( $operations, 'Menu::new_work_item_url( $project_filter )' )
-		&& str_contains( $operations, 'self::transition_buttons( $item, $project_filter )' ),
+	'transition forms post only canonical return state' => str_contains( $operations, '$return_args = WorkItemViewState::query_args( $state );' )
+		&& str_contains( $operations, "unset( \$return_args['page'] );" )
+		&& str_contains( $operations, 'name="return_state[<?php echo esc_attr( (string) $key ); ?>]"' )
+		&& ! str_contains( $operations, 'return_project_id' ),
+	'transition redirect re-normalizes posted state through the canonical state contract' => is_string( $actions )
+		&& str_contains( $actions, "\$_POST['return_state']" )
+		&& str_contains( $actions, 'WorkItemViewState::from_request( $return_state )' )
+		&& str_contains( $actions, 'WorkItemViewState::query_args( $state )' )
+		&& str_contains( $actions, "admin_url( 'admin.php' )" )
+		&& ! str_contains( $actions, 'return_project_id' ),
+	'Project context remains native Work Item create context while transitions receive full canonical state' => str_contains( $operations, 'Menu::new_work_item_url( $project_filter )' )
+		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
 ];
 
 foreach ( $checks as $label => $passed ) {
