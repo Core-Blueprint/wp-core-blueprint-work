@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $root = dirname( __DIR__ );
 $postTypes = file_get_contents( $root . '/src/Content/PostTypes.php' );
+$projectRest = file_get_contents( $root . '/src/Content/ProjectRestController.php' );
 $projectMeta = file_get_contents( $root . '/src/Content/ProjectMeta.php' );
 $projectRepo = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
@@ -11,10 +12,14 @@ $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $projectsAdmin = file_get_contents( $root . '/src/Admin/Projects.php' );
 $pickers = file_get_contents( $root . '/src/Admin/Pickers.php' );
 $crm = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
+$architecture = file_get_contents( $root . '/docs/ARCHITECTURE.md' );
 
 $checks = [
 	'Projects use canonical cb_work_project CPT' => str_contains( $postTypes, "PROJECT = 'cb_work_project'" ),
-	'Project CPT remains private and admin-only by default' => substr_count( $postTypes, "'publicly_queryable'  => false" ) >= 2 && substr_count( $postTypes, "'show_in_rest'        => false" ) >= 2,
+	'Project CPT remains private and non-publicly-queryable' => str_contains( $postTypes, "'public'                => false" ) && str_contains( $postTypes, "'publicly_queryable'    => false" ) && str_contains( $postTypes, "'show_in_rest'          => true" ),
+	'Project Gutenberg REST uses Work-owned controller' => str_contains( $postTypes, "'rest_controller_class' => ProjectRestController::class" ),
+	'Project REST reads require Work authorization' => str_contains( $projectRest, 'extends \\WP_REST_Posts_Controller' ) && substr_count( $projectRest, 'current_user_can( Capabilities::MANAGE )' ) >= 2 && str_contains( $projectRest, 'get_items_permissions_check' ) && str_contains( $projectRest, 'get_item_permissions_check' ),
+	'Project Gutenberg bridge is not the frontend resource contract' => str_contains( $architecture, 'Gutenberg' ) && str_contains( $architecture, 'not a frontend resource contract' ) && str_contains( $architecture, 'Bricks is the first officially supported builder adapter' ),
 	'Project customer and dates are registered Work-owned post meta' => str_contains( $projectMeta, '_cb_work_project_customer_provider' ) && str_contains( $projectMeta, '_cb_work_project_starts_on' ) && str_contains( $projectMeta, '_cb_work_project_due_on' ),
 	'Project repository is CPT-backed rather than SQL-backed' => str_contains( $projectRepo, 'new \\WP_Query' ) && str_contains( $projectRepo, 'get_post(' ) && str_contains( $projectRepo, 'wp_insert_post(' ) && ! str_contains( $projectRepo, 'Schema::' ) && ! str_contains( $projectRepo, '$wpdb' ),
 	'transitional Project table is only destructively removed' => 1 === substr_count( $schema, 'cb_work_projects' ) && str_contains( $schema, 'DROP TABLE IF EXISTS' ) && ! str_contains( $schema, 'projects_table' ),

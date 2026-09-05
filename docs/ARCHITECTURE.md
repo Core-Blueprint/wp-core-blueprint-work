@@ -8,8 +8,9 @@ CRM remains authoritative for Contacts, Organizations and customer-specific comm
 
 ## Permanent architecture rules
 
-- Work is builder-neutral. Frontend data, queries, conditions and governed actions belong to Work-owned public contracts; Bricks and future builders are thin optional adapters.
-- Frontend capability is authorization-aware and opt-in. A CPT or builder adapter never implies public exposure.
+- Work is builder-neutral and fully functional without any page builder. Frontend data, queries, conditions and governed actions belong to Work-owned public contracts.
+- Bricks is the first officially supported builder adapter. It remains thin, optional and replaceable; future builders must be addable without redesigning the Work domain.
+- Frontend capability is authorization-aware and opt-in. A CPT, REST support or builder adapter never implies public exposure.
 - Optional sibling integrations are fail-soft.
 - No cross-plugin SQL foreign keys or private table/class coupling.
 - Pre-v1 internal architecture is corrected directly: no legacy bridges, dual reads/writes or migration complexity for disposable staging data.
@@ -30,10 +31,17 @@ Projects are WordPress-native content using `cb_work_project`.
 
 - title/content live in `wp_posts`;
 - customer reference, start date and due date live in registered Work-owned post meta;
-- Projects are private/admin-only by default and are not publicly queryable;
-- native WordPress list/edit administration is the canonical Project management surface.
+- Projects are private by default and are not publicly queryable;
+- native WordPress list/edit administration is the canonical Project management surface;
+- the Project editor uses Gutenberg through authenticated REST support without turning the CPT into a public frontend resource.
 
 The relational `cb_work_projects` table introduced in the first D1 implementation was transitional. D1.1 removes it destructively rather than preserving a compatibility layer.
+
+#### Gutenberg / REST boundary
+
+`cb_work_project` enables WordPress REST support so the native block editor can operate. Project post reads use a Work-owned REST controller that requires the Work management capability before delegating to WordPress core. This REST route is authenticated admin editing infrastructure, not a frontend resource contract.
+
+Future frontend/portal access remains a separate concern. D3 may expose Projects through explicit, authorization-aware and opt-in builder-neutral resources. D4 may then expose those D3 resources to Bricks as the first officially supported builder adapter. Neither Gutenberg nor `show_in_rest` is used as a shortcut around that boundary.
 
 ### Work Items
 
@@ -136,7 +144,9 @@ Customer selection uses public CRM queries when available. Assignees use Base's 
 
 ## Public contracts
 
-Read-only sibling contracts remain under `CB\Work\PublicApi` for Services, VAT, pricing, Projects, Work Items and Work Types. `PublicApi\Projects` now resolves the Project CPT through the Work Project repository, hiding storage from consumers.
+Read-only sibling contracts remain under `CB\Work\PublicApi` for Services, VAT, pricing, Projects, Work Items and Work Types. `PublicApi\Projects` resolves the Project CPT through the Work Project repository, hiding storage from consumers.
+
+These sibling PHP contracts do not automatically grant frontend exposure. D3 owns the eventual frontend resource/query/condition/action boundary and its authorization/opt-in policy.
 
 Work lifecycle hooks include:
 
@@ -156,8 +166,8 @@ Storage type is never a frontend contract.
 5. **D1 — Projects + Work Items foundation:** merged and staging-reviewed; relational Project storage superseded.
 6. **D1.1 — Project CPT + Admin UX correction:** current phase.
 7. **D2 — Operational Views Foundation:** one canonical Work Item query/filter/view-state engine for List, Kanban, Table and Calendar; reused globally and in Project context.
-8. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware Services, Projects and Work Items resources.
-9. **D4 — Bricks Adapter:** thin optional adapter over D3 contracts.
+8. **D3 — Builder-neutral Frontend Resource Contracts:** authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+9. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
 10. **E — Recurrence + Time.**
 11. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
 
