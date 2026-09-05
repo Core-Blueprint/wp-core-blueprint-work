@@ -6,7 +6,6 @@ namespace CB\Work\Admin;
 use CB\Core\Governance\Audit;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
-use CB\Work\Content\WorkItemMeta;
 use CB\Work\Domain\BillingDisposition;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
@@ -30,6 +29,7 @@ final class WorkItems {
 	}
 
 	public static function register_meta_boxes( \WP_Post $post ): void {
+		unset( $post );
 		add_meta_box(
 			'cb-work-item-details',
 			__( 'Work Item Details', 'core-blueprint-work' ),
@@ -41,39 +41,32 @@ final class WorkItems {
 	}
 
 	public static function render_details( \WP_Post $post ): void {
-		$item = WorkItemRepository::get( (int) $post->ID );
+		$item       = WorkItemRepository::get( (int) $post->ID );
 		$project_id = isset( $_GET['project_id'] ) ? absint( wp_unslash( $_GET['project_id'] ) ) : 0;
 		if ( is_array( $item ) && ! empty( $item['project_id'] ) ) {
 			$project_id = (int) $item['project_id'];
 		}
 
-		$customer = [ 'provider' => '', 'type' => '', 'id' => '' ];
-		if ( is_array( $item ) ) {
-			$customer = [
-				'provider' => (string) ( $item['customer_provider'] ?? '' ),
-				'type'     => (string) ( $item['customer_type'] ?? '' ),
-				'id'       => (string) ( $item['customer_id'] ?? '' ),
-			];
-		} elseif ( $project_id > 0 ) {
-			$project = Projects::get( $project_id );
-			if ( is_array( $project ) ) {
-				$customer = [
-					'provider' => (string) ( $project['customer_provider'] ?? '' ),
-					'type'     => (string) ( $project['customer_type'] ?? '' ),
-					'id'       => (string) ( $project['customer_id'] ?? '' ),
-				];
-			}
+		$selected_customer = null;
+		$customer_unresolved = false;
+		if ( is_array( $item ) && '' !== (string) ( $item['customer_provider'] ?? '' ) ) {
+			$selected_customer = CRMCustomers::selected(
+				(string) ( $item['customer_provider'] ?? '' ),
+				(string) ( $item['customer_type'] ?? '' ),
+				(string) ( $item['customer_id'] ?? '' )
+			);
+			$customer_unresolved = null === $selected_customer;
 		}
 
-		$projects = Projects::all( 500 );
-		$services = Services::all( 500 );
-		$work_types = WorkTypes::all( false );
-		$priority = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
-		$status = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
-		$billing = is_array( $item ) ? (string) ( $item['billing_disposition'] ?? '' ) : '';
+		$projects     = Projects::all( 500 );
+		$services     = Services::all( 500 );
+		$work_types   = WorkTypes::all( false );
+		$priority     = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
+		$status       = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
+		$billing      = is_array( $item ) ? (string) ( $item['billing_disposition'] ?? '' ) : '';
 		$scheduled_on = is_array( $item ) ? (string) ( $item['scheduled_on'] ?? '' ) : '';
-		$due_on = is_array( $item ) ? (string) ( $item['due_on'] ?? '' ) : '';
-		$assignments = is_array( $item ) ? (array) ( $item['assigned_user_ids'] ?? [] ) : [];
+		$due_on       = is_array( $item ) ? (string) ( $item['due_on'] ?? '' ) : '';
+		$assignments  = is_array( $item ) ? (array) ( $item['assigned_user_ids'] ?? [] ) : [];
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
 		?>
@@ -82,8 +75,16 @@ final class WorkItems {
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
 				<td>
-					<?php Pickers::customer( 'cb_work_item_customer', $customer ); ?>
-					<p class="description"><?php esc_html_e( 'Optional. Uses CRM Contacts and Organizations when CRM is available.', 'core-blueprint-work' ); ?></p>
+					<?php if ( $customer_unresolved ) : ?>
+						<p class="description"><?php esc_html_e( 'This Work Item already has a customer link that cannot be resolved for the current user. The link is preserved.', 'core-blueprint-work' ); ?></p>
+					<?php else : ?>
+						<?php Pickers::customer( 'cb_work_item[customer_object_id]', 'cb-work-item-customer', $selected_customer ); ?>
+					<?php endif; ?>
+					<?php if ( $project_id > 0 ) : ?>
+						<p class="description"><?php esc_html_e( 'Leave empty to use the Project customer when one is linked.', 'core-blueprint-work' ); ?></p>
+					<?php else : ?>
+						<p class="description"><?php esc_html_e( 'Optional. Uses CRM Contacts and Organizations when CRM is available.', 'core-blueprint-work' ); ?></p>
+					<?php endif; ?>
 				</td>
 			</tr>
 			<tr>
@@ -139,7 +140,7 @@ final class WorkItems {
 			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th>
-				<td><?php Pickers::assignees( 'cb_work_item_assignees', $assignments ); ?></td>
+				<td><?php Pickers::assignees( 'cb_work_item[assigned_user_ids]', 'cb-work-item-assignees', $assignments ); ?></td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="cb-work-item-scheduled"><?php esc_html_e( 'Scheduled date', 'core-blueprint-work' ); ?></label></th>
@@ -176,21 +177,22 @@ final class WorkItems {
 		}
 
 		$input = isset( $_POST['cb_work_item'] ) && is_array( $_POST['cb_work_item'] ) ? wp_unslash( $_POST['cb_work_item'] ) : [];
-		$customer = Pickers::submitted_customer( 'cb_work_item_customer' );
 		$current = WorkItemRepository::get( $post_id );
-		if ( false === $customer && is_array( $current ) ) {
-			$customer = [
-				'provider' => (string) ( $current['customer_provider'] ?? '' ),
-				'type'     => (string) ( $current['customer_type'] ?? '' ),
-				'id'       => (string) ( $current['customer_id'] ?? '' ),
-			];
+		if ( array_key_exists( 'customer_object_id', $input ) ) {
+			$customer_id = absint( $input['customer_object_id'] );
+			$reference   = CRMCustomers::reference( $customer_id );
+			if ( is_wp_error( $reference ) ) {
+				return;
+			}
+			$input['customer_provider'] = null === $reference ? '' : $reference['provider'];
+			$input['customer_type']     = null === $reference ? '' : $reference['type'];
+			$input['customer_id']       = null === $reference ? '' : $reference['id'];
+			unset( $input['customer_object_id'] );
+		} elseif ( is_array( $current ) ) {
+			$input['customer_provider'] = (string) ( $current['customer_provider'] ?? '' );
+			$input['customer_type']     = (string) ( $current['customer_type'] ?? '' );
+			$input['customer_id']       = (string) ( $current['customer_id'] ?? '' );
 		}
-		if ( is_array( $customer ) ) {
-			$input['customer_provider'] = $customer['provider'];
-			$input['customer_type']     = $customer['type'];
-			$input['customer_id']       = $customer['id'];
-		}
-		$input['assigned_user_ids'] = Pickers::submitted_assignees( 'cb_work_item_assignees' );
 
 		$status = isset( $_POST['cb_work_item_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['cb_work_item_status'] ) ) : '';
 		$from = is_array( $current ) ? (string) ( $current['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
