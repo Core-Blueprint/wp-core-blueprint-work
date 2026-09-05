@@ -105,9 +105,9 @@ final class Operations {
 			<?php if ( [] === $items ) : ?>
 				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
 			<?php elseif ( WorkItemViewState::VIEW_LIST === (string) $state['view'] ) : ?>
-				<?php self::render_work_item_list( $items, $project_map, $type_map, $project_filter ); ?>
+				<?php self::render_work_item_list( $items, $project_map, $type_map, $state ); ?>
 			<?php else : ?>
-				<?php self::render_work_item_table( $items, $project_map, $type_map, $project_filter ); ?>
+				<?php self::render_work_item_table( $items, $project_map, $type_map, $state ); ?>
 			<?php endif; ?>
 			<?php self::render_work_item_pagination( $state, $result ); ?>
 		</div>
@@ -267,8 +267,9 @@ final class Operations {
 	 * @param array<int,array<string,mixed>> $items
 	 * @param array<int,string> $project_map
 	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
 	 */
-	private static function render_work_item_table( array $items, array $project_map, array $type_map, int $project_filter ): void {
+	private static function render_work_item_table( array $items, array $project_map, array $type_map, array $state ): void {
 		?>
 		<table class="widefat striped">
 			<thead><tr>
@@ -293,7 +294,7 @@ final class Operations {
 					<td><?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></td>
 					<td><?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?></td>
 					<td><?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></td>
-					<td><?php self::transition_buttons( $item, $project_filter ); ?></td>
+					<td><?php self::transition_buttons( $item, $state ); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -305,8 +306,9 @@ final class Operations {
 	 * @param array<int,array<string,mixed>> $items
 	 * @param array<int,string> $project_map
 	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
 	 */
-	private static function render_work_item_list( array $items, array $project_map, array $type_map, int $project_filter ): void {
+	private static function render_work_item_list( array $items, array $project_map, array $type_map, array $state ): void {
 		?>
 		<div class="cb-work-items-list">
 			<?php foreach ( $items as $item ) : ?>
@@ -327,7 +329,7 @@ final class Operations {
 							<strong><?php esc_html_e( 'Billing:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?>
 							 · <strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?>
 						</p>
-						<p><?php self::transition_buttons( $item, $project_filter ); ?></p>
+						<p><?php self::transition_buttons( $item, $state ); ?></p>
 					</div>
 				</div>
 			<?php endforeach; ?>
@@ -361,16 +363,20 @@ final class Operations {
 		return add_query_arg( WorkItemViewState::query_args( $state, $overrides ), admin_url( 'admin.php' ) );
 	}
 
-	/** @param array<string,mixed> $item */
-	private static function transition_buttons( array $item, int $project_filter = 0 ): void {
-		$from = (string) ( $item['status'] ?? '' );
+	/** @param array<string,mixed> $item @param array<string,mixed> $state */
+	private static function transition_buttons( array $item, array $state ): void {
+		$from        = (string) ( $item['status'] ?? '' );
+		$return_args = WorkItemViewState::query_args( $state );
+		unset( $return_args['page'] );
 		foreach ( WorkItemStatus::transitions_from( $from ) as $to ) {
 			?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin:0 4px 4px 0">
 				<input type="hidden" name="action" value="cb_work_transition_work_item">
 				<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
 				<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
-				<input type="hidden" name="return_project_id" value="<?php echo esc_attr( (string) $project_filter ); ?>">
+				<?php foreach ( $return_args as $key => $value ) : ?>
+					<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+				<?php endforeach; ?>
 				<?php wp_nonce_field( 'cb_work_transition_work_item_' . (int) $item['id'] ); ?>
 				<button class="button button-small" type="submit"><?php echo esc_html( self::transition_label( $to ) ); ?></button>
 			</form>
