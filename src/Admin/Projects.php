@@ -143,8 +143,10 @@ final class Projects {
 		$current = ProjectMeta::get( $post_id );
 
 		if ( array_key_exists( 'customer_object_id', $input ) ) {
-			$customer_id = absint( $input['customer_object_id'] );
-			$reference   = CRMCustomers::reference( $customer_id );
+			$customer_identifier = is_scalar( $input['customer_object_id'] )
+				? sanitize_text_field( (string) $input['customer_object_id'] )
+				: '';
+			$reference = CRMCustomers::reference( $customer_identifier );
 			if ( is_wp_error( $reference ) ) {
 				return;
 			}
