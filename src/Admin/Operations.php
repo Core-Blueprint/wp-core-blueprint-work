@@ -43,7 +43,7 @@ final class Operations {
 		}
 
 		$state = WorkItemViewState::from_request( $_GET );
-		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST ], true ) ) {
+		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN ], true ) ) {
 			$request         = $_GET;
 			$request['view'] = WorkItemViewState::VIEW_TABLE;
 			$state           = WorkItemViewState::from_request( $request );
@@ -104,6 +104,8 @@ final class Operations {
 			<p class="description"><?php echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></p>
 			<?php if ( [] === $items ) : ?>
 				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
+			<?php elseif ( WorkItemViewState::VIEW_KANBAN === (string) $state['view'] ) : ?>
+				<?php self::render_work_item_kanban( $items, $project_map, $type_map, $state ); ?>
 			<?php elseif ( WorkItemViewState::VIEW_LIST === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_list( $items, $project_map, $type_map, $state ); ?>
 			<?php else : ?>
@@ -168,8 +170,9 @@ final class Operations {
 	private static function render_work_item_views( array $state ): void {
 		$current = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
 		$views = [
-			WorkItemViewState::VIEW_TABLE => __( 'Table', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_LIST  => __( 'List', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_TABLE  => __( 'Table', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_LIST   => __( 'List', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_KANBAN => __( 'Kanban', 'core-blueprint-work' ),
 		];
 		?>
 		<h2 class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
@@ -332,6 +335,50 @@ final class Operations {
 						<p><?php self::transition_buttons( $item, $state ); ?></p>
 					</div>
 				</div>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $items
+	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
+	 */
+	private static function render_work_item_kanban( array $items, array $project_map, array $type_map, array $state ): void {
+		$lanes = array_fill_keys( WorkItemStatus::all(), [] );
+		foreach ( $items as $item ) {
+			$status = (string) ( $item['status'] ?? WorkItemStatus::PLANNED );
+			if ( ! WorkItemStatus::is_valid( $status ) ) {
+				$status = WorkItemStatus::PLANNED;
+			}
+			$lanes[ $status ][] = $item;
+		}
+		?>
+		<div class="cb-work-items-kanban" style="display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:16px;align-items:start;overflow-x:auto;padding-bottom:8px">
+			<?php foreach ( $lanes as $status => $lane_items ) : ?>
+				<section class="postbox" style="min-width:220px;margin:0">
+					<h2 class="hndle"><span><?php echo esc_html( self::humanize( (string) $status ) ); ?> <span class="count">(<?php echo esc_html( (string) count( $lane_items ) ); ?>)</span></span></h2>
+					<div class="inside">
+						<?php if ( [] === $lane_items ) : ?>
+							<p class="description"><?php esc_html_e( 'No Work Items in this status on the current page.', 'core-blueprint-work' ); ?></p>
+						<?php else : ?>
+							<?php foreach ( $lane_items as $item ) : ?>
+								<div class="card" style="max-width:none;margin:0 0 12px">
+									<h3 style="margin-top:0"><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></h3>
+									<p><strong><?php esc_html_e( 'Priority:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
+									<strong><?php esc_html_e( 'Due:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></p>
+									<p><strong><?php esc_html_e( 'Customer:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::customer_label( $item ) ); ?><br>
+									<strong><?php esc_html_e( 'Project:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br>
+									<strong><?php esc_html_e( 'Type:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?><br>
+									<strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></p>
+									<?php self::transition_buttons( $item, $state ); ?>
+								</div>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</div>
+				</section>
 			<?php endforeach; ?>
 		</div>
 		<?php
