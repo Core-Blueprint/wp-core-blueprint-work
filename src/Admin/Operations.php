@@ -42,14 +42,18 @@ final class Operations {
 			return;
 		}
 
-		$request         = $_GET;
-		$request['view'] = WorkItemViewState::VIEW_TABLE;
-		$state           = WorkItemViewState::from_request( $request );
-		$project_filter  = (int) $state['project_id'];
-		$result          = $state['customer_valid']
+		$state = WorkItemViewState::from_request( $_GET );
+		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST ], true ) ) {
+			$request         = $_GET;
+			$request['view'] = WorkItemViewState::VIEW_TABLE;
+			$state           = WorkItemViewState::from_request( $request );
+		}
+
+		$project_filter = (int) $state['project_id'];
+		$result         = $state['customer_valid']
 			? WorkItems::search( (array) $state['query'] )
 			: [ 'items' => [], 'total' => 0, 'page' => 1, 'per_page' => 50, 'pages' => 0 ];
-		$items           = (array) $result['items'];
+		$items          = (array) $result['items'];
 
 		$projects    = Projects::all( 500 );
 		$project_map = [];
@@ -93,41 +97,17 @@ final class Operations {
 				</p></div>
 			<?php endif; ?>
 
+			<?php self::render_work_item_views( $state ); ?>
 			<?php self::render_work_item_filters( $state, $projects, $services, $types, $selected_customer ); ?>
 
 			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
 			<p class="description"><?php echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></p>
 			<?php if ( [] === $items ) : ?>
 				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
+			<?php elseif ( WorkItemViewState::VIEW_LIST === (string) $state['view'] ) : ?>
+				<?php self::render_work_item_list( $items, $project_map, $type_map, $project_filter ); ?>
 			<?php else : ?>
-				<table class="widefat striped">
-					<thead><tr>
-						<th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Project / Type', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Billing', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Assigned', 'core-blueprint-work' ); ?></th>
-						<th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th>
-					</tr></thead>
-					<tbody>
-					<?php foreach ( $items as $item ) : ?>
-						<tr>
-							<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
-							<td><?php echo esc_html( self::customer_label( $item ) ); ?></td>
-							<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
-							<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
-							<td><?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br><span class="description"><?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?></span></td>
-							<td><?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></td>
-							<td><?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?></td>
-							<td><?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></td>
-							<td><?php self::transition_buttons( $item, $project_filter ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
+				<?php self::render_work_item_table( $items, $project_map, $type_map, $project_filter ); ?>
 			<?php endif; ?>
 			<?php self::render_work_item_pagination( $state, $result ); ?>
 		</div>
@@ -184,6 +164,22 @@ final class Operations {
 		<?php
 	}
 
+	/** @param array<string,mixed> $state */
+	private static function render_work_item_views( array $state ): void {
+		$current = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
+		$views = [
+			WorkItemViewState::VIEW_TABLE => __( 'Table', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_LIST  => __( 'List', 'core-blueprint-work' ),
+		];
+		?>
+		<h2 class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+			<?php foreach ( $views as $view => $label ) : ?>
+				<a class="nav-tab <?php echo $current === $view ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"><?php echo esc_html( $label ); ?></a>
+			<?php endforeach; ?>
+		</h2>
+		<?php
+	}
+
 	/**
 	 * @param array<string,mixed> $state
 	 * @param array<int,array<string,mixed>> $projects
@@ -195,7 +191,7 @@ final class Operations {
 		?>
 		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="cb-work-items-filters">
 			<input type="hidden" name="page" value="<?php echo esc_attr( Menu::WORK_ITEMS_SLUG ); ?>">
-			<input type="hidden" name="view" value="<?php echo esc_attr( WorkItemViewState::VIEW_TABLE ); ?>">
+			<input type="hidden" name="view" value="<?php echo esc_attr( (string) $state['view'] ); ?>">
 			<div class="tablenav top">
 				<div class="alignleft actions">
 					<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
@@ -261,9 +257,81 @@ final class Operations {
 					<option value="<?php echo esc_attr( WorkItemQuery::SORT_TITLE ); ?>" <?php selected( WorkItemQuery::SORT_TITLE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
 				</select>
 				<button class="button" type="submit"><?php esc_html_e( 'Apply filters', 'core-blueprint-work' ); ?></button>
-				<a class="button" href="<?php echo esc_url( self::work_items_url( [ 'view' => WorkItemViewState::VIEW_TABLE ] ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+				<a class="button" href="<?php echo esc_url( self::work_items_url( [ 'view' => (string) $state['view'] ] ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
 			</p>
 		</form>
+		<?php
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $items
+	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
+	 */
+	private static function render_work_item_table( array $items, array $project_map, array $type_map, int $project_filter ): void {
+		?>
+		<table class="widefat striped">
+			<thead><tr>
+				<th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Project / Type', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Billing', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Assigned', 'core-blueprint-work' ); ?></th>
+				<th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th>
+			</tr></thead>
+			<tbody>
+			<?php foreach ( $items as $item ) : ?>
+				<tr>
+					<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
+					<td><?php echo esc_html( self::customer_label( $item ) ); ?></td>
+					<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
+					<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
+					<td><?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br><span class="description"><?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?></span></td>
+					<td><?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></td>
+					<td><?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?></td>
+					<td><?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></td>
+					<td><?php self::transition_buttons( $item, $project_filter ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $items
+	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
+	 */
+	private static function render_work_item_list( array $items, array $project_map, array $type_map, int $project_filter ): void {
+		?>
+		<div class="cb-work-items-list">
+			<?php foreach ( $items as $item ) : ?>
+				<div class="postbox">
+					<div class="inside">
+						<h3><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></h3>
+						<p>
+							<strong><?php esc_html_e( 'Status:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?>
+							 · <strong><?php esc_html_e( 'Priority:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?>
+							 · <strong><?php esc_html_e( 'Due:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?>
+						</p>
+						<p>
+							<strong><?php esc_html_e( 'Customer:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::customer_label( $item ) ); ?>
+							 · <strong><?php esc_html_e( 'Project:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?>
+							 · <strong><?php esc_html_e( 'Type:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?>
+						</p>
+						<p>
+							<strong><?php esc_html_e( 'Billing:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?>
+							 · <strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?>
+						</p>
+						<p><?php self::transition_buttons( $item, $project_filter ); ?></p>
+					</div>
+				</div>
+			<?php endforeach; ?>
+		</div>
 		<?php
 	}
 
