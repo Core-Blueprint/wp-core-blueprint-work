@@ -104,9 +104,9 @@ namespace {
 		$GLOBALS['menus'][ $menu_slug ] = compact( 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'icon_url', 'position' );
 		return 'toplevel_page_' . $menu_slug;
 	}
-	function add_submenu_page( string $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, callable|string $callback = '', int|float|null $position = null ): string {
-		$GLOBALS['submenus'][ $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
-		return $parent_slug . '_page_' . sanitize_key( $menu_slug );
+	function add_submenu_page( ?string $parent_slug, string $page_title, string $menu_title, string $capability, string $menu_slug, callable|string $callback = '', int|float|null $position = null ): string {
+		$GLOBALS['submenus'][ (string) $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
+		return (string) $parent_slug . '_page_' . sanitize_key( $menu_slug );
 	}
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
@@ -143,16 +143,16 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.5'; }
+		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.6'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '1.5' === CB_WORK_SCHEMA_VERSION, 'Recurrence scheduler exposes schema version 1.5.' );
+	assert_true( '1.6' === CB_WORK_SCHEMA_VERSION, 'Time foundation exposes schema version 1.6.' );
 	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 7 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables and three recurrence tables; Projects and Work Items are CPT-backed.' );
+	assert_true( 9 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, recurrence and Time tables; Projects and Work Items remain CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
@@ -167,12 +167,15 @@ namespace {
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_project']['_cb_work_project_due_on'] ), 'Project due date meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_project_id'] ), 'Work Item Project meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_status'] ), 'Work Item operational status meta registers.' );
+	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_estimated_minutes'] ), 'Work Item estimate meta registers separately from actual Time.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.updated'] ), 'Work Item update governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.item.generated'] ), 'Recurring Work generation governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.generator.run'] ), 'Recurring Work generator run event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.time.entry.created'] ), 'Time entry governance event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.time.timer.started'] ), 'Timer governance event registers.' );
 	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Recurring Work hourly scheduler is registered during runtime init.' );
 	assert_true( 'hourly' === $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ]['recurrence'], 'Recurring Work scheduler uses the hourly WordPress cron recurrence.' );
 
@@ -180,6 +183,7 @@ namespace {
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Time is mounted under Work for managers.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-types'] ), 'Work Types are mounted under Work.' );
@@ -214,7 +218,8 @@ namespace {
 	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work Services shortcut registers.' );
 
 	$catalog = apply_filters( 'cb_core_capability_catalog', [] );
-	assert_true( isset( $catalog['cb_manage_work'] ), 'Work capability is in Base capability catalog.' );
+	assert_true( isset( $catalog['cb_manage_work'] ), 'Work management capability is in Base capability catalog.' );
+	assert_true( isset( $catalog['cb_track_work_time'] ), 'Work Time capability is separately registered in Base capability catalog.' );
 
 	$activation = $GLOBALS['activation'];
 	assert_true( is_callable( $activation ), 'Activation hook is registered.' );
@@ -222,6 +227,7 @@ namespace {
 	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Activation preserves or creates the Recurring Work scheduler event.' );
 	foreach ( [ 'administrator', 'cb_operator' ] as $role ) {
 		assert_true( in_array( 'cb_manage_work', $GLOBALS['roles'][ $role ]->caps, true ), "{$role} receives cb_manage_work." );
+		assert_true( in_array( 'cb_track_work_time', $GLOBALS['roles'][ $role ]->caps, true ), "{$role} receives cb_track_work_time." );
 	}
 
 	echo "Runtime smoke passed.\n";
