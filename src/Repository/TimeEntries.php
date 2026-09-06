@@ -59,7 +59,7 @@ final class TimeEntries {
 			return 0;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		if ( null === $duration ) {
+		if ( null === $duration || $duration <= 0 ) {
 			return 0;
 		}
 
@@ -68,18 +68,18 @@ final class TimeEntries {
 		$ok = $wpdb->insert(
 			Schema::time_entries_table(),
 			[
-				'work_item_id'    => $work_item_id,
-				'user_id'         => $user_id,
-				'entry_source'    => self::SOURCE_MANUAL,
-				'started_at'      => $started_at,
-				'ended_at'        => $ended_at,
-				'duration_seconds'=> $duration,
-				'note'            => self::note( $note ),
-				'revision'        => 1,
-				'created_by'      => max( 0, $actor_user_id ),
-				'updated_by'      => max( 0, $actor_user_id ),
-				'created_at'      => $now,
-				'updated_at'      => $now,
+				'work_item_id'     => $work_item_id,
+				'user_id'          => $user_id,
+				'entry_source'     => self::SOURCE_MANUAL,
+				'started_at'       => $started_at,
+				'ended_at'         => $ended_at,
+				'duration_seconds' => $duration,
+				'note'             => self::note( $note ),
+				'revision'         => 1,
+				'created_by'       => max( 0, $actor_user_id ),
+				'updated_by'       => max( 0, $actor_user_id ),
+				'created_at'       => $now,
+				'updated_at'       => $now,
 			],
 			[ '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s' ]
 		);
@@ -109,7 +109,7 @@ final class TimeEntries {
 			return false;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		if ( null === $duration ) {
+		if ( null === $duration || $duration <= 0 ) {
 			return false;
 		}
 
