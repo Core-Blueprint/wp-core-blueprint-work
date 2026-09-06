@@ -59,7 +59,7 @@ final class TimeEntries {
 			return 0;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		if ( null === $duration || $duration <= 0 ) {
+		if ( null === $duration || $duration <= 0 || ! self::is_actual_end( $ended_at ) ) {
 			return 0;
 		}
 
@@ -109,7 +109,7 @@ final class TimeEntries {
 			return false;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		if ( null === $duration || $duration <= 0 ) {
+		if ( null === $duration || $duration <= 0 || ! self::is_actual_end( $ended_at ) ) {
 			return false;
 		}
 
@@ -159,6 +159,12 @@ final class TimeEntries {
 			&& null !== WorkItems::get( $work_item_id )
 			&& $user_id > 0
 			&& false !== get_userdata( $user_id );
+	}
+
+	/** Manual/corrected entries are actuals, never future planning records. */
+	private static function is_actual_end( string $ended_at ): bool {
+		return TimeRange::valid_utc( $ended_at )
+			&& $ended_at <= current_time( 'mysql', true );
 	}
 
 	private static function note( string $note ): string {
