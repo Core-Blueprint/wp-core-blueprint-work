@@ -11,7 +11,7 @@ $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 
 $checks = [
-	'D1.2 advances Work schema to 1.3' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.3'" ),
+	'current Work schema is 1.4 after recurrence foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.4'" ),
 	'Project storage remains cb_work_project' => str_contains( $postTypes, "PROJECT   = 'cb_work_project'" ) && str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
 	'Work Item storage moves to cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
 	'transitional Project and Work Item tables are not registered' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ),
