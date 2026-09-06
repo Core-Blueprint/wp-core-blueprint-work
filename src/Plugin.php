@@ -8,7 +8,6 @@ use CB\Work\Admin\OperationalActions;
 use CB\Work\Admin\Page;
 use CB\Work\Admin\Pickers;
 use CB\Work\Admin\Projects;
-use CB\Work\Admin\Recurrence;
 use CB\Work\Admin\RecurrenceActions;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
@@ -48,7 +47,6 @@ final class Plugin {
 			Pickers::init();
 			Projects::init();
 			WorkItemsAdmin::init();
-			Recurrence::class;
 			RecurrenceActions::init();
 			ServicePricing::init();
 			TaxRateActions::init();
