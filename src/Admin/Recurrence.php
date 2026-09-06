@@ -40,21 +40,22 @@ final class Recurrence {
 			);
 		}
 
-		$title        = $editing ? (string) $rule['title'] : '';
-		$description  = $editing ? (string) $rule['description'] : '';
-		$project_id   = $editing ? (int) ( $rule['project_id'] ?? 0 ) : 0;
-		$service_id   = $editing ? (int) ( $rule['service_id'] ?? 0 ) : 0;
-		$work_type_id = $editing ? (int) ( $rule['work_type_id'] ?? 0 ) : 0;
-		$priority     = $editing ? (string) $rule['priority'] : WorkItemPriority::NORMAL;
-		$billing      = $editing ? (string) $rule['billing_disposition'] : '';
-		$frequency    = $editing ? (string) $rule['frequency'] : RecurrenceSchedule::WEEKLY;
-		$interval     = $editing ? (int) $rule['interval_count'] : 1;
-		$start_on     = $editing ? (string) $rule['start_on'] : current_time( 'Y-m-d' );
-		$end_on       = $editing && null !== $rule['end_on'] ? (string) $rule['end_on'] : '';
-		$create_ahead = $editing ? (int) $rule['create_ahead_days'] : 14;
-		$due_offset   = $editing ? (int) $rule['due_offset_days'] : 0;
-		$active       = ! $editing || ! empty( $rule['is_active'] );
-		$assignees    = $editing ? (array) $rule['assigned_user_ids'] : [];
+		$title             = $editing ? (string) $rule['title'] : '';
+		$description       = $editing ? (string) $rule['description'] : '';
+		$project_id        = $editing ? (int) ( $rule['project_id'] ?? 0 ) : 0;
+		$service_id        = $editing ? (int) ( $rule['service_id'] ?? 0 ) : 0;
+		$work_type_id      = $editing ? (int) ( $rule['work_type_id'] ?? 0 ) : 0;
+		$priority          = $editing ? (string) $rule['priority'] : WorkItemPriority::NORMAL;
+		$estimated_minutes = $editing ? max( 0, (int) ( $rule['estimated_minutes'] ?? 0 ) ) : 0;
+		$billing           = $editing ? (string) $rule['billing_disposition'] : '';
+		$frequency         = $editing ? (string) $rule['frequency'] : RecurrenceSchedule::WEEKLY;
+		$interval          = $editing ? (int) $rule['interval_count'] : 1;
+		$start_on          = $editing ? (string) $rule['start_on'] : current_time( 'Y-m-d' );
+		$end_on            = $editing && null !== $rule['end_on'] ? (string) $rule['end_on'] : '';
+		$create_ahead      = $editing ? (int) $rule['create_ahead_days'] : 14;
+		$due_offset        = $editing ? (int) $rule['due_offset_days'] : 0;
+		$active            = ! $editing || ! empty( $rule['is_active'] );
+		$assignees         = $editing ? (array) $rule['assigned_user_ids'] : [];
 		?>
 		<div class="wrap cb-work-recurrence-page">
 			<h1 class="wp-heading-inline"><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?></h1>
@@ -87,6 +88,7 @@ final class Recurrence {
 					<tr><th scope="row"><label for="cb-work-recurrence-service"><?php esc_html_e( 'Service', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-service" name="recurrence[service_id]"><option value="0"><?php esc_html_e( 'No Service', 'core-blueprint-work' ); ?></option><?php foreach ( $services as $service ) : ?><option value="<?php echo esc_attr( (string) $service['id'] ); ?>" <?php selected( $service_id, (int) $service['id'] ); ?>><?php echo esc_html( (string) $service['title'] ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><label for="cb-work-recurrence-type"><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-type" name="recurrence[work_type_id]"><option value="0"><?php esc_html_e( 'No Work Type', 'core-blueprint-work' ); ?></option><?php foreach ( $types as $type ) : ?><option value="<?php echo esc_attr( (string) $type['id'] ); ?>" <?php selected( $work_type_id, (int) $type['id'] ); ?>><?php echo esc_html( (string) $type['label'] ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><label for="cb-work-recurrence-priority"><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-priority" name="recurrence[priority]"><?php foreach ( WorkItemPriority::all() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $priority, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option><?php endforeach; ?></select></td></tr>
+					<tr><th scope="row"><label for="cb-work-recurrence-estimate"><?php esc_html_e( 'Estimated time (minutes)', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-estimate" class="small-text" type="number" min="0" step="5" name="recurrence[estimated_minutes]" value="<?php echo esc_attr( (string) $estimated_minutes ); ?>"><p class="description"><?php esc_html_e( 'Planning estimate inherited by future generated Work Items. Registered time remains separate.', 'core-blueprint-work' ); ?></p></td></tr>
 					<tr><th scope="row"><label for="cb-work-recurrence-billing"><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-billing" name="recurrence[billing_disposition]"><option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option><?php foreach ( BillingDisposition::all() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $billing, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th><td><?php Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', $assignees ); ?></td></tr>
 					<?php if ( $locked ) : ?>
@@ -160,11 +162,11 @@ final class Recurrence {
 	private static function render_notice(): void {
 		$notice = isset( $_GET['cb-work-notice'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb-work-notice'] ) ) : '';
 		$messages = [
-			'recurrence-created'       => [ 'success', __( 'Recurring Work rule created.', 'core-blueprint-work' ) ],
-			'recurrence-updated'       => [ 'success', __( 'Recurring Work rule updated.', 'core-blueprint-work' ) ],
-			'recurrence-status-updated'=> [ 'success', __( 'Recurring Work rule status updated.', 'core-blueprint-work' ) ],
-			'recurrence-invalid'       => [ 'error', __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ],
-			'recurrence-run'           => [ 'success', __( 'Recurring Work generator finished.', 'core-blueprint-work' ) ],
+			'recurrence-created'        => [ 'success', __( 'Recurring Work rule created.', 'core-blueprint-work' ) ],
+			'recurrence-updated'        => [ 'success', __( 'Recurring Work rule updated.', 'core-blueprint-work' ) ],
+			'recurrence-status-updated' => [ 'success', __( 'Recurring Work rule status updated.', 'core-blueprint-work' ) ],
+			'recurrence-invalid'        => [ 'error', __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ],
+			'recurrence-run'            => [ 'success', __( 'Recurring Work generator finished.', 'core-blueprint-work' ) ],
 		];
 		if ( ! isset( $messages[ $notice ] ) ) {
 			return;
