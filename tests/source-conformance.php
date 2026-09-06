@@ -12,6 +12,8 @@ $required = [
 	'src/Admin/Projects.php',
 	'src/Admin/Recurrence.php',
 	'src/Admin/RecurrenceActions.php',
+	'src/Admin/Time.php',
+	'src/Admin/TimeActions.php',
 	'src/Admin/WorkItems.php',
 	'src/Admin/ServicePricing.php',
 	'src/Admin/TaxRateActions.php',
@@ -25,6 +27,7 @@ $required = [
 	'src/Database/Schema.php',
 	'src/Domain/BillingDisposition.php',
 	'src/Domain/RecurrenceSchedule.php',
+	'src/Domain/TimeRange.php',
 	'src/Domain/WorkItemPriority.php',
 	'src/Domain/WorkItemStatus.php',
 	'src/Governance/Events.php',
@@ -45,9 +48,12 @@ $required = [
 	'src/Repository/RecurrenceOccurrences.php',
 	'src/Repository/RecurrenceRules.php',
 	'src/Repository/TaxRates.php',
+	'src/Repository/TimeEntries.php',
+	'src/Repository/Timers.php',
 	'src/Repository/WorkItems.php',
 	'src/Repository/WorkTypes.php',
 	'src/Support/Requirements.php',
+	'src/Time/Access.php',
 	'docs/ARCHITECTURE.md',
 	'assets/service-pricing.js',
 ];
@@ -67,6 +73,8 @@ $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $operationalActions = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 $recurrenceAdmin = file_get_contents( $root . '/src/Admin/Recurrence.php' );
 $recurrenceActions = file_get_contents( $root . '/src/Admin/RecurrenceActions.php' );
+$timeAdmin = file_get_contents( $root . '/src/Admin/Time.php' );
+$timeActions = file_get_contents( $root . '/src/Admin/TimeActions.php' );
 $projectsAdmin = file_get_contents( $root . '/src/Admin/Projects.php' );
 $workItemsAdmin = file_get_contents( $root . '/src/Admin/WorkItems.php' );
 $pickers    = file_get_contents( $root . '/src/Admin/Pickers.php' );
@@ -86,6 +94,13 @@ $recurrence = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' )
 $recurrenceOccurrences = file_get_contents( $root . '/src/Repository/RecurrenceOccurrences.php' );
 $recurrenceSchedule = file_get_contents( $root . '/src/Domain/RecurrenceSchedule.php' );
 $scheduler = file_get_contents( $root . '/src/Recurrence/Scheduler.php' );
+$timeRange = file_get_contents( $root . '/src/Domain/TimeRange.php' );
+$timeEntries = file_get_contents( $root . '/src/Repository/TimeEntries.php' );
+$timers = file_get_contents( $root . '/src/Repository/Timers.php' );
+$timeAccess = file_get_contents( $root . '/src/Time/Access.php' );
+$capabilities = file_get_contents( $root . '/src/Capabilities.php' );
+$events = file_get_contents( $root . '/src/Governance/Events.php' );
+$plugin = file_get_contents( $root . '/src/Plugin.php' );
 $crm        = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
 $public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
 	. file_get_contents( $root . '/src/PublicApi/TaxRates.php' )
@@ -108,7 +123,7 @@ $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
 	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
-	'current Work schema version is 1.5' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.5'" ),
+	'current Work schema version is 1.6' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.6'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
 	'bootstrap does not pin an internal Base RC' => ! str_contains( $bootstrap, 'CB_WORK_REQUIRED_BASE' ),
@@ -120,6 +135,7 @@ $checks = [
 	'Project and Work Item CPTs are private by default' => preg_match_all( "/'publicly_queryable'\s*=>\s*false/", $postTypes ) >= 2,
 	'Project metadata is registered Work post meta' => str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
 	'Work Item metadata is registered Work post meta' => str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ) && str_contains( $workItemMeta, '_cb_work_item_status' ),
+	'Work Item estimate remains planning metadata separate from Time actuals' => str_contains( $workItemMeta, '_cb_work_item_estimated_minutes' ) && str_contains( $workItemsAdmin, 'Planning estimate only. Registered time remains separate.' ),
 	'Project Gutenberg REST route remains capability-gated' => str_contains( $projectRest, 'current_user_can( Capabilities::MANAGE )' ),
 	'Work Item Gutenberg REST route remains capability-gated' => str_contains( $workItemRest, 'current_user_can( Capabilities::MANAGE )' ),
 	'D1.2 owns CPT Work Items not relational Work Item table' => ! str_contains( $schema, 'work_items_table' ) && str_contains( $schema, "cb_work_items'" ) && str_contains( $schema, 'DROP TABLE IF EXISTS' ),
@@ -147,12 +163,22 @@ $checks = [
 	'recurrence scheduler performs relation-first recovery before creating a Work Item' => strpos( $scheduler, 'RecurrenceOccurrences::find_work_item' ) < strpos( $scheduler, 'WorkItems::create( $input )' ),
 	'recurrence admin actions are capability nonce and CRM-contract gated' => str_contains( $recurrenceActions, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $recurrenceActions, 'check_admin_referer' ) && str_contains( $recurrenceActions, 'CRMCustomers::reference' ),
 	'recurrence admin exposes no destructive delete flow' => ! str_contains( $recurrenceActions, 'delete' ) && ! str_contains( $recurrenceAdmin, 'Delete' ) && ! str_contains( $recurrenceAdmin, 'delete' ),
+	'E3 Time storage is Work-owned relational high-volume data' => str_contains( $schema, "'cb_work_time_entries'" ) && str_contains( $schema, "'cb_work_active_timers'" ) && str_contains( $schema, 'PRIMARY KEY  (user_id)' ),
+	'E3 uses a distinct track-time capability and assignment-bounded tracker access' => str_contains( $capabilities, "TRACK_TIME = 'cb_track_work_time'" ) && str_contains( $timeAccess, 'get_current_user_id() !== $user_id' ) && str_contains( $timeAccess, "assigned_user_ids" ),
+	'E3 local manual input canonicalizes to UTC in one pure domain seam' => str_contains( $timeRange, 'local_to_utc' ) && str_contains( $timeRange, "new \\DateTimeZone( 'UTC' )" ) && str_contains( $timeRange, 'duration_seconds' ),
+	'E3 completed entry correction is revision-CAS protected' => str_contains( $timeEntries, 'revision = revision + 1' ) && str_contains( $timeEntries, 'WHERE id = %d AND revision = %d AND ended_at IS NOT NULL' ),
+	'E3 timer start stop uses transactions row locks and server UTC' => str_contains( $timers, "'START TRANSACTION'" ) && substr_count( $timers, 'FOR UPDATE' ) >= 2 && str_contains( $timers, "current_time( 'mysql', true )" ),
+	'E3 Time actions are nonce and authorization gated' => str_contains( $timeActions, 'check_admin_referer' ) && str_contains( $timeActions, 'Access::can_track_work_item' ) && str_contains( $timeActions, 'Access::can_edit_entry' ) && str_contains( $timeActions, 'Access::can_stop_user_timer' ),
+	'E3 Time governance events do not audit notes' => str_contains( $events, 'work.time.entry.created' ) && str_contains( $events, 'work.time.timer.started' ) && ! preg_match( "/Audit::record\([^;]*['\"]note['\"]\s*=>/s", $timeActions ),
+	'E3 Time admin reuses Base TimePicker and single-user Object Picker' => str_contains( $timeAdmin, 'Assets::enqueue_time_picker()' ) && str_contains( $timeAdmin, 'data-cb-time-picker' ) && str_contains( $timeAdmin, "Pickers::assignee( 'time[user_id]'" ),
+	'E3 Time is wired only into authenticated WordPress Admin' => str_contains( $plugin, 'Time::init();' ) && str_contains( $plugin, 'TimeActions::init();' ),
+	'E3 imports no old workspace Calendar or timesheet domain' => ! str_contains( $timeEntries . $timers, 'workspace_id' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'calendar' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'timesheet' ),
 	'public sibling contracts include Projects Work Items and Work Types' => str_contains( $public, 'Supported read-only Project contract' ) && str_contains( $public, 'Supported read-only Work Item contract' ) && str_contains( $public, 'Supported read-only Work Type contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
 	'pricing resolver validates tax through Work public API' => str_contains( $resolver, 'TaxRates::is_available' ),
 	'Work owns a standalone operational top-level menu' => str_contains( $menu, 'add_menu_page(' ) && str_contains( $menu, "TOP_LEVEL_SLUG      = 'core-blueprint-work'" ),
-	'operational menu mounts Work Items Recurring Work native Projects native Services and Work Types' => str_contains( $menu, 'WORK_ITEMS_SLUG' ) && str_contains( $menu, 'RECURRENCE_SLUG' ) && str_contains( $menu, 'PostTypes::PROJECT' ) && str_contains( $menu, 'PostTypes::SERVICE' ) && str_contains( $menu, 'WORK_TYPES_SLUG' ),
+	'operational menu mounts Work Items Recurring Work Time native Projects native Services and Work Types' => str_contains( $menu, 'WORK_ITEMS_SLUG' ) && str_contains( $menu, 'RECURRENCE_SLUG' ) && str_contains( $menu, 'TIME_SLUG' ) && str_contains( $menu, 'PostTypes::PROJECT' ) && str_contains( $menu, 'PostTypes::SERVICE' ) && str_contains( $menu, 'WORK_TYPES_SLUG' ),
 	'native Work Item editor stays visually under Work navigation' => str_contains( $menu, 'PostTypes::WORK_ITEM === (string) $screen->post_type' ) && str_contains( $menu, 'CONTEXT_WORK_ITEMS' ),
 	'Project admin has contextual Work Item management' => str_contains( $projectsAdmin, 'WorkItems::for_project' ) && str_contains( $projectsAdmin, 'Menu::new_work_item_url( $project_id )' ) && str_contains( $projectsAdmin, 'Menu::edit_work_item_url' ),
 	'Work Items use global workspace plus native Gutenberg editor and governed transitions' => str_contains( $operations, 'Add Work Item' ) && str_contains( $operations, 'Menu::edit_work_item_url' ) && str_contains( $workItemsAdmin, 'Work Item Details' ) && str_contains( $operationalActions, 'transition_status' ),
@@ -160,7 +186,7 @@ $checks = [
 	'raw customer/source provider type id controls are absent from primary Work UI' => ! str_contains( $workItemsAdmin, 'source_provider' ) && ! str_contains( $workItemsAdmin, 'source_type' ) && ! str_contains( $workItemsAdmin, 'source_id' ),
 	'CRM customer picker uses documented public Frontend Queries only' => str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Contacts' ) && str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Organizations' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ) && ! str_contains( $crm, '$wpdb' ),
 	'CRM customer integration remains fail-soft' => str_contains( $crm, 'class_exists' ) && str_contains( $crm, 'public static function available' ),
-	'Base Object Picker provides customer single-user and multi-user UX including recurrence' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ) && str_contains( $pickers, 'Menu::RECURRENCE_SLUG' ),
+	'Base Object Picker provides customer single-user and multi-user UX including recurrence and Time' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ) && str_contains( $pickers, 'Menu::RECURRENCE_SLUG' ) && str_contains( $pickers, 'Menu::TIME_SLUG' ),
 	'Core Blueprint Work page is settings-only' => str_contains( $page, "SLUG = 'core-blueprint-work-settings'" ) && ! str_contains( $page, 'render_services' ) && ! str_contains( $page, 'VIEW_SERVICES' ),
 	'Core Blueprint settings page does not request operational nav tabs' => ! str_contains( $page, "'nav-tabs'" ) && ! str_contains( $page, 'nav-tab-wrapper' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,

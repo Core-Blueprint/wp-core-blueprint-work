@@ -59,15 +59,16 @@ final class WorkItems {
 			$customer_unresolved = null === $selected_customer;
 		}
 
-		$projects     = Projects::all( 500 );
-		$services     = Services::all( 500 );
-		$work_types   = WorkTypes::all( false );
-		$priority     = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
-		$status       = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
-		$billing      = is_array( $item ) ? (string) ( $item['billing_disposition'] ?? '' ) : '';
-		$scheduled_on = is_array( $item ) ? (string) ( $item['scheduled_on'] ?? '' ) : '';
-		$due_on       = is_array( $item ) ? (string) ( $item['due_on'] ?? '' ) : '';
-		$assignments  = is_array( $item ) ? (array) ( $item['assigned_user_ids'] ?? [] ) : [];
+		$projects          = Projects::all( 500 );
+		$services          = Services::all( 500 );
+		$work_types        = WorkTypes::all( false );
+		$priority          = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
+		$estimated_minutes = is_array( $item ) ? max( 0, (int) ( $item['estimated_minutes'] ?? 0 ) ) : 0;
+		$status            = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
+		$billing           = is_array( $item ) ? (string) ( $item['billing_disposition'] ?? '' ) : '';
+		$scheduled_on      = is_array( $item ) ? (string) ( $item['scheduled_on'] ?? '' ) : '';
+		$due_on            = is_array( $item ) ? (string) ( $item['due_on'] ?? '' ) : '';
+		$assignments       = is_array( $item ) ? (array) ( $item['assigned_user_ids'] ?? [] ) : [];
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
 		?>
@@ -122,6 +123,13 @@ final class WorkItems {
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $priority, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option>
 					<?php endforeach; ?>
 				</select></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="cb-work-item-estimate"><?php esc_html_e( 'Estimated time (minutes)', 'core-blueprint-work' ); ?></label></th>
+				<td>
+					<input id="cb-work-item-estimate" type="number" min="0" step="5" name="cb_work_item[estimated_minutes]" value="<?php echo esc_attr( (string) $estimated_minutes ); ?>" class="small-text">
+					<p class="description"><?php esc_html_e( 'Planning estimate only. Registered time remains separate.', 'core-blueprint-work' ); ?></p>
+				</td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="cb-work-item-status"><?php esc_html_e( 'Operational status', 'core-blueprint-work' ); ?></label></th>

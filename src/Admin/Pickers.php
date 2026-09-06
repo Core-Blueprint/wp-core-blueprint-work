@@ -28,7 +28,7 @@ final class Pickers {
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if (
 			! in_array( (string) $screen->post_type, [ PostTypes::PROJECT, PostTypes::WORK_ITEM ], true )
-			&& ! in_array( $page, [ Menu::WORK_ITEMS_SLUG, Menu::RECURRENCE_SLUG ], true )
+			&& ! in_array( $page, [ Menu::WORK_ITEMS_SLUG, Menu::RECURRENCE_SLUG, Menu::TIME_SLUG ], true )
 		) {
 			return;
 		}

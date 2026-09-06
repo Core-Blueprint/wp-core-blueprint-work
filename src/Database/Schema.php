@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Database;
 
 use CB\Core\Database\SchemaRegistry;
+use CB\Work\Capabilities;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,6 +24,8 @@ final class Schema {
 				[ self::class, 'recurrence_rules_table' ],
 				[ self::class, 'recurrence_assignments_table' ],
 				[ self::class, 'recurrence_occurrences_table' ],
+				[ self::class, 'time_entries_table' ],
+				[ self::class, 'active_timers_table' ],
 			],
 			'install'    => [ self::class, 'install' ],
 		] );
@@ -61,6 +64,16 @@ final class Schema {
 	public static function recurrence_occurrences_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_recurrence_occurrences';
+	}
+
+	public static function time_entries_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_time_entries';
+	}
+
+	public static function active_timers_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_active_timers';
 	}
 
 	public static function install(): bool {
@@ -131,6 +144,7 @@ final class Schema {
 			service_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			work_type_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			priority varchar(32) NOT NULL DEFAULT 'normal',
+			estimated_minutes int unsigned NOT NULL DEFAULT 0,
 			billing_disposition varchar(32) NOT NULL DEFAULT '',
 			frequency varchar(16) NOT NULL,
 			interval_count smallint unsigned NOT NULL DEFAULT 1,
@@ -177,6 +191,35 @@ final class Schema {
 			KEY claim_state (work_item_id,claimed_at)
 		) {$charset};" );
 
+		dbDelta( 'CREATE TABLE ' . self::time_entries_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			work_item_id bigint(20) unsigned NOT NULL,
+			user_id bigint(20) unsigned NOT NULL,
+			entry_source varchar(16) NOT NULL DEFAULT 'manual',
+			started_at datetime NOT NULL,
+			ended_at datetime NULL,
+			duration_seconds int unsigned NOT NULL DEFAULT 0,
+			note text NOT NULL,
+			revision int unsigned NOT NULL DEFAULT 1,
+			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
+			updated_by bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY work_item_time (work_item_id,started_at),
+			KEY user_time (user_id,started_at),
+			KEY open_entry (user_id,ended_at)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::active_timers_table() . " (
+			user_id bigint(20) unsigned NOT NULL,
+			time_entry_id bigint(20) unsigned NOT NULL,
+			started_at datetime NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (user_id),
+			UNIQUE KEY time_entry_id (time_entry_id)
+		) {$charset};" );
+
 		/*
 		 * D1.1/D1.2 are deliberate pre-v1 architecture corrections. Projects and
 		 * Work Items are canonical WordPress content. Transitional Project/Work
@@ -198,6 +241,11 @@ final class Schema {
 			if ( false === $wpdb->query( 'DELETE FROM ' . self::relations_table() ) ) {
 				return false;
 			}
+		}
+
+		/* Existing rc1 installs receive the E3 capability during explicit schema upgrade. */
+		if ( version_compare( $previous_version, '1.6', '<' ) ) {
+			Capabilities::install();
 		}
 
 		self::seed_default_work_types();

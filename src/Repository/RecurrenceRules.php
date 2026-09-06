@@ -223,6 +223,7 @@ final class RecurrenceRules {
 			'service_id'          => $rule['service_id'] ?? 0,
 			'work_type_id'        => $rule['work_type_id'] ?? 0,
 			'priority'            => $rule['priority'],
+			'estimated_minutes'   => $rule['estimated_minutes'],
 			'scheduled_on'        => $occurrence['occurrence_on'],
 			'due_on'              => $due_on,
 			'billing_disposition' => $rule['billing_disposition'],
@@ -350,23 +351,24 @@ final class RecurrenceRules {
 	 * @return array<string,mixed>|null
 	 */
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
-		$title        = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
-		$description  = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
-		$customer     = self::customer_reference( $input, $current );
-		$project_id   = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
-		$service_id   = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
-		$work_type_id = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
-		$priority     = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
-		$billing      = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
-		$frequency    = (string) ( $input['frequency'] ?? ( $current['frequency'] ?? '' ) );
-		$interval     = (int) ( $input['interval_count'] ?? ( $current['interval_count'] ?? 1 ) );
-		$start_on     = (string) ( $input['start_on'] ?? ( $current['start_on'] ?? '' ) );
-		$end_raw      = array_key_exists( 'end_on', $input ) ? $input['end_on'] : ( $current['end_on'] ?? null );
-		$end_on       = null === $end_raw ? null : (string) $end_raw;
-		$schedule     = RecurrenceSchedule::normalize( $frequency, $interval, $start_on, $end_on );
+		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
+		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$customer          = self::customer_reference( $input, $current );
+		$project_id        = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
+		$service_id        = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
+		$work_type_id      = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
+		$priority          = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
+		$estimated_minutes = max( 0, (int) ( $input['estimated_minutes'] ?? ( $current['estimated_minutes'] ?? 0 ) ) );
+		$billing           = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
+		$frequency         = (string) ( $input['frequency'] ?? ( $current['frequency'] ?? '' ) );
+		$interval          = (int) ( $input['interval_count'] ?? ( $current['interval_count'] ?? 1 ) );
+		$start_on          = (string) ( $input['start_on'] ?? ( $current['start_on'] ?? '' ) );
+		$end_raw           = array_key_exists( 'end_on', $input ) ? $input['end_on'] : ( $current['end_on'] ?? null );
+		$end_on            = null === $end_raw ? null : (string) $end_raw;
+		$schedule          = RecurrenceSchedule::normalize( $frequency, $interval, $start_on, $end_on );
 		$create_ahead_days = (int) ( $input['create_ahead_days'] ?? ( $current['create_ahead_days'] ?? 14 ) );
 		$due_offset_days   = (int) ( $input['due_offset_days'] ?? ( $current['due_offset_days'] ?? 0 ) );
-		$is_active = array_key_exists( 'is_active', $input ) ? (bool) $input['is_active'] : (bool) ( $current['is_active'] ?? true );
+		$is_active         = array_key_exists( 'is_active', $input ) ? (bool) $input['is_active'] : (bool) ( $current['is_active'] ?? true );
 
 		$assignments_changed = array_key_exists( 'assigned_user_ids', $input ) || null === $current;
 		$assignments = $assignments_changed
@@ -429,6 +431,7 @@ final class RecurrenceRules {
 			'service_id'          => $service_id,
 			'work_type_id'        => $work_type_id,
 			'priority'            => $priority,
+			'estimated_minutes'   => $estimated_minutes,
 			'billing_disposition' => $billing,
 			'frequency'            => $schedule['frequency'],
 			'interval_count'       => $schedule['interval_count'],
@@ -497,6 +500,7 @@ final class RecurrenceRules {
 			'service_id'          => $normalized['service_id'],
 			'work_type_id'        => $normalized['work_type_id'],
 			'priority'            => $normalized['priority'],
+			'estimated_minutes'   => $normalized['estimated_minutes'],
 			'billing_disposition' => $normalized['billing_disposition'],
 			'frequency'            => $normalized['frequency'],
 			'interval_count'       => $normalized['interval_count'],
@@ -519,8 +523,8 @@ final class RecurrenceRules {
 	/** @return string[] */
 	private static function rule_formats( bool $creating = true ): array {
 		$formats = [
-			'%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%s',
-			'%s', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s',
+			'%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d',
+			'%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s',
 		];
 		if ( $creating ) {
 			$formats[] = '%d';
@@ -543,6 +547,7 @@ final class RecurrenceRules {
 			'service_id'          => (int) $row['service_id'] > 0 ? (int) $row['service_id'] : null,
 			'work_type_id'        => (int) $row['work_type_id'] > 0 ? (int) $row['work_type_id'] : null,
 			'priority'            => (string) $row['priority'],
+			'estimated_minutes'   => max( 0, (int) $row['estimated_minutes'] ),
 			'billing_disposition' => (string) $row['billing_disposition'],
 			'frequency'            => (string) $row['frequency'],
 			'interval_count'       => (int) $row['interval_count'],

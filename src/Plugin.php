@@ -11,6 +11,8 @@ use CB\Work\Admin\Projects;
 use CB\Work\Admin\RecurrenceActions;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
+use CB\Work\Admin\Time;
+use CB\Work\Admin\TimeActions;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\ProjectMeta;
@@ -48,6 +50,8 @@ final class Plugin {
 			Projects::init();
 			WorkItemsAdmin::init();
 			RecurrenceActions::init();
+			Time::init();
+			TimeActions::init();
 			ServicePricing::init();
 			TaxRateActions::init();
 			OperationalActions::init();
