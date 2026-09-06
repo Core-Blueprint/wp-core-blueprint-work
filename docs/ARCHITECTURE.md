@@ -48,7 +48,7 @@ Future frontend/portal access remains a separate concern. D3 may expose Projects
 Work Items are WordPress-native content using `cb_work_item`.
 
 - title/content live in `wp_posts`;
-- customer reference, Project, Service, Work Type, priority, planning dates, operational status, billing classification and completion facts live in registered Work-owned post meta;
+- customer reference, Project, Service, Work Type, priority, planning dates, estimated minutes, operational status, billing classification and completion facts live in registered Work-owned post meta;
 - Work Items are private by default and are not publicly queryable;
 - the native Gutenberg editor is the canonical individual Work Item edit surface;
 - the global **Work → Work Items** workspace remains the canonical all-work operational surface and links into the native editor.
@@ -65,7 +65,8 @@ Work Items retain:
 - optional Project;
 - optional Service and Work Type;
 - scheduled date and due date as separate semantics;
-- billing classification separate from completion state;
+- `estimated_minutes` as a planning estimate separate from actual registered time;
+- billing classification separate from completion state and separate from registered duration;
 - many-to-many WordPress user assignments;
 - generic integration/source relations outside the normal human create flow.
 
@@ -84,7 +85,7 @@ Work Types remain a Work-owned relational operational catalog in `cb_work_types`
 - `cb_work_item_assignments` stores many-to-many WordPress user assignments keyed by the canonical `cb_work_item` post ID.
 - `cb_work_item_relations` stores provider-neutral external/source metadata keyed by the canonical `cb_work_item` post ID for integrations such as Helpdesk and Work recurrence.
 - Raw provider/type/id fields are internal persistence metadata and are not primary user-facing controls.
-- high-volume child facts such as future time entries, recurrence executions and billing/history records remain Work-owned relational/custom-table data rather than WordPress posts.
+- high-volume child facts such as time entries, recurrence executions and billing/history records remain Work-owned relational/custom-table data rather than WordPress posts.
 
 ### Work Item recurrence
 
@@ -96,7 +97,7 @@ The recurrence domain uses three relational tables:
 - `cb_work_recurrence_rule_assignments` stores the WordPress users inherited by generated occurrences;
 - `cb_work_recurrence_occurrences` is the execution ledger linking one rule/date occurrence to the canonical `cb_work_item` generated for it.
 
-A rule may carry the same operational context as a Work Item: customer reference, optional Project, optional Service and Work Type, priority, billing disposition and assignees. It additionally owns:
+A rule may carry the same operational context as a Work Item: customer reference, optional Project, optional Service and Work Type, priority, estimated minutes, billing disposition and assignees. It additionally owns:
 
 - frequency: daily, weekly, monthly or yearly;
 - interval count;
@@ -105,6 +106,8 @@ A rule may carry the same operational context as a Work Item: customer reference
 - due-date offset in days;
 - active state;
 - the canonical next occurrence date.
+
+`estimated_minutes` is template planning data. It is inherited by future generated Work Items and may remain editable after occurrence history exists; it is not part of recurrence schedule identity and never represents actual registered time.
 
 Monthly and yearly recurrence stays anchored to the original calendar day. Dates that do not exist in the target month clamp to that month's final day without permanently drifting the anchor; for example a rule anchored to the 31st can produce February 28/29 and then return to the 31st in March.
 
@@ -116,7 +119,7 @@ The occurrence ledger has a unique `(rule_id, occurrence_on)` key. That database
 
 E2 extends the same ledger with bounded execution state: `claim_token`, nullable `claimed_at`, `attempt_count` and `last_error`. A worker may claim only an ungenerated occurrence with no live claim. Claims older than the recovery timeout may be taken over by a later worker. This prevents normal concurrent cron workers from creating the same occurrence twice while allowing an interrupted generation to resume.
 
-A reserved occurrence projects into the existing canonical `Repository\WorkItems::create()` input contract, including inherited assignees, `scheduled_on`, calculated `due_on` and a Work-owned `recurrence_occurrence` source relation. The scheduler never inserts a separate task record and never bypasses the canonical Work Item repository.
+A reserved occurrence projects into the existing canonical `Repository\WorkItems::create()` input contract, including inherited assignees, inherited `estimated_minutes`, `scheduled_on`, calculated `due_on` and a Work-owned `recurrence_occurrence` source relation. The scheduler never inserts a separate task record and never bypasses the canonical Work Item repository.
 
 Before creating a Work Item, a worker looks for an existing canonical Work Item carrying the occurrence source relation. This recovers the ordinary interruption case where Work Item creation and its source relation succeeded but the occurrence ledger was not linked yet. Multiple Work Items claiming the same occurrence relation are treated as corruption and generation fails closed rather than guessing which item is authoritative.
 
@@ -149,13 +152,82 @@ Generator runs, generated/recovered items and generation failures are recorded t
 Operators can:
 
 - create recurring Work rules;
-- edit template/context and planning fields;
+- edit template/context and planning fields, including the estimate inherited by future Work Items;
 - edit schedule identity only before occurrence history exists;
 - activate or deactivate a rule;
 - inspect next occurrence and occurrence history count;
 - run the generator manually.
 
 There is no destructive recurrence-rule delete flow in v1. Executed recurrence is operational history. Rules are deactivated rather than erased, while finite rules naturally stop when `next_occurrence_on` becomes `NULL`.
+
+### Time tracking
+
+Time is a Work-owned operational child domain over canonical Work Items. It records actual performed work and never replaces Work Item planning or creates a second task model.
+
+Planning and actuals stay deliberately separate:
+
+- `cb_work_item` owns `scheduled_on` and `estimated_minutes` as planning facts;
+- recurring rules may supply the estimate inherited by future Work Items;
+- completed Time Entries own actual start/end timestamps and actual duration;
+- registered duration does not automatically determine billable value or override Work Item billing classification.
+
+E3 uses two Work-owned relational tables:
+
+- `cb_work_time_entries` stores completed/manual or timer-backed time facts against one canonical Work Item and WordPress user;
+- `cb_work_active_timers` stores the one currently active timer per WordPress user.
+
+Time Entries retain:
+
+- validated `work_item_id` as a soft Work-owned reference;
+- WordPress `user_id`;
+- source (`manual` or `timer`);
+- UTC `started_at` and nullable `ended_at`;
+- server-derived `duration_seconds`;
+- an optional human note;
+- `revision` for compare-and-swap corrections;
+- created/updated actor and UTC timestamps.
+
+There are no SQL foreign keys. Repository writes validate the canonical Work Item and WordPress user in application code.
+
+#### Manual entries and timezone boundary
+
+Human date/time input is interpreted in the configured WordPress site timezone and canonicalized to UTC before persistence. Manual entries require a positive time range. Base TimePicker is used only for the `HH:MM` input/normalization UX; Work owns date meaning, timezone conversion, authorization and persistence.
+
+Completed entry corrections require the expected `revision`. The update uses a compare-and-swap database boundary and increments the revision atomically, so a stale editor cannot silently overwrite a newer correction.
+
+#### Server-authoritative timer
+
+A timer start is authoritative on the server. It creates an open `timer` Time Entry and its Active Timer row in one database transaction. `cb_work_active_timers.user_id` is the primary key, which is the hard one-active-timer-per-user boundary.
+
+Stopping a timer locks both the Active Timer and its Time Entry, reads the canonical server UTC stop time, derives duration server-side, completes the Time Entry and removes the Active Timer in the same transaction. Client elapsed-time values are never authoritative. An immediate start/stop in the same server second may legitimately produce a zero-second timer entry; manual entries still require positive duration.
+
+#### Time authorization and governance
+
+Time separates tracking permission from full Work management:
+
+- `cb_manage_work` is the manager/operator superset and permits administration and corrections across valid Work Items/users;
+- `cb_track_work_time` permits a user to track their own time only on Work Items currently assigned to them;
+- Administrator and CB Operator receive both during activation or the explicit schema-1.6 upgrade; other roles receive `cb_track_work_time` only when granted through the suite permission system;
+- a tracker may stop their own already-running timer even if the Work Item assignment is removed after the timer started, preventing a stranded timer;
+- tracker-submitted user IDs never allow impersonation; non-managers remain hard-bound to their own WordPress user identity.
+
+Time mutations record the registered Work governance events `work.time.entry.created`, `work.time.entry.updated`, `work.time.timer.started` and `work.time.timer.stopped`. Audit context contains identifiers, source, revision and/or duration as applicable. Human Time-entry note content is never copied into Governance/Audit context.
+
+#### Time administration
+
+**Work → Time** is the canonical Time surface. It remains WordPress-native and reuses Base TimePicker and the existing single-user Object Picker rather than introducing a parallel application UI.
+
+A Work manager keeps **Work → Overview** as the Work landing page and sees **Time** alongside the other Work management submenus. A user with `cb_track_work_time` but without `cb_manage_work` sees the same top-level **Work** product area landing directly on Time; manager-only Work Items, Recurring Work, Projects, Services and Work Types navigation is not exposed to that user.
+
+The Time surface supports:
+
+- starting and stopping the current user's server-authoritative timer;
+- adding a completed manual Time Entry;
+- correcting a completed entry with revision protection;
+- viewing recent authorized entries;
+- manager selection of a WordPress user when entering/correcting time on their behalf.
+
+There is no destructive Time Entry delete flow in E3. E3 also does not import the standalone Time extension's historical workspace, Calendar, rate-engine or timesheet-approval domains.
 
 ## CRM customer integration
 
@@ -190,16 +262,19 @@ Invoice/payment lifecycle remains outside D1.2.
 
 Operational product work lives under the normal top-level **Work** menu. `Core Blueprint → Work` is settings/configuration only.
 
-Top-level Work contains:
+For Work managers, top-level Work contains:
 
 - Overview;
 - Work Items;
 - Recurring Work;
+- Time;
 - Projects;
 - Services;
 - Work Types.
 
-Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first global Work surface for operational management, while individual Work Item creation/editing uses the native Gutenberg CPT editor. Recurring Work is an operational rule/scheduler surface over the same canonical Work Items, not a second task manager.
+Users with `cb_track_work_time` but without `cb_manage_work` use the same top-level Work product area but land directly on Time and do not receive the management submenus.
+
+Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first global Work surface for operational management, while individual Work Item creation/editing uses the native Gutenberg CPT editor. Recurring Work is an operational rule/scheduler surface over the same canonical Work Items, not a second task manager. Time is the operational actual-time child surface over those same Work Items.
 
 ### Project context
 
@@ -225,6 +300,7 @@ The Work Item editor uses Gutenberg title/content plus Work-owned meta boxes for
 - Service;
 - Work Type;
 - Priority;
+- Estimated time (minutes);
 - operational status;
 - due date;
 - assignees;
@@ -259,11 +335,11 @@ Storage type is never a frontend contract.
 7. **D1.2 — Work Item CPT conversion:** complete and merged; Golden Standard audit hardening follows without changing the canonical storage model.
 8. **D2 — Operational Views Foundation:** complete; one canonical Work Item query/filter/view-state engine powers Table, List, Kanban and Calendar while the native Gutenberg editor remains the individual edit surface.
 9. **E1 — Recurrence Foundation:** complete and merged; rule/assignment/occurrence storage, pure schedule semantics and canonical Work Item occurrence projection are established.
-10. **E2 — Recurrence Scheduler + Admin UX:** current launch-priority phase; hourly generation, bounded catch-up, stale-claim recovery, governance and operator-facing Recurring Work management over E1.
-11. **E3 — Time:** time-entry and timer domain follows recurrence without changing canonical Work Item storage.
-12. **D3 — Builder-neutral Frontend Resource Contracts:** parked until launch-critical recurrence/time work closes; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+10. **E2 — Recurrence Scheduler + Admin UX:** complete and merged; hourly generation, bounded catch-up, stale-claim recovery, governance and operator-facing Recurring Work management are canonical.
+11. **E3 — Time:** implemented on the current branch; Work Item estimates, Work-owned Time Entries, server-authoritative timers, revision-safe corrections, separate tracking authorization, governance and WordPress-native Time administration are established without changing canonical Work Item storage. Final branch QC/merge remains before closure.
+12. **D3 — Builder-neutral Frontend Resource Contracts:** resumes from a fresh branch after E3 closes; the old parked D3 branch remains reference-only. D3 owns authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
 13. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
-14. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
+14. Final Work Golden Standard re-audit follows D4 before staging/release closure. CRM and Helpdesk receive their own Golden Standard audits separately under the agreed suite roadmap.
 
 ## Non-goals
 
