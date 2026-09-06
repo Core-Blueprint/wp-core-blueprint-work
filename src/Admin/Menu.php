@@ -9,14 +9,16 @@ use CB\Work\Content\PostTypes;
 defined( 'ABSPATH' ) || exit;
 
 final class Menu {
-	public const TOP_LEVEL_SLUG     = 'core-blueprint-work';
-	public const WORK_ITEMS_SLUG    = 'core-blueprint-work-items';
-	public const WORK_TYPES_SLUG    = 'core-blueprint-work-types';
-	public const CONTEXT_OVERVIEW   = 'overview';
-	public const CONTEXT_WORK_ITEMS = 'work_items';
-	public const CONTEXT_PROJECTS   = 'projects';
-	public const CONTEXT_SERVICES   = 'services';
-	public const CONTEXT_WORK_TYPES = 'work_types';
+	public const TOP_LEVEL_SLUG      = 'core-blueprint-work';
+	public const WORK_ITEMS_SLUG     = 'core-blueprint-work-items';
+	public const RECURRENCE_SLUG     = 'core-blueprint-work-recurrence';
+	public const WORK_TYPES_SLUG     = 'core-blueprint-work-types';
+	public const CONTEXT_OVERVIEW    = 'overview';
+	public const CONTEXT_WORK_ITEMS  = 'work_items';
+	public const CONTEXT_RECURRENCE  = 'recurrence';
+	public const CONTEXT_PROJECTS    = 'projects';
+	public const CONTEXT_SERVICES    = 'services';
+	public const CONTEXT_WORK_TYPES  = 'work_types';
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
@@ -28,6 +30,7 @@ final class Menu {
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 10 );
+		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 15 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
@@ -72,6 +75,9 @@ final class Menu {
 		if ( self::WORK_ITEMS_SLUG === $page || PostTypes::WORK_ITEM === (string) $screen->post_type ) {
 			return self::CONTEXT_WORK_ITEMS;
 		}
+		if ( self::RECURRENCE_SLUG === $page ) {
+			return self::CONTEXT_RECURRENCE;
+		}
 		if ( self::WORK_TYPES_SLUG === $page ) {
 			return self::CONTEXT_WORK_TYPES;
 		}
@@ -95,6 +101,7 @@ final class Menu {
 		return match ( $context ) {
 			self::CONTEXT_OVERVIEW   => self::TOP_LEVEL_SLUG,
 			self::CONTEXT_WORK_ITEMS => self::WORK_ITEMS_SLUG,
+			self::CONTEXT_RECURRENCE => self::RECURRENCE_SLUG,
 			self::CONTEXT_PROJECTS   => self::projects_path(),
 			self::CONTEXT_SERVICES   => self::services_path(),
 			self::CONTEXT_WORK_TYPES => self::WORK_TYPES_SLUG,
