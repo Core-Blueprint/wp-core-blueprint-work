@@ -112,8 +112,14 @@ namespace {
 }
 
 namespace CB\Core\Admin {
-	interface Page { public function slug(): string; public function title(): string; public function menu_title(): string; public function capability(): string; public function position(): ?int; public function render(): void; }
-	final class PageRegistry { public static array $registrations = []; public static function register( Page $page, array $requirements = [] ): bool { self::$registrations[ $page->slug() ] = [ $page, $requirements ]; return true; } }
+	final class SettingsRegistry {
+		public const GROUP_BUSINESS = 'business';
+		public static array $registrations = [];
+		public static function register( string $extension_id, array $definition ): bool { self::$registrations[ $extension_id ] = $definition; return true; }
+		public static function url( string $extension_id, array $query = [] ): string {
+			return \add_query_arg( array_merge( [ 'page' => 'core-blueprint-extensions', 'extension' => $extension_id ], $query ), \admin_url( 'admin.php' ) );
+		}
+	}
 }
 
 namespace CB\Core\Dashboard {
@@ -201,13 +207,16 @@ namespace {
 	assert_true( 'ok' === ( $status['state'] ?? '' ), 'Work health is ok after schema/runtime boot.' );
 	assert_true( '2 work items · 2 projects · 3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual operational counts.' );
 
-	do_action( 'cb_core_register_pages' );
-	$page = \CB\Core\Admin\PageRegistry::$registrations['core-blueprint-work-settings'] ?? null;
-	assert_true( is_array( $page ), 'Work settings register through Base PageRegistry.' );
-	$components = $page[1]['components'] ?? [];
+	do_action( 'cb_core_register_settings' );
+	$provider = \CB\Core\Admin\SettingsRegistry::$registrations['core-blueprint-work'] ?? null;
+	assert_true( is_array( $provider ), 'Work settings register through Base SettingsRegistry.' );
+	assert_true( 'business' === ( $provider['group'] ?? '' ), 'Work settings register in the Business group.' );
+	assert_true( 'cb_manage_work' === ( $provider['capability'] ?? '' ), 'Work settings preserve the management capability.' );
+	assert_true( '' !== trim( (string) ( $provider['description'] ?? '' ) ), 'Work settings provide the required description.' );
+	$components = $provider['requirements']['components'] ?? [];
 	assert_true( ! in_array( 'nav-tabs', $components, true ), 'Work settings do not request operational nav tabs.' );
 	assert_true( ! in_array( 'tables', $components, true ), 'Work settings do not request unsupported tables component.' );
-	assert_true( str_contains( \CB\Work\Admin\Page::settings_url(), 'page=core-blueprint-work-settings' ), 'VAT Settings route stays in Core Blueprint settings.' );
+	assert_true( str_contains( \CB\Work\Admin\Page::settings_url(), 'extension=core-blueprint-work' ), 'VAT Settings route targets the canonical Work provider.' );
 	assert_true( ! str_contains( \CB\Work\Admin\Page::settings_url(), 'view=' ), 'VAT Settings route has no legacy operational view parameter.' );
 
 	do_action( 'cb_core_dashboard_register_cards' );

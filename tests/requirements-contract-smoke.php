@@ -19,8 +19,7 @@ namespace CB\Core {
 }
 
 namespace CB\Core\Admin {
-	interface Page {}
-	final class PageRegistry {}
+	final class SettingsRegistry {}
 }
 
 namespace CB\Core\Dashboard {
@@ -45,7 +44,7 @@ namespace {
 
 	assert_true(
 		[ 'base-contract-unavailable' ] === \CB\Work\Support\Requirements::issues(),
-		'Work fails closed when consumed Base ObjectPicker contracts are absent.'
+		'Work fails closed when consumed Base Assets/ObjectPicker contracts are absent.'
 	);
 
 	eval( 'namespace CB\\Core\\UI; final class Assets {} final class ObjectPicker {}' );

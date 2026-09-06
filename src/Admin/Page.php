@@ -3,17 +3,15 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\Admin\Page as PageContract;
-use CB\Core\Admin\PageRegistry;
+use CB\Core\Admin\SettingsRegistry;
 use CB\Core\UI\Notice;
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
+use CB\Work\Integration\Suite;
 use CB\Work\Repository\TaxRates;
 defined( 'ABSPATH' ) || exit;
 
-final class Page implements PageContract {
-	public const SLUG = 'core-blueprint-work-settings';
-
+final class Page {
 	private static bool $initialized = false;
 
 	public static function init(): void {
@@ -21,67 +19,50 @@ final class Page implements PageContract {
 			return;
 		}
 		self::$initialized = true;
-		add_action( 'cb_core_register_pages', [ self::class, 'register' ] );
+		add_action( 'cb_core_register_settings', [ self::class, 'register' ] );
 	}
 
 	public static function register(): void {
-		PageRegistry::register(
-			new self(),
+		SettingsRegistry::register(
+			Suite::EXTENSION_ID,
 			[
-				'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'actions', 'badges', 'empty-state' ],
+				'label'       => __( 'Work', 'core-blueprint-work' ),
+				'description' => __( 'Configure Work-wide settings. Day-to-day operational work is managed from the separate Work menu.', 'core-blueprint-work' ),
+				'group'       => SettingsRegistry::GROUP_BUSINESS,
+				'capability'  => Capabilities::MANAGE,
+				'renderer'    => [ self::class, 'render' ],
+				'requirements' => [
+					'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'actions', 'badges', 'empty-state' ],
+				],
 			]
 		);
 	}
 
-	public function slug(): string {
-		return self::SLUG;
+	/** @param array<string,int|string> $query */
+	public static function settings_url( array $query = [] ): string {
+		return SettingsRegistry::url( Suite::EXTENSION_ID, $query );
 	}
 
-	public function title(): string {
-		return __( 'Work Settings', 'core-blueprint-work' );
-	}
-
-	public function menu_title(): string {
-		return __( 'Work', 'core-blueprint-work' );
-	}
-
-	public function capability(): string {
-		return Capabilities::MANAGE;
-	}
-
-	public function position(): ?int {
-		return null;
-	}
-
-	public static function settings_url(): string {
-		return admin_url( 'admin.php?page=' . self::SLUG );
-	}
-
-	public function render(): void {
-		if ( ! current_user_can( $this->capability() ) ) {
+	public static function render(): void {
+		if ( ! current_user_can( Capabilities::MANAGE ) ) {
 			wp_die( esc_html__( 'You do not have permission to access Work settings.', 'core-blueprint-work' ) );
 		}
 
 		$notice       = isset( $_GET['cb-work-notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['cb-work-notice'] ) ) : '';
 		$schema_ready = CB_WORK_SCHEMA_VERSION === (string) get_option( Schema::OPTION, '0' );
 		$rates        = $schema_ready ? TaxRates::all( true ) : [];
-		?>
-		<div class="wrap cb-core-wrap cb-work-settings-wrap">
-			<h1 class="cb-core-title"><?php esc_html_e( 'Core Blueprint Work Settings', 'core-blueprint-work' ); ?></h1>
-			<p class="cb-core-intro"><?php esc_html_e( 'Configure Work-wide settings. Day-to-day operational work is managed from the separate Work menu.', 'core-blueprint-work' ); ?></p>
 
-			<?php self::render_notice( $notice ); ?>
-			<?php if ( ! $schema_ready ) : ?>
-				<?php echo Notice::render( [
-					'variant' => Notice::ERROR,
-					'title'   => __( 'Work storage unavailable', 'core-blueprint-work' ),
-					'message' => __( 'The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
-				] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML. ?>
-			<?php return; endif; ?>
+		self::render_notice( $notice );
+		if ( ! $schema_ready ) {
+			echo Notice::render( [
+				'variant' => Notice::ERROR,
+				'title'   => __( 'Work storage unavailable', 'core-blueprint-work' ),
+				'message' => __( 'The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
+			] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML.
+			return;
+		}
 
-			<?php self::render_settings( $rates ); ?>
-		</div>
-		<?php
+		self::render_settings( $rates );
 	}
 
 	/** @param array<int,array<string,mixed>> $rates */

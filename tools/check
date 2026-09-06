@@ -8,6 +8,7 @@ while IFS= read -r -d '' file; do
 done < <(find "$ROOT" -type f -name '*.php' -print0)
 
 php "$ROOT/tests/source-conformance.php"
+php "$ROOT/tests/settings-hub-smoke.php"
 php "$ROOT/tests/admin-navigation-smoke.php"
 php "$ROOT/tests/d1-domain-smoke.php"
 php "$ROOT/tests/d1-schema-smoke.php"
@@ -21,6 +22,7 @@ php "$ROOT/tests/d2-workspace-routing-smoke.php"
 php "$ROOT/tests/recurrence-foundation-smoke.php"
 php "$ROOT/tests/recurrence-scheduler-smoke.php"
 php "$ROOT/tests/time-foundation-smoke.php"
+php "$ROOT/tests/d3-frontend-resource-smoke.php"
 php "$ROOT/tests/domain-smoke.php"
 php "$ROOT/tests/pricing-smoke.php"
 php "$ROOT/tests/runtime-smoke.php"

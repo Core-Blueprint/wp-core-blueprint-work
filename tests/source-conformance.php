@@ -30,6 +30,15 @@ $required = [
 	'src/Domain/TimeRange.php',
 	'src/Domain/WorkItemPriority.php',
 	'src/Domain/WorkItemStatus.php',
+	'src/Frontend/Access.php',
+	'src/Frontend/Actions/WorkItems.php',
+	'src/Frontend/Conditions/Resources.php',
+	'src/Frontend/Data/Project.php',
+	'src/Frontend/Data/Service.php',
+	'src/Frontend/Data/WorkItem.php',
+	'src/Frontend/Queries/Projects.php',
+	'src/Frontend/Queries/Services.php',
+	'src/Frontend/Queries/WorkItems.php',
 	'src/Governance/Events.php',
 	'src/Integration/CRMCustomers.php',
 	'src/Integration/Suite.php',
@@ -98,6 +107,16 @@ $timeRange = file_get_contents( $root . '/src/Domain/TimeRange.php' );
 $timeEntries = file_get_contents( $root . '/src/Repository/TimeEntries.php' );
 $timers = file_get_contents( $root . '/src/Repository/Timers.php' );
 $timeAccess = file_get_contents( $root . '/src/Time/Access.php' );
+$frontendAccess = file_get_contents( $root . '/src/Frontend/Access.php' );
+$frontendService = file_get_contents( $root . '/src/Frontend/Data/Service.php' );
+$frontendProject = file_get_contents( $root . '/src/Frontend/Data/Project.php' );
+$frontendWorkItem = file_get_contents( $root . '/src/Frontend/Data/WorkItem.php' );
+$frontendServiceQuery = file_get_contents( $root . '/src/Frontend/Queries/Services.php' );
+$frontendProjectQuery = file_get_contents( $root . '/src/Frontend/Queries/Projects.php' );
+$frontendWorkItemQuery = file_get_contents( $root . '/src/Frontend/Queries/WorkItems.php' );
+$frontendConditions = file_get_contents( $root . '/src/Frontend/Conditions/Resources.php' );
+$frontendActions = file_get_contents( $root . '/src/Frontend/Actions/WorkItems.php' );
+$frontend = implode( "\n", [ $frontendAccess, $frontendService, $frontendProject, $frontendWorkItem, $frontendServiceQuery, $frontendProjectQuery, $frontendWorkItemQuery, $frontendConditions, $frontendActions ] );
 $capabilities = file_get_contents( $root . '/src/Capabilities.php' );
 $events = file_get_contents( $root . '/src/Governance/Events.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
@@ -173,6 +192,14 @@ $checks = [
 	'E3 Time admin reuses Base TimePicker and single-user Object Picker' => str_contains( $timeAdmin, 'Assets::enqueue_time_picker()' ) && str_contains( $timeAdmin, 'data-cb-time-picker' ) && str_contains( $timeAdmin, "Pickers::assignee( 'time[user_id]'" ),
 	'E3 Time is wired only into authenticated WordPress Admin' => str_contains( $plugin, 'Time::init();' ) && str_contains( $plugin, 'TimeActions::init();' ),
 	'E3 imports no old workspace Calendar or timesheet domain' => ! str_contains( $timeEntries . $timers, 'workspace_id' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'calendar' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'timesheet' ),
+	'D3 frontend reads are default-deny outside manager preview' => str_contains( $frontendAccess, "'cb_work_frontend_can_read'" ) && str_contains( $frontendAccess, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $frontendAccess, "'publish' !== \$post->post_status" ),
+	'D3 frontend mutation has a distinct default-deny authorization filter' => str_contains( $frontendAccess, "'cb_work_frontend_can_transition_work_item'" ) && str_contains( $frontendAccess, '$actor_user_id <= 0' ),
+	'D3 frontend projections omit sensitive Work internals' => str_contains( $frontendWorkItem, "'estimated_minutes'" ) && ! str_contains( $frontendWorkItem, 'billing_disposition' ) && ! str_contains( $frontendWorkItem, 'customer_provider' ) && ! str_contains( $frontendWorkItem, 'assigned_user_ids' ) && ! str_contains( $frontendService, "'pricing'" ) && ! str_contains( $frontendProject, 'customer_' ),
+	'D3 frontend queries are bounded and always reproject through authorization-aware Data contracts' => str_contains( $frontendServiceQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendProjectQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendWorkItemQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendServiceQuery, 'Service::get( $id )' ) && str_contains( $frontendProjectQuery, 'Project::get( $id )' ) && str_contains( $frontendWorkItemQuery, 'WorkItem::get( $id )' ),
+	'D3 Work Item query reuses canonical D2 search and omits sensitive filter dimensions' => str_contains( $frontendWorkItemQuery, 'WorkItemRepository::search( $criteria )' ) && ! str_contains( $frontendWorkItemQuery, "'customer'" ) && ! str_contains( $frontendWorkItemQuery, "'billing_dispositions'" ) && ! str_contains( $frontendWorkItemQuery, "'assignee_id'" ),
+	'D3 conditions are pure and D3 action delegates lifecycle plus governance' => str_contains( $frontendConditions, 'work_item_can_transition_to' ) && ! str_contains( $frontendConditions, 'update_' ) && str_contains( $frontendActions, 'WorkItemRepository::transition_status' ) && str_contains( $frontendActions, 'Audit::record( Events::WORK_ITEM_STATUS_CHANGED' ),
+	'D3 action is transport-neutral and D4 remains the adapter owner' => ! str_contains( $frontendActions, 'add_action(' ) && ! str_contains( $frontendActions, 'admin_post_' ) && ! str_contains( $frontendActions, 'wp_ajax_' ) && ! str_contains( $frontendActions, 'register_rest_route' ) && ! str_contains( strtolower( $frontend ), 'bricks' ),
+	'D3 exposes no recurrence or Time resource surface' => ! str_contains( $frontend, 'RecurrenceRules' ) && ! str_contains( $frontend, 'TimeEntries' ) && ! str_contains( $frontend, 'Timers::' ),
 	'public sibling contracts include Projects Work Items and Work Types' => str_contains( $public, 'Supported read-only Project contract' ) && str_contains( $public, 'Supported read-only Work Item contract' ) && str_contains( $public, 'Supported read-only Work Type contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
@@ -187,11 +214,13 @@ $checks = [
 	'CRM customer picker uses documented public Frontend Queries only' => str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Contacts' ) && str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Organizations' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ) && ! str_contains( $crm, '$wpdb' ),
 	'CRM customer integration remains fail-soft' => str_contains( $crm, 'class_exists' ) && str_contains( $crm, 'public static function available' ),
 	'Base Object Picker provides customer single-user and multi-user UX including recurrence and Time' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ) && str_contains( $pickers, 'Menu::RECURRENCE_SLUG' ) && str_contains( $pickers, 'Menu::TIME_SLUG' ),
-	'Core Blueprint Work page is settings-only' => str_contains( $page, "SLUG = 'core-blueprint-work-settings'" ) && ! str_contains( $page, 'render_services' ) && ! str_contains( $page, 'VIEW_SERVICES' ),
+	'Work settings register as Business Extensions Hub provider' => str_contains( $page, 'cb_core_register_settings' ) && str_contains( $page, 'SettingsRegistry::register' ) && str_contains( $page, 'Suite::EXTENSION_ID' ) && str_contains( $page, 'SettingsRegistry::GROUP_BUSINESS' ) && str_contains( $page, "'description'" ) && ! str_contains( $page, 'cb_core_register_pages' ) && ! str_contains( $page, 'PageRegistry' ),
+	'Work Settings provider keeps semantic Base requirements' => str_contains( $page, "'panels'" ) && str_contains( $page, "'notices'" ) && str_contains( $page, "'fields'" ) && str_contains( $page, "'form-controls'" ),
+	'Work Settings renderer is provider body without duplicate Core Admin shell' => ! str_contains( $page, '<div class="wrap' ) && ! str_contains( $page, '<h1 class="cb-core-title"' ),
 	'Core Blueprint settings page does not request operational nav tabs' => ! str_contains( $page, "'nav-tabs'" ) && ! str_contains( $page, 'nav-tab-wrapper' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,
 	'VAT configured heading uses panel-safe h2 rather than raw h3' => ! str_contains( $page, '<h3' ) && str_contains( $page, 'Configured VAT rates' ),
-	'VAT actions return to Work Settings without legacy view routing' => str_contains( $taxActions, "'page'           => Page::SLUG" ) && ! str_contains( $taxActions, "'view'" ),
+	'VAT actions return to canonical Work Settings provider without legacy view routing' => str_contains( $taxActions, 'Page::settings_url(' ) && str_contains( $taxActions, "'cb-work-notice'" ) && ! str_contains( $taxActions, "'view'" ) && ! str_contains( $taxActions, 'Page::SLUG' ),
 	'Service editor links to Work Settings for VAT' => str_contains( $pricingUi, 'Page::settings_url()' ),
 	'admin settings page avoids unsupported Base tables requirement' => ! str_contains( $page, "'tables'" ),
 	'architecture documents Project and Work Item CPT model' => str_contains( $arch, '`cb_work_project`' ) && str_contains( $arch, '`cb_work_item`' ) && str_contains( $arch, 'no legacy bridges' ),

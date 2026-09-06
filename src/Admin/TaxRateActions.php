@@ -52,12 +52,8 @@ final class TaxRateActions {
 
 	private static function redirect( string $notice ): never {
 		wp_safe_redirect(
-			add_query_arg(
-				[
-					'page'           => Page::SLUG,
-					'cb-work-notice' => sanitize_key( $notice ),
-				],
-				admin_url( 'admin.php' )
+			Page::settings_url(
+				[ 'cb-work-notice' => sanitize_key( $notice ) ]
 			)
 		);
 		exit;
