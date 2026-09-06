@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work;
 
 use CB\Work\Database\Schema;
+use CB\Work\Recurrence\Scheduler;
 use CB\Work\Support\Requirements;
 defined( 'ABSPATH' ) || exit;
 
@@ -24,9 +25,11 @@ final class Lifecycle {
 
 		Capabilities::install();
 		Schema::register();
+		Scheduler::ensure_scheduled();
 	}
 
 	public static function deactivate(): void {
+		Scheduler::deactivate();
 		// Persistent Work data and capabilities are deliberately preserved.
 	}
 }
