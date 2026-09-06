@@ -16,6 +16,7 @@ use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Governance\Events;
+use CB\Work\Recurrence\Scheduler;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Support\Requirements;
 
@@ -37,6 +38,7 @@ final class Plugin {
 		WorkItemMeta::init();
 		WorkItemRepository::init();
 		ServicePricingDomain::init();
+		Scheduler::init();
 
 		if ( is_admin() ) {
 			Menu::init();
