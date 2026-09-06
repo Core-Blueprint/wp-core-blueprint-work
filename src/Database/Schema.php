@@ -131,6 +131,7 @@ final class Schema {
 			service_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			work_type_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			priority varchar(32) NOT NULL DEFAULT 'normal',
+			estimated_minutes int unsigned NOT NULL DEFAULT 0,
 			billing_disposition varchar(32) NOT NULL DEFAULT '',
 			frequency varchar(16) NOT NULL,
 			interval_count smallint unsigned NOT NULL DEFAULT 1,
