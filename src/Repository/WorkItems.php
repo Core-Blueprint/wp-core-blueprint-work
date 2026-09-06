@@ -527,16 +527,17 @@ final class WorkItems {
 	 * @return array<string,mixed>|null
 	 */
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
-		$title        = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
-		$description  = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
-		$customer     = self::reference( $input, 'customer_', $current );
-		$project_id   = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
-		$service_id   = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
-		$work_type_id = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
-		$priority     = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
-		$scheduled_on = self::date( (string) ( $input['scheduled_on'] ?? ( $current['scheduled_on'] ?? '' ) ) );
-		$due_on       = self::date( (string) ( $input['due_on'] ?? ( $current['due_on'] ?? '' ) ) );
-		$billing      = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
+		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
+		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$customer          = self::reference( $input, 'customer_', $current );
+		$project_id        = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
+		$service_id        = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
+		$work_type_id      = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
+		$priority          = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
+		$estimated_minutes = max( 0, (int) ( $input['estimated_minutes'] ?? ( $current['estimated_minutes'] ?? 0 ) ) );
+		$scheduled_on      = self::date( (string) ( $input['scheduled_on'] ?? ( $current['scheduled_on'] ?? '' ) ) );
+		$due_on            = self::date( (string) ( $input['due_on'] ?? ( $current['due_on'] ?? '' ) ) );
+		$billing           = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
 
 		$assignments_changed = array_key_exists( 'assigned_user_ids', $input ) || null === $current;
 		$assignments = $assignments_changed
@@ -587,6 +588,7 @@ final class WorkItems {
 			'service_id'          => $service_id,
 			'work_type_id'        => $work_type_id,
 			'priority'            => $priority,
+			'estimated_minutes'   => $estimated_minutes,
 			'scheduled_on'        => $scheduled_on,
 			'due_on'              => $due_on,
 			'billing_disposition' => $billing,
@@ -610,6 +612,7 @@ final class WorkItems {
 			'service_id'          => $meta['service_id'],
 			'work_type_id'        => $meta['work_type_id'],
 			'priority'            => $meta['priority'],
+			'estimated_minutes'   => $meta['estimated_minutes'],
 			'scheduled_on'        => $meta['scheduled_on'],
 			'due_on'              => $meta['due_on'],
 			'status'              => $meta['status'],
