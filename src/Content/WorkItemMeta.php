@@ -17,6 +17,7 @@ final class WorkItemMeta {
 	public const SERVICE_ID           = '_cb_work_item_service_id';
 	public const WORK_TYPE_ID         = '_cb_work_item_work_type_id';
 	public const PRIORITY             = '_cb_work_item_priority';
+	public const ESTIMATED_MINUTES    = '_cb_work_item_estimated_minutes';
 	public const SCHEDULED_ON         = '_cb_work_item_scheduled_on';
 	public const DUE_ON               = '_cb_work_item_due_on';
 	public const STATUS               = '_cb_work_item_status';
@@ -52,6 +53,7 @@ final class WorkItemMeta {
 		register_post_meta( PostTypes::WORK_ITEM, self::SERVICE_ID, $integer() );
 		register_post_meta( PostTypes::WORK_ITEM, self::WORK_TYPE_ID, $integer() );
 		register_post_meta( PostTypes::WORK_ITEM, self::PRIORITY, $string( 'sanitize_key' ) );
+		register_post_meta( PostTypes::WORK_ITEM, self::ESTIMATED_MINUTES, $integer() );
 		register_post_meta( PostTypes::WORK_ITEM, self::SCHEDULED_ON, $string( [ self::class, 'sanitize_date' ] ) );
 		register_post_meta( PostTypes::WORK_ITEM, self::DUE_ON, $string( [ self::class, 'sanitize_date' ] ) );
 		register_post_meta( PostTypes::WORK_ITEM, self::STATUS, $string( 'sanitize_key' ) );
@@ -87,6 +89,7 @@ final class WorkItemMeta {
 			'service_id'          => self::optional_id( $work_item_id, self::SERVICE_ID ),
 			'work_type_id'        => self::optional_id( $work_item_id, self::WORK_TYPE_ID ),
 			'priority'            => $priority,
+			'estimated_minutes'   => max( 0, (int) get_post_meta( $work_item_id, self::ESTIMATED_MINUTES, true ) ),
 			'scheduled_on'        => self::optional_string( $work_item_id, self::SCHEDULED_ON ),
 			'due_on'              => self::optional_string( $work_item_id, self::DUE_ON ),
 			'status'              => $status,
@@ -105,6 +108,7 @@ final class WorkItemMeta {
 		self::write_id( $work_item_id, self::SERVICE_ID, (int) ( $details['service_id'] ?? 0 ) );
 		self::write_id( $work_item_id, self::WORK_TYPE_ID, (int) ( $details['work_type_id'] ?? 0 ) );
 		update_post_meta( $work_item_id, self::PRIORITY, sanitize_key( (string) ( $details['priority'] ?? WorkItemPriority::NORMAL ) ) );
+		self::write_id( $work_item_id, self::ESTIMATED_MINUTES, (int) ( $details['estimated_minutes'] ?? 0 ) );
 		self::write_string( $work_item_id, self::SCHEDULED_ON, (string) ( $details['scheduled_on'] ?? '' ) );
 		self::write_string( $work_item_id, self::DUE_ON, (string) ( $details['due_on'] ?? '' ) );
 		self::write_string( $work_item_id, self::BILLING_DISPOSITION, (string) ( $details['billing_disposition'] ?? '' ) );
