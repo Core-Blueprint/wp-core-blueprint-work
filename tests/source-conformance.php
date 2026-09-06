@@ -22,6 +22,7 @@ $required = [
 	'src/Content/ServicePricing.php',
 	'src/Database/Schema.php',
 	'src/Domain/BillingDisposition.php',
+	'src/Domain/RecurrenceSchedule.php',
 	'src/Domain/WorkItemPriority.php',
 	'src/Domain/WorkItemStatus.php',
 	'src/Governance/Events.php',
@@ -38,6 +39,7 @@ $required = [
 	'src/PublicApi/WorkItems.php',
 	'src/PublicApi/WorkTypes.php',
 	'src/Repository/Projects.php',
+	'src/Repository/RecurrenceRules.php',
 	'src/Repository/TaxRates.php',
 	'src/Repository/WorkItems.php',
 	'src/Repository/WorkTypes.php',
@@ -74,6 +76,8 @@ $projectRest = file_get_contents( $root . '/src/Content/ProjectRestController.ph
 $workItemRest = file_get_contents( $root . '/src/Content/WorkItemRestController.php' );
 $workItems  = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $projects   = file_get_contents( $root . '/src/Repository/Projects.php' );
+$recurrence = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' );
+$recurrenceSchedule = file_get_contents( $root . '/src/Domain/RecurrenceSchedule.php' );
 $crm        = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
 $public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
 	. file_get_contents( $root . '/src/PublicApi/TaxRates.php' )
@@ -96,7 +100,7 @@ $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
 	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
-	'D1.2 schema version is 1.3' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.3'" ),
+	'current Work schema version is 1.4' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.4'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
 	'bootstrap does not pin an internal Base RC' => ! str_contains( $bootstrap, 'CB_WORK_REQUIRED_BASE' ),
@@ -119,6 +123,16 @@ $checks = [
 	'Work Item validates optional Project against Project CPT repository' => str_contains( $workItems, 'Projects::get( $project_id )' ),
 	'Work Item keeps completion and billing separate' => str_contains( $workItemMeta, 'COMPLETED_AT' ) && str_contains( $workItemMeta, 'BILLING_DISPOSITION' ),
 	'Work Item emits create update and lifecycle hooks' => str_contains( $workItems, 'cb_work_work_item_created' ) && str_contains( $workItems, 'cb_work_work_item_updated' ) && str_contains( $workItems, 'cb_work_work_item_status_changed' ),
+	'recurrence rule assignments and executions are Work-owned relational facts' => str_contains( $schema, "'cb_work_recurrence_rules'" ) && str_contains( $schema, "'cb_work_recurrence_rule_assignments'" ) && str_contains( $schema, "'cb_work_recurrence_occurrences'" ),
+	'recurrence occurrence identity is unique by rule and date' => str_contains( $schema, 'UNIQUE KEY rule_occurrence (rule_id,occurrence_on)' ),
+	'finite recurrence rules use nullable next occurrence instead of sentinel dates' => str_contains( $schema, 'next_occurrence_on date NULL' ) && ! str_contains( $schema, 'next_occurrence_on date NOT NULL' ),
+	'recurrence schedule is pure and calendar anchored' => str_contains( $recurrenceSchedule, "self::MONTHLY => self::next_monthly" ) && str_contains( $recurrenceSchedule, 'anchored_date' ) && ! str_contains( $recurrenceSchedule, 'wp_schedule_' ),
+	'recurrence rules validate canonical Work references and assignments' => str_contains( $recurrence, 'Projects::get( $project_id )' ) && str_contains( $recurrence, 'Services::get( $service_id )' ) && str_contains( $recurrence, 'WorkTypes::get( $work_type_id )' ) && str_contains( $recurrence, 'get_userdata( $user_id )' ),
+	'recurrence create-ahead is evaluated per rule' => str_contains( $recurrence, 'DATE_ADD(%s, INTERVAL create_ahead_days DAY)' ),
+	'recurrence occurrence projects into canonical Work Item input' => str_contains( $recurrence, 'occurrence_work_item_input' ) && str_contains( $recurrence, "'source_type'         => 'recurrence_occurrence'" ) && str_contains( $recurrence, "'assigned_user_ids'   => \$rule['assigned_user_ids']" ),
+	'recurrence only attaches a Work Item carrying its occurrence relation' => str_contains( $recurrence, "'recurrence_occurrence' ===" ) && str_contains( $recurrence, "(string) \$occurrence_id ===" ),
+	'recurrence advances only after generated Work Item linkage' => str_contains( $recurrence, 'work_item_id > 0 LIMIT 1' ) && str_contains( $recurrence, 'next_occurrence_on' ),
+	'recurrence foundation does not boot a scheduler or admin UI' => ! str_contains( $recurrence, 'wp_schedule_event' ) && ! str_contains( $recurrence, 'wp_schedule_single_event' ) && ! str_contains( $recurrence, 'add_action(' ),
 	'public sibling contracts include Projects Work Items and Work Types' => str_contains( $public, 'Supported read-only Project contract' ) && str_contains( $public, 'Supported read-only Work Item contract' ) && str_contains( $public, 'Supported read-only Work Type contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
@@ -143,6 +157,7 @@ $checks = [
 	'architecture documents Project and Work Item CPT model' => str_contains( $arch, '`cb_work_project`' ) && str_contains( $arch, '`cb_work_item`' ) && str_contains( $arch, 'no legacy bridges' ),
 	'architecture keeps high-volume child facts relational' => str_contains( $arch, 'high-volume child facts' ) && str_contains( $arch, 'time entries' ),
 	'architecture separates commercial recurrence from work recurrence' => str_contains( $arch, 'recurring commercial pricing is not Work Item recurrence' ),
+	'architecture documents recurrence rule and occurrence ownership' => str_contains( $arch, '`cb_work_recurrence_rules`' ) && str_contains( $arch, '`cb_work_recurrence_occurrences`' ) && str_contains( $arch, 'create-ahead' ),
 	'architecture forbids direct sibling SQL' => str_contains( $arch, 'No cross-plugin SQL foreign keys' ),
 	'architecture keeps D3 builder-neutral and D4 Bricks thin' => str_contains( $arch, '**D3 — Builder-neutral Frontend Resource Contracts:**' ) && str_contains( $arch, '**D4 — Bricks Adapter:**' ),
 	'no CRM private repository dependency in Work source' => ! str_contains( $allSource, 'CB\\CRM\\Repository' ) && ! str_contains( $allSource, 'cb_crm_' ),
