@@ -10,6 +10,8 @@ $required = [
 	'src/Admin/Page.php',
 	'src/Admin/Pickers.php',
 	'src/Admin/Projects.php',
+	'src/Admin/Recurrence.php',
+	'src/Admin/RecurrenceActions.php',
 	'src/Admin/WorkItems.php',
 	'src/Admin/ServicePricing.php',
 	'src/Admin/TaxRateActions.php',
@@ -38,7 +40,9 @@ $required = [
 	'src/PublicApi/TaxRates.php',
 	'src/PublicApi/WorkItems.php',
 	'src/PublicApi/WorkTypes.php',
+	'src/Recurrence/Scheduler.php',
 	'src/Repository/Projects.php',
+	'src/Repository/RecurrenceOccurrences.php',
 	'src/Repository/RecurrenceRules.php',
 	'src/Repository/TaxRates.php',
 	'src/Repository/WorkItems.php',
@@ -61,6 +65,8 @@ $suite      = file_get_contents( $root . '/src/Integration/Suite.php' );
 $menu       = file_get_contents( $root . '/src/Admin/Menu.php' );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $operationalActions = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
+$recurrenceAdmin = file_get_contents( $root . '/src/Admin/Recurrence.php' );
+$recurrenceActions = file_get_contents( $root . '/src/Admin/RecurrenceActions.php' );
 $projectsAdmin = file_get_contents( $root . '/src/Admin/Projects.php' );
 $workItemsAdmin = file_get_contents( $root . '/src/Admin/WorkItems.php' );
 $pickers    = file_get_contents( $root . '/src/Admin/Pickers.php' );
@@ -77,7 +83,9 @@ $workItemRest = file_get_contents( $root . '/src/Content/WorkItemRestController.
 $workItems  = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $projects   = file_get_contents( $root . '/src/Repository/Projects.php' );
 $recurrence = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' );
+$recurrenceOccurrences = file_get_contents( $root . '/src/Repository/RecurrenceOccurrences.php' );
 $recurrenceSchedule = file_get_contents( $root . '/src/Domain/RecurrenceSchedule.php' );
+$scheduler = file_get_contents( $root . '/src/Recurrence/Scheduler.php' );
 $crm        = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
 $public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
 	. file_get_contents( $root . '/src/PublicApi/TaxRates.php' )
@@ -100,7 +108,7 @@ $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
 	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
-	'current Work schema version is 1.4' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.4'" ),
+	'current Work schema version is 1.5' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.5'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
 	'bootstrap does not pin an internal Base RC' => ! str_contains( $bootstrap, 'CB_WORK_REQUIRED_BASE' ),
@@ -126,19 +134,25 @@ $checks = [
 	'recurrence rule assignments and executions are Work-owned relational facts' => str_contains( $schema, "'cb_work_recurrence_rules'" ) && str_contains( $schema, "'cb_work_recurrence_rule_assignments'" ) && str_contains( $schema, "'cb_work_recurrence_occurrences'" ),
 	'recurrence occurrence identity is unique by rule and date' => str_contains( $schema, 'UNIQUE KEY rule_occurrence (rule_id,occurrence_on)' ),
 	'finite recurrence rules use nullable next occurrence instead of sentinel dates' => str_contains( $schema, 'next_occurrence_on date NULL' ) && ! str_contains( $schema, 'next_occurrence_on date NOT NULL' ),
+	'recurrence scheduler state supports stale claim recovery' => str_contains( $schema, 'claim_token varchar(64)' ) && str_contains( $schema, 'claimed_at datetime NULL' ) && str_contains( $schema, 'attempt_count int unsigned' ) && str_contains( $schema, 'last_error varchar(190)' ),
 	'recurrence schedule is pure and calendar anchored' => str_contains( $recurrenceSchedule, "self::MONTHLY => self::next_monthly" ) && str_contains( $recurrenceSchedule, 'anchored_date' ) && ! str_contains( $recurrenceSchedule, 'wp_schedule_' ),
 	'recurrence rules validate canonical Work references and assignments' => str_contains( $recurrence, 'Projects::get( $project_id )' ) && str_contains( $recurrence, 'Services::get( $service_id )' ) && str_contains( $recurrence, 'WorkTypes::get( $work_type_id )' ) && str_contains( $recurrence, 'get_userdata( $user_id )' ),
 	'recurrence create-ahead is evaluated per rule' => str_contains( $recurrence, 'DATE_ADD(%s, INTERVAL create_ahead_days DAY)' ),
 	'recurrence occurrence projects into canonical Work Item input' => str_contains( $recurrence, 'occurrence_work_item_input' ) && str_contains( $recurrence, "'source_type'         => 'recurrence_occurrence'" ) && str_contains( $recurrence, "'assigned_user_ids'   => \$rule['assigned_user_ids']" ),
 	'recurrence only attaches a Work Item carrying its occurrence relation' => str_contains( $recurrence, "'recurrence_occurrence' ===" ) && str_contains( $recurrence, "(string) \$occurrence_id ===" ),
 	'recurrence advances only after generated Work Item linkage' => str_contains( $recurrence, 'work_item_id > 0 LIMIT 1' ) && str_contains( $recurrence, 'next_occurrence_on' ),
-	'recurrence foundation does not boot a scheduler or admin UI' => ! str_contains( $recurrence, 'wp_schedule_event' ) && ! str_contains( $recurrence, 'wp_schedule_single_event' ) && ! str_contains( $recurrence, 'add_action(' ),
+	'recurrence foundation rule repository stays scheduler and UI free' => ! str_contains( $recurrence, 'wp_schedule_event' ) && ! str_contains( $recurrence, 'wp_schedule_single_event' ) && ! str_contains( $recurrence, 'add_action(' ),
+	'occurrence execution repository claims atomically and can recover source-linked Work Items' => str_contains( $recurrenceOccurrences, 'attempt_count = attempt_count + 1' ) && str_contains( $recurrenceOccurrences, 'claimed_at < %s' ) && str_contains( $recurrenceOccurrences, 'find_work_item' ) && str_contains( $recurrenceOccurrences, "SOURCE_TYPE     = 'recurrence_occurrence'" ),
+	'recurrence scheduler is hourly bounded and creates only through canonical WorkItems repository' => str_contains( $scheduler, "wp_schedule_event( time() + MINUTE_IN_SECONDS, 'hourly'" ) && str_contains( $scheduler, 'MAX_OCCURRENCES_PER_RULE' ) && str_contains( $scheduler, 'RecurrenceSchedule::add_days' ) && str_contains( $scheduler, 'WorkItems::create( $input )' ),
+	'recurrence scheduler performs relation-first recovery before creating a Work Item' => strpos( $scheduler, 'RecurrenceOccurrences::find_work_item' ) < strpos( $scheduler, 'WorkItems::create( $input )' ),
+	'recurrence admin actions are capability nonce and CRM-contract gated' => str_contains( $recurrenceActions, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $recurrenceActions, 'check_admin_referer' ) && str_contains( $recurrenceActions, 'CRMCustomers::reference' ),
+	'recurrence admin exposes no destructive delete flow' => ! str_contains( $recurrenceActions, 'delete' ) && ! str_contains( $recurrenceAdmin, 'Delete' ) && ! str_contains( $recurrenceAdmin, 'delete' ),
 	'public sibling contracts include Projects Work Items and Work Types' => str_contains( $public, 'Supported read-only Project contract' ) && str_contains( $public, 'Supported read-only Work Item contract' ) && str_contains( $public, 'Supported read-only Work Type contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
 	'pricing resolver validates tax through Work public API' => str_contains( $resolver, 'TaxRates::is_available' ),
-	'Work owns a standalone operational top-level menu' => str_contains( $menu, 'add_menu_page(' ) && str_contains( $menu, "TOP_LEVEL_SLUG     = 'core-blueprint-work'" ),
-	'operational menu mounts Work Items native Projects native Services and Work Types' => str_contains( $menu, 'WORK_ITEMS_SLUG' ) && str_contains( $menu, 'PostTypes::PROJECT' ) && str_contains( $menu, 'PostTypes::SERVICE' ) && str_contains( $menu, 'WORK_TYPES_SLUG' ),
+	'Work owns a standalone operational top-level menu' => str_contains( $menu, 'add_menu_page(' ) && str_contains( $menu, "TOP_LEVEL_SLUG      = 'core-blueprint-work'" ),
+	'operational menu mounts Work Items Recurring Work native Projects native Services and Work Types' => str_contains( $menu, 'WORK_ITEMS_SLUG' ) && str_contains( $menu, 'RECURRENCE_SLUG' ) && str_contains( $menu, 'PostTypes::PROJECT' ) && str_contains( $menu, 'PostTypes::SERVICE' ) && str_contains( $menu, 'WORK_TYPES_SLUG' ),
 	'native Work Item editor stays visually under Work navigation' => str_contains( $menu, 'PostTypes::WORK_ITEM === (string) $screen->post_type' ) && str_contains( $menu, 'CONTEXT_WORK_ITEMS' ),
 	'Project admin has contextual Work Item management' => str_contains( $projectsAdmin, 'WorkItems::for_project' ) && str_contains( $projectsAdmin, 'Menu::new_work_item_url( $project_id )' ) && str_contains( $projectsAdmin, 'Menu::edit_work_item_url' ),
 	'Work Items use global workspace plus native Gutenberg editor and governed transitions' => str_contains( $operations, 'Add Work Item' ) && str_contains( $operations, 'Menu::edit_work_item_url' ) && str_contains( $workItemsAdmin, 'Work Item Details' ) && str_contains( $operationalActions, 'transition_status' ),
@@ -146,7 +160,7 @@ $checks = [
 	'raw customer/source provider type id controls are absent from primary Work UI' => ! str_contains( $workItemsAdmin, 'source_provider' ) && ! str_contains( $workItemsAdmin, 'source_type' ) && ! str_contains( $workItemsAdmin, 'source_id' ),
 	'CRM customer picker uses documented public Frontend Queries only' => str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Contacts' ) && str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Organizations' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ) && ! str_contains( $crm, '$wpdb' ),
 	'CRM customer integration remains fail-soft' => str_contains( $crm, 'class_exists' ) && str_contains( $crm, 'public static function available' ),
-	'Base Object Picker provides customer single-user and multi-user UX' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ),
+	'Base Object Picker provides customer single-user and multi-user UX including recurrence' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ) && str_contains( $pickers, 'public static function assignee(' ) && str_contains( $pickers, 'public static function assignees(' ) && str_contains( $pickers, 'private static function render_user_picker(' ) && str_contains( $pickers, 'cb_work_search_users' ) && str_contains( $pickers, 'Menu::RECURRENCE_SLUG' ),
 	'Core Blueprint Work page is settings-only' => str_contains( $page, "SLUG = 'core-blueprint-work-settings'" ) && ! str_contains( $page, 'render_services' ) && ! str_contains( $page, 'VIEW_SERVICES' ),
 	'Core Blueprint settings page does not request operational nav tabs' => ! str_contains( $page, "'nav-tabs'" ) && ! str_contains( $page, 'nav-tab-wrapper' ),
 	'VAT form is isolated in Settings render route' => false !== $settingsPos && false !== $vatFormPos && $vatFormPos > $settingsPos,
