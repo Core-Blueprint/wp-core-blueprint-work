@@ -136,7 +136,7 @@ final class Schema {
 			interval_count smallint unsigned NOT NULL DEFAULT 1,
 			start_on date NOT NULL,
 			end_on date NULL,
-			next_occurrence_on date NOT NULL,
+			next_occurrence_on date NULL,
 			create_ahead_days smallint unsigned NOT NULL DEFAULT 14,
 			due_offset_days smallint unsigned NOT NULL DEFAULT 0,
 			is_active tinyint(1) unsigned NOT NULL DEFAULT 1,
