@@ -86,6 +86,34 @@ Work Types remain a Work-owned relational operational catalog in `cb_work_types`
 - Raw provider/type/id fields are internal persistence metadata and are not primary user-facing controls.
 - high-volume child facts such as future time entries, recurrence executions and billing/history records remain Work-owned relational/custom-table data rather than WordPress posts.
 
+### Work Item recurrence
+
+Work Item recurrence is a Work-owned operational scheduling domain. It is separate from a Service's recurring commercial pricing model and does not introduce a second task/content model.
+
+The recurrence foundation uses three relational tables:
+
+- `cb_work_recurrence_rules` stores the reusable Work Item template/context plus recurrence schedule state;
+- `cb_work_recurrence_rule_assignments` stores the WordPress users inherited by generated occurrences;
+- `cb_work_recurrence_occurrences` is the execution ledger linking one rule/date occurrence to the canonical `cb_work_item` later generated for it.
+
+A rule may carry the same operational context as a Work Item: customer reference, optional Project, optional Service and Work Type, priority, billing disposition and assignees. It additionally owns:
+
+- frequency: daily, weekly, monthly or yearly;
+- interval count;
+- start date and optional end date;
+- create-ahead window in days;
+- due-date offset in days;
+- active state;
+- the canonical next occurrence date.
+
+Monthly and yearly recurrence stays anchored to the original calendar day. Dates that do not exist in the target month clamp to that month's final day without permanently drifting the anchor; for example a rule anchored to the 31st can produce February 28/29 and then return to the 31st in March.
+
+Finite rules have a real terminal state: `next_occurrence_on` becomes `NULL` after the final valid occurrence. Sentinel dates such as `9999-12-31` are forbidden.
+
+The occurrence ledger has a unique `(rule_id, occurrence_on)` key. That database constraint is the hard idempotency boundary for repeated/concurrent generation attempts. A reserved occurrence projects into the existing canonical `Repository\WorkItems::create()` input contract, including inherited assignees, `scheduled_on`, calculated `due_on` and a Work-owned `recurrence_occurrence` source relation. The ledger may link the generated Work Item only when that canonical Work Item carries the matching occurrence relation. A rule advances only after the occurrence has a generated Work Item.
+
+The create-ahead window is evaluated per rule. The foundation itself does not register WP-Cron, generate Work Items automatically or add recurrence administration screens. Scheduler locking/retry/recovery policy and the operator-facing recurrence UI are separate follow-up work over this storage/domain boundary.
+
 ## CRM customer integration
 
 Work stores an optional provider/type/id customer reference but does not recreate CRM.
@@ -186,10 +214,12 @@ Storage type is never a frontend contract.
 6. **D1.1 — Project CPT + Admin UX correction:** complete and merged.
 7. **D1.2 — Work Item CPT conversion:** complete and merged; Golden Standard audit hardening follows without changing the canonical storage model.
 8. **D2 — Operational Views Foundation:** complete; one canonical Work Item query/filter/view-state engine powers Table, List, Kanban and Calendar while the native Gutenberg editor remains the individual edit surface.
-9. **D3 — Builder-neutral Frontend Resource Contracts:** next phase; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
-10. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
-11. **E — Recurrence + Time.**
-12. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
+9. **E1 — Recurrence Foundation:** current launch-priority phase; relational rule/assignment/occurrence storage plus pure schedule semantics and canonical Work Item occurrence projection. Scheduler and admin UI are deliberately separate.
+10. **D3 — Builder-neutral Frontend Resource Contracts:** parked until the recurrence foundation closes; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+11. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
+12. **E2 — Recurrence Scheduler + Admin UX:** generation orchestration, locking/recovery policy and operator-facing management over the E1 foundation.
+13. **E3 — Time:** time-entry and timer domain follows recurrence without changing canonical Work Item storage.
+14. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
 
 ## Non-goals
 

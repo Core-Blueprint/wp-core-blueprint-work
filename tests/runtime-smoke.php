@@ -137,16 +137,16 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.3'; }
+		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.4'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '1.3' === CB_WORK_SCHEMA_VERSION, 'D1.2 exposes schema version 1.3.' );
+	assert_true( '1.4' === CB_WORK_SCHEMA_VERSION, 'Recurrence foundation exposes schema version 1.4.' );
 	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 4 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types and two relational Work Item child tables; Projects and Work Items are CPT-backed.' );
+	assert_true( 7 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables and three recurrence tables; Projects and Work Items are CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
