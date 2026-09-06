@@ -37,7 +37,7 @@ final class Requirements {
 
 		$required_contracts = [
 			'\\CB\\Core\\ExtensionRegistry',
-			'\\CB\\Core\\Admin\\PageRegistry',
+			'\\CB\\Core\\Admin\\SettingsRegistry',
 			'\\CB\\Core\\Dashboard\\CardRegistry',
 			'\\CB\\Core\\Database\\SchemaRegistry',
 			'\\CB\\Core\\Governance\\Audit',
@@ -51,10 +51,6 @@ final class Requirements {
 				$issues[] = 'base-contract-unavailable';
 				break;
 			}
-		}
-
-		if ( ! interface_exists( '\\CB\\Core\\Admin\\Page' ) ) {
-			$issues[] = 'base-contract-unavailable';
 		}
 
 		return array_values( array_unique( $issues ) );
