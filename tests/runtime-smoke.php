@@ -5,6 +5,8 @@ namespace {
 	define( 'ABSPATH', '/tmp/wp/' );
 	define( 'ARRAY_A', 'ARRAY_A' );
 	define( 'CB_CORE_API_VERSION', '1.0' );
+	define( 'MINUTE_IN_SECONDS', 60 );
+	define( 'DAY_IN_SECONDS', 86400 );
 
 	$GLOBALS['hooks'] = [];
 	$GLOBALS['did'] = [];
@@ -15,6 +17,7 @@ namespace {
 	$GLOBALS['post_meta'] = [];
 	$GLOBALS['menus'] = [];
 	$GLOBALS['submenus'] = [];
+	$GLOBALS['cron'] = [];
 	$GLOBALS['roles'] = [
 		'administrator' => new class { public array $caps = []; public function add_cap( string $cap ): void { $this->caps[] = $cap; } },
 		'cb_operator' => new class { public array $caps = []; public function add_cap( string $cap ): void { $this->caps[] = $cap; } },
@@ -87,6 +90,9 @@ namespace {
 	function update_option( string $key, mixed $value, bool $autoload = true ): bool { $GLOBALS['options'][ $key ] = $value; return true; }
 	function register_post_type( string $type, array $args ): void { $GLOBALS['post_types'][ $type ] = $args; }
 	function register_post_meta( string $type, string $key, array $args ): void { $GLOBALS['post_meta'][ $type ][ $key ] = $args; }
+	function wp_next_scheduled( string $hook ): int|false { return $GLOBALS['cron'][ $hook ]['timestamp'] ?? false; }
+	function wp_schedule_event( int $timestamp, string $recurrence, string $hook, array $args = [], bool $wp_error = false ): bool { $GLOBALS['cron'][ $hook ] = compact( 'timestamp', 'recurrence', 'args' ); return true; }
+	function wp_clear_scheduled_hook( string $hook, array $args = [], bool $wp_error = false ): int|false { unset( $GLOBALS['cron'][ $hook ] ); return 1; }
 	function wp_count_posts( string $post_type ): object {
 		return match ( $post_type ) {
 			'cb_work_project' => (object) [ 'publish' => 1, 'draft' => 1, 'trash' => 4 ],
@@ -137,13 +143,13 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.4'; }
+		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.5'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '1.4' === CB_WORK_SCHEMA_VERSION, 'Recurrence foundation exposes schema version 1.4.' );
+	assert_true( '1.5' === CB_WORK_SCHEMA_VERSION, 'Recurrence scheduler exposes schema version 1.5.' );
 	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
 	assert_true( 7 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables and three recurrence tables; Projects and Work Items are CPT-backed.' );
@@ -165,10 +171,15 @@ namespace {
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.updated'] ), 'Work Item update governance event registers.' );
 	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.item.generated'] ), 'Recurring Work generation governance event registers.' );
+	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.generator.run'] ), 'Recurring Work generator run event registers.' );
+	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Recurring Work hourly scheduler is registered during runtime init.' );
+	assert_true( 'hourly' === $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ]['recurrence'], 'Recurring Work scheduler uses the hourly WordPress cron recurrence.' );
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-types'] ), 'Work Types are mounted under Work.' );
@@ -208,6 +219,7 @@ namespace {
 	$activation = $GLOBALS['activation'];
 	assert_true( is_callable( $activation ), 'Activation hook is registered.' );
 	$activation();
+	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Activation preserves or creates the Recurring Work scheduler event.' );
 	foreach ( [ 'administrator', 'cb_operator' ] as $role ) {
 		assert_true( in_array( 'cb_manage_work', $GLOBALS['roles'][ $role ]->caps, true ), "{$role} receives cb_manage_work." );
 	}
