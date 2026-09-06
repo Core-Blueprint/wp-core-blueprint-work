@@ -85,10 +85,9 @@ final class RecurrenceRules {
 		global $wpdb;
 		$now = current_time( 'mysql', true );
 		$wpdb->query( 'START TRANSACTION' );
-		$row = self::rule_row( $normalized, $now, false );
 		$updated = $wpdb->update(
 			Schema::recurrence_rules_table(),
-			$row,
+			self::rule_row( $normalized, $now, false ),
 			[ 'id' => $id ],
 			self::rule_formats( false ),
 			[ '%d' ]
@@ -117,17 +116,22 @@ final class RecurrenceRules {
 		return is_array( $ids ) ? array_values( array_map( 'intval', $ids ) ) : [];
 	}
 
-	/** @return array<int,array<string,mixed>> */
-	public static function due_for_generation( string $through_on, int $limit = 100 ): array {
-		if ( ! self::schema_ready() || ! self::valid_date( $through_on ) ) {
+	/**
+	 * Returns active rules whose next occurrence is inside that rule's own
+	 * create-ahead window relative to the supplied canonical current date.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	public static function due_for_generation( string $today_on, int $limit = 100 ): array {
+		if ( ! self::schema_ready() || ! self::valid_date( $today_on ) ) {
 			return [];
 		}
 		global $wpdb;
 		$limit = max( 1, min( 500, $limit ) );
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . Schema::recurrence_rules_table() . ' WHERE is_active = 1 AND next_occurrence_on IS NOT NULL AND next_occurrence_on <= %s ORDER BY next_occurrence_on ASC, id ASC LIMIT %d',
-				$through_on,
+				'SELECT * FROM ' . Schema::recurrence_rules_table() . ' WHERE is_active = 1 AND next_occurrence_on IS NOT NULL AND next_occurrence_on <= DATE_ADD(%s, INTERVAL create_ahead_days DAY) ORDER BY next_occurrence_on ASC, id ASC LIMIT %d',
+				$today_on,
 				$limit
 			),
 			ARRAY_A
@@ -231,9 +235,26 @@ final class RecurrenceRules {
 
 	public static function attach_work_item( int $occurrence_id, int $work_item_id ): bool {
 		$occurrence = self::occurrence( $occurrence_id );
-		if ( null === $occurrence || $occurrence['work_item_id'] > 0 || null === WorkItems::get( $work_item_id ) ) {
+		$item       = WorkItems::get( $work_item_id );
+		if ( null === $occurrence || $occurrence['work_item_id'] > 0 || null === $item ) {
 			return false;
 		}
+
+		$has_occurrence_relation = false;
+		foreach ( (array) ( $item['relations'] ?? [] ) as $relation ) {
+			if (
+				'core-blueprint-work' === (string) ( $relation['provider'] ?? '' )
+				&& 'recurrence_occurrence' === (string) ( $relation['relation_type'] ?? '' )
+				&& (string) $occurrence_id === (string) ( $relation['external_id'] ?? '' )
+			) {
+				$has_occurrence_relation = true;
+				break;
+			}
+		}
+		if ( ! $has_occurrence_relation ) {
+			return false;
+		}
+
 		global $wpdb;
 		$updated = $wpdb->query(
 			$wpdb->prepare(
@@ -247,14 +268,28 @@ final class RecurrenceRules {
 	}
 
 	/**
-	 * Advances only when the supplied occurrence is still the rule's canonical
-	 * next occurrence. Finite schedules end by storing NULL, not a sentinel date.
+	 * Advances only after the supplied occurrence has a generated canonical
+	 * Work Item and is still the rule's current next occurrence. Finite rules
+	 * end by storing NULL, never a sentinel date.
 	 */
 	public static function advance_after( int $rule_id, string $occurrence_on, int $actor_user_id = 0 ): bool {
 		$rule = self::get( $rule_id );
 		if ( null === $rule || null === $rule['next_occurrence_on'] || $rule['next_occurrence_on'] !== $occurrence_on ) {
 			return false;
 		}
+
+		global $wpdb;
+		$generated = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT id FROM ' . Schema::recurrence_occurrences_table() . ' WHERE rule_id = %d AND occurrence_on = %s AND work_item_id > 0 LIMIT 1',
+				$rule_id,
+				$occurrence_on
+			)
+		);
+		if ( ! $generated ) {
+			return false;
+		}
+
 		$next = RecurrenceSchedule::next_after(
 			$rule['start_on'],
 			$occurrence_on,
@@ -262,7 +297,6 @@ final class RecurrenceRules {
 			$rule['interval_count'],
 			$rule['end_on']
 		);
-		global $wpdb;
 		$updated = $wpdb->update(
 			Schema::recurrence_rules_table(),
 			[
@@ -316,20 +350,20 @@ final class RecurrenceRules {
 	 * @return array<string,mixed>|null
 	 */
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
-		$title       = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
-		$description = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
-		$customer    = self::customer_reference( $input, $current );
-		$project_id  = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
-		$service_id  = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
+		$title        = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
+		$description  = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$customer     = self::customer_reference( $input, $current );
+		$project_id   = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
+		$service_id   = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
 		$work_type_id = max( 0, (int) ( $input['work_type_id'] ?? ( $current['work_type_id'] ?? 0 ) ) );
-		$priority    = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
-		$billing     = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
-		$frequency   = (string) ( $input['frequency'] ?? ( $current['frequency'] ?? '' ) );
-		$interval    = (int) ( $input['interval_count'] ?? ( $current['interval_count'] ?? 1 ) );
-		$start_on    = (string) ( $input['start_on'] ?? ( $current['start_on'] ?? '' ) );
-		$end_raw     = array_key_exists( 'end_on', $input ) ? $input['end_on'] : ( $current['end_on'] ?? null );
-		$end_on      = null === $end_raw ? null : (string) $end_raw;
-		$schedule    = RecurrenceSchedule::normalize( $frequency, $interval, $start_on, $end_on );
+		$priority     = sanitize_key( (string) ( $input['priority'] ?? ( $current['priority'] ?? WorkItemPriority::NORMAL ) ) );
+		$billing      = sanitize_key( (string) ( $input['billing_disposition'] ?? ( $current['billing_disposition'] ?? '' ) ) );
+		$frequency    = (string) ( $input['frequency'] ?? ( $current['frequency'] ?? '' ) );
+		$interval     = (int) ( $input['interval_count'] ?? ( $current['interval_count'] ?? 1 ) );
+		$start_on     = (string) ( $input['start_on'] ?? ( $current['start_on'] ?? '' ) );
+		$end_raw      = array_key_exists( 'end_on', $input ) ? $input['end_on'] : ( $current['end_on'] ?? null );
+		$end_on       = null === $end_raw ? null : (string) $end_raw;
+		$schedule     = RecurrenceSchedule::normalize( $frequency, $interval, $start_on, $end_on );
 		$create_ahead_days = (int) ( $input['create_ahead_days'] ?? ( $current['create_ahead_days'] ?? 14 ) );
 		$due_offset_days   = (int) ( $input['due_offset_days'] ?? ( $current['due_offset_days'] ?? 0 ) );
 		$is_active = array_key_exists( 'is_active', $input ) ? (bool) $input['is_active'] : (bool) ( $current['is_active'] ?? true );
