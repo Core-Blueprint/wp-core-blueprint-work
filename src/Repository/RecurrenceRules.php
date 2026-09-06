@@ -414,6 +414,9 @@ final class RecurrenceRules {
 			|| $schedule['interval_count'] !== (int) $current['interval_count']
 			|| $schedule['start_on'] !== (string) $current['start_on']
 			|| $schedule['end_on'] !== $current['end_on'];
+		if ( null !== $current && $schedule_changed && self::has_occurrences( (int) $current['id'] ) ) {
+			return null;
+		}
 		$next_occurrence_on = $schedule_changed ? $schedule['start_on'] : $current['next_occurrence_on'];
 
 		return [
@@ -567,6 +570,17 @@ final class RecurrenceRules {
 			'created_at'    => (string) $row['created_at'],
 			'generated_at'  => null === $row['generated_at'] ? null : (string) $row['generated_at'],
 		];
+	}
+
+	private static function has_occurrences( int $rule_id ): bool {
+		if ( ! self::schema_ready() || $rule_id <= 0 ) {
+			return false;
+		}
+		global $wpdb;
+		$exists = $wpdb->get_var(
+			$wpdb->prepare( 'SELECT id FROM ' . Schema::recurrence_occurrences_table() . ' WHERE rule_id = %d LIMIT 1', $rule_id )
+		);
+		return (bool) $exists;
 	}
 
 	private static function valid_date( string $value ): bool {
