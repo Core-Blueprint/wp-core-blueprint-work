@@ -30,6 +30,15 @@ $required = [
 	'src/Domain/TimeRange.php',
 	'src/Domain/WorkItemPriority.php',
 	'src/Domain/WorkItemStatus.php',
+	'src/Frontend/Access.php',
+	'src/Frontend/Actions/WorkItems.php',
+	'src/Frontend/Conditions/Resources.php',
+	'src/Frontend/Data/Project.php',
+	'src/Frontend/Data/Service.php',
+	'src/Frontend/Data/WorkItem.php',
+	'src/Frontend/Queries/Projects.php',
+	'src/Frontend/Queries/Services.php',
+	'src/Frontend/Queries/WorkItems.php',
 	'src/Governance/Events.php',
 	'src/Integration/CRMCustomers.php',
 	'src/Integration/Suite.php',
@@ -98,6 +107,16 @@ $timeRange = file_get_contents( $root . '/src/Domain/TimeRange.php' );
 $timeEntries = file_get_contents( $root . '/src/Repository/TimeEntries.php' );
 $timers = file_get_contents( $root . '/src/Repository/Timers.php' );
 $timeAccess = file_get_contents( $root . '/src/Time/Access.php' );
+$frontendAccess = file_get_contents( $root . '/src/Frontend/Access.php' );
+$frontendService = file_get_contents( $root . '/src/Frontend/Data/Service.php' );
+$frontendProject = file_get_contents( $root . '/src/Frontend/Data/Project.php' );
+$frontendWorkItem = file_get_contents( $root . '/src/Frontend/Data/WorkItem.php' );
+$frontendServiceQuery = file_get_contents( $root . '/src/Frontend/Queries/Services.php' );
+$frontendProjectQuery = file_get_contents( $root . '/src/Frontend/Queries/Projects.php' );
+$frontendWorkItemQuery = file_get_contents( $root . '/src/Frontend/Queries/WorkItems.php' );
+$frontendConditions = file_get_contents( $root . '/src/Frontend/Conditions/Resources.php' );
+$frontendActions = file_get_contents( $root . '/src/Frontend/Actions/WorkItems.php' );
+$frontend = implode( "\n", [ $frontendAccess, $frontendService, $frontendProject, $frontendWorkItem, $frontendServiceQuery, $frontendProjectQuery, $frontendWorkItemQuery, $frontendConditions, $frontendActions ] );
 $capabilities = file_get_contents( $root . '/src/Capabilities.php' );
 $events = file_get_contents( $root . '/src/Governance/Events.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
@@ -173,6 +192,14 @@ $checks = [
 	'E3 Time admin reuses Base TimePicker and single-user Object Picker' => str_contains( $timeAdmin, 'Assets::enqueue_time_picker()' ) && str_contains( $timeAdmin, 'data-cb-time-picker' ) && str_contains( $timeAdmin, "Pickers::assignee( 'time[user_id]'" ),
 	'E3 Time is wired only into authenticated WordPress Admin' => str_contains( $plugin, 'Time::init();' ) && str_contains( $plugin, 'TimeActions::init();' ),
 	'E3 imports no old workspace Calendar or timesheet domain' => ! str_contains( $timeEntries . $timers, 'workspace_id' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'calendar' ) && ! str_contains( strtolower( $timeEntries . $timers ), 'timesheet' ),
+	'D3 frontend reads are default-deny outside manager preview' => str_contains( $frontendAccess, "'cb_work_frontend_can_read'" ) && str_contains( $frontendAccess, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $frontendAccess, "'publish' !== \$post->post_status" ),
+	'D3 frontend mutation has a distinct default-deny authorization filter' => str_contains( $frontendAccess, "'cb_work_frontend_can_transition_work_item'" ) && str_contains( $frontendAccess, '$actor_user_id <= 0' ),
+	'D3 frontend projections omit sensitive Work internals' => str_contains( $frontendWorkItem, "'estimated_minutes'" ) && ! str_contains( $frontendWorkItem, 'billing_disposition' ) && ! str_contains( $frontendWorkItem, 'customer_provider' ) && ! str_contains( $frontendWorkItem, 'assigned_user_ids' ) && ! str_contains( $frontendService, "'pricing'" ) && ! str_contains( $frontendProject, 'customer_' ),
+	'D3 frontend queries are bounded and always reproject through authorization-aware Data contracts' => str_contains( $frontendServiceQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendProjectQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendWorkItemQuery, 'MAX_RESULTS    = 100' ) && str_contains( $frontendServiceQuery, 'Service::get( $id )' ) && str_contains( $frontendProjectQuery, 'Project::get( $id )' ) && str_contains( $frontendWorkItemQuery, 'WorkItem::get( $id )' ),
+	'D3 Work Item query reuses canonical D2 search and omits sensitive filter dimensions' => str_contains( $frontendWorkItemQuery, 'WorkItemRepository::search( $criteria )' ) && ! str_contains( $frontendWorkItemQuery, "'customer'" ) && ! str_contains( $frontendWorkItemQuery, "'billing_dispositions'" ) && ! str_contains( $frontendWorkItemQuery, "'assignee_id'" ),
+	'D3 conditions are pure and D3 action delegates lifecycle plus governance' => str_contains( $frontendConditions, 'work_item_can_transition_to' ) && ! str_contains( $frontendConditions, 'update_' ) && str_contains( $frontendActions, 'WorkItemRepository::transition_status' ) && str_contains( $frontendActions, 'Audit::record( Events::WORK_ITEM_STATUS_CHANGED' ),
+	'D3 action is transport-neutral and D4 remains the adapter owner' => ! str_contains( $frontendActions, 'add_action(' ) && ! str_contains( $frontendActions, 'admin_post_' ) && ! str_contains( $frontendActions, 'wp_ajax_' ) && ! str_contains( $frontendActions, 'register_rest_route' ) && ! str_contains( strtolower( $frontend ), 'bricks' ),
+	'D3 exposes no recurrence or Time resource surface' => ! str_contains( $frontend, 'RecurrenceRules' ) && ! str_contains( $frontend, 'TimeEntries' ) && ! str_contains( $frontend, 'Timers::' ),
 	'public sibling contracts include Projects Work Items and Work Types' => str_contains( $public, 'Supported read-only Project contract' ) && str_contains( $public, 'Supported read-only Work Item contract' ) && str_contains( $public, 'Supported read-only Work Type contract' ),
 	'pricing provider seam is Work-owned and lazy' => str_contains( $public, 'cb_work_register_pricing_providers' ) && str_contains( $public, 'PricingProviders' ),
 	'pricing resolver owns explicit-agreement-default precedence' => str_contains( $resolver, "'explicit_override'" ) && str_contains( $resolver, "'customer_agreement'" ) && str_contains( $resolver, "'service_default'" ),
