@@ -11,7 +11,7 @@ $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 
 $checks = [
-	'current Work schema is 1.5 after recurrence scheduler state' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.5'" ),
+	'current Work schema is 1.6 after Time foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.6'" ),
 	'Project storage remains cb_work_project' => str_contains( $postTypes, "PROJECT   = 'cb_work_project'" ) && str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
 	'Work Item storage moves to cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
 	'transitional Project and Work Item tables are not registered' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ),
