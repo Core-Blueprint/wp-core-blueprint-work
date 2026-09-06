@@ -32,6 +32,7 @@ $checks = [
 	'recurrence storage introduces no SQL foreign keys' => ! str_contains( strtoupper( $schema ), 'FOREIGN KEY' ),
 	'rule generation window is evaluated per rule' => str_contains( $repository, 'DATE_ADD(%s, INTERVAL create_ahead_days DAY)' ),
 	'reserved occurrences project into the canonical Work Item create contract' => str_contains( $repository, 'occurrence_work_item_input' ) && str_contains( $repository, "'source_type'         => 'recurrence_occurrence'" ) && str_contains( $repository, "'assigned_user_ids'   => \$rule['assigned_user_ids']" ),
+	'schedule identity cannot rewind after an occurrence exists' => str_contains( $repository, '$schedule_changed && self::has_occurrences' ) && str_contains( $repository, 'SELECT id FROM ' . "' . Schema::recurrence_occurrences_table() . '" . ' WHERE rule_id = %d LIMIT 1' ),
 	'foundation contains no cron scheduler or recurrence admin UI' => ! str_contains( $repository, 'wp_schedule_event' ) && ! str_contains( $repository, 'wp_schedule_single_event' ) && ! str_contains( $repository, 'add_action(' ),
 ];
 
