@@ -110,8 +110,7 @@ final class Scheduler {
 
 			$occurrence_id = (int) $occurrence['id'];
 			if ( (int) $occurrence['work_item_id'] > 0 ) {
-				if ( RecurrenceRules::advance_after( $rule_id, $occurrence_on, $actor_user_id ) ) {
-					$stats['advanced']++;
+				if ( self::advance_or_observe( $rule_id, $occurrence_on, $actor_user_id, $stats ) ) {
 					continue;
 				}
 				self::failure( $rule_id, $occurrence_id, 'Generated occurrence could not advance its rule.', $source, $stats );
@@ -164,11 +163,10 @@ final class Scheduler {
 				'source'         => $source,
 			] );
 
-			if ( ! RecurrenceRules::advance_after( $rule_id, $occurrence_on, $actor_user_id ) ) {
+			if ( ! self::advance_or_observe( $rule_id, $occurrence_on, $actor_user_id, $stats ) ) {
 				self::failure( $rule_id, $occurrence_id, 'Generated occurrence could not advance its rule.', $source, $stats );
 				return;
 			}
-			$stats['advanced']++;
 		}
 
 		$rule = RecurrenceRules::get( $rule_id );
@@ -178,6 +176,25 @@ final class Scheduler {
 				$stats['limited']++;
 			}
 		}
+	}
+
+	/** @param array{rules:int,generated:int,recovered:int,advanced:int,failed:int,busy:int,limited:int} $stats */
+	private static function advance_or_observe( int $rule_id, string $occurrence_on, int $actor_user_id, array &$stats ): bool {
+		if ( RecurrenceRules::advance_after( $rule_id, $occurrence_on, $actor_user_id ) ) {
+			$stats['advanced']++;
+			return true;
+		}
+
+		$fresh_rule = RecurrenceRules::get( $rule_id );
+		if ( null !== $fresh_rule && array_key_exists( 'next_occurrence_on', $fresh_rule ) ) {
+			$fresh_next = $fresh_rule['next_occurrence_on'];
+			if ( null === $fresh_next || (string) $fresh_next !== $occurrence_on ) {
+				$stats['advanced']++;
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/** @param array{rules:int,generated:int,recovered:int,advanced:int,failed:int,busy:int,limited:int} $stats */
