@@ -43,6 +43,6 @@ final class TimeRange {
 		$start = new \DateTimeImmutable( $started_at, new \DateTimeZone( 'UTC' ) );
 		$end   = new \DateTimeImmutable( $ended_at, new \DateTimeZone( 'UTC' ) );
 		$seconds = $end->getTimestamp() - $start->getTimestamp();
-		return $seconds > 0 && $seconds <= 4294967295 ? $seconds : null;
+		return $seconds >= 0 && $seconds <= 4294967295 ? $seconds : null;
 	}
 }
