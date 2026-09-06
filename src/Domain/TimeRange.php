@@ -27,6 +27,17 @@ final class TimeRange {
 		return $value->setTimezone( new \DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
 	}
 
+	/** @return array{date:string,time:string}|null */
+	public static function utc_to_local_parts( string $value ): ?array {
+		if ( ! self::valid_utc( $value ) ) {
+			return null;
+		}
+		$timezone = function_exists( 'wp_timezone' ) ? wp_timezone() : new \DateTimeZone( 'UTC' );
+		$date = new \DateTimeImmutable( $value, new \DateTimeZone( 'UTC' ) );
+		$date = $date->setTimezone( $timezone );
+		return [ 'date' => $date->format( 'Y-m-d' ), 'time' => $date->format( 'H:i' ) ];
+	}
+
 	public static function valid_utc( string $value ): bool {
 		$value = trim( $value );
 		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d H:i:s', $value, new \DateTimeZone( 'UTC' ) );
