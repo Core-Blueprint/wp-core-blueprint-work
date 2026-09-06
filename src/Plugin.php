@@ -8,6 +8,7 @@ use CB\Work\Admin\OperationalActions;
 use CB\Work\Admin\Page;
 use CB\Work\Admin\Pickers;
 use CB\Work\Admin\Projects;
+use CB\Work\Admin\RecurrenceActions;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
@@ -16,6 +17,7 @@ use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Governance\Events;
+use CB\Work\Recurrence\Scheduler;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Support\Requirements;
 
@@ -37,6 +39,7 @@ final class Plugin {
 		WorkItemMeta::init();
 		WorkItemRepository::init();
 		ServicePricingDomain::init();
+		Scheduler::init();
 
 		if ( is_admin() ) {
 			Menu::init();
@@ -44,6 +47,7 @@ final class Plugin {
 			Pickers::init();
 			Projects::init();
 			WorkItemsAdmin::init();
+			RecurrenceActions::init();
 			ServicePricing::init();
 			TaxRateActions::init();
 			OperationalActions::init();

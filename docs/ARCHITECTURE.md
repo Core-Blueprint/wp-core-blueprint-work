@@ -82,7 +82,7 @@ Work Types remain a Work-owned relational operational catalog in `cb_work_types`
 ### Assignments and integration relations
 
 - `cb_work_item_assignments` stores many-to-many WordPress user assignments keyed by the canonical `cb_work_item` post ID.
-- `cb_work_item_relations` stores provider-neutral external/source metadata keyed by the canonical `cb_work_item` post ID for integrations such as Helpdesk.
+- `cb_work_item_relations` stores provider-neutral external/source metadata keyed by the canonical `cb_work_item` post ID for integrations such as Helpdesk and Work recurrence.
 - Raw provider/type/id fields are internal persistence metadata and are not primary user-facing controls.
 - high-volume child facts such as future time entries, recurrence executions and billing/history records remain Work-owned relational/custom-table data rather than WordPress posts.
 
@@ -90,11 +90,11 @@ Work Types remain a Work-owned relational operational catalog in `cb_work_types`
 
 Work Item recurrence is a Work-owned operational scheduling domain. It is separate from a Service's recurring commercial pricing model and does not introduce a second task/content model.
 
-The recurrence foundation uses three relational tables:
+The recurrence domain uses three relational tables:
 
 - `cb_work_recurrence_rules` stores the reusable Work Item template/context plus recurrence schedule state;
 - `cb_work_recurrence_rule_assignments` stores the WordPress users inherited by generated occurrences;
-- `cb_work_recurrence_occurrences` is the execution ledger linking one rule/date occurrence to the canonical `cb_work_item` later generated for it.
+- `cb_work_recurrence_occurrences` is the execution ledger linking one rule/date occurrence to the canonical `cb_work_item` generated for it.
 
 A rule may carry the same operational context as a Work Item: customer reference, optional Project, optional Service and Work Type, priority, billing disposition and assignees. It additionally owns:
 
@@ -108,11 +108,54 @@ A rule may carry the same operational context as a Work Item: customer reference
 
 Monthly and yearly recurrence stays anchored to the original calendar day. Dates that do not exist in the target month clamp to that month's final day without permanently drifting the anchor; for example a rule anchored to the 31st can produce February 28/29 and then return to the 31st in March.
 
-Finite rules have a real terminal state: `next_occurrence_on` becomes `NULL` after the final valid occurrence. Sentinel dates such as `9999-12-31` are forbidden.
+Finite rules have a real terminal state: `next_occurrence_on` becomes `NULL` after the final valid occurrence. Sentinel dates such as `9999-12-31` are forbidden. Once a rule has occurrence history, its frequency, interval, start date and end date are immutable so execution history cannot be rewound; template/context fields and planning offsets may still be updated.
 
-The occurrence ledger has a unique `(rule_id, occurrence_on)` key. That database constraint is the hard idempotency boundary for repeated/concurrent generation attempts. A reserved occurrence projects into the existing canonical `Repository\WorkItems::create()` input contract, including inherited assignees, `scheduled_on`, calculated `due_on` and a Work-owned `recurrence_occurrence` source relation. The ledger may link the generated Work Item only when that canonical Work Item carries the matching occurrence relation. A rule advances only after the occurrence has a generated Work Item.
+#### Occurrence identity, claims and recovery
 
-The create-ahead window is evaluated per rule. The foundation itself does not register WP-Cron, generate Work Items automatically or add recurrence administration screens. Scheduler locking/retry/recovery policy and the operator-facing recurrence UI are separate follow-up work over this storage/domain boundary.
+The occurrence ledger has a unique `(rule_id, occurrence_on)` key. That database constraint is the hard occurrence-identity boundary for repeated or concurrent reservation attempts.
+
+E2 extends the same ledger with bounded execution state: `claim_token`, nullable `claimed_at`, `attempt_count` and `last_error`. A worker may claim only an ungenerated occurrence with no live claim. Claims older than the recovery timeout may be taken over by a later worker. This prevents normal concurrent cron workers from creating the same occurrence twice while allowing an interrupted generation to resume.
+
+A reserved occurrence projects into the existing canonical `Repository\WorkItems::create()` input contract, including inherited assignees, `scheduled_on`, calculated `due_on` and a Work-owned `recurrence_occurrence` source relation. The scheduler never inserts a separate task record and never bypasses the canonical Work Item repository.
+
+Before creating a Work Item, a worker looks for an existing canonical Work Item carrying the occurrence source relation. This recovers the ordinary interruption case where Work Item creation and its source relation succeeded but the occurrence ledger was not linked yet. Multiple Work Items claiming the same occurrence relation are treated as corruption and generation fails closed rather than guessing which item is authoritative.
+
+The occurrence ledger may link a generated Work Item only when that canonical Work Item carries the matching occurrence relation and the worker still owns the execution claim. A rule advances only after its occurrence has a generated Work Item. If the ledger link succeeded but rule advancement was interrupted, the next run observes the linked Work Item and resumes from advancement without creating another child.
+
+WordPress post creation and the relational source relation cannot be made one atomic SQL transaction across every WordPress storage path. The claim/recovery protocol therefore prevents ordinary concurrent duplication and recovers once the canonical source relation exists; it does not pretend that a hard process termination between initial post insertion and relation persistence can be made transactionally impossible.
+
+#### Scheduler and catch-up
+
+Recurring Work uses WordPress Cron through the Work-owned `cb_work_generate_recurring_work` hook. Work ensures one hourly event exists and clears only that hook when Work is deactivated; recurrence data and generated Work Items remain persistent.
+
+Each generator pass:
+
+1. selects active rules whose canonical next occurrence is inside that rule's own create-ahead horizon;
+2. reserves or resolves the unique occurrence ledger row;
+3. atomically claims the occurrence or leaves it to the current worker;
+4. recovers an already source-linked Work Item when present, otherwise creates one through `Repository\WorkItems::create()`;
+5. attaches the canonical Work Item to the ledger under the active claim;
+6. advances the rule to its next valid occurrence;
+7. repeats until the rule's create-ahead horizon is satisfied.
+
+Catch-up is bounded to 250 occurrences per rule per generator request and 100 due rules per pass so a long-dormant site cannot monopolize one PHP request. If work remains inside the horizon after a bound is reached, a later hourly or manual run continues from the still-canonical next occurrence.
+
+Generator runs, generated/recovered items and generation failures are recorded through Base Governance/Audit using registered Work event IDs. The operator may also run the generator explicitly from WordPress Admin; manual and cron execution use the same scheduler service.
+
+#### Recurring Work administration
+
+**Work → Recurring Work** is the canonical operator-facing management surface. It uses the same `cb_manage_work` authorization boundary as the rest of Work and reuses Base Object Picker for CRM customers and WordPress-user assignees.
+
+Operators can:
+
+- create recurring Work rules;
+- edit template/context and planning fields;
+- edit schedule identity only before occurrence history exists;
+- activate or deactivate a rule;
+- inspect next occurrence and occurrence history count;
+- run the generator manually.
+
+There is no destructive recurrence-rule delete flow in v1. Executed recurrence is operational history. Rules are deactivated rather than erased, while finite rules naturally stop when `next_occurrence_on` becomes `NULL`.
 
 ## CRM customer integration
 
@@ -151,11 +194,12 @@ Top-level Work contains:
 
 - Overview;
 - Work Items;
+- Recurring Work;
 - Projects;
 - Services;
 - Work Types.
 
-Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first global Work surface for operational management, while individual Work Item creation/editing uses the native Gutenberg CPT editor.
+Services and Projects use WordPress-native CPT list/edit surfaces while remaining mounted coherently under Work. Work Items use a specialized workload-first global Work surface for operational management, while individual Work Item creation/editing uses the native Gutenberg CPT editor. Recurring Work is an operational rule/scheduler surface over the same canonical Work Items, not a second task manager.
 
 ### Project context
 
@@ -214,11 +258,11 @@ Storage type is never a frontend contract.
 6. **D1.1 — Project CPT + Admin UX correction:** complete and merged.
 7. **D1.2 — Work Item CPT conversion:** complete and merged; Golden Standard audit hardening follows without changing the canonical storage model.
 8. **D2 — Operational Views Foundation:** complete; one canonical Work Item query/filter/view-state engine powers Table, List, Kanban and Calendar while the native Gutenberg editor remains the individual edit surface.
-9. **E1 — Recurrence Foundation:** current launch-priority phase; relational rule/assignment/occurrence storage plus pure schedule semantics and canonical Work Item occurrence projection. Scheduler and admin UI are deliberately separate.
-10. **D3 — Builder-neutral Frontend Resource Contracts:** parked until the recurrence foundation closes; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
-11. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
-12. **E2 — Recurrence Scheduler + Admin UX:** generation orchestration, locking/recovery policy and operator-facing management over the E1 foundation.
-13. **E3 — Time:** time-entry and timer domain follows recurrence without changing canonical Work Item storage.
+9. **E1 — Recurrence Foundation:** complete and merged; rule/assignment/occurrence storage, pure schedule semantics and canonical Work Item occurrence projection are established.
+10. **E2 — Recurrence Scheduler + Admin UX:** current launch-priority phase; hourly generation, bounded catch-up, stale-claim recovery, governance and operator-facing Recurring Work management over E1.
+11. **E3 — Time:** time-entry and timer domain follows recurrence without changing canonical Work Item storage.
+12. **D3 — Builder-neutral Frontend Resource Contracts:** parked until launch-critical recurrence/time work closes; authorization-aware and opt-in Services, Projects and Work Items resources; Work remains fully usable without a builder.
+13. **D4 — Bricks Adapter:** first officially supported builder adapter; thin and optional over D3 contracts.
 14. Commercial, document, commerce/accounting integration, reporting, Helpdesk and release phases follow the authoritative Work roadmap.
 
 ## Non-goals

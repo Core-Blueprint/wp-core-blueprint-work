@@ -165,11 +165,16 @@ final class Schema {
 			rule_id bigint(20) unsigned NOT NULL,
 			occurrence_on date NOT NULL,
 			work_item_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			claim_token varchar(64) NOT NULL DEFAULT '',
+			claimed_at datetime NULL,
+			attempt_count int unsigned NOT NULL DEFAULT 0,
+			last_error varchar(190) NOT NULL DEFAULT '',
 			created_at datetime NOT NULL,
 			generated_at datetime NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY rule_occurrence (rule_id,occurrence_on),
-			KEY work_item_id (work_item_id)
+			KEY work_item_id (work_item_id),
+			KEY claim_state (work_item_id,claimed_at)
 		) {$charset};" );
 
 		/*
