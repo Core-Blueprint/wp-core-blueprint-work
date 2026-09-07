@@ -51,7 +51,7 @@
 		const wrapper = element( 'div', 'cb-work-filter-field' + ( modifier ? ' ' + modifier : '' ) );
 		const input = control.matches && control.matches( 'input, select' )
 			? control
-			: control.querySelector( 'input[data-cb-core-object-picker-input]' );
+			: ( control.querySelector( '[data-cb-core-object-picker-search]' ) || control.querySelector( 'input[data-cb-core-object-picker-input]' ) );
 		const label = element( 'label', 'cb-work-filter-label', labelText );
 		if ( input && input.id ) {
 			label.htmlFor = input.id;
@@ -149,7 +149,9 @@
 		const moreButton = element(
 			'button',
 			'button cb-work-more-filters-toggle',
-			( strings.moreFilters || 'More filters' ) + ( advancedCount ? ' (' + advancedCount + ')' : '' )
+			advancedCount
+				? ( strings.lessFilters || 'Hide filters' )
+				: ( strings.moreFilters || 'More filters' )
 		);
 		moreButton.type = 'button';
 		moreButton.setAttribute( 'aria-controls', advanced.id );
