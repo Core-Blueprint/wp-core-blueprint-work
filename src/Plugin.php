@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work;
 
+use CB\Work\Admin\Assets;
 use CB\Work\Admin\Menu;
 use CB\Work\Admin\OperationalActions;
 use CB\Work\Admin\Page;
@@ -44,6 +45,7 @@ final class Plugin {
 		Scheduler::init();
 
 		if ( is_admin() ) {
+			Assets::init();
 			Menu::init();
 			Page::init();
 			Pickers::init();
