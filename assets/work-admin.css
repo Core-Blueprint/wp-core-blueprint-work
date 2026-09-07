@@ -14,7 +14,15 @@
 	margin-bottom: 0;
 }
 
-.cb-work-items-filters .tablenav.top {
+.cb-work-items-filters {
+	display: grid;
+	grid-template-columns: minmax(280px, 520px) minmax(280px, 520px);
+	column-gap: 16px;
+	align-items: start;
+}
+
+.cb-work-items-filters > .tablenav.top {
+	grid-column: 1 / -1;
 	height: auto;
 	margin: 0;
 	padding: 12px 0 0;
@@ -39,15 +47,36 @@
 	min-width: 220px;
 }
 
-.cb-work-items-filters > p:not(:last-of-type) {
-	display: inline-block;
-	width: min(520px, calc(50% - 12px));
-	margin: 14px 12px 0 0;
-	vertical-align: top;
+/*
+ * Base ObjectPicker renders a block-level component. Keep the field label and
+ * its picker aligned as one visual field without changing Foundation internals.
+ */
+.cb-work-items-filters > p:nth-of-type(1) {
+	grid-column: 1;
+	grid-row: 2;
+	margin: 14px 0 4px;
 }
 
-.cb-work-items-filters .cb-core-object-picker {
+.cb-work-items-filters > p:nth-of-type(2) {
+	grid-column: 2;
+	grid-row: 2;
+	margin: 14px 0 4px;
+}
+
+.cb-work-items-filters > .cb-core-object-picker:nth-of-type(2) {
+	grid-column: 1;
+	grid-row: 3;
+}
+
+.cb-work-items-filters > .cb-core-object-picker:nth-of-type(3) {
+	grid-column: 2;
+	grid-row: 3;
+}
+
+.cb-work-items-filters > .cb-core-object-picker {
+	width: 100%;
 	max-width: 520px;
+	margin: 0 0 8px;
 }
 
 .cb-work-items-filters .cb-core-object-picker .regular-text {
@@ -56,11 +85,13 @@
 }
 
 .cb-work-items-filters > p:last-of-type {
+	grid-column: 1 / -1;
+	grid-row: 4;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 6px 8px;
-	margin: 14px 0 18px;
+	margin: 10px 0 18px;
 }
 
 .cb-work-items-filters > p:last-of-type label {
@@ -75,25 +106,46 @@
 	max-width: 960px;
 }
 
-.cb-work-items-calendar td {
-	height: 112px;
-}
-
 .cb-work-items-calendar th,
 .cb-work-items-calendar td {
-	padding: 10px;
+	padding: 8px 10px;
+}
+
+/* Empty months stay compact; cells grow naturally when Work Items need space. */
+.cb-work-items-calendar td {
+	height: 78px;
+}
+
+.cb-work-calendar-navigation {
+	margin-top: 4px;
 }
 
 @media screen and (max-width: 1100px) {
-	.cb-work-items-filters > p:not(:last-of-type) {
-		display: block;
-		width: 100%;
-		max-width: 620px;
-		margin-right: 0;
+	.cb-work-items-filters {
+		grid-template-columns: minmax(0, 620px);
+	}
+
+	.cb-work-items-filters > .tablenav.top,
+	.cb-work-items-filters > p:nth-of-type(1),
+	.cb-work-items-filters > p:nth-of-type(2),
+	.cb-work-items-filters > .cb-core-object-picker:nth-of-type(2),
+	.cb-work-items-filters > .cb-core-object-picker:nth-of-type(3),
+	.cb-work-items-filters > p:last-of-type {
+		grid-column: 1;
+		grid-row: auto;
+	}
+
+	.cb-work-items-filters > p:nth-of-type(1),
+	.cb-work-items-filters > p:nth-of-type(2) {
+		margin-top: 12px;
 	}
 }
 
 @media screen and (max-width: 782px) {
+	.cb-work-items-filters {
+		display: block;
+	}
+
 	.cb-work-items-filters .tablenav .actions {
 		display: block;
 	}
