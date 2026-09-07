@@ -1,9 +1,10 @@
 /*
- * Core Blueprint Work admin refinements.
+ * Core Blueprint Work — WP Pro admin composition.
  *
- * WordPress owns typography, colors, controls, tables, tabs, notices and button
- * appearance. These rules only provide layout/spacing where wp-admin has no
- * reusable utility for this screen composition.
+ * WordPress continues to own typography, buttons, form controls, tabs, notices
+ * and list-table styling. Work adds only the workspace composition that core
+ * does not provide: a project-management toolbar, progressive filters, Board
+ * lanes and Calendar density. Neutral surface values mirror wp-admin.
  */
 
 .cb-work-items-page > .description {
@@ -15,168 +16,301 @@
 }
 
 .cb-work-items-filters {
+	margin: 0 0 20px;
+}
+
+.cb-work-toolbar {
+	box-sizing: border-box;
+	margin-top: 0;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: 0;
+}
+
+.cb-work-toolbar__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.cb-work-toolbar__primary,
+.cb-work-toolbar__search {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.cb-work-toolbar__primary {
+	flex: 1 1 auto;
+}
+
+.cb-work-toolbar__primary select {
+	margin: 0;
+}
+
+.cb-work-toolbar__primary select[name="project_id"] {
+	min-width: 190px;
+}
+
+.cb-work-toolbar__primary select[name="service_id"] {
+	min-width: 150px;
+}
+
+.cb-work-toolbar__search {
+	flex: 0 1 360px;
+	justify-content: flex-end;
+}
+
+.cb-work-toolbar__search input[type="search"] {
+	width: min(260px, 100%);
+	margin: 0;
+}
+
+.cb-work-clear-filters {
+	margin-left: 2px;
+	text-decoration: none;
+}
+
+.cb-work-toolbar__advanced {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #dcdcde;
+}
+
+.cb-work-toolbar__advanced[hidden] {
+	display: none;
+}
+
+.cb-work-toolbar__advanced-grid {
 	display: grid;
-	grid-template-columns: minmax(280px, 520px) minmax(280px, 520px);
-	column-gap: 16px;
+	grid-template-columns: repeat(4, minmax(150px, 1fr));
+	gap: 14px 16px;
 	align-items: start;
 }
 
-.cb-work-items-filters > .tablenav.top {
-	grid-column: 1 / -1;
-	height: auto;
-	margin: 0;
-	padding: 12px 0 0;
+.cb-work-filter-field {
+	min-width: 0;
 }
 
-.cb-work-items-filters .tablenav .actions {
-	float: none;
+.cb-work-filter-field--wide,
+.cb-work-filter-field--range {
+	grid-column: span 2;
+}
+
+.cb-work-filter-label {
+	display: block;
+	margin: 0 0 5px;
+	font-weight: 600;
+}
+
+.cb-work-filter-field > select,
+.cb-work-filter-field .cb-core-object-picker,
+.cb-work-filter-field .cb-core-object-picker .regular-text {
+	width: 100%;
+	max-width: none;
+}
+
+.cb-work-filter-range {
+	display: grid;
+	grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
+	align-items: center;
+	gap: 7px;
+}
+
+.cb-work-filter-range input[type="date"] {
+	width: 100%;
+}
+
+.cb-work-filter-range__separator {
+	white-space: nowrap;
+}
+
+.cb-work-results-header {
 	display: flex;
-	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 18px 0 10px;
+}
+
+.cb-work-results-header h2,
+.cb-work-results-header .description {
+	margin: 0;
+}
+
+.cb-work-empty-state {
+	box-sizing: border-box;
+	max-width: 720px;
+	padding: 24px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+}
+
+.cb-work-empty-state h3 {
+	margin: 0 0 6px;
+	font-size: 16px;
+}
+
+.cb-work-empty-state .description {
+	margin: 0 0 14px;
+}
+
+.cb-work-items-list {
+	max-width: 1040px;
+}
+
+.cb-work-items-list .postbox {
+	margin-bottom: 10px;
+}
+
+/* Board is a Work-specific spatial view; WordPress has no native Kanban layout. */
+.cb-work-items-kanban {
+	padding: 2px 0 10px;
+}
+
+.cb-work-items-kanban > .postbox,
+.cb-work-board__lane {
+	box-sizing: border-box;
+}
+
+.cb-work-items-kanban .hndle {
+	cursor: default;
+}
+
+.cb-work-items-kanban .inside {
+	min-height: 72px;
+}
+
+.cb-work-items-kanban .card {
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.cb-work-board--empty {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(220px, 1fr));
+	gap: 12px;
+	align-items: start;
+	overflow-x: auto;
+}
+
+.cb-work-board--empty .postbox {
+	min-width: 220px;
+	margin: 0;
+}
+
+/* Calendar remains a WordPress widefat table; only planning density is custom. */
+.cb-work-calendar-navigation {
+	height: auto;
+	margin: 0 0 8px;
+	padding: 0;
+}
+
+.cb-work-calendar-navigation .actions {
+	display: flex;
 	align-items: center;
 	gap: 6px;
 	padding: 0;
 }
 
-.cb-work-items-filters .tablenav .actions select,
-.cb-work-items-filters .tablenav .actions input[type="search"] {
-	margin: 0;
-}
-
-.cb-work-items-filters #cb-work-filter-search {
-	order: 10;
-	min-width: 220px;
-}
-
-/*
- * Base ObjectPicker renders a block-level component. Keep the field label and
- * its picker aligned as one visual field without changing Foundation internals.
- */
-.cb-work-items-filters > p:nth-of-type(1) {
-	grid-column: 1;
-	grid-row: 2;
-	margin: 14px 0 4px;
-}
-
-.cb-work-items-filters > p:nth-of-type(2) {
-	grid-column: 2;
-	grid-row: 2;
-	margin: 14px 0 4px;
-}
-
-.cb-work-items-filters > .cb-core-object-picker:nth-of-type(2) {
-	grid-column: 1;
-	grid-row: 3;
-}
-
-.cb-work-items-filters > .cb-core-object-picker:nth-of-type(3) {
-	grid-column: 2;
-	grid-row: 3;
-}
-
-.cb-work-items-filters > .cb-core-object-picker {
-	width: 100%;
-	max-width: 520px;
-	margin: 0 0 8px;
-}
-
-.cb-work-items-filters .cb-core-object-picker .regular-text {
-	width: 100%;
-	max-width: 100%;
-}
-
-.cb-work-items-filters > p:last-of-type {
-	grid-column: 1 / -1;
-	grid-row: 4;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 6px 8px;
-	margin: 10px 0 18px;
-}
-
-.cb-work-items-filters > p:last-of-type label {
-	margin: 0;
-}
-
-.cb-work-items-page > h2:not(.nav-tab-wrapper) {
-	margin-top: 18px;
-}
-
-.cb-work-items-list .postbox {
-	max-width: 960px;
+.cb-work-items-calendar {
+	table-layout: fixed;
 }
 
 .cb-work-items-calendar th,
 .cb-work-items-calendar td {
-	padding: 8px 10px;
+	padding: 8px;
 }
 
-/* Empty months stay compact; cells grow naturally when Work Items need space. */
 .cb-work-items-calendar td {
-	height: 78px;
+	height: 76px;
+	vertical-align: top;
 }
 
-.cb-work-calendar-navigation {
-	margin-top: 4px;
+.cb-work-items-calendar td:has(.card) {
+	height: auto;
 }
 
-@media screen and (max-width: 1100px) {
-	.cb-work-items-filters {
-		grid-template-columns: minmax(0, 620px);
+.cb-work-calendar-empty {
+	background: #f6f7f7;
+}
+
+/* Non-JS fallback: retain usable wrapping without attempting app composition. */
+.cb-work-items-filters > .tablenav.top {
+	height: auto;
+}
+
+@media screen and (max-width: 1280px) {
+	.cb-work-toolbar__row {
+		align-items: stretch;
+		flex-direction: column;
 	}
 
-	.cb-work-items-filters > .tablenav.top,
-	.cb-work-items-filters > p:nth-of-type(1),
-	.cb-work-items-filters > p:nth-of-type(2),
-	.cb-work-items-filters > .cb-core-object-picker:nth-of-type(2),
-	.cb-work-items-filters > .cb-core-object-picker:nth-of-type(3),
-	.cb-work-items-filters > p:last-of-type {
-		grid-column: 1;
-		grid-row: auto;
+	.cb-work-toolbar__search {
+		flex: 1 1 auto;
+		justify-content: flex-start;
 	}
 
-	.cb-work-items-filters > p:nth-of-type(1),
-	.cb-work-items-filters > p:nth-of-type(2) {
-		margin-top: 12px;
+	.cb-work-toolbar__advanced-grid {
+		grid-template-columns: repeat(2, minmax(180px, 1fr));
 	}
 }
 
 @media screen and (max-width: 782px) {
-	.cb-work-items-filters {
-		display: block;
+	.cb-work-toolbar {
+		padding: 10px;
 	}
 
-	.cb-work-items-filters .tablenav .actions {
-		display: block;
+	.cb-work-toolbar__primary,
+	.cb-work-toolbar__search {
+		display: grid;
+		grid-template-columns: 1fr;
 	}
 
-	.cb-work-items-filters .tablenav .actions select,
-	.cb-work-items-filters .tablenav .actions input[type="search"] {
-		display: block;
+	.cb-work-toolbar__primary select,
+	.cb-work-toolbar__primary .button,
+	.cb-work-toolbar__search input[type="search"],
+	.cb-work-toolbar__search .button {
 		width: 100%;
 		max-width: none;
-		margin: 0 0 8px;
+		margin: 0;
 	}
 
-	.cb-work-items-filters > p:last-of-type {
-		display: block;
+	.cb-work-clear-filters {
+		padding: 6px 0;
 	}
 
-	.cb-work-items-filters > p:last-of-type label,
-	.cb-work-items-filters > p:last-of-type input,
-	.cb-work-items-filters > p:last-of-type select,
-	.cb-work-items-filters > p:last-of-type .button {
-		display: block;
-		width: 100%;
-		max-width: none;
-		margin: 0 0 8px;
+	.cb-work-toolbar__advanced-grid {
+		grid-template-columns: 1fr;
 	}
 
-	.cb-work-items-calendar {
-		min-width: 760px;
+	.cb-work-filter-field--wide,
+	.cb-work-filter-field--range {
+		grid-column: auto;
+	}
+
+	.cb-work-filter-range {
+		grid-template-columns: 1fr;
+	}
+
+	.cb-work-filter-range__separator {
+		display: none;
+	}
+
+	.cb-work-results-header {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 4px;
 	}
 
 	.cb-work-items-page {
 		overflow-x: auto;
+	}
+
+	.cb-work-items-calendar {
+		min-width: 760px;
 	}
 }
