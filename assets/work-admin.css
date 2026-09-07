@@ -1,0 +1,130 @@
+/*
+ * Core Blueprint Work admin refinements.
+ *
+ * WordPress owns typography, colors, controls, tables, tabs, notices and button
+ * appearance. These rules only provide layout/spacing where wp-admin has no
+ * reusable utility for this screen composition.
+ */
+
+.cb-work-items-page > .description {
+	margin-bottom: 14px;
+}
+
+.cb-work-items-page .nav-tab-wrapper {
+	margin-bottom: 0;
+}
+
+.cb-work-items-filters .tablenav.top {
+	height: auto;
+	margin: 0;
+	padding: 12px 0 0;
+}
+
+.cb-work-items-filters .tablenav .actions {
+	float: none;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	padding: 0;
+}
+
+.cb-work-items-filters .tablenav .actions select,
+.cb-work-items-filters .tablenav .actions input[type="search"] {
+	margin: 0;
+}
+
+.cb-work-items-filters #cb-work-filter-search {
+	order: 10;
+	min-width: 220px;
+}
+
+.cb-work-items-filters > p:not(:last-of-type) {
+	display: inline-block;
+	width: min(520px, calc(50% - 12px));
+	margin: 14px 12px 0 0;
+	vertical-align: top;
+}
+
+.cb-work-items-filters .cb-core-object-picker {
+	max-width: 520px;
+}
+
+.cb-work-items-filters .cb-core-object-picker .regular-text {
+	width: 100%;
+	max-width: 100%;
+}
+
+.cb-work-items-filters > p:last-of-type {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 8px;
+	margin: 14px 0 18px;
+}
+
+.cb-work-items-filters > p:last-of-type label {
+	margin: 0;
+}
+
+.cb-work-items-page > h2:not(.nav-tab-wrapper) {
+	margin-top: 18px;
+}
+
+.cb-work-items-list .postbox {
+	max-width: 960px;
+}
+
+.cb-work-items-calendar td {
+	height: 112px;
+}
+
+.cb-work-items-calendar th,
+.cb-work-items-calendar td {
+	padding: 10px;
+}
+
+@media screen and (max-width: 1100px) {
+	.cb-work-items-filters > p:not(:last-of-type) {
+		display: block;
+		width: 100%;
+		max-width: 620px;
+		margin-right: 0;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-items-filters .tablenav .actions {
+		display: block;
+	}
+
+	.cb-work-items-filters .tablenav .actions select,
+	.cb-work-items-filters .tablenav .actions input[type="search"] {
+		display: block;
+		width: 100%;
+		max-width: none;
+		margin: 0 0 8px;
+	}
+
+	.cb-work-items-filters > p:last-of-type {
+		display: block;
+	}
+
+	.cb-work-items-filters > p:last-of-type label,
+	.cb-work-items-filters > p:last-of-type input,
+	.cb-work-items-filters > p:last-of-type select,
+	.cb-work-items-filters > p:last-of-type .button {
+		display: block;
+		width: 100%;
+		max-width: none;
+		margin: 0 0 8px;
+	}
+
+	.cb-work-items-calendar {
+		min-width: 760px;
+	}
+
+	.cb-work-items-page {
+		overflow-x: auto;
+	}
+}
