@@ -24,6 +24,7 @@ final class Menu {
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
+		add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] );
 		add_filter( 'parent_file', [ self::class, 'parent_file' ] );
 		add_filter( 'submenu_file', [ self::class, 'submenu_file' ], 10, 2 );
 	}
@@ -50,6 +51,22 @@ final class Menu {
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 5 );
 		add_submenu_page( null, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TIME_SLUG, [ Time::class, 'render' ] );
+	}
+
+	/**
+	 * Declare Work-owned admin screens compatible with Base's global Admin Theme.
+	 * Theme state and WordPress primitive presentation remain Base-owned; this is
+	 * only the public compatibility declaration/hook point for the Work product.
+	 */
+	public static function register_admin_theme_screen( \WP_Screen $screen ): void {
+		if ( '' === self::screen_context( $screen ) || ! class_exists( '\\CB\\Core\\UI\\AdminTheme' ) ) {
+			return;
+		}
+
+		$hook_suffix = $GLOBALS['hook_suffix'] ?? '';
+		if ( is_string( $hook_suffix ) && '' !== $hook_suffix ) {
+			\CB\Core\UI\AdminTheme::register_screen( $hook_suffix );
+		}
 	}
 
 	public static function projects_path(): string {
