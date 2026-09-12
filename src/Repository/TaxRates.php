@@ -54,6 +54,23 @@ final class TaxRates {
 		return is_array( $row ) ? $row : null;
 	}
 
+	/** @return array<string,mixed>|null */
+	public static function get_by_code( string $code ): ?array {
+		if ( ! self::schema_ready() ) {
+			return null;
+		}
+		$code = self::normalize_code( $code );
+		if ( '' === $code ) {
+			return null;
+		}
+		global $wpdb;
+		$row = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM ' . Schema::tax_rates_table() . ' WHERE code = %s LIMIT 1', $code ),
+			ARRAY_A
+		);
+		return is_array( $row ) ? $row : null;
+	}
+
 	/** @param array<string,mixed> $row */
 	public static function is_available( array $row, ?string $on_date = null ): bool {
 		if ( empty( $row['is_active'] ) ) {
@@ -90,8 +107,9 @@ final class TaxRates {
 		$rate_bp     = self::parse_rate_bp( (string) ( $input['rate'] ?? '' ) );
 		$valid_from  = self::date( (string) ( $input['valid_from'] ?? '' ) );
 		$valid_until = self::date( (string) ( $input['valid_until'] ?? '' ) );
+		$is_active   = array_key_exists( 'is_active', $input ) ? $input['is_active'] : true;
 
-		if ( '' === $code || '' === $label || null === $rate_bp ) {
+		if ( '' === $code || '' === $label || null === $rate_bp || ! is_bool( $is_active ) ) {
 			return 0;
 		}
 		if ( $valid_from && $valid_until && $valid_until < $valid_from ) {
@@ -110,7 +128,7 @@ final class TaxRates {
 				'label'        => $label,
 				'country_code' => $country,
 				'rate_bp'      => $rate_bp,
-				'is_active'    => 1,
+				'is_active'    => $is_active ? 1 : 0,
 				'valid_from'   => $valid_from,
 				'valid_until'  => $valid_until,
 				'created_at'   => $now,
@@ -119,6 +137,54 @@ final class TaxRates {
 			[ '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s' ]
 		);
 		return false === $ok ? 0 : (int) $wpdb->insert_id;
+	}
+
+	/** @param array<string,mixed> $input */
+	public static function update( int $id, array $input ): bool {
+		if ( ! self::schema_ready() || $id <= 0 || ! self::get( $id ) ) {
+			return false;
+		}
+		global $wpdb;
+
+		$label       = sanitize_text_field( (string) ( $input['label'] ?? '' ) );
+		$country     = strtoupper( preg_replace( '/[^A-Za-z]/', '', (string) ( $input['country_code'] ?? '' ) ) ?? '' );
+		$country     = 2 === strlen( $country ) ? $country : '';
+		$rate_bp     = $input['rate_bp'] ?? null;
+		$valid_raw   = $input['valid_from'] ?? null;
+		$until_raw   = $input['valid_until'] ?? null;
+		$valid_from  = self::date( (string) ( $valid_raw ?? '' ) );
+		$valid_until = self::date( (string) ( $until_raw ?? '' ) );
+		$is_active   = $input['is_active'] ?? null;
+
+		if ( '' === $label || ! is_int( $rate_bp ) || $rate_bp < 0 || $rate_bp > 10000 || ! is_bool( $is_active ) ) {
+			return false;
+		}
+		if ( null !== $valid_raw && '' !== (string) $valid_raw && null === $valid_from ) {
+			return false;
+		}
+		if ( null !== $until_raw && '' !== (string) $until_raw && null === $valid_until ) {
+			return false;
+		}
+		if ( $valid_from && $valid_until && $valid_until < $valid_from ) {
+			return false;
+		}
+
+		$updated = $wpdb->update(
+			Schema::tax_rates_table(),
+			[
+				'label'        => $label,
+				'country_code' => $country,
+				'rate_bp'      => $rate_bp,
+				'is_active'    => $is_active ? 1 : 0,
+				'valid_from'   => $valid_from,
+				'valid_until'  => $valid_until,
+				'updated_at'   => current_time( 'mysql', true ),
+			],
+			[ 'id' => $id ],
+			[ '%s', '%s', '%d', '%d', '%s', '%s', '%s' ],
+			[ '%d' ]
+		);
+		return false !== $updated;
 	}
 
 	public static function set_active( int $id, bool $active ): bool {

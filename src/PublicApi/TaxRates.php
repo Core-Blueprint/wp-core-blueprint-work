@@ -12,6 +12,11 @@ final class TaxRates {
 		return \CB\Work\Repository\TaxRates::get( $id );
 	}
 
+	/** @return array<string,mixed>|null */
+	public static function get_by_code( string $code ): ?array {
+		return \CB\Work\Repository\TaxRates::get_by_code( $code );
+	}
+
 	/** @return array<int,array<string,mixed>> */
 	public static function all( bool $include_inactive = true ): array {
 		return \CB\Work\Repository\TaxRates::all( $include_inactive );

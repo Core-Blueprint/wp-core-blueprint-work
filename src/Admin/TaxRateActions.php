@@ -3,10 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\Governance\Audit;
 use CB\Work\Capabilities;
-use CB\Work\Governance\Events;
-use CB\Work\Repository\TaxRates;
+use CB\Work\PublicApi\TaxRateActions as TaxRateMutations;
 defined( 'ABSPATH' ) || exit;
 
 final class TaxRateActions {
@@ -20,27 +18,23 @@ final class TaxRateActions {
 		$input = isset( $_POST['tax_rate'] ) && is_array( $_POST['tax_rate'] )
 			? wp_unslash( $_POST['tax_rate'] )
 			: [];
-		$id = TaxRates::create( $input );
-		if ( $id > 0 ) {
-			Audit::record( Events::TAX_RATE_CREATED, 'notice', [ 'tax_rate_id' => $id ] );
-			self::redirect( 'tax-created' );
-		}
-		self::redirect( 'tax-invalid' );
+		$result = TaxRateMutations::create( $input );
+		self::redirect( is_wp_error( $result ) ? 'tax-invalid' : 'tax-created' );
 	}
 
 	public static function toggle(): never {
 		self::guard( 'cb_work_toggle_tax_rate' );
 		$id     = isset( $_POST['tax_rate_id'] ) ? absint( $_POST['tax_rate_id'] ) : 0;
 		$active = isset( $_POST['active'] ) && '1' === (string) $_POST['active'];
-		if ( $id > 0 && TaxRates::set_active( $id, $active ) ) {
-			Audit::record(
-				$active ? Events::TAX_RATE_ACTIVATED : Events::TAX_RATE_DEACTIVATED,
-				'notice',
-				[ 'tax_rate_id' => $id ]
-			);
-			self::redirect( $active ? 'tax-activated' : 'tax-deactivated' );
+		if ( $id <= 0 ) {
+			self::redirect( 'tax-invalid' );
 		}
-		self::redirect( 'tax-invalid' );
+		$result = TaxRateMutations::set_active( $id, $active );
+		self::redirect(
+			is_wp_error( $result )
+				? 'tax-invalid'
+				: ( $active ? 'tax-activated' : 'tax-deactivated' )
+		);
 	}
 
 	private static function guard( string $nonce_action ): void {
