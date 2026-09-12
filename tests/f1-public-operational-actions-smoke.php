@@ -18,6 +18,7 @@ $checks = [
 	'ordinary relations remain many-to-many per Work Item instead of globally unique' => str_contains( $schema, 'UNIQUE KEY relation (work_item_id,provider,relation_type,external_id)' ) && ! str_contains( $schema, 'UNIQUE KEY relation (provider,relation_type,external_id)' ),
 	'source claims have bounded stale takeover state' => str_contains( $sources, 'claimed_at' ) && str_contains( $sources, 'stale_before' ) && str_contains( $sources, "'status'       => 'busy'" ),
 	'source creation has a recovery marker for interrupted post-to-source attachment' => str_contains( $sources, "RECOVERY_PROVIDER = 'core-blueprint-work'" ) && str_contains( $sources, "RECOVERY_TYPE     = 'source_identity'" ) && str_contains( $actions, 'recovery_work_item_ids' ),
+	'internal source recovery marker is reserved from public source and relation input' => str_contains( $actions, 'is_reserved_reference' ) && str_contains( $actions, "'work_source_reserved'" ) && str_contains( $actions, "'work_relation_reserved'" ),
 	'one source replay reuses the existing canonical Work Item' => str_contains( $actions, "'outcome' => 'reused'" ) && str_contains( $actions, "'outcome' => \$outcome" ),
 	'direct public create cannot smuggle private source fields around the source contract' => str_contains( $actions, 'contains_source_fields' ) && str_contains( $actions, "'work_source_contract_required'" ),
 	'public mutations require canonical Work management authorization' => str_contains( $actions, 'current_user_can( Capabilities::MANAGE )' ),
