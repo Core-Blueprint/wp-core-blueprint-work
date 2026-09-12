@@ -39,7 +39,7 @@ final class WorkItemSources {
 		$now   = current_time( 'mysql', true );
 		$ok    = $wpdb->query(
 			$wpdb->prepare(
-				'INSERT INTO ' . Schema::sources_table() . ' (work_item_id, provider, source_type, external_id, claim_token, claimed_at, created_at, linked_at) VALUES (NULL, %s, %s, %s, %s, %s, %s, NULL)',
+				'INSERT IGNORE INTO ' . Schema::sources_table() . ' (work_item_id, provider, source_type, external_id, claim_token, claimed_at, created_at, linked_at) VALUES (NULL, %s, %s, %s, %s, %s, %s, NULL)',
 				$identity['provider'],
 				$identity['type'],
 				$identity['id'],
@@ -48,7 +48,7 @@ final class WorkItemSources {
 				$now
 			)
 		);
-		if ( false !== $ok ) {
+		if ( 1 === $ok ) {
 			return [
 				'status'       => 'owned',
 				'source_id'    => (int) $wpdb->insert_id,
