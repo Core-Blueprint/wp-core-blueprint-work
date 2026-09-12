@@ -21,6 +21,7 @@ final class Schema {
 				[ self::class, 'work_types_table' ],
 				[ self::class, 'assignments_table' ],
 				[ self::class, 'relations_table' ],
+				[ self::class, 'sources_table' ],
 				[ self::class, 'recurrence_rules_table' ],
 				[ self::class, 'recurrence_assignments_table' ],
 				[ self::class, 'recurrence_occurrences_table' ],
@@ -49,6 +50,11 @@ final class Schema {
 	public static function relations_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_item_relations';
+	}
+
+	public static function sources_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_item_sources';
 	}
 
 	public static function recurrence_rules_table(): string {
@@ -131,6 +137,22 @@ final class Schema {
 			UNIQUE KEY relation (work_item_id,provider,relation_type,external_id),
 			KEY work_item_id (work_item_id),
 			KEY external_ref (provider,relation_type,external_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::sources_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			work_item_id bigint(20) unsigned NULL,
+			provider varchar(64) NOT NULL,
+			source_type varchar(64) NOT NULL,
+			external_id varchar(191) NOT NULL,
+			claim_token varchar(64) NOT NULL DEFAULT '',
+			claimed_at datetime NULL,
+			created_at datetime NOT NULL,
+			linked_at datetime NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY source_identity (provider,source_type,external_id),
+			UNIQUE KEY work_item_source (work_item_id),
+			KEY claim_state (work_item_id,claimed_at)
 		) {$charset};" );
 
 		dbDelta( 'CREATE TABLE ' . self::recurrence_rules_table() . " (

@@ -17,6 +17,8 @@ final class Events {
 	public const WORK_ITEM_CREATED              = 'work.item.created';
 	public const WORK_ITEM_UPDATED              = 'work.item.updated';
 	public const WORK_ITEM_STATUS_CHANGED       = 'work.item.status.changed';
+	public const WORK_ITEM_SOURCE_ATTACHED      = 'work.item.source.attached';
+	public const WORK_ITEM_RELATION_ADDED       = 'work.item.relation.added';
 	public const WORK_TYPE_CREATED              = 'work.type.created';
 	public const WORK_TYPE_STATUS_CHANGED       = 'work.type.status.changed';
 	public const RECURRENCE_RULE_CREATED        = 'work.recurrence.rule.created';
@@ -25,7 +27,7 @@ final class Events {
 	public const RECURRENCE_ITEM_GENERATED      = 'work.recurrence.item.generated';
 	public const RECURRENCE_GENERATION_FAILED   = 'work.recurrence.generation.failed';
 	public const RECURRENCE_GENERATOR_RUN       = 'work.recurrence.generator.run';
-	public const TIME_ENTRY_CREATED              = 'work.time.entry.created';
+	public const TIME_ENTRY_CREATED             = 'work.time.entry.created';
 	public const TIME_ENTRY_UPDATED              = 'work.time.entry.updated';
 	public const TIMER_STARTED                   = 'work.time.timer.started';
 	public const TIMER_STOPPED                   = 'work.time.timer.stopped';
@@ -45,6 +47,8 @@ final class Events {
 			self::WORK_ITEM_CREATED              => [ __( 'Work Item created', 'core-blueprint-work' ), 'general' ],
 			self::WORK_ITEM_UPDATED              => [ __( 'Work Item updated', 'core-blueprint-work' ), 'general' ],
 			self::WORK_ITEM_STATUS_CHANGED       => [ __( 'Work Item status changed', 'core-blueprint-work' ), 'general' ],
+			self::WORK_ITEM_SOURCE_ATTACHED      => [ __( 'Work Item source attached', 'core-blueprint-work' ), 'general' ],
+			self::WORK_ITEM_RELATION_ADDED       => [ __( 'Work Item relation added', 'core-blueprint-work' ), 'general' ],
 			self::WORK_TYPE_CREATED              => [ __( 'Work Type created', 'core-blueprint-work' ), 'general' ],
 			self::WORK_TYPE_STATUS_CHANGED       => [ __( 'Work Type status changed', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_RULE_CREATED        => [ __( 'Recurring Work rule created', 'core-blueprint-work' ), 'general' ],

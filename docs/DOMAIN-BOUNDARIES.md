@@ -25,10 +25,21 @@ Work is authoritative for:
 - billing readiness as an operational Work state;
 - operational/commercial handoff snapshots;
 - operational reporting and export;
-- provider-neutral external/source relations;
+- provider-neutral canonical external source identity for integration-created Work Items;
+- provider-neutral many-to-many external relations;
 - provider-neutral external commercial references after a successful handoff.
 
 Work does not become the authority for a sibling domain merely because it stores an external reference or renders a status projection.
+
+### Canonical source identity versus relation
+
+A canonical source identifies the external record that caused one Work Item to exist. It is an origin/identity concept and is database-unique by provider, source type and external ID so retries can resolve the same canonical Work Item.
+
+An ordinary relation only states that a Work Item is related to an external record. Relations are intentionally many-to-many; one ticket, contract, document or other resource may be related to multiple Work Items.
+
+Manual Work Items do not require a canonical external source.
+
+Source identity and relation must never be collapsed into one global uniqueness rule.
 
 ## CRM boundary
 
@@ -167,6 +178,8 @@ Optional integrations must follow all of these rules:
 - no cross-plugin SQL foreign keys;
 - no direct reads/writes of sibling private repositories, tables or internal classes;
 - public application/API contracts are the only supported mutation boundary;
+- canonical source identity is used when one external origin must create at most one canonical Work Item;
+- ordinary external relations remain provider-neutral and many-to-many;
 - external references use provider-neutral provider/type/id semantics;
 - integrations fail soft when a sibling plugin is unavailable;
 - authorization remains enforced by the authority performing the mutation;
@@ -189,6 +202,8 @@ Work
 → operational work
 → Services / tax input context
 → Projects / Work Items / recurrence / time
+→ canonical external Work source identity
+→ many-to-many external relations
 → billing disposition
 → billing readiness
 → operational/commercial handoff snapshot
