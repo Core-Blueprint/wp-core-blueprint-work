@@ -19,6 +19,7 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 	private const SCHEMA_VERSION = 1;
 	private const REFERENCE_PREFIX = 'tax-rate:';
 	private const COLUMNS = [ 'code', 'label', 'country_code', 'rate_bp', 'is_active', 'valid_from', 'valid_until' ];
+	private const REQUIRED_IMPORT_COLUMNS = [ 'code', 'label', 'rate_bp', 'is_active' ];
 
 	public function is_available(): bool {
 		return defined( 'CB_WORK_SCHEMA_VERSION' )
@@ -61,13 +62,20 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 		if ( ! $this->supports_schema_version( $source_schema_version ) ) {
 			return new WP_Error( 'work_data_exchange_tax_rate_schema' );
 		}
+		if ( ! array_key_exists( 'code', $record ) || ! is_string( $record['code'] ) ) {
+			return new WP_Error( 'work_data_exchange_tax_rate_invalid_code' );
+		}
+		$code = $record['code'];
+		if ( '' === $code || $code !== TaxRateRepository::normalize_code( $code ) ) {
+			return new WP_Error( 'work_data_exchange_tax_rate_invalid_code' );
+		}
 
-		$record = self::normalize_record( $record );
+		$current = TaxRates::get_by_code( $code );
+		$record = self::normalize_import_record( $record, $current );
 		if ( is_wp_error( $record ) ) {
 			return $record;
 		}
 
-		$current   = TaxRates::get_by_code( $record['code'] );
 		$reference = self::reference( $record['code'] );
 		if ( null === $current ) {
 			$operation = Foundation::MODE_UPDATE_EXISTING === $mode
@@ -199,6 +207,53 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 			'is_active'    => 1 === (int) ( $row['is_active'] ?? 0 ),
 			'valid_from'   => self::nullable_date( $row['valid_from'] ?? null ),
 			'valid_until'  => self::nullable_date( $row['valid_until'] ?? null ),
+		] );
+	}
+
+	/**
+	 * Normalize Mapper/import input into a complete canonical Work VAT record.
+	 *
+	 * Optional fields may be absent after a user leaves them unmapped. Creates
+	 * receive Work defaults; updates preserve the current Work-owned values.
+	 * Explicitly mapped empty values still clear nullable/optional fields.
+	 *
+	 * @param array<string,mixed> $record
+	 * @param array<string,mixed>|null $current
+	 * @return array{code:string,label:string,country_code:string,rate_bp:int,is_active:bool,valid_from:?string,valid_until:?string}|WP_Error
+	 */
+	private static function normalize_import_record( array $record, ?array $current ): array|WP_Error {
+		if ( [] !== array_diff( array_keys( $record ), self::COLUMNS ) ) {
+			return new WP_Error( 'work_data_exchange_tax_rate_shape' );
+		}
+		foreach ( self::REQUIRED_IMPORT_COLUMNS as $required ) {
+			if ( ! array_key_exists( $required, $record ) ) {
+				return new WP_Error( 'work_data_exchange_tax_rate_shape' );
+			}
+		}
+
+		$base = [
+			'country_code' => '',
+			'valid_from'   => null,
+			'valid_until'  => null,
+		];
+		if ( null !== $current ) {
+			$projected = self::project_record( $current );
+			if ( is_wp_error( $projected ) ) {
+				return $projected;
+			}
+			$base['country_code'] = $projected['country_code'];
+			$base['valid_from']   = $projected['valid_from'];
+			$base['valid_until']  = $projected['valid_until'];
+		}
+
+		return self::normalize_record( [
+			'code'         => $record['code'],
+			'label'        => $record['label'],
+			'country_code' => array_key_exists( 'country_code', $record ) ? $record['country_code'] : $base['country_code'],
+			'rate_bp'      => $record['rate_bp'],
+			'is_active'    => $record['is_active'],
+			'valid_from'   => array_key_exists( 'valid_from', $record ) ? $record['valid_from'] : $base['valid_from'],
+			'valid_until'  => array_key_exists( 'valid_until', $record ) ? $record['valid_until'] : $base['valid_until'],
 		] );
 	}
 
