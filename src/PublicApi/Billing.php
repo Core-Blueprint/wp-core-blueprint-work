@@ -14,29 +14,67 @@ final class Billing {
 	public static function inspect( string $unit_type, int $unit_id ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) { return $forbidden; }
+
+		$unit      = BillingUnits::find( $unit_type, $unit_id );
 		$candidate = SnapshotBuilder::build( $unit_type, $unit_id );
-		if ( is_wp_error( $candidate ) ) { return $candidate; }
-		$unit = BillingUnits::find( $candidate['unit_type'], $candidate['unit_id'] );
-		if ( null === $unit ) {
-			return [ 'unit_type' => $candidate['unit_type'], 'unit_id' => $candidate['unit_id'], 'work_item_id' => $candidate['work_item_id'], 'status' => 'not_ready', 'stale' => false, 'current_snapshot' => null, 'external_references' => [], 'candidate_fingerprint' => $candidate['fingerprint'] ];
+		if ( is_wp_error( $candidate ) ) {
+			if ( null === $unit ) {
+				return $candidate;
+			}
+			return self::inspection( $unit, null, $candidate->get_error_code() );
 		}
-		$snapshot = BillingUnits::current_snapshot_for_unit( $unit );
-		$stale = null === $snapshot || ! hash_equals( (string) $snapshot['fingerprint'], $candidate['fingerprint'] );
-		return [ 'unit_type' => $candidate['unit_type'], 'unit_id' => $candidate['unit_id'], 'work_item_id' => $candidate['work_item_id'], 'status' => (string) $unit['status'], 'stale' => $stale, 'current_snapshot' => $snapshot, 'external_references' => BillingUnits::references( (int) $unit['id'] ), 'candidate_fingerprint' => $candidate['fingerprint'] ];
+		if ( null === $unit ) {
+			return [
+				'unit_type'             => $candidate['unit_type'],
+				'unit_id'               => $candidate['unit_id'],
+				'work_item_id'          => $candidate['work_item_id'],
+				'status'                => 'not_ready',
+				'stale'                 => false,
+				'current_snapshot'      => null,
+				'external_references'   => [],
+				'candidate_fingerprint' => $candidate['fingerprint'],
+				'candidate_error'       => null,
+			];
+		}
+		return self::inspection( $unit, $candidate, null );
 	}
 
-	public static function ready( int $limit = 100 ): array|\WP_Error {
+	/**
+	 * Returns one bounded cursor page of persisted ready-state units.
+	 *
+	 * Stale or currently ineligible units remain visible in the page so they
+	 * cannot starve newer units behind them. Consumers must only hand off rows
+	 * where `stale` is false, then continue with `next_cursor` when present.
+	 *
+	 * @return array{items:array<int,array<string,mixed>>,next_cursor:?int}|\WP_Error
+	 */
+	public static function ready( int $limit = 100, int $after_id = 0 ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) { return $forbidden; }
-		$items = [];
-		foreach ( BillingUnits::ready( $limit ) as $unit ) {
-			$candidate = SnapshotBuilder::build( (string) $unit['unit_type'], (int) $unit['unit_id'] );
-			if ( is_wp_error( $candidate ) ) { continue; }
-			$snapshot = BillingUnits::current_snapshot_for_unit( $unit );
-			if ( null === $snapshot || ! hash_equals( (string) $snapshot['fingerprint'], $candidate['fingerprint'] ) ) { continue; }
-			$items[] = [ 'unit' => $unit, 'snapshot' => $snapshot, 'external_references' => BillingUnits::references( (int) $unit['id'] ) ];
+
+		$limit    = max( 1, min( 100, $limit ) );
+		$after_id = max( 0, $after_id );
+		$units    = BillingUnits::ready( $limit + 1, $after_id );
+		$has_more = count( $units ) > $limit;
+		if ( $has_more ) {
+			array_pop( $units );
 		}
-		return $items;
+
+		$items = [];
+		foreach ( $units as $unit ) {
+			$candidate = SnapshotBuilder::build( (string) $unit['unit_type'], (int) $unit['unit_id'] );
+			if ( is_wp_error( $candidate ) ) {
+				$items[] = self::inspection( $unit, null, $candidate->get_error_code() );
+				continue;
+			}
+			$items[] = self::inspection( $unit, $candidate, null );
+		}
+
+		$last = [] === $units ? null : $units[ count( $units ) - 1 ];
+		return [
+			'items'       => $items,
+			'next_cursor' => $has_more && is_array( $last ) ? (int) $last['id'] : null,
+		];
 	}
 
 	public static function snapshot( int $snapshot_id ): array|\WP_Error {
@@ -51,6 +89,30 @@ final class Billing {
 		if ( null !== $forbidden ) { return $forbidden; }
 		$unit = BillingUnits::find( $unit_type, $unit_id );
 		return null === $unit ? [] : BillingUnits::snapshots( (int) $unit['id'], $limit );
+	}
+
+	/**
+	 * @param array<string,mixed>      $unit
+	 * @param array<string,mixed>|null $candidate
+	 * @return array<string,mixed>
+	 */
+	private static function inspection( array $unit, ?array $candidate, ?string $candidate_error ): array {
+		$snapshot = BillingUnits::current_snapshot_for_unit( $unit );
+		$stale = null === $candidate
+			|| null === $snapshot
+			|| ! hash_equals( (string) $snapshot['fingerprint'], (string) $candidate['fingerprint'] );
+
+		return [
+			'unit_type'             => (string) $unit['unit_type'],
+			'unit_id'               => (int) $unit['unit_id'],
+			'work_item_id'          => (int) $unit['work_item_id'],
+			'status'                => (string) $unit['status'],
+			'stale'                 => $stale,
+			'current_snapshot'      => $snapshot,
+			'external_references'   => BillingUnits::references( (int) $unit['id'] ),
+			'candidate_fingerprint' => null === $candidate ? null : (string) $candidate['fingerprint'],
+			'candidate_error'       => $candidate_error,
+		];
 	}
 
 	private static function authorize_manage(): ?\WP_Error {
