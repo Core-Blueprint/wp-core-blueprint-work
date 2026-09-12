@@ -1,38 +1,55 @@
 /*
- * Core Blueprint Work — WP Pro admin composition.
+ * Core Blueprint Work — WP Pro workspace composition.
  *
- * WordPress continues to own typography, buttons, form controls, tabs, notices
- * and list-table styling. Work adds only the workspace composition that core
- * does not provide: a project-management toolbar, progressive filters, Board
- * lanes and Calendar density. Neutral surface values mirror wp-admin.
+ * Base owns the global WordPress Admin Theme, native controls, tabs, tables,
+ * postboxes, theme state and shared design tokens. Work owns only domain-
+ * specific workspace composition that WordPress does not provide: the compact
+ * operational toolbar, progressive filters, Board layout, Calendar density and
+ * Work-specific empty/filter states.
  */
 
+.cb-work-items-page {
+	--cb-work-surface: var(--cb-surface-1);
+	--cb-work-surface-raised: var(--cb-surface-2);
+	--cb-work-canvas: var(--cb-surface-0);
+	--cb-work-border: var(--cb-border);
+	--cb-work-text: var(--cb-text);
+	--cb-work-text-strong: var(--cb-text-strong);
+	--cb-work-text-muted: var(--cb-text-muted);
+	--cb-work-shadow: var(--cb-shadow-sm);
+	--cb-work-radius: var(--cb-radius-md);
+	--cb-work-transition: var(--cb-interactive-transition);
+}
+
 .cb-work-items-page > .description {
-	margin-bottom: 14px;
+	margin: 0 0 var(--cb-space-5);
 }
 
 .cb-work-items-page .nav-tab-wrapper {
-	margin-bottom: 0;
+	margin: 0;
 }
 
+/* Workspace toolbar ---------------------------------------------------- */
+
 .cb-work-items-filters {
-	margin: 0 0 20px;
+	margin: 0 0 var(--cb-space-5);
 }
 
 .cb-work-toolbar {
 	box-sizing: border-box;
-	margin-top: 0;
-	padding: 12px;
-	background: #fff;
-	border: 1px solid #c3c4c7;
+	padding: var(--cb-space-4);
+	background: var(--cb-work-surface);
+	border: 1px solid var(--cb-work-border);
 	border-top: 0;
+	border-radius: 0 0 var(--cb-work-radius) var(--cb-work-radius);
+	box-shadow: var(--cb-work-shadow);
 }
 
 .cb-work-toolbar__row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 12px;
+	gap: var(--cb-space-4);
 }
 
 .cb-work-toolbar__primary,
@@ -40,44 +57,50 @@
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: var(--cb-space-2);
 }
 
 .cb-work-toolbar__primary {
 	flex: 1 1 auto;
 }
 
-.cb-work-toolbar__primary select {
+.cb-work-toolbar__primary select,
+.cb-work-toolbar__search input,
+.cb-work-toolbar__primary .button,
+.cb-work-toolbar__search .button {
 	margin: 0;
 }
 
 .cb-work-toolbar__primary select[name="project_id"] {
-	min-width: 190px;
+	min-width: 200px;
 }
 
 .cb-work-toolbar__primary select[name="service_id"] {
-	min-width: 150px;
+	min-width: 160px;
 }
 
 .cb-work-toolbar__search {
-	flex: 0 1 360px;
+	flex: 0 1 410px;
 	justify-content: flex-end;
 }
 
 .cb-work-toolbar__search input[type="search"] {
-	width: min(260px, 100%);
-	margin: 0;
+	width: min(300px, 100%);
 }
 
 .cb-work-clear-filters {
-	margin-left: 2px;
+	margin-left: var(--cb-space-1);
+	padding: 0 var(--cb-space-1);
+	line-height: var(--cb-control-height);
 	text-decoration: none;
 }
 
 .cb-work-toolbar__advanced {
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid #dcdcde;
+	margin-top: var(--cb-space-4);
+	padding: var(--cb-space-4);
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-work-radius);
 }
 
 .cb-work-toolbar__advanced[hidden] {
@@ -87,7 +110,7 @@
 .cb-work-toolbar__advanced-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(150px, 1fr));
-	gap: 14px 16px;
+	gap: var(--cb-space-4) var(--cb-space-5);
 	align-items: start;
 }
 
@@ -102,8 +125,9 @@
 
 .cb-work-filter-label {
 	display: block;
-	margin: 0 0 5px;
-	font-weight: 600;
+	margin: 0 0 var(--cb-space-2);
+	color: var(--cb-work-text-strong);
+	font-weight: var(--cb-fw-semibold);
 }
 
 .cb-work-filter-field > select,
@@ -117,7 +141,7 @@
 	display: grid;
 	grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
 	align-items: center;
-	gap: 7px;
+	gap: var(--cb-space-2);
 }
 
 .cb-work-filter-range input[type="date"] {
@@ -125,15 +149,48 @@
 }
 
 .cb-work-filter-range__separator {
+	color: var(--cb-work-text-muted);
 	white-space: nowrap;
 }
+
+.cb-work-filter-summary {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2);
+	margin-top: var(--cb-space-3);
+	padding-top: var(--cb-space-3);
+	border-top: 1px solid var(--cb-work-border);
+}
+
+.cb-work-filter-summary__label {
+	margin-right: var(--cb-space-1);
+	color: var(--cb-work-text-muted);
+	font-weight: var(--cb-fw-semibold);
+}
+
+.cb-work-filter-chip {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+	box-sizing: border-box;
+	padding: 2px var(--cb-space-2);
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-pill);
+	color: var(--cb-work-text);
+	line-height: var(--cb-lh-normal);
+	white-space: nowrap;
+}
+
+/* Results -------------------------------------------------------------- */
 
 .cb-work-results-header {
 	display: flex;
 	align-items: baseline;
 	justify-content: space-between;
-	gap: 16px;
-	margin: 18px 0 10px;
+	gap: var(--cb-space-4);
+	margin: var(--cb-space-5) 0 var(--cb-space-3);
 }
 
 .cb-work-results-header h2,
@@ -143,56 +200,104 @@
 
 .cb-work-empty-state {
 	box-sizing: border-box;
-	max-width: 720px;
-	padding: 24px;
-	background: #fff;
-	border: 1px solid #c3c4c7;
+	max-width: 760px;
+	padding: var(--cb-space-6);
+	background: var(--cb-work-surface);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-work-radius);
+	box-shadow: var(--cb-work-shadow);
 }
 
 .cb-work-empty-state h3 {
-	margin: 0 0 6px;
-	font-size: 16px;
+	margin: 0 0 var(--cb-space-2);
+	font-size: var(--cb-fs-xl);
 }
 
 .cb-work-empty-state .description {
-	margin: 0 0 14px;
+	margin: 0 0 var(--cb-space-4);
 }
 
+/* List ----------------------------------------------------------------- */
+
 .cb-work-items-list {
-	max-width: 1040px;
+	max-width: 1120px;
 }
 
 .cb-work-items-list .postbox {
-	margin-bottom: 10px;
+	margin: 0 0 var(--cb-space-3);
+	border-radius: var(--cb-work-radius);
+	box-shadow: var(--cb-work-shadow);
+	transition: border-color var(--cb-work-transition), box-shadow var(--cb-work-transition);
 }
 
-/* Board is a Work-specific spatial view; WordPress has no native Kanban layout. */
+.cb-work-items-list .postbox:hover {
+	border-color: var(--cb-interactive-border-hover);
+}
+
+.cb-work-items-list .inside {
+	padding: var(--cb-space-4);
+}
+
+/* Board ----------------------------------------------------------------
+ * WordPress has no native Kanban primitive, so the spatial lane/card layout
+ * is intentionally Work-owned while controls and actions remain Base/WP-owned.
+ */
+
 .cb-work-items-kanban {
-	padding: 2px 0 10px;
+	padding: var(--cb-space-1) 0 var(--cb-space-4);
 }
 
 .cb-work-items-kanban > .postbox,
 .cb-work-board__lane {
 	box-sizing: border-box;
+	border-radius: var(--cb-work-radius);
+	box-shadow: var(--cb-work-shadow);
+	overflow: hidden;
 }
 
-.cb-work-items-kanban .hndle {
+.cb-work-items-kanban .hndle,
+.cb-work-board__lane > .hndle {
+	margin: 0;
+	padding: var(--cb-space-3) var(--cb-space-4);
+	background: var(--cb-work-surface-raised);
+	border-bottom: 1px solid var(--cb-work-border);
+	color: var(--cb-work-text-strong);
 	cursor: default;
 }
 
-.cb-work-items-kanban .inside {
-	min-height: 72px;
+.cb-work-items-kanban .inside,
+.cb-work-board__lane > .inside {
+	min-height: 96px;
+	padding: var(--cb-space-3);
+}
+
+.cb-work-items-kanban .inside > .description,
+.cb-work-board__lane .inside > .description {
+	margin: var(--cb-space-2) 0;
 }
 
 .cb-work-items-kanban .card {
 	box-sizing: border-box;
 	width: 100%;
+	margin: 0 0 var(--cb-space-2) !important;
+	padding: var(--cb-space-3) !important;
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-work-radius);
+	box-shadow: none;
+	transition: border-color var(--cb-work-transition), box-shadow var(--cb-work-transition), transform var(--cb-work-transition);
+}
+
+.cb-work-items-kanban .card:hover {
+	border-color: var(--cb-interactive-border-hover);
+	box-shadow: var(--cb-work-shadow);
+	transform: translateY(-1px);
 }
 
 .cb-work-board--empty {
 	display: grid;
 	grid-template-columns: repeat(5, minmax(220px, 1fr));
-	gap: 12px;
+	gap: var(--cb-space-3);
 	align-items: start;
 	overflow-x: auto;
 }
@@ -202,46 +307,77 @@
 	margin: 0;
 }
 
-/* Calendar remains a WordPress widefat table; only planning density is custom. */
+/* Calendar -------------------------------------------------------------
+ * The calendar remains a semantic widefat table. Work owns only planning
+ * density and event composition; Base owns the table/control theme itself.
+ */
+
 .cb-work-calendar-navigation {
 	height: auto;
-	margin: 0 0 8px;
+	margin: 0 0 var(--cb-space-3);
 	padding: 0;
 }
 
 .cb-work-calendar-navigation .actions {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: var(--cb-space-2);
 	padding: 0;
+}
+
+.cb-work-calendar-navigation strong {
+	padding: 0 var(--cb-space-2) !important;
+}
+
+.cb-work-calendar-today {
+	margin-inline: var(--cb-space-1) 0;
 }
 
 .cb-work-items-calendar {
 	table-layout: fixed;
+	box-shadow: var(--cb-work-shadow);
 }
 
 .cb-work-items-calendar th,
 .cb-work-items-calendar td {
-	padding: 8px;
+	padding: var(--cb-space-3);
+}
+
+.cb-work-items-calendar th {
+	font-weight: var(--cb-fw-semibold);
 }
 
 .cb-work-items-calendar td {
-	height: 76px;
+	height: 88px;
 	vertical-align: top;
+	transition: background var(--cb-work-transition);
 }
 
-.cb-work-items-calendar td:has(.card) {
-	height: auto;
+.cb-work-items-calendar td:hover {
+	background: var(--cb-interactive-hover);
 }
 
-.cb-work-calendar-empty {
-	background: #f6f7f7;
+.cb-work-items-calendar .card {
+	max-width: none !important;
+	margin: var(--cb-space-2) 0 0 !important;
+	padding: var(--cb-space-2) !important;
+	background: var(--cb-work-surface-raised);
+	border-color: var(--cb-work-border);
+	border-radius: var(--cb-radius-sm);
+	box-shadow: none;
 }
 
-/* Non-JS fallback: retain usable wrapping without attempting app composition. */
+.cb-work-calendar-empty,
+.cb-work-items-calendar .cb-work-calendar-empty:hover {
+	background: var(--cb-work-canvas);
+}
+
+/* Non-JS fallback keeps the original server-rendered form usable. */
 .cb-work-items-filters > .tablenav.top {
 	height: auto;
 }
+
+/* Responsive ----------------------------------------------------------- */
 
 @media screen and (max-width: 1280px) {
 	.cb-work-toolbar__row {
@@ -260,8 +396,12 @@
 }
 
 @media screen and (max-width: 782px) {
+	.cb-work-items-page > .description {
+		margin-bottom: var(--cb-space-4);
+	}
+
 	.cb-work-toolbar {
-		padding: 10px;
+		padding: var(--cb-space-3);
 	}
 
 	.cb-work-toolbar__primary,
@@ -280,7 +420,8 @@
 	}
 
 	.cb-work-clear-filters {
-		padding: 6px 0;
+		padding: var(--cb-space-2) 0;
+		line-height: normal;
 	}
 
 	.cb-work-toolbar__advanced-grid {
@@ -300,10 +441,26 @@
 		display: none;
 	}
 
+	.cb-work-filter-summary {
+		align-items: flex-start;
+	}
+
+	.cb-work-filter-summary__label {
+		flex-basis: 100%;
+	}
+
+	.cb-work-filter-chip {
+		white-space: normal;
+	}
+
 	.cb-work-results-header {
 		align-items: flex-start;
 		flex-direction: column;
-		gap: 4px;
+		gap: var(--cb-space-1);
+	}
+
+	.cb-work-empty-state {
+		padding: var(--cb-space-5);
 	}
 
 	.cb-work-items-page {
