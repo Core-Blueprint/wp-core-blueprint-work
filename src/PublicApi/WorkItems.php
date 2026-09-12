@@ -43,13 +43,13 @@ final class WorkItems {
 	}
 
 	/** @return array<int,array<string,mixed>> */
-	public static function by_relation( string $provider, string $relation_type, string $external_id ): array {
+	public static function by_relation( string $provider, string $relation_type, string $external_id, int $limit = 100 ): array {
 		if ( self::is_reserved_relation( $provider, $relation_type ) ) {
 			return [];
 		}
 
 		$items = [];
-		foreach ( WorkItemRelations::find_work_item_ids( $provider, $relation_type, $external_id ) as $work_item_id ) {
+		foreach ( WorkItemRelations::find_work_item_ids( $provider, $relation_type, $external_id, $limit ) as $work_item_id ) {
 			$item = self::get( $work_item_id );
 			if ( null !== $item ) {
 				$items[] = $item;
