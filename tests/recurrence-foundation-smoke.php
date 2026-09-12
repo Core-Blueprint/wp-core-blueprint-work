@@ -18,7 +18,7 @@ $yearly_1  = RecurrenceSchedule::next_after( '2028-02-29', '2028-02-29', 'yearly
 $yearly_4  = RecurrenceSchedule::next_after( '2028-02-29', '2028-02-29', 'yearly', 4 );
 
 $checks = [
-	'plugin identity stays rc1 while later Work domains advance only the schema' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.7'" ),
+	'plugin identity stays rc1 while later Work domains advance only the schema' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
 	'canonical recurrence frequencies are bounded' => RecurrenceSchedule::frequencies() === [ 'daily', 'weekly', 'monthly', 'yearly' ],
 	'interval and date normalization rejects invalid schedules' => null === RecurrenceSchedule::normalize( 'hourly', 1, '2027-01-01' ) && null === RecurrenceSchedule::normalize( 'daily', 0, '2027-01-01' ) && null === RecurrenceSchedule::normalize( 'daily', 1, '2027-02-30' ),
 	'daily and weekly interval stepping is deterministic' => '2027-01-03' === RecurrenceSchedule::next_after( '2027-01-01', '2027-01-01', 'daily', 2 ) && '2027-01-15' === RecurrenceSchedule::next_after( '2027-01-01', '2027-01-01', 'weekly', 2 ),
