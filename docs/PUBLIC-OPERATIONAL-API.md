@@ -20,6 +20,8 @@ Sibling integrations must use Work public contracts. They must not read or write
 
 A source lookup resolves at most one canonical Work Item. A relation lookup may resolve many Work Items.
 
+Internal recovery relations are deliberately filtered out of the public Work Item projection. Integrations read canonical external origin through `source()` / `get_by_source()`, not through internal recovery metadata.
+
 ## Mutation contract
 
 `CB\Work\PublicApi\WorkItemActions` exposes:
@@ -54,11 +56,13 @@ One `(provider, source_type, external_id)` source identity may resolve to only o
 
 Manual Work Items do not require a source.
 
-`create_from_source()` is idempotent. A replay returns the already-linked canonical Work Item rather than creating another one.
+`create_from_source()` is idempotent for normal retries and concurrent callers. A replay returns the already-linked canonical Work Item rather than creating another one.
 
 Source identity is protected by a database uniqueness boundary in `cb_work_item_sources`. A bounded claim prevents normal concurrent workers from both creating the same source-derived Work Item. Stale claims may be taken over after the bounded recovery window.
 
-An internal Work-owned recovery relation is written during creation. If a process stops after canonical Work Item creation but before the source row is attached, a later claimant can recover that already-created Work Item instead of creating another one. The source table remains the authority for external source identity; the internal relation is recovery metadata.
+An internal Work-owned recovery relation is written during creation. Once that recovery marker has persisted, an interruption before source attachment can be repaired by a later claimant without creating another canonical Work Item. As with the existing recurrence architecture, Work does not pretend WordPress post creation plus separate relational metadata can be made perfectly atomic against a hard process termination in every hosting/storage path. The source table remains the authority for external source identity; the internal relation is recovery metadata.
+
+The internal recovery provider/type pair is reserved by Work. Public source/relation mutation APIs reject callers attempting to use that reserved namespace directly.
 
 ### Relation
 
@@ -82,7 +86,7 @@ Important source outcomes from `create_from_source()` are:
 
 - `created` — this call created the canonical Work Item and attached the source;
 - `reused` — the source was already attached to an existing canonical Work Item;
-- `recovered` — an earlier interrupted call had already created the Work Item and the current call repaired the source attachment.
+- `recovered` — an earlier interrupted call had already created a recoverable Work Item and the current call repaired the source attachment.
 
 A live source claim returns `work_source_busy`. Callers should retry later rather than creating through a different path.
 
