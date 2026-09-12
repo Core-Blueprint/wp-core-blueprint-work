@@ -50,6 +50,7 @@ $required = [
 	'src/PublicApi/Projects.php',
 	'src/PublicApi/Services.php',
 	'src/PublicApi/TaxRates.php',
+	'src/PublicApi/WorkItemActions.php',
 	'src/PublicApi/WorkItems.php',
 	'src/PublicApi/WorkTypes.php',
 	'src/Recurrence/Scheduler.php',
@@ -59,11 +60,15 @@ $required = [
 	'src/Repository/TaxRates.php',
 	'src/Repository/TimeEntries.php',
 	'src/Repository/Timers.php',
+	'src/Repository/WorkItemRelations.php',
+	'src/Repository/WorkItemSources.php',
 	'src/Repository/WorkItems.php',
 	'src/Repository/WorkTypes.php',
 	'src/Support/Requirements.php',
 	'src/Time/Access.php',
 	'docs/ARCHITECTURE.md',
+	'docs/DOMAIN-BOUNDARIES.md',
+	'docs/PUBLIC-OPERATIONAL-API.md',
 	'assets/service-pricing.js',
 ];
 
@@ -126,6 +131,7 @@ $public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
 	. file_get_contents( $root . '/src/PublicApi/Pricing.php' )
 	. file_get_contents( $root . '/src/PublicApi/PricingProviders.php' )
 	. file_get_contents( $root . '/src/PublicApi/Projects.php' )
+	. file_get_contents( $root . '/src/PublicApi/WorkItemActions.php' )
 	. file_get_contents( $root . '/src/PublicApi/WorkItems.php' )
 	. file_get_contents( $root . '/src/PublicApi/WorkTypes.php' );
 $resolver   = file_get_contents( $root . '/src/Pricing/Resolver.php' );
@@ -142,7 +148,7 @@ $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
 	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
-	'current Work schema version is 1.6' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.6'" ),
+	'current Work schema version is 1.7' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.7'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
 	'bootstrap does not pin an internal Base RC' => ! str_contains( $bootstrap, 'CB_WORK_REQUIRED_BASE' ),
