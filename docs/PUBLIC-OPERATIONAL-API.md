@@ -16,9 +16,9 @@ Sibling integrations must use Work public contracts. They must not read or write
 - `all( int $limit = 100, array $statuses = [] )`
 - `get_by_source( string $provider, string $source_type, string $external_id )`
 - `source( int $work_item_id )`
-- `by_relation( string $provider, string $relation_type, string $external_id )`
+- `by_relation( string $provider, string $relation_type, string $external_id, int $limit = 100 )`
 
-A source lookup resolves at most one canonical Work Item. A relation lookup may resolve many Work Items.
+A source lookup resolves at most one canonical Work Item. A relation lookup may resolve many Work Items, but is deliberately bounded to 100 by default and a hard maximum of 500 records per call.
 
 Internal recovery relations are deliberately filtered out of the public Work Item projection. Integrations read canonical external origin through `source()` / `get_by_source()`, not through internal recovery metadata.
 
