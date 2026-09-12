@@ -7,10 +7,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Work-owned wp-admin presentation assets.
  *
- * WordPress remains the visual foundation. Work adds modern workspace
- * composition only where wp-admin has no equivalent project-management
- * pattern: compact toolbars, progressive filters, Board layout and Calendar
- * density. Business state and authorization remain server-owned.
+ * Base owns the global WordPress Admin Theme, theme state and shared primitive
+ * presentation. Work only layers domain-specific workspace composition on top:
+ * filters, Board layout, Calendar density and Work-specific empty states.
  */
 final class Assets {
 	private const STYLE_HANDLE  = 'cb-work-admin';
@@ -42,7 +41,7 @@ final class Assets {
 		wp_enqueue_style(
 			self::STYLE_HANDLE,
 			CB_WORK_URL . 'assets/work-admin.css',
-			[],
+			[ 'cb-core-css-admin-theme' ],
 			$version
 		);
 	}
@@ -69,6 +68,12 @@ final class Assets {
 			'search'              => __( 'Search', 'core-blueprint-work' ),
 			'moreFilters'         => __( 'More filters', 'core-blueprint-work' ),
 			'lessFilters'         => __( 'Hide filters', 'core-blueprint-work' ),
+			'activeFilters'       => __( 'Active filters', 'core-blueprint-work' ),
+			'selected'            => __( 'Selected', 'core-blueprint-work' ),
+			'today'               => __( 'Today', 'core-blueprint-work' ),
+			'status'              => __( 'Status', 'core-blueprint-work' ),
+			'project'             => __( 'Project', 'core-blueprint-work' ),
+			'service'             => __( 'Service', 'core-blueprint-work' ),
 			'customer'            => __( 'Customer', 'core-blueprint-work' ),
 			'assignee'            => __( 'Assignee', 'core-blueprint-work' ),
 			'priority'            => __( 'Priority', 'core-blueprint-work' ),
