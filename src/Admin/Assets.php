@@ -16,10 +16,15 @@ final class Assets {
 	private const SCRIPT_HANDLE = 'cb-work-admin';
 
 	public static function init(): void {
-		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue' ] );
+		// Base fires this public hook after the canonical Admin Theme assets are
+		// enqueued. Work therefore consumes the public integration contract rather
+		// than coupling to Base's internal stylesheet handles or theme slugs.
+		add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 	}
 
-	public static function enqueue(): void {
+	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
+		unset( $hook_suffix, $theme, $mode, $registered );
+
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( Menu::WORK_ITEMS_SLUG !== $page ) {
 			return;
@@ -41,7 +46,7 @@ final class Assets {
 		wp_enqueue_style(
 			self::STYLE_HANDLE,
 			CB_WORK_URL . 'assets/work-admin.css',
-			[ 'cb-core-css-admin-theme' ],
+			[],
 			$version
 		);
 	}
