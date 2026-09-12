@@ -87,7 +87,9 @@ Each item is an inspection projection and includes the persisted unit status, cu
 
 Stale or currently ineligible persisted units remain visible in the feed instead of being silently filtered out. Consumers must only hand off items where `stale` is `false`, but should continue with `next_cursor` regardless. This prevents an old stale unit from permanently starving newer ready work behind a fixed result limit.
 
-The cursor is opaque to consumers beyond passing its integer value back as `after_id`; callers must not infer business chronology from it.
+The cursor is a **single-scan traversal cursor**, not a permanent consumer checkpoint. A caller starts each new polling/scanning cycle with `after_id = 0`, follows `next_cursor` until it becomes `null`, and then ends that scan. This ensures an older stale unit that is corrected or deliberately re-prepared later is visible again on the next scan even though its billing-unit ID did not change.
+
+The cursor is otherwise opaque to consumers; callers must not infer business chronology from it.
 
 ## External commercial references
 
