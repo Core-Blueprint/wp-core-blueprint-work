@@ -26,7 +26,7 @@ final class PricingProviders {
 	}
 
 	/**
-	 * @param array{service_id:int,customer_type:string,customer_id:int,effective_at:string} $context
+	 * @param array{service_id:int,customer_provider:string,customer_type:string,customer_id:int,effective_at:string} $context
 	 * @return array{provider:string,pricing:array<string,mixed>,reference_type:string,reference_id:string}|null
 	 */
 	public static function resolve( array $context ): ?array {
