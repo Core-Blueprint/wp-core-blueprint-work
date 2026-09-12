@@ -262,6 +262,22 @@ namespace {
 	);
 	assert_true( is_wp_error( $bad_csv ), 'CSV booleans fail closed instead of accepting truthy strings.' );
 
+	$mapped_external = $entity->plan_import(
+		[
+			'code' => 'it-standard-22',
+			'label' => 'IT Standard 22%',
+			'country_code' => 'IT',
+			'rate_bp' => '2200',
+			'is_active' => '1',
+			'valid_from' => null,
+			'valid_until' => null,
+		],
+		Foundation::MODE_CREATE_UPDATE,
+		1
+	);
+	assert_true( is_array( $mapped_external ) && Foundation::OP_CREATE === $mapped_external['operation'], 'Mapper-style scalar strings can enter provider semantic normalization.' );
+	assert_true( 2200 === $mapped_external['payload']['record']['rate_bp'] && true === $mapped_external['payload']['record']['is_active'], 'Provider normalizes only unambiguous typed scalar strings before fingerprint/apply.' );
+
 	$immutable = TaxRateActions::update( 1, [ 'code' => 'different-code' ] );
 	assert_true( is_wp_error( $immutable ) && 'work_tax_rate_code_immutable' === $immutable->get_error_code(), 'Canonical Work action keeps portable code immutable.' );
 

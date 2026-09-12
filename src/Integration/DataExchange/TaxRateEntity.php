@@ -181,8 +181,8 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 		return [
 			self::mapping_field( 'code', __( 'Code', 'core-blueprint-work' ), 'string', true, [ 'tax_code', 'vat_code' ] ),
 			self::mapping_field( 'label', __( 'Label', 'core-blueprint-work' ), 'string', true, [ 'name', 'title' ] ),
-			self::mapping_field( 'country_code', __( 'Country', 'core-blueprint-work' ), 'string', false, [ 'country', 'countrycode' ] ),
-			self::mapping_field( 'rate_bp', __( 'Rate', 'core-blueprint-work' ), 'integer', true, [ 'rate', 'basis_points', 'vat_rate' ] ),
+			self::mapping_field( 'country_code', __( 'Country code', 'core-blueprint-work' ), 'string', false, [ 'countrycode', 'iso_country_code' ] ),
+			self::mapping_field( 'rate_bp', __( 'Rate (basis points)', 'core-blueprint-work' ), 'integer', true, [ 'basis_points', 'rate_basis_points' ] ),
 			self::mapping_field( 'is_active', __( 'Active', 'core-blueprint-work' ), 'boolean', true, [ 'active', 'enabled' ] ),
 			self::mapping_field( 'valid_from', __( 'Valid from', 'core-blueprint-work' ), 'date', false, [ 'from', 'start_date' ] ),
 			self::mapping_field( 'valid_until', __( 'Valid until', 'core-blueprint-work' ), 'date', false, [ 'until', 'end_date' ] ),
@@ -236,10 +236,19 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 			return new WP_Error( 'work_data_exchange_tax_rate_invalid_country' );
 		}
 
-		if ( ! is_int( $record['rate_bp'] ) || $record['rate_bp'] < 0 || $record['rate_bp'] > 10000 ) {
+		$rate_bp = $record['rate_bp'];
+		if ( is_string( $rate_bp ) && 1 === preg_match( '/^(?:0|[1-9][0-9]{0,4})$/D', $rate_bp ) ) {
+			$rate_bp = (int) $rate_bp;
+		}
+		if ( ! is_int( $rate_bp ) || $rate_bp < 0 || $rate_bp > 10000 ) {
 			return new WP_Error( 'work_data_exchange_tax_rate_invalid_rate' );
 		}
-		if ( ! is_bool( $record['is_active'] ) ) {
+
+		$is_active = $record['is_active'];
+		if ( is_string( $is_active ) && in_array( $is_active, [ '0', '1' ], true ) ) {
+			$is_active = '1' === $is_active;
+		}
+		if ( ! is_bool( $is_active ) ) {
 			return new WP_Error( 'work_data_exchange_tax_rate_invalid_status' );
 		}
 
@@ -256,8 +265,8 @@ final class TaxRateEntity implements CsvEntityInterface, MappingEntityInterface 
 			'code'         => $code,
 			'label'        => $label,
 			'country_code' => $country,
-			'rate_bp'      => $record['rate_bp'],
-			'is_active'    => $record['is_active'],
+			'rate_bp'      => $rate_bp,
+			'is_active'    => $is_active,
 			'valid_from'   => $valid_from,
 			'valid_until'  => $valid_until,
 		];
