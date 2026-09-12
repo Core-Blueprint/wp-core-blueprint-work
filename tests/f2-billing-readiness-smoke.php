@@ -31,9 +31,12 @@ $checks = [
 	'already-linked changed sources fail closed rather than re-billing silently' => str_contains( $repository, "'work_billing_linked_source_changed'" ) && str_contains( $repository, "'work_billing_already_linked'" ),
 	'billing reads and mutations require Work management authority' => str_contains( $reads, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $actions, 'current_user_can( Capabilities::MANAGE )' ),
 	'billing audit contexts keep internal correlation but omit raw external resource identifiers' => str_contains( $actions, "'billing_unit_id'" ) && str_contains( $actions, "'snapshot_id'" ) && ! preg_match( "/Audit::record\([^;]*['\"]resource_id['\"]\s*=>/s", $actions ),
+	'ready repository traversal is bounded and cursor-safe instead of repeatedly selecting the same stale prefix' => str_contains( $repository, 'int $after_id = 0' ) && str_contains( $repository, 'id > %d' ) && str_contains( $repository, 'ORDER BY id ASC LIMIT %d' ),
+	'public ready feed exposes a continuation cursor and preserves stale rows for operator visibility' => str_contains( $reads, '$limit + 1' ) && str_contains( $reads, "'next_cursor'" ) && str_contains( $reads, "'candidate_error'" ) && ! str_contains( $reads, 'if ( is_wp_error( $candidate ) ) { continue;' ),
+	'inspection preserves historical snapshots and references when live eligibility fails' => strpos( $reads, 'BillingUnits::find( $unit_type, $unit_id )' ) < strpos( $reads, 'SnapshotBuilder::build( $unit_type, $unit_id )' ) && str_contains( $reads, 'return self::inspection( $unit, null, $candidate->get_error_code() );' ),
 	'billing lifecycle is governed and observable' => str_contains( $events, 'work.billing.ready' ) && str_contains( $events, 'work.billing.external.linked' ) && str_contains( $actions, "do_action( 'cb_work_billing_external_linked'" ),
 	'F2 stays Invoice and Quotes neutral in executable source' => ! str_contains( $builder . $repository . $reads . $actions, 'Invoice' ) && ! str_contains( $builder . $repository . $reads . $actions, 'CB\\Invoice' ),
-	'documentation explicitly separates Work input snapshots from financial document truth' => str_contains( $docs, 'operational/commercial input frozen at handoff time' ) && str_contains( $docs, 'authoritative financial document calculation' ),
+	'documentation explicitly separates Work input snapshots from financial document truth and documents cursor traversal' => str_contains( $docs, 'operational/commercial input frozen at handoff time' ) && str_contains( $docs, 'authoritative financial document calculation' ) && str_contains( $docs, 'next_cursor' ),
 	'F2 introduces no cross-plugin SQL foreign keys' => ! str_contains( strtoupper( $schema ), 'FOREIGN KEY' ),
 ];
 
