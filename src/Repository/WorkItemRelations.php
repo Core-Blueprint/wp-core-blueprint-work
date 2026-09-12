@@ -10,19 +10,21 @@ defined( 'ABSPATH' ) || exit;
 /** Provider-neutral reverse lookup for ordinary Work Item relations. */
 final class WorkItemRelations {
 	/** @return int[] */
-	public static function find_work_item_ids( string $provider, string $relation_type, string $external_id ): array {
+	public static function find_work_item_ids( string $provider, string $relation_type, string $external_id, int $limit = 100 ): array {
 		$relation = self::normalize( $provider, $relation_type, $external_id );
 		if ( false === $relation || ! self::schema_ready() ) {
 			return [];
 		}
+		$limit = max( 1, min( 500, $limit ) );
 
 		global $wpdb;
 		$ids = $wpdb->get_col(
 			$wpdb->prepare(
-				'SELECT work_item_id FROM ' . Schema::relations_table() . ' WHERE provider = %s AND relation_type = %s AND external_id = %s ORDER BY work_item_id ASC',
+				'SELECT work_item_id FROM ' . Schema::relations_table() . ' WHERE provider = %s AND relation_type = %s AND external_id = %s ORDER BY work_item_id ASC LIMIT %d',
 				$relation['provider'],
 				$relation['type'],
-				$relation['id']
+				$relation['id'],
+				$limit
 			)
 		);
 		if ( ! is_array( $ids ) ) {
