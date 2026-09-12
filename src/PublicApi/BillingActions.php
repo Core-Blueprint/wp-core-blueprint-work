@@ -37,7 +37,7 @@ final class BillingActions {
 		$result = BillingUnits::link_external_reference( $candidate['unit_type'], $candidate['unit_id'], $candidate['fingerprint'], $provider, $resource_type, $resource_id, $display_reference, $status_projection );
 		if ( is_wp_error( $result ) ) { return $result; }
 		if ( 'linked' === $result['outcome'] ) {
-			Audit::record( Events::BILLING_EXTERNAL_LINKED, 'notice', [ 'billing_unit_id' => (int) $result['unit']['id'], 'snapshot_id' => (int) $result['snapshot']['id'], 'provider' => (string) $result['reference']['provider'], 'resource_type' => (string) $result['reference']['resource_type'], 'resource_id' => (string) $result['reference']['resource_id'], 'actor_user_id' => get_current_user_id() ] );
+			Audit::record( Events::BILLING_EXTERNAL_LINKED, 'notice', [ 'billing_unit_id' => (int) $result['unit']['id'], 'snapshot_id' => (int) $result['snapshot']['id'], 'provider' => (string) $result['reference']['provider'], 'resource_type' => (string) $result['reference']['resource_type'], 'actor_user_id' => get_current_user_id() ] );
 			do_action( 'cb_work_billing_external_linked', $result['unit'], $result['snapshot'], $result['reference'] );
 		}
 		return $result;
@@ -49,7 +49,7 @@ final class BillingActions {
 		$result = BillingUnits::update_external_status( $unit_type, $unit_id, $provider, $resource_type, $resource_id, $status_projection, $display_reference );
 		if ( is_wp_error( $result ) ) { return $result; }
 		if ( 'updated' === $result['outcome'] ) {
-			Audit::record( Events::BILLING_EXTERNAL_STATUS_UPDATED, 'notice', [ 'provider' => (string) $result['reference']['provider'], 'resource_type' => (string) $result['reference']['resource_type'], 'resource_id' => (string) $result['reference']['resource_id'], 'status_projection' => (string) $result['reference']['status_projection'], 'actor_user_id' => get_current_user_id() ] );
+			Audit::record( Events::BILLING_EXTERNAL_STATUS_UPDATED, 'notice', [ 'billing_unit_id' => (int) $result['reference']['billing_unit_id'], 'snapshot_id' => (int) $result['reference']['snapshot_id'], 'provider' => (string) $result['reference']['provider'], 'resource_type' => (string) $result['reference']['resource_type'], 'status_projection' => (string) $result['reference']['status_projection'], 'actor_user_id' => get_current_user_id() ] );
 			do_action( 'cb_work_billing_external_status_updated', $result['reference'] );
 		}
 		return $result;
