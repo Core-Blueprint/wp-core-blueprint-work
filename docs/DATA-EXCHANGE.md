@@ -48,6 +48,8 @@ Portable records contain:
 
 Internal database IDs and timestamps are excluded.
 
+For Data Mapper imports, `code`, `label`, `rate_bp` and `is_active` are required targets. `country_code`, `valid_from` and `valid_until` are optional. When an optional field is left unmapped, a create uses the Work default while an update preserves the current Work-owned value. An explicitly mapped empty value remains an explicit request to clear an optional/nullable field where the Work domain permits it.
+
 ## Mutation path
 
 ```text
