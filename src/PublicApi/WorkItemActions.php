@@ -38,7 +38,7 @@ final class WorkItemActions {
 			return new \WP_Error( 'work_create_failed' );
 		}
 
-		$item = WorkItemRepository::get( $work_item_id );
+		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
@@ -76,7 +76,7 @@ final class WorkItemActions {
 		}
 
 		if ( 'existing' === $claim['status'] ) {
-			$item = WorkItemRepository::get( $claim['work_item_id'] );
+			$item = WorkItems::get( $claim['work_item_id'] );
 			$source = WorkItemSources::projection( WorkItemSources::get( $claim['source_id'] ) );
 			if ( null === $item || null === $source ) {
 				return new \WP_Error( 'work_source_corrupt' );
@@ -115,7 +115,7 @@ final class WorkItemActions {
 			return new \WP_Error( 'work_source_attach_failed' );
 		}
 
-		$item   = WorkItemRepository::get( $work_item_id );
+		$item   = WorkItems::get( $work_item_id );
 		$source = WorkItemSources::projection( WorkItemSources::get( $source_id ) );
 		if ( null === $item || null === $source ) {
 			return new \WP_Error( 'work_resource_unavailable' );
@@ -152,7 +152,7 @@ final class WorkItemActions {
 		if ( ! WorkItemRepository::update( $work_item_id, $input ) ) {
 			return new \WP_Error( 'work_update_failed' );
 		}
-		$item = WorkItemRepository::get( $work_item_id );
+		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
@@ -178,7 +178,7 @@ final class WorkItemActions {
 		if ( ! WorkItemRepository::transition_status( $work_item_id, $to, get_current_user_id() ) ) {
 			return new \WP_Error( 'work_transition_invalid' );
 		}
-		$item = WorkItemRepository::get( $work_item_id );
+		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
@@ -208,17 +208,19 @@ final class WorkItemActions {
 		}
 
 		if ( self::has_relation( $item, $relation ) ) {
-			return $item;
+			$public = WorkItems::get( $work_item_id );
+			return null === $public ? new \WP_Error( 'work_resource_unavailable' ) : $public;
 		}
 		if ( ! WorkItemRepository::add_relation( $work_item_id, $relation['provider'], $relation['type'], $relation['id'] ) ) {
 			$fresh = WorkItemRepository::get( $work_item_id );
 			if ( null === $fresh || ! self::has_relation( $fresh, $relation ) ) {
 				return new \WP_Error( 'work_relation_failed' );
 			}
-			return $fresh;
+			$public = WorkItems::get( $work_item_id );
+			return null === $public ? new \WP_Error( 'work_resource_unavailable' ) : $public;
 		}
 
-		$item = WorkItemRepository::get( $work_item_id );
+		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
