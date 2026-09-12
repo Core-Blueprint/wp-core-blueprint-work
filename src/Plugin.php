@@ -21,6 +21,7 @@ use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Governance\Events;
 use CB\Work\Recurrence\Scheduler;
+use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Support\Requirements;
 
@@ -41,6 +42,7 @@ final class Plugin {
 		ProjectMeta::init();
 		WorkItemMeta::init();
 		WorkItemRepository::init();
+		WorkItemSources::init();
 		ServicePricingDomain::init();
 		Scheduler::init();
 
