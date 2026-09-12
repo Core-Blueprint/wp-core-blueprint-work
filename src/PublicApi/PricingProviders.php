@@ -26,7 +26,10 @@ final class PricingProviders {
 	}
 
 	/**
-	 * @param array{service_id:int,customer_provider:string,customer_type:string,customer_id:int,effective_at:string} $context
+	 * `customer_id` is retained as the legacy numeric compatibility field.
+	 * `customer_reference_id` is the provider-neutral opaque identifier.
+	 *
+	 * @param array{service_id:int,customer_provider:string,customer_type:string,customer_id:int,customer_reference_id:string,effective_at:string} $context
 	 * @return array{provider:string,pricing:array<string,mixed>,reference_type:string,reference_id:string}|null
 	 */
 	public static function resolve( array $context ): ?array {
