@@ -17,6 +17,7 @@ $required = [
 	'src/Admin/WorkItems.php',
 	'src/Admin/ServicePricing.php',
 	'src/Admin/TaxRateActions.php',
+	'src/Billing/SnapshotBuilder.php',
 	'src/Capabilities.php',
 	'src/Content/PostTypes.php',
 	'src/Content/ProjectMeta.php',
@@ -26,6 +27,7 @@ $required = [
 	'src/Content/ServicePricing.php',
 	'src/Database/Schema.php',
 	'src/Domain/BillingDisposition.php',
+	'src/Domain/BillingUnit.php',
 	'src/Domain/RecurrenceSchedule.php',
 	'src/Domain/TimeRange.php',
 	'src/Domain/WorkItemPriority.php',
@@ -45,6 +47,8 @@ $required = [
 	'src/Lifecycle.php',
 	'src/Plugin.php',
 	'src/Pricing/Resolver.php',
+	'src/PublicApi/Billing.php',
+	'src/PublicApi/BillingActions.php',
 	'src/PublicApi/Pricing.php',
 	'src/PublicApi/PricingProviders.php',
 	'src/PublicApi/Projects.php',
@@ -54,6 +58,7 @@ $required = [
 	'src/PublicApi/WorkItems.php',
 	'src/PublicApi/WorkTypes.php',
 	'src/Recurrence/Scheduler.php',
+	'src/Repository/BillingUnits.php',
 	'src/Repository/Projects.php',
 	'src/Repository/RecurrenceOccurrences.php',
 	'src/Repository/RecurrenceRules.php',
@@ -68,6 +73,7 @@ $required = [
 	'src/Time/Access.php',
 	'docs/ARCHITECTURE.md',
 	'docs/DOMAIN-BOUNDARIES.md',
+	'docs/PUBLIC-BILLING-API.md',
 	'docs/PUBLIC-OPERATIONAL-API.md',
 	'assets/service-pricing.js',
 ];
@@ -126,7 +132,9 @@ $capabilities = file_get_contents( $root . '/src/Capabilities.php' );
 $events = file_get_contents( $root . '/src/Governance/Events.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 $crm        = file_get_contents( $root . '/src/Integration/CRMCustomers.php' );
-$public     = file_get_contents( $root . '/src/PublicApi/Services.php' )
+$public     = file_get_contents( $root . '/src/PublicApi/Billing.php' )
+	. file_get_contents( $root . '/src/PublicApi/BillingActions.php' )
+	. file_get_contents( $root . '/src/PublicApi/Services.php' )
 	. file_get_contents( $root . '/src/PublicApi/TaxRates.php' )
 	. file_get_contents( $root . '/src/PublicApi/Pricing.php' )
 	. file_get_contents( $root . '/src/PublicApi/PricingProviders.php' )
@@ -148,7 +156,7 @@ $vatFormPos  = strpos( $page, 'name="action" value="cb_work_add_tax_rate"' );
 
 $checks = [
 	'launch candidate version is rc1' => 1 === preg_match( '/Version:\s+1\.0\.0-rc1/', $bootstrap ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
-	'current Work schema version is 1.7' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.7'" ),
+	'current Work schema version is 1.8' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
 	'bootstrap registers Work schema before Base sweep' => str_contains( $bootstrap, "}, 4 );" ) && str_contains( $bootstrap, 'Database\\Schema::register();' ),
 	'bootstrap waits for public Base boot signal' => str_contains( $bootstrap, "add_action( 'cb_core_booted'" ),
 	'bootstrap does not pin an internal Base RC' => ! str_contains( $bootstrap, 'CB_WORK_REQUIRED_BASE' ),
