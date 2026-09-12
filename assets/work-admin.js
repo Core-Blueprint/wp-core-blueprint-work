@@ -36,6 +36,27 @@
 		return input ? String( input.value || '' ).trim() : '';
 	}
 
+	function selectedText( control ) {
+		if ( ! control || ! control.matches || ! control.matches( 'select' ) ) {
+			return '';
+		}
+		return control.selectedOptions && control.selectedOptions[ 0 ]
+			? String( control.selectedOptions[ 0 ].textContent || '' ).trim()
+			: '';
+	}
+
+	function pickerSelectedText( control ) {
+		if ( ! control ) {
+			return '';
+		}
+		return Array.from( control.querySelectorAll( '.cb-core-object-picker__chip-label' ) )
+			.map( function ( node ) {
+				return String( node.textContent || '' ).trim();
+			} )
+			.filter( Boolean )
+			.join( ', ' );
+	}
+
 	function ensureId( control, id ) {
 		if ( control && ! control.id ) {
 			control.id = id;
@@ -75,6 +96,43 @@
 		controls.appendChild( to );
 		wrapper.appendChild( controls );
 		return wrapper;
+	}
+
+	function rangeSummary( from, to, separator ) {
+		const fromValue = controlValue( from );
+		const toValue = controlValue( to );
+		if ( ! fromValue && ! toValue ) {
+			return '';
+		}
+		return ( fromValue || '…' ) + ' ' + separator + ' ' + ( toValue || '…' );
+	}
+
+	function appendSummaryChip( container, label, value ) {
+		if ( ! value ) {
+			return;
+		}
+		container.appendChild( element( 'span', 'cb-work-filter-chip', label + ': ' + value ) );
+	}
+
+	function enhanceCalendarNavigation( page, currentView, strings ) {
+		if ( currentView !== 'calendar' ) {
+			return;
+		}
+
+		const actions = page.querySelector( '.cb-work-calendar-navigation .actions' );
+		const previous = actions ? actions.querySelector( 'a.button' ) : null;
+		if ( ! actions || ! previous || actions.querySelector( '.cb-work-calendar-today' ) ) {
+			return;
+		}
+
+		const now = new Date();
+		const month = String( now.getFullYear() ) + '-' + String( now.getMonth() + 1 ).padStart( 2, '0' );
+		const url = new URL( window.location.href );
+		url.searchParams.set( 'calendar_month', month );
+
+		const today = element( 'a', 'button cb-work-calendar-today', strings.today || 'Today' );
+		today.href = url.toString();
+		previous.insertAdjacentElement( 'afterend', today );
 	}
 
 	function initWorkItems() {
@@ -174,6 +232,25 @@
 		row.appendChild( search );
 		toolbar.appendChild( row );
 
+		if ( hasAnyFilters ) {
+			const summary = element( 'div', 'cb-work-filter-summary' );
+			summary.setAttribute( 'aria-label', strings.activeFilters || 'Active filters' );
+			summary.appendChild( element( 'span', 'cb-work-filter-summary__label', strings.activeFilters || 'Active filters' ) );
+			appendSummaryChip( summary, strings.status || 'Status', controlValue( controls.status ) ? selectedText( controls.status ) : '' );
+			appendSummaryChip( summary, strings.project || 'Project', controlValue( controls.project ) !== '0' ? selectedText( controls.project ) : '' );
+			appendSummaryChip( summary, strings.service || 'Service', controlValue( controls.service ) !== '0' ? selectedText( controls.service ) : '' );
+			appendSummaryChip( summary, strings.search || 'Search', controlValue( controls.search ) );
+			appendSummaryChip( summary, strings.priority || 'Priority', controlValue( controls.priority ) ? selectedText( controls.priority ) : '' );
+			appendSummaryChip( summary, strings.workType || 'Work Type', controlValue( controls.workType ) !== '0' ? selectedText( controls.workType ) : '' );
+			appendSummaryChip( summary, strings.billing || 'Billing', controlValue( controls.billing ) ? selectedText( controls.billing ) : '' );
+			appendSummaryChip( summary, strings.customer || 'Customer', pickerSelectedText( controls.customer ) || ( controlValue( controls.customer ) ? ( strings.selected || 'Selected' ) : '' ) );
+			appendSummaryChip( summary, strings.assignee || 'Assignee', pickerSelectedText( controls.assignee ) || ( controlValue( controls.assignee ) ? ( strings.selected || 'Selected' ) : '' ) );
+			appendSummaryChip( summary, strings.scheduled || 'Scheduled', currentView === 'calendar' ? '' : rangeSummary( controls.scheduledFrom, controls.scheduledTo, strings.to || 'to' ) );
+			appendSummaryChip( summary, strings.due || 'Due', rangeSummary( controls.dueFrom, controls.dueTo, strings.to || 'to' ) );
+			appendSummaryChip( summary, strings.sort || 'Sort', controlValue( controls.sort ) !== 'workload' ? selectedText( controls.sort ) : '' );
+			toolbar.appendChild( summary );
+		}
+
 		const grid = element( 'div', 'cb-work-toolbar__advanced-grid' );
 		[
 			field( strings.customer || 'Customer', controls.customer, 'cb-work-filter-field--wide' ),
@@ -231,6 +308,8 @@
 			header.appendChild( resultHeading );
 			header.appendChild( resultCount );
 		}
+
+		enhanceCalendarNavigation( page, currentView, strings );
 
 		const emptyParagraph = Array.from( page.children ).find( function ( child ) {
 			return child.tagName === 'P' && ! child.classList.contains( 'description' ) && child.textContent.trim() !== '';

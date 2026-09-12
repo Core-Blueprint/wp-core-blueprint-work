@@ -7,20 +7,24 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Work-owned wp-admin presentation assets.
  *
- * WordPress remains the visual foundation. Work adds modern workspace
- * composition only where wp-admin has no equivalent project-management
- * pattern: compact toolbars, progressive filters, Board layout and Calendar
- * density. Business state and authorization remain server-owned.
+ * Base owns the global WordPress Admin Theme, theme state and shared primitive
+ * presentation. Work only layers domain-specific workspace composition on top:
+ * filters, Board layout, Calendar density and Work-specific empty states.
  */
 final class Assets {
 	private const STYLE_HANDLE  = 'cb-work-admin';
 	private const SCRIPT_HANDLE = 'cb-work-admin';
 
 	public static function init(): void {
-		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue' ] );
+		// Base fires this public hook after the canonical Admin Theme assets are
+		// enqueued. Work therefore consumes the public integration contract rather
+		// than coupling to Base's internal stylesheet handles or theme slugs.
+		add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 	}
 
-	public static function enqueue(): void {
+	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
+		unset( $hook_suffix, $theme, $mode, $registered );
+
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( Menu::WORK_ITEMS_SLUG !== $page ) {
 			return;
@@ -69,6 +73,12 @@ final class Assets {
 			'search'              => __( 'Search', 'core-blueprint-work' ),
 			'moreFilters'         => __( 'More filters', 'core-blueprint-work' ),
 			'lessFilters'         => __( 'Hide filters', 'core-blueprint-work' ),
+			'activeFilters'       => __( 'Active filters', 'core-blueprint-work' ),
+			'selected'            => __( 'Selected', 'core-blueprint-work' ),
+			'today'               => __( 'Today', 'core-blueprint-work' ),
+			'status'              => __( 'Status', 'core-blueprint-work' ),
+			'project'             => __( 'Project', 'core-blueprint-work' ),
+			'service'             => __( 'Service', 'core-blueprint-work' ),
 			'customer'            => __( 'Customer', 'core-blueprint-work' ),
 			'assignee'            => __( 'Assignee', 'core-blueprint-work' ),
 			'priority'            => __( 'Priority', 'core-blueprint-work' ),
