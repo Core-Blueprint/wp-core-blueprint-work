@@ -9,6 +9,10 @@ require $root . '/src/Domain/TimeRange.php';
 
 use CB\Work\Domain\TimeRange;
 
+$started = TimeRange::local_to_utc( '2026-01-15', '10:00' );
+$ended   = TimeRange::local_to_utc( '2026-01-15', '11:30' );
+$parts   = null === $started ? null : TimeRange::utc_to_local_parts( $started );
+
 $bootstrap   = file_get_contents( $root . '/core-blueprint-work.php' );
 $schema      = file_get_contents( $root . '/src/Database/Schema.php' );
 $caps        = file_get_contents( $root . '/src/Capabilities.php' );
@@ -23,12 +27,8 @@ $menu        = file_get_contents( $root . '/src/Admin/Menu.php' );
 $workMeta    = file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $recurrence  = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' );
 
-$started = TimeRange::local_to_utc( '2026-01-15', '10:00' );
-$ended   = TimeRange::local_to_utc( '2026-01-15', '11:30' );
-$parts   = null === $started ? null : TimeRange::utc_to_local_parts( $started );
-
 $checks = [
-	'plugin stays rc1 while E3 advances only Work schema to 1.6' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.6'" ),
+	'plugin stays rc1 while later foundations advance Work schema beyond E3 to 1.7' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.7'" ),
 	'Work owns exactly named Time Entry and Active Timer tables' => str_contains( $schema, "'cb_work_time_entries'" ) && str_contains( $schema, "'cb_work_active_timers'" ),
 	'Time storage has no SQL foreign keys' => ! str_contains( strtoupper( $schema ), 'FOREIGN KEY' ),
 	'one active timer per WordPress user is a database boundary' => str_contains( $schema, 'PRIMARY KEY  (user_id)' ) && str_contains( $schema, 'UNIQUE KEY time_entry_id (time_entry_id)' ),
