@@ -94,10 +94,11 @@ final class SnapshotBuilder {
 		}
 
 		$pricing = Resolver::resolve( $service_id, [
-			'customer_provider' => $customer['provider'],
-			'customer_type'     => $customer['type'],
-			'customer_id'       => $customer['id'],
-			'effective_at'      => $effective_at,
+			'customer_provider'     => $customer['provider'],
+			'customer_type'         => $customer['type'],
+			'customer_id'           => $customer['id'],
+			'customer_reference_id' => $customer['id'],
+			'effective_at'          => $effective_at,
 		] );
 		if ( null === $pricing || null === $pricing['amount_minor'] ) {
 			return new \WP_Error( 'work_billing_pricing_required' );
@@ -114,7 +115,10 @@ final class SnapshotBuilder {
 
 		$tax_context = null;
 		$tax_rate_id = (int) $pricing['tax_rate_id'];
-		if ( ServicePricing::TAX_EXEMPT !== $pricing['tax_mode'] && $tax_rate_id > 0 ) {
+		if ( ServicePricing::TAX_EXEMPT !== $pricing['tax_mode'] ) {
+			if ( $tax_rate_id <= 0 ) {
+				return new \WP_Error( 'work_billing_tax_context_required' );
+			}
 			$tax = TaxRates::get( $tax_rate_id );
 			if ( null === $tax || ! TaxRates::is_available( $tax_rate_id, $effective_at ) ) {
 				return new \WP_Error( 'work_billing_tax_context_invalid' );
