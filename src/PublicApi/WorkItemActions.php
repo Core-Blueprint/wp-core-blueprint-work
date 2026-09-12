@@ -66,6 +66,9 @@ final class WorkItemActions {
 		if ( self::contains_source_fields( $input ) ) {
 			return new \WP_Error( 'work_source_contract_required' );
 		}
+		if ( self::is_reserved_reference( $provider, $source_type ) ) {
+			return new \WP_Error( 'work_source_reserved' );
+		}
 
 		$claim = WorkItemSources::claim( $provider, $source_type, $external_id, self::SOURCE_CLAIM_STALE_SECONDS );
 		if ( false === $claim ) {
@@ -200,6 +203,9 @@ final class WorkItemActions {
 		if ( false === $relation || null === $item ) {
 			return new \WP_Error( 'work_relation_invalid' );
 		}
+		if ( self::is_reserved_reference( $relation['provider'], $relation['type'] ) ) {
+			return new \WP_Error( 'work_relation_reserved' );
+		}
 
 		if ( self::has_relation( $item, $relation ) ) {
 			return $item;
@@ -235,6 +241,11 @@ final class WorkItemActions {
 		return array_key_exists( 'source_provider', $input )
 			|| array_key_exists( 'source_type', $input )
 			|| array_key_exists( 'source_id', $input );
+	}
+
+	private static function is_reserved_reference( string $provider, string $relation_type ): bool {
+		return WorkItemSources::RECOVERY_PROVIDER === sanitize_key( $provider )
+			&& WorkItemSources::RECOVERY_TYPE === sanitize_key( $relation_type );
 	}
 
 	/** @param array<string,mixed> $item @param array{provider:string,type:string,id:string} $relation */
