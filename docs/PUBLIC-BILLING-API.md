@@ -74,6 +74,21 @@ If a Time Entry, Work Item, Service pricing, pricing-provider agreement or tax c
 
 Once a unit is externally linked, a changed Work source is not silently re-prepared or re-billed. Work fails closed so later reconciliation can be handled explicitly instead of risking duplicate commercial processing.
 
+`Billing::inspect()` preserves the stored billing unit, current snapshot and external references even when the live source can no longer produce a valid candidate. In that case `stale` is `true`, `candidate_fingerprint` is `null`, and `candidate_error` contains the current eligibility error code. Historical commercial evidence therefore remains inspectable when live Work data changes or disappears.
+
+## Ready feed and cursor semantics
+
+`Billing::ready()` is a bounded cursor feed over persisted Work billing units in `ready` state. It returns a page object with:
+
+- `items` — up to the requested limit;
+- `next_cursor` — the last returned billing-unit ID when another page exists, otherwise `null`.
+
+Each item is an inspection projection and includes the persisted unit status, current snapshot, external references, `stale`, `candidate_fingerprint` and nullable `candidate_error`.
+
+Stale or currently ineligible persisted units remain visible in the feed instead of being silently filtered out. Consumers must only hand off items where `stale` is `false`, but should continue with `next_cursor` regardless. This prevents an old stale unit from permanently starving newer ready work behind a fixed result limit.
+
+The cursor is opaque to consumers beyond passing its integer value back as `after_id`; callers must not infer business chronology from it.
+
 ## External commercial references
 
 External references are provider-neutral. They contain:
@@ -96,7 +111,7 @@ A Work billing unit may be linked to one canonical external commercial resource 
 `CB\Work\PublicApi\Billing`
 
 - `inspect( string $unit_type, int $unit_id )`
-- `ready( int $limit = 100 )`
+- `ready( int $limit = 100, int $after_id = 0 )`
 - `snapshot( int $snapshot_id )`
 - `snapshots( string $unit_type, int $unit_id, int $limit = 50 )`
 
