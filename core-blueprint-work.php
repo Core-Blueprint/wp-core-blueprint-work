@@ -25,7 +25,7 @@ if ( defined( 'CB_WORK_FILE' ) ) {
 }
 
 define( 'CB_WORK_VERSION', '1.0.0-rc1' );
-define( 'CB_WORK_SCHEMA_VERSION', '1.6' );
+define( 'CB_WORK_SCHEMA_VERSION', '1.7' );
 define( 'CB_WORK_REQUIRED_API', '1.0' );
 define( 'CB_WORK_FILE', __FILE__ );
 define( 'CB_WORK_DIR', plugin_dir_path( __FILE__ ) );
