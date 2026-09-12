@@ -64,12 +64,18 @@ final class BillingUnits {
 	}
 
 	/** @return array<int,array<string,mixed>> */
-	public static function ready( int $limit = 100 ): array {
+	public static function ready( int $limit = 100, int $after_id = 0 ): array {
 		if ( ! self::schema_ready() ) { return []; }
-		$limit = max( 1, min( 250, $limit ) );
+		$limit    = max( 1, min( 250, $limit ) );
+		$after_id = max( 0, $after_id );
 		global $wpdb;
 		$rows = $wpdb->get_results(
-			$wpdb->prepare( 'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE status = %s ORDER BY ready_at ASC, id ASC LIMIT ' . $limit, BillingUnit::READY ),
+			$wpdb->prepare(
+				'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE status = %s AND id > %d ORDER BY id ASC LIMIT %d',
+				BillingUnit::READY,
+				$after_id,
+				$limit
+			),
 			ARRAY_A
 		);
 		return is_array( $rows ) ? array_values( array_map( [ self::class, 'hydrate_unit' ], $rows ) ) : [];
