@@ -19,6 +19,10 @@ final class Events {
 	public const WORK_ITEM_STATUS_CHANGED       = 'work.item.status.changed';
 	public const WORK_ITEM_SOURCE_ATTACHED      = 'work.item.source.attached';
 	public const WORK_ITEM_RELATION_ADDED       = 'work.item.relation.added';
+	public const BILLING_READY                   = 'work.billing.ready';
+	public const BILLING_SNAPSHOT_REFRESHED      = 'work.billing.snapshot.refreshed';
+	public const BILLING_EXTERNAL_LINKED         = 'work.billing.external.linked';
+	public const BILLING_EXTERNAL_STATUS_UPDATED = 'work.billing.external.status.updated';
 	public const WORK_TYPE_CREATED              = 'work.type.created';
 	public const WORK_TYPE_STATUS_CHANGED       = 'work.type.status.changed';
 	public const RECURRENCE_RULE_CREATED        = 'work.recurrence.rule.created';
@@ -49,6 +53,10 @@ final class Events {
 			self::WORK_ITEM_STATUS_CHANGED       => [ __( 'Work Item status changed', 'core-blueprint-work' ), 'general' ],
 			self::WORK_ITEM_SOURCE_ATTACHED      => [ __( 'Work Item source attached', 'core-blueprint-work' ), 'general' ],
 			self::WORK_ITEM_RELATION_ADDED       => [ __( 'Work Item relation added', 'core-blueprint-work' ), 'general' ],
+			self::BILLING_READY                   => [ __( 'Work billing unit ready', 'core-blueprint-work' ), 'general' ],
+			self::BILLING_SNAPSHOT_REFRESHED      => [ __( 'Work billing snapshot refreshed', 'core-blueprint-work' ), 'general' ],
+			self::BILLING_EXTERNAL_LINKED         => [ __( 'Work billing unit linked externally', 'core-blueprint-work' ), 'general' ],
+			self::BILLING_EXTERNAL_STATUS_UPDATED => [ __( 'Work external billing status updated', 'core-blueprint-work' ), 'general' ],
 			self::WORK_TYPE_CREATED              => [ __( 'Work Type created', 'core-blueprint-work' ), 'general' ],
 			self::WORK_TYPE_STATUS_CHANGED       => [ __( 'Work Type status changed', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_RULE_CREATED        => [ __( 'Recurring Work rule created', 'core-blueprint-work' ), 'general' ],

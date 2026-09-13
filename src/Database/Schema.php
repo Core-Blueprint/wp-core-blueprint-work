@@ -22,6 +22,9 @@ final class Schema {
 				[ self::class, 'assignments_table' ],
 				[ self::class, 'relations_table' ],
 				[ self::class, 'sources_table' ],
+				[ self::class, 'billing_units_table' ],
+				[ self::class, 'billing_snapshots_table' ],
+				[ self::class, 'billing_external_refs_table' ],
 				[ self::class, 'recurrence_rules_table' ],
 				[ self::class, 'recurrence_assignments_table' ],
 				[ self::class, 'recurrence_occurrences_table' ],
@@ -55,6 +58,21 @@ final class Schema {
 	public static function sources_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_item_sources';
+	}
+
+	public static function billing_units_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_billing_units';
+	}
+
+	public static function billing_snapshots_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_billing_snapshots';
+	}
+
+	public static function billing_external_refs_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_billing_external_refs';
 	}
 
 	public static function recurrence_rules_table(): string {
@@ -153,6 +171,58 @@ final class Schema {
 			UNIQUE KEY source_identity (provider,source_type,external_id),
 			UNIQUE KEY work_item_source (work_item_id),
 			KEY claim_state (work_item_id,claimed_at)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::billing_units_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			unit_type varchar(32) NOT NULL,
+			unit_id bigint(20) unsigned NOT NULL,
+			work_item_id bigint(20) unsigned NOT NULL,
+			status varchar(32) NOT NULL DEFAULT 'ready',
+			current_snapshot_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			ready_at datetime NOT NULL,
+			linked_at datetime NULL,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY source_unit (unit_type,unit_id),
+			KEY work_item_status (work_item_id,status),
+			KEY current_snapshot_id (current_snapshot_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::billing_snapshots_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			billing_unit_id bigint(20) unsigned NOT NULL,
+			snapshot_version int unsigned NOT NULL DEFAULT 1,
+			unit_type varchar(32) NOT NULL,
+			unit_id bigint(20) unsigned NOT NULL,
+			work_item_id bigint(20) unsigned NOT NULL,
+			source_revision int unsigned NOT NULL DEFAULT 0,
+			fingerprint char(64) NOT NULL,
+			payload longtext NOT NULL,
+			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY unit_version (billing_unit_id,snapshot_version),
+			KEY source_unit (unit_type,unit_id),
+			KEY work_item_id (work_item_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::billing_external_refs_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			billing_unit_id bigint(20) unsigned NOT NULL,
+			snapshot_id bigint(20) unsigned NOT NULL,
+			provider varchar(64) NOT NULL,
+			resource_type varchar(64) NOT NULL,
+			resource_id varchar(191) NOT NULL,
+			display_reference varchar(190) NOT NULL DEFAULT '',
+			status_projection varchar(64) NOT NULL DEFAULT '',
+			linked_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY unit_resource (billing_unit_id,provider,resource_type,resource_id),
+			KEY external_ref (provider,resource_type,resource_id),
+			KEY snapshot_id (snapshot_id)
 		) {$charset};" );
 
 		dbDelta( 'CREATE TABLE ' . self::recurrence_rules_table() . " (
