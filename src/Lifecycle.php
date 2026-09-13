@@ -19,7 +19,10 @@ final class Lifecycle {
 			wp_die(
 				esc_html( 'Core Blueprint Work requires PHP 8.4 and a compatible Core Blueprint Base installation.' ),
 				esc_html( 'Core Blueprint dependency required' ),
-				[ 'back_link' => true ]
+				[
+					'link_url'  => admin_url( 'plugins.php' ),
+					'link_text' => __( 'Plugins' ),
+				]
 			);
 		}
 

@@ -8,18 +8,19 @@ defined( 'ABSPATH' ) || exit;
 final class WorkItemStatus {
 	public const PLANNED     = 'planned';
 	public const IN_PROGRESS = 'in_progress';
+	public const BLOCKED     = 'blocked';
 	public const COMPLETED   = 'completed';
 	public const SKIPPED     = 'skipped';
 	public const CANCELLED   = 'cancelled';
 
 	/** @return string[] */
 	public static function all(): array {
-		return [ self::PLANNED, self::IN_PROGRESS, self::COMPLETED, self::SKIPPED, self::CANCELLED ];
+		return [ self::PLANNED, self::IN_PROGRESS, self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ];
 	}
 
 	/** @return string[] */
 	public static function active(): array {
-		return [ self::PLANNED, self::IN_PROGRESS ];
+		return [ self::PLANNED, self::IN_PROGRESS, self::BLOCKED ];
 	}
 
 	public static function is_valid( string $status ): bool {
@@ -33,8 +34,9 @@ final class WorkItemStatus {
 	/** @return string[] */
 	public static function transitions_from( string $status ): array {
 		return match ( $status ) {
-			self::PLANNED => [ self::IN_PROGRESS, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
-			self::IN_PROGRESS => [ self::COMPLETED, self::SKIPPED, self::CANCELLED ],
+			self::PLANNED => [ self::IN_PROGRESS, self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
+			self::IN_PROGRESS => [ self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
+			self::BLOCKED => [ self::PLANNED, self::IN_PROGRESS, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
 			default => [],
 		};
 	}

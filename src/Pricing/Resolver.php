@@ -28,7 +28,16 @@ final class Resolver {
 		$effective = self::service_default( $service['pricing'] );
 		$source = 'service_default'; $provider_id = ''; $reference_type = ''; $reference_id = '';
 
-		$provider = PricingProviders::resolve( [ 'service_id' => $service_id, 'customer_type' => sanitize_key( (string) ( $context['customer_type'] ?? '' ) ), 'customer_id' => absint( $context['customer_id'] ?? 0 ), 'effective_at' => $effective_at ] );
+		$raw_reference_id = $context['customer_reference_id'] ?? ( $context['customer_id'] ?? '' );
+		$customer_reference_id = is_scalar( $raw_reference_id ) ? substr( sanitize_text_field( (string) $raw_reference_id ), 0, 191 ) : '';
+		$provider = PricingProviders::resolve( [
+			'service_id'            => $service_id,
+			'customer_provider'     => sanitize_key( (string) ( $context['customer_provider'] ?? '' ) ),
+			'customer_type'         => sanitize_key( (string) ( $context['customer_type'] ?? '' ) ),
+			'customer_id'           => absint( $context['customer_id'] ?? 0 ),
+			'customer_reference_id' => $customer_reference_id,
+			'effective_at'          => $effective_at,
+		] );
 		if ( null !== $provider ) {
 			$effective = array_replace( $effective, self::override_layer( $provider['pricing'], $effective_at ) );
 			$source = 'customer_agreement'; $provider_id = $provider['provider']; $reference_type = $provider['reference_type']; $reference_id = $provider['reference_id'];
