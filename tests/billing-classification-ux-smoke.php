@@ -16,36 +16,56 @@ if ( false === $plugin || false === $ux || false === $js ) {
 }
 
 $checks = [
-	str_contains( $plugin, 'use CB\\Work\\Admin\\BillingClassificationUx;' )
-		&& str_contains( $plugin, 'BillingClassificationUx::init();' )
-		=> 'Plugin boot wires the Work-owned billing UX helper.',
-	str_contains( $ux, "save_post_' . PostTypes::WORK_ITEM" )
-		&& str_contains( $ux, '19, 3' )
-		=> 'Editor payload defaulting runs immediately before the canonical Work Item save owner.',
-	str_contains( $ux, "'' !== \$billing" )
-		=> 'An explicit Work Item billing classification is never replaced.',
-	str_contains( $ux, 'ServicePricing::MODEL_HOURLY' )
-		&& str_contains( $ux, 'BillingDisposition::HOURLY' )
-		=> 'Hourly Service pricing maps to Hourly Work Item billing.',
-	str_contains( $ux, 'ServicePricing::MODEL_FIXED, ServicePricing::MODEL_RECURRING' )
-		&& str_contains( $ux, 'BillingDisposition::FIXED' )
-		=> 'Fixed and recurring Service pricing map to Fixed Work Item billing.',
-	! preg_match( '/\b(?:update_post_meta|add_post_meta|delete_post_meta|wpdb->)\b/', $ux )
-		=> 'The UX helper does not become a second persistence owner.',
-	str_contains( $js, "billing.value === '' || ( autoValue && billing.value === autoValue )" )
-		=> 'Browser defaults only replace an empty or previously auto-managed value.',
-	str_contains( $js, "billing.addEventListener( 'change'" )
-		&& str_contains( $js, "autoValue = '';" )
-		=> 'A manual billing choice exits automatic mode.',
-	str_contains( $js, 'cb-work-item-billing-hint' )
-		&& str_contains( $js, 'pricingLabel' )
-		=> 'The editor exposes the Service pricing/default relationship to the user.',
-	! str_contains( $js, 'jQuery' )
-		&& ! str_contains( $js, '$(' )
-		=> 'The UX remains vanilla JavaScript.',
+	[
+		str_contains( $plugin, 'use CB\\Work\\Admin\\BillingClassificationUx;' )
+			&& str_contains( $plugin, 'BillingClassificationUx::init();' ),
+		'Plugin boot wires the Work-owned billing UX helper.',
+	],
+	[
+		str_contains( $ux, "save_post_' . PostTypes::WORK_ITEM" )
+			&& str_contains( $ux, '19, 3' ),
+		'Editor payload defaulting runs immediately before the canonical Work Item save owner.',
+	],
+	[
+		str_contains( $ux, "'' !== \$billing" ),
+		'An explicit Work Item billing classification is never replaced.',
+	],
+	[
+		str_contains( $ux, 'ServicePricing::MODEL_HOURLY' )
+			&& str_contains( $ux, 'BillingDisposition::HOURLY' ),
+		'Hourly Service pricing maps to Hourly Work Item billing.',
+	],
+	[
+		str_contains( $ux, 'ServicePricing::MODEL_FIXED, ServicePricing::MODEL_RECURRING' )
+			&& str_contains( $ux, 'BillingDisposition::FIXED' ),
+		'Fixed and recurring Service pricing map to Fixed Work Item billing.',
+	],
+	[
+		! preg_match( '/\b(?:update_post_meta|add_post_meta|delete_post_meta|wpdb->)\b/', $ux ),
+		'The UX helper does not become a second persistence owner.',
+	],
+	[
+		str_contains( $js, "billing.value === '' || ( autoValue && billing.value === autoValue )" ),
+		'Browser defaults only replace an empty or previously auto-managed value.',
+	],
+	[
+		str_contains( $js, "billing.addEventListener( 'change'" )
+			&& str_contains( $js, "autoValue = '';" ),
+		'A manual billing choice exits automatic mode.',
+	],
+	[
+		str_contains( $js, 'cb-work-item-billing-hint' )
+			&& str_contains( $js, 'pricingLabel' ),
+		'The editor exposes the Service pricing/default relationship to the user.',
+	],
+	[
+		! str_contains( $js, 'jQuery' )
+			&& ! str_contains( $js, '$(' ),
+		'The UX remains vanilla JavaScript.',
+	],
 ];
 
-foreach ( $checks as $passed => $message ) {
+foreach ( $checks as [ $passed, $message ] ) {
 	if ( ! $passed ) {
 		$fail( $message );
 	}
