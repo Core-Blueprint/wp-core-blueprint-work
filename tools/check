@@ -3,9 +3,28 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+fail() {
+	printf 'Work checks failed: %s\n' "$*" >&2
+	exit 1
+}
+
+for command in php python3 wp msgfmt node; do
+	command -v "$command" >/dev/null 2>&1 || fail "missing required command: $command"
+done
+
+php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);' || fail "PHP 8.4 or newer is required"
+
+"$ROOT/tools/i18n/check"
+
 while IFS= read -r -d '' file; do
-	php -l "$file" >/dev/null
-done < <(find "$ROOT" -type f -name '*.php' -print0)
+	php -l "$file" >/dev/null || fail "PHP lint failed: $file"
+done < <(find "$ROOT" -type f -name '*.php' -not -path '*/.git/*' -not -path '*/dist/*' -not -path '*/build/*' -print0)
+
+if [[ -d "$ROOT/assets" ]]; then
+	while IFS= read -r -d '' file; do
+		node --check "$file" >/dev/null || fail "JavaScript syntax failed: $file"
+	done < <(find "$ROOT/assets" -type f -name '*.js' -print0)
+fi
 
 php "$ROOT/tests/source-conformance.php"
 php "$ROOT/tests/settings-hub-smoke.php"
@@ -36,10 +55,11 @@ php "$ROOT/tests/project-workspace-smoke.php"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"
 php "$ROOT/tests/work-daily-ux-smoke.php"
 php "$ROOT/tests/bootstrap-v1-smoke.php"
+php "$ROOT/tests/dependency-loss-regression.php"
 php "$ROOT/tests/domain-smoke.php"
 php "$ROOT/tests/pricing-smoke.php"
 php "$ROOT/tests/runtime-smoke.php"
 php "$ROOT/tests/missing-base-smoke.php"
 php "$ROOT/tests/requirements-contract-smoke.php"
 
-echo "Core Blueprint Work checks passed."
+echo "Core Blueprint Work local checks passed."
