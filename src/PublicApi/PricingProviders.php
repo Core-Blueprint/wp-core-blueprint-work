@@ -10,8 +10,8 @@ defined( 'ABSPATH' ) || exit;
  *
  * Providers project customer agreement context for a Work service. Their
  * pricing array may be empty when the agreement explicitly inherits the Work
- * Service default; the provider/reference provenance is still retained.
- * Providers never own service defaults, VAT catalog data, or precedence.
+ * Service default; provider/reference provenance remains retained. Providers
+ * never own service defaults, VAT catalog data, or precedence.
  */
 final class PricingProviders {
 	/** @var array<string,array{id:string,priority:int,resolver:callable}> */
@@ -19,38 +19,65 @@ final class PricingProviders {
 	private static bool $registration_fired = false;
 
 	public static function register( string $id, callable $resolver, int $priority = 100 ): bool {
+		if ( ! self::runtime_ready() ) {
+			return false;
+		}
 		$id = sanitize_key( $id );
-		if ( '' === $id ) { return false; }
+		if ( '' === $id ) {
+			return false;
+		}
 		self::$providers[ $id ] = [ 'id' => $id, 'priority' => $priority, 'resolver' => $resolver ];
 		return true;
 	}
 
 	/**
-	 * `customer_id` is retained as the legacy numeric compatibility field.
-	 * `customer_reference_id` is the provider-neutral opaque identifier.
+	 * `customer_id` remains an active numeric first-party consumer contract for
+	 * the current CRM pricing provider. `customer_reference_id` is the canonical
+	 * provider-neutral opaque identifier and must be preferred by new providers.
 	 *
 	 * @param array{service_id:int,customer_provider:string,customer_type:string,customer_id:int,customer_reference_id:string,effective_at:string} $context
 	 * @return array{provider:string,pricing:array<string,mixed>,reference_type:string,reference_id:string}|null
 	 */
 	public static function resolve( array $context ): ?array {
+		if ( ! self::runtime_ready() ) {
+			return null;
+		}
 		self::fire_registration_hook();
 		$providers = array_values( self::$providers );
-		usort( $providers, static function ( array $a, array $b ): int { $priority = $a['priority'] <=> $b['priority']; return 0 !== $priority ? $priority : strcmp( $a['id'], $b['id'] ); } );
+		usort( $providers, static function ( array $a, array $b ): int {
+			$priority = $a['priority'] <=> $b['priority'];
+			return 0 !== $priority ? $priority : strcmp( $a['id'], $b['id'] );
+		} );
 		foreach ( $providers as $provider ) {
-			try { $result = ( $provider['resolver'] )( $context ); } catch ( \Throwable $e ) { unset( $e ); continue; }
-			if ( ! is_array( $result ) || ! isset( $result['pricing'] ) || ! is_array( $result['pricing'] ) ) { continue; }
+			try {
+				$result = ( $provider['resolver'] )( $context );
+			} catch ( \Throwable $e ) {
+				unset( $e );
+				continue;
+			}
+			if ( ! is_array( $result ) || ! isset( $result['pricing'] ) || ! is_array( $result['pricing'] ) ) {
+				continue;
+			}
 			$reference_id = $result['reference_id'] ?? '';
 			$reference_type = sanitize_key( (string) ( $result['reference_type'] ?? '' ) );
 			$reference_id = is_scalar( $reference_id ) ? substr( sanitize_text_field( (string) $reference_id ), 0, 190 ) : '';
-			if ( [] === $result['pricing'] && '' === $reference_type && '' === $reference_id ) { continue; }
+			if ( [] === $result['pricing'] && '' === $reference_type && '' === $reference_id ) {
+				continue;
+			}
 			return [ 'provider' => $provider['id'], 'pricing' => $result['pricing'], 'reference_type' => $reference_type, 'reference_id' => $reference_id ];
 		}
 		return null;
 	}
 
 	private static function fire_registration_hook(): void {
-		if ( self::$registration_fired ) { return; }
+		if ( self::$registration_fired || ! self::runtime_ready() ) {
+			return;
+		}
 		self::$registration_fired = true;
 		do_action( 'cb_work_register_pricing_providers' );
+	}
+
+	private static function runtime_ready(): bool {
+		return function_exists( 'cb_work_runtime_ready' ) && \cb_work_runtime_ready();
 	}
 }
