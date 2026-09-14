@@ -13,11 +13,14 @@ defined( 'ABSPATH' ) || exit;
 final class WorkItems {
 	/** @return array<string,mixed>|null */
 	public static function get( int $work_item_id ): ?array {
-		return self::project( WorkItemRepository::get( $work_item_id ) );
+		return self::runtime_ready() ? self::project( WorkItemRepository::get( $work_item_id ) ) : null;
 	}
 
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 100, array $statuses = [] ): array {
+		if ( ! self::runtime_ready() ) {
+			return [];
+		}
 		$items = [];
 		foreach ( WorkItemRepository::all( $limit, $statuses ) as $item ) {
 			$projected = self::project( $item );
@@ -30,6 +33,9 @@ final class WorkItems {
 
 	/** @return array<string,mixed>|null */
 	public static function get_by_source( string $provider, string $source_type, string $external_id ): ?array {
+		if ( ! self::runtime_ready() ) {
+			return null;
+		}
 		$source = WorkItemSources::find( $provider, $source_type, $external_id );
 		if ( null === $source || (int) $source['work_item_id'] <= 0 ) {
 			return null;
@@ -39,15 +45,14 @@ final class WorkItems {
 
 	/** @return array<string,mixed>|null */
 	public static function source( int $work_item_id ): ?array {
-		return WorkItemSources::projection( WorkItemSources::for_work_item( $work_item_id ) );
+		return self::runtime_ready() ? WorkItemSources::projection( WorkItemSources::for_work_item( $work_item_id ) ) : null;
 	}
 
 	/** @return array<int,array<string,mixed>> */
 	public static function by_relation( string $provider, string $relation_type, string $external_id, int $limit = 100 ): array {
-		if ( self::is_reserved_relation( $provider, $relation_type ) ) {
+		if ( ! self::runtime_ready() || self::is_reserved_relation( $provider, $relation_type ) ) {
 			return [];
 		}
-
 		$items = [];
 		foreach ( WorkItemRelations::find_work_item_ids( $provider, $relation_type, $external_id, $limit ) as $work_item_id ) {
 			$item = self::get( $work_item_id );
@@ -71,6 +76,10 @@ final class WorkItems {
 			)
 		) );
 		return $item;
+	}
+
+	private static function runtime_ready(): bool {
+		return function_exists( 'cb_work_runtime_ready' ) && \cb_work_runtime_ready();
 	}
 
 	private static function is_reserved_relation( string $provider, string $relation_type ): bool {
