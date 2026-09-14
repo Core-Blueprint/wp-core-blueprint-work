@@ -19,6 +19,7 @@ final class Page {
 			return;
 		}
 		self::$initialized = true;
+		TaxRateDataExchange::init();
 		add_action( 'cb_core_register_settings', [ self::class, 'register' ] );
 	}
 
@@ -49,6 +50,7 @@ final class Page {
 		}
 
 		$notice       = isset( $_GET['cb-work-notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['cb-work-notice'] ) ) : '';
+		$view         = isset( $_GET['cb-work-view'] ) ? sanitize_key( wp_unslash( (string) $_GET['cb-work-view'] ) ) : '';
 		$schema_ready = CB_WORK_SCHEMA_VERSION === (string) get_option( Schema::OPTION, '0' );
 		$rates        = $schema_ready ? TaxRates::all( true ) : [];
 
@@ -59,6 +61,11 @@ final class Page {
 				'title'   => __( 'Work storage unavailable', 'core-blueprint-work' ),
 				'message' => __( 'The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
 			] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML.
+			return;
+		}
+
+		if ( 'vat-import' === $view ) {
+			TaxRateDataExchange::render_import();
 			return;
 		}
 
@@ -89,6 +96,12 @@ final class Page {
 
 		<section class="cb-core-panel" id="configured-vat-rates">
 			<h2><?php esc_html_e( 'Configured VAT rates', 'core-blueprint-work' ); ?></h2>
+			<?php if ( TaxRateDataExchange::available() ) : ?>
+				<p class="cb-core-actions">
+					<a class="button button-secondary" href="<?php echo esc_url( TaxRateDataExchange::import_url() ); ?>"><?php esc_html_e( 'Import VAT rates', 'core-blueprint-work' ); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url( TaxRateDataExchange::export_url() ); ?>"><?php esc_html_e( 'Export VAT rates', 'core-blueprint-work' ); ?></a>
+				</p>
+			<?php endif; ?>
 			<?php if ( [] === $rates ) : ?>
 				<p><?php esc_html_e( 'No VAT rates configured yet.', 'core-blueprint-work' ); ?></p>
 			<?php else : ?>

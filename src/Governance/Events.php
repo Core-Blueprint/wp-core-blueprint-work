@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 final class Events {
 	public const SERVICE_PRICING_UPDATED        = 'work.service.pricing.updated';
 	public const TAX_RATE_CREATED               = 'work.tax.rate.created';
+	public const TAX_RATE_UPDATED               = 'work.tax.rate.updated';
 	public const TAX_RATE_ACTIVATED             = 'work.tax.rate.activated';
 	public const TAX_RATE_DEACTIVATED           = 'work.tax.rate.deactivated';
 	public const PROJECT_CREATED                = 'work.project.created';
@@ -44,6 +45,7 @@ final class Events {
 		$events = [
 			self::SERVICE_PRICING_UPDATED        => [ __( 'Work service pricing updated', 'core-blueprint-work' ), 'settings' ],
 			self::TAX_RATE_CREATED               => [ __( 'Work VAT rate created', 'core-blueprint-work' ), 'settings' ],
+			self::TAX_RATE_UPDATED               => [ __( 'Work VAT rate updated', 'core-blueprint-work' ), 'settings' ],
 			self::TAX_RATE_ACTIVATED             => [ __( 'Work VAT rate activated', 'core-blueprint-work' ), 'settings' ],
 			self::TAX_RATE_DEACTIVATED           => [ __( 'Work VAT rate deactivated', 'core-blueprint-work' ), 'settings' ],
 			self::PROJECT_CREATED                => [ __( 'Work Project created', 'core-blueprint-work' ), 'general' ],
@@ -68,7 +70,7 @@ final class Events {
 			self::TIME_ENTRY_CREATED             => [ __( 'Work Time entry created', 'core-blueprint-work' ), 'general' ],
 			self::TIME_ENTRY_UPDATED             => [ __( 'Work Time entry updated', 'core-blueprint-work' ), 'general' ],
 			self::TIMER_STARTED                  => [ __( 'Work timer started', 'core-blueprint-work' ), 'general' ],
-			self::TIMER_STOPPED                  => [ __( 'Work timer stopped', 'core-blueprint-work' ), 'general' ],
+			self::TIMER_STOPPED                   => [ __( 'Work timer stopped', 'core-blueprint-work' ), 'general' ],
 		];
 		foreach ( $events as $id => [ $label, $category ] ) {
 			EventRegistry::register( [
