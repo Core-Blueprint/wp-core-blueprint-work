@@ -13,9 +13,9 @@ $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $checks = [
 	'current Work schema is 1.8 after billing readiness foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
 	'Project storage remains cb_work_project' => str_contains( $postTypes, "PROJECT   = 'cb_work_project'" ) && str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
-	'Work Item storage moves to cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
-	'transitional Project and Work Item tables are not registered' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ),
-	'transitional Project and Work Item tables are removed explicitly' => str_contains( $schema, "DROP TABLE IF EXISTS ' . \$wpdb->prefix . 'cb_work_projects'" ) && str_contains( $schema, "DROP TABLE IF EXISTS ' . \$wpdb->prefix . 'cb_work_items'" ),
+	'Work Item storage remains cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
+	'pre-v1 Project and Work Item relational schema is fully absent' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ) && ! str_contains( $schema, 'cb_work_projects' ) && ! str_contains( $schema, 'cb_work_items' ),
+	'pre-v1 migration cleanup is absent' => ! str_contains( $schema, 'previous_version' ) && ! str_contains( $schema, 'DROP TABLE IF EXISTS' ) && ! str_contains( $schema, 'DELETE FROM' ),
 	'Work Type table remains Work-owned' => str_contains( $schema, "'cb_work_types'" ),
 	'assignments remain relational many-to-many rows keyed by Work Item post ID' => str_contains( $schema, "'cb_work_item_assignments'" ) && str_contains( $schema, 'PRIMARY KEY  (work_item_id,user_id)' ),
 	'external relations remain generic many-to-many integration metadata' => str_contains( $schema, "'cb_work_item_relations'" ) && str_contains( $schema, 'provider varchar(64)' ) && str_contains( $schema, 'relation_type varchar(64)' ) && str_contains( $schema, 'external_id varchar(191)' ) && str_contains( $schema, 'UNIQUE KEY relation (work_item_id,provider,relation_type,external_id)' ),
