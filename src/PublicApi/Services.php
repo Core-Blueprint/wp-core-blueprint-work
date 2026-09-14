@@ -12,6 +12,9 @@ defined( 'ABSPATH' ) || exit;
 final class Services {
 	/** @return array<string,mixed>|null */
 	public static function get( int $service_id ): ?array {
+		if ( ! self::runtime_ready() ) {
+			return null;
+		}
 		$post = get_post( $service_id );
 		if ( ! $post instanceof \WP_Post || PostTypes::SERVICE !== $post->post_type || 'trash' === $post->post_status ) {
 			return null;
@@ -21,13 +24,15 @@ final class Services {
 
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 100, array $statuses = [ 'publish', 'draft', 'private' ] ): array {
+		if ( ! self::runtime_ready() ) {
+			return [];
+		}
 		$limit    = max( 1, min( 250, $limit ) );
 		$allowed  = [ 'publish', 'draft', 'private', 'pending', 'future' ];
 		$statuses = array_values( array_intersect( array_map( 'sanitize_key', $statuses ), $allowed ) );
 		if ( [] === $statuses ) {
 			$statuses = [ 'publish' ];
 		}
-
 		$posts = get_posts( [
 			'post_type'      => PostTypes::SERVICE,
 			'post_status'    => $statuses,
@@ -48,5 +53,9 @@ final class Services {
 			'status'      => (string) $post->post_status,
 			'pricing'     => ServicePricing::get( (int) $post->ID ),
 		];
+	}
+
+	private static function runtime_ready(): bool {
+		return function_exists( 'cb_work_runtime_ready' ) && \cb_work_runtime_ready();
 	}
 }
