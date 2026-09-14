@@ -26,6 +26,19 @@
 		const button = primaryButton();
 		if ( button ) {
 			button.textContent = label;
+			button.setAttribute( 'aria-label', label );
+			button.setAttribute( 'title', label );
+		}
+	}
+
+	function resetAppliedHistoryControls() {
+		const undo = wrapper.querySelector( '[data-cb-design-shell-undo]' );
+		const redo = wrapper.querySelector( '[data-cb-design-shell-redo]' );
+		if ( undo instanceof HTMLButtonElement ) {
+			undo.disabled = true;
+		}
+		if ( redo instanceof HTMLButtonElement ) {
+			redo.disabled = true;
 		}
 	}
 
@@ -180,6 +193,9 @@
 
 			if ( applying ) {
 				clearPreviewState();
+				if ( payload.success === true ) {
+					resetAppliedHistoryControls();
+				}
 			}
 		} catch ( error ) {
 			controller.setValidation( {
