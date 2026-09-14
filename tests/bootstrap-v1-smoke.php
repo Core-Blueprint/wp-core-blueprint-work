@@ -27,7 +27,7 @@ assert_bootstrap( false !== $gate && false !== $schema && false !== $suite && fa
 assert_bootstrap( $gate < $schema && $gate < $suite && $gate < $boot, 'Base-dependent runtime is attached only after the Bootstrap dependency gate.' );
 assert_bootstrap( str_contains( $bootstrap, "}, 4 );" ), 'Work dependency/schema gate remains priority 4 before Base migration priority 5.' );
 assert_bootstrap( str_contains( $bootstrap, 'class_exists' ) && str_contains( $bootstrap, 'SchemaRegistry' ), 'Work keeps a defensive schema-service runtime gate outside Requirements.' );
-assert_bootstrap( ! str_contains( $bootstrap, 'Requires Plugins:' ), 'Work does not use the WordPress Requires Plugins header.' );
+assert_bootstrap( str_contains( $bootstrap, 'Requires Plugins:  core-blueprint' ), 'Work declares the canonical WordPress dependency metadata for Core Blueprint Base.' );
 assert_bootstrap( ! str_contains( $requirements, 'class_exists(' ), 'Requirements stays implementation-agnostic.' );
 assert_bootstrap( ! str_contains( $requirements, 'base-contract-unavailable' ), 'Bootstrap issue model contains no product-specific Base class checks.' );
 assert_bootstrap( str_contains( $lifecycle, "admin_url( 'plugins.php' )" ), 'Failed activation returns to the canonical Plugins screen.' );
