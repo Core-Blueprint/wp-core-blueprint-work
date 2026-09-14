@@ -51,8 +51,9 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 	do_action( 'plugins_loaded' );
 
-	assert_true( isset( $GLOBALS['hooks']['cb_core_register_extensions'] ), 'Lightweight suite integration remains attached without Base.' );
-	assert_true( isset( $GLOBALS['hooks']['admin_notices'] ), 'Missing Base schedules an operator notice.' );
+	assert_true( ! isset( $GLOBALS['hooks']['cb_core_register_extensions'] ), 'Suite integration stays inert without Base.' );
+	assert_true( ! isset( $GLOBALS['hooks']['cb_core_booted'] ), 'Product boot is not attached without Base.' );
+	assert_true( isset( $GLOBALS['hooks']['admin_notices'] ), 'Missing Base schedules the canonical operator notice.' );
 	assert_true( \CB\Work\Support\Requirements::issues() === [ 'base-missing' ], 'Missing Base is classified deterministically.' );
 	assert_true( ! isset( $GLOBALS['hooks']['init'][6] ), 'Work product domain remains inert without Base.' );
 

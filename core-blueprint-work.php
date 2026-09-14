@@ -32,9 +32,40 @@ define( 'CB_WORK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CB_WORK_URL', plugin_dir_url( __FILE__ ) );
 define( 'CB_WORK_BASENAME', plugin_basename( __FILE__ ) );
 
+/* Bootstrap v1: fail before loading Work classes on an unsupported PHP runtime. */
+if ( version_compare( PHP_VERSION, '8.4', '<' ) ) {
+	register_activation_hook( __FILE__, static function (): void {
+		if ( ! function_exists( 'deactivate_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		deactivate_plugins( CB_WORK_BASENAME );
+		wp_die(
+			esc_html( sprintf( 'Core Blueprint Work requires PHP 8.4 or newer. This server runs PHP %s.', PHP_VERSION ) ),
+			esc_html( 'Core Blueprint dependency required' ),
+			[
+				'link_url'  => admin_url( 'plugins.php' ),
+				'link_text' => __( 'Plugins' ),
+			]
+		);
+	} );
+
+	add_action( 'admin_notices', static function (): void {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+		printf(
+			'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
+			esc_html__( 'Core Blueprint Work:', 'core-blueprint-work' ),
+			esc_html( sprintf( __( 'PHP 8.4 or newer is required. This server runs PHP %s.', 'core-blueprint-work' ), PHP_VERSION ) )
+		);
+	} );
+	return;
+}
+
 spl_autoload_register( static function ( string $class ): void {
 	$prefix = 'CB\\Work\\';
-	if ( ! str_starts_with( $class, $prefix ) ) {
+	if ( 0 !== strncmp( $class, $prefix, strlen( $prefix ) ) ) {
 		return;
 	}
 
@@ -45,22 +76,8 @@ spl_autoload_register( static function ( string $class ): void {
 	}
 } );
 
-/* Keep first-party inventory and health registration independent of runtime gates. */
-\CB\Work\Integration\Suite::init();
-
 register_activation_hook( __FILE__, [ \CB\Work\Lifecycle::class, 'activate' ] );
 register_deactivation_hook( __FILE__, [ \CB\Work\Lifecycle::class, 'deactivate' ] );
-
-/* Register Work-owned schemas before Base's central migration sweep. */
-add_action( 'plugins_loaded', static function (): void {
-	if (
-		defined( 'CB_CORE_API_VERSION' )
-		&& \CB\Work\Support\Requirements::api_compatible( (string) CB_CORE_API_VERSION, CB_WORK_REQUIRED_API )
-		&& class_exists( '\CB\Core\Database\SchemaRegistry' )
-	) {
-		\CB\Work\Database\Schema::register();
-	}
-}, 4 );
 
 add_action( 'init', static function (): void {
 	load_plugin_textdomain(
@@ -70,22 +87,38 @@ add_action( 'init', static function (): void {
 	);
 }, 0 );
 
-add_action( 'cb_core_booted', [ \CB\Work\Plugin::class, 'boot' ] );
-
+/*
+ * Bootstrap v1 dependency boundary.
+ *
+ * Work remains inert until Base exposes a compatible public Core API. The
+ * Work-owned schema registration stays at priority 4 so Base can include it in
+ * its central migration sweep at priority 5. Product runtime attaches only
+ * after the same gate has passed.
+ */
 add_action( 'plugins_loaded', static function (): void {
-	if ( \CB\Work\Support\Requirements::runtime_ready() || ! is_admin() ) {
+	if ( ! \CB\Work\Support\Requirements::runtime_ready() ) {
+		if ( is_admin() ) {
+			add_action( 'admin_notices', static function (): void {
+				if ( ! current_user_can( 'activate_plugins' ) ) {
+					return;
+				}
+
+				printf(
+					'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
+					esc_html__( 'Core Blueprint Work:', 'core-blueprint-work' ),
+					esc_html( \CB\Work\Support\Requirements::operator_message() )
+				);
+			} );
+		}
 		return;
 	}
 
-	add_action( 'admin_notices', static function (): void {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return;
-		}
+	/* Base owns this service; if its own bootstrap did not complete, stay inert. */
+	if ( ! class_exists( '\\CB\\Core\\Database\\SchemaRegistry' ) ) {
+		return;
+	}
 
-		printf(
-			'<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
-			esc_html__( 'Core Blueprint Work:', 'core-blueprint-work' ),
-			esc_html( \CB\Work\Support\Requirements::operator_message() )
-		);
-	} );
-}, 30 );
+	\CB\Work\Database\Schema::register();
+	\CB\Work\Integration\Suite::init();
+	add_action( 'cb_core_booted', [ \CB\Work\Plugin::class, 'boot' ] );
+}, 4 );

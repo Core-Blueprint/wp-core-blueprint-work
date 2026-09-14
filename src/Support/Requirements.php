@@ -2,8 +2,10 @@
 declare(strict_types=1);
 
 namespace CB\Work\Support;
+
 defined( 'ABSPATH' ) || exit;
 
+/** Bootstrap-safe dependency checks only. */
 final class Requirements {
 	public static function api_compatible( string $available, string $required ): bool {
 		if ( 1 !== preg_match( '/^(\d+)\.(\d+)$/', $available, $available_match ) ) {
@@ -17,7 +19,7 @@ final class Requirements {
 			&& (int) $available_match[2] >= (int) $required_match[2];
 	}
 
-	/** @return string[] Stable machine-readable issue IDs. */
+	/** @return string[] Stable machine-readable bootstrap issue IDs. */
 	public static function issues(): array {
 		$issues = [];
 
@@ -32,25 +34,6 @@ final class Requirements {
 
 		if ( ! self::api_compatible( (string) CB_CORE_API_VERSION, CB_WORK_REQUIRED_API ) ) {
 			$issues[] = 'base-api-incompatible';
-			return $issues;
-		}
-
-		$required_contracts = [
-			'\\CB\\Core\\ExtensionRegistry',
-			'\\CB\\Core\\Admin\\SettingsRegistry',
-			'\\CB\\Core\\Dashboard\\CardRegistry',
-			'\\CB\\Core\\Database\\SchemaRegistry',
-			'\\CB\\Core\\Governance\\Audit',
-			'\\CB\\Core\\Governance\\EventRegistry',
-			'\\CB\\Core\\UI\\Assets',
-			'\\CB\\Core\\UI\\Notice',
-			'\\CB\\Core\\UI\\ObjectPicker',
-		];
-		foreach ( $required_contracts as $class ) {
-			if ( ! class_exists( $class ) ) {
-				$issues[] = 'base-contract-unavailable';
-				break;
-			}
 		}
 
 		return array_values( array_unique( $issues ) );
@@ -61,22 +44,25 @@ final class Requirements {
 	}
 
 	public static function operator_message(): string {
-		return match ( self::primary_issue() ) {
-			'php-version' => sprintf(
-				/* translators: %s: current PHP version. */
-				__( 'PHP 8.4 or newer is required. This server runs PHP %s.', 'core-blueprint-work' ),
-				PHP_VERSION
-			),
-			'base-missing' => __( 'An active Core Blueprint Base installation is required.', 'core-blueprint-work' ),
-			'base-api-incompatible' => sprintf(
-				/* translators: 1: required API, 2: available API. */
-				__( 'Core API %1$s or a newer compatible minor version is required. This site provides %2$s.', 'core-blueprint-work' ),
-				CB_WORK_REQUIRED_API,
-				defined( 'CB_CORE_API_VERSION' ) ? (string) CB_CORE_API_VERSION : __( 'none', 'core-blueprint-work' )
-			),
-			'base-contract-unavailable' => __( 'Required public Core Blueprint Base contracts are unavailable.', 'core-blueprint-work' ),
-			default => __( 'Ready', 'core-blueprint-work' ),
-		};
+		switch ( self::primary_issue() ) {
+			case 'php-version':
+				return sprintf(
+					/* translators: %s: current PHP version. */
+					__( 'PHP 8.4 or newer is required. This server runs PHP %s.', 'core-blueprint-work' ),
+					PHP_VERSION
+				);
+			case 'base-missing':
+				return __( 'An active Core Blueprint Base installation is required.', 'core-blueprint-work' );
+			case 'base-api-incompatible':
+				return sprintf(
+					/* translators: 1: required API, 2: available API. */
+					__( 'Core API %1$s or a newer compatible minor version is required. This site provides %2$s.', 'core-blueprint-work' ),
+					CB_WORK_REQUIRED_API,
+					defined( 'CB_CORE_API_VERSION' ) ? (string) CB_CORE_API_VERSION : __( 'none', 'core-blueprint-work' )
+				);
+			default:
+				return __( 'Ready', 'core-blueprint-work' );
+		}
 	}
 
 	public static function health_detail(): string {
