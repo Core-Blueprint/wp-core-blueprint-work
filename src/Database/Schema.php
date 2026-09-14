@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace CB\Work\Database;
 
 use CB\Core\Database\SchemaRegistry;
-use CB\Work\Capabilities;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -104,7 +103,6 @@ final class Schema {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		$charset = $wpdb->get_charset_collate();
-		$previous_version = (string) get_option( self::OPTION, '0' );
 
 		dbDelta( 'CREATE TABLE ' . self::tax_rates_table() . " (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -311,34 +309,6 @@ final class Schema {
 			PRIMARY KEY  (user_id),
 			UNIQUE KEY time_entry_id (time_entry_id)
 		) {$charset};" );
-
-		/*
-		 * D1.1/D1.2 are deliberate pre-v1 architecture corrections. Projects and
-		 * Work Items are canonical WordPress content. Transitional Project/Work
-		 * Item tables are destroyed instead of preserved through migration,
-		 * fallback or dual-read compatibility. Old assignment/relation rows point
-		 * at disposable relational Work Item IDs and are cleared exactly once
-		 * when crossing into schema 1.3.
-		 */
-		if ( false === $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_projects' ) ) {
-			return false;
-		}
-		if ( false === $wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'cb_work_items' ) ) {
-			return false;
-		}
-		if ( version_compare( $previous_version, '1.3', '<' ) ) {
-			if ( false === $wpdb->query( 'DELETE FROM ' . self::assignments_table() ) ) {
-				return false;
-			}
-			if ( false === $wpdb->query( 'DELETE FROM ' . self::relations_table() ) ) {
-				return false;
-			}
-		}
-
-		/* Existing rc1 installs receive the E3 capability during explicit schema upgrade. */
-		if ( version_compare( $previous_version, '1.6', '<' ) ) {
-			Capabilities::install();
-		}
 
 		self::seed_default_work_types();
 		return true;
