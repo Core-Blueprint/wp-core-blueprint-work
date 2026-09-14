@@ -24,6 +24,7 @@ final class Projects {
 		add_action( 'save_post_' . PostTypes::PROJECT, [ self::class, 'save' ], 20, 3 );
 		add_filter( 'manage_' . PostTypes::PROJECT . '_posts_columns', [ self::class, 'columns' ] );
 		add_action( 'manage_' . PostTypes::PROJECT . '_posts_custom_column', [ self::class, 'column' ], 10, 2 );
+		add_filter( 'post_row_actions', [ self::class, 'row_actions' ], 10, 2 );
 		add_filter( 'enter_title_here', [ self::class, 'title_placeholder' ], 10, 2 );
 	}
 
@@ -51,6 +52,11 @@ final class Projects {
 		$selected = CRMCustomers::selected( $meta['customer_provider'], $meta['customer_type'], $meta['customer_id'] );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
+		if ( (int) $post->ID > 0 && 'auto-draft' !== $post->post_status ) {
+			?>
+			<p><a class="button" href="<?php echo esc_url( Menu::project_workspace_url( (int) $post->ID ) ); ?>"><?php esc_html_e( 'Open Project Workspace', 'core-blueprint-work' ); ?></a></p>
+			<?php
+		}
 		?>
 		<table class="form-table" role="presentation"><tbody>
 			<tr>
@@ -201,6 +207,17 @@ final class Projects {
 		if ( 'cb_work_item_count' === $column ) {
 			echo esc_html( (string) WorkItems::count_for_project( $post_id ) );
 		}
+	}
+
+	/** @param array<string,string> $actions @return array<string,string> */
+	public static function row_actions( array $actions, \WP_Post $post ): array {
+		if ( PostTypes::PROJECT !== $post->post_type || (int) $post->ID <= 0 || ! current_user_can( Capabilities::MANAGE ) ) {
+			return $actions;
+		}
+		return [
+			'cb_work_workspace' => '<a href="' . esc_url( Menu::project_workspace_url( (int) $post->ID ) ) . '">' . esc_html__( 'Open workspace', 'core-blueprint-work' ) . '</a>',
+			...$actions,
+		];
 	}
 
 	public static function title_placeholder( string $title, \WP_Post $post ): string {

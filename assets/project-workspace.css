@@ -1,0 +1,221 @@
+/*
+ * Core Blueprint Work — Project Workspace composition.
+ *
+ * Base/WordPress own the admin shell and native controls. This stylesheet only
+ * composes existing Work project truth into a purpose-built operational view.
+ */
+
+.cb-work-project-workspace {
+	--cb-work-project-surface: var(--cb-surface-1);
+	--cb-work-project-surface-raised: var(--cb-surface-2);
+	--cb-work-project-border: var(--cb-border);
+	--cb-work-project-text: var(--cb-text);
+	--cb-work-project-strong: var(--cb-text-strong);
+	--cb-work-project-muted: var(--cb-text-muted);
+	--cb-work-project-radius: var(--cb-radius-md);
+	--cb-work-project-shadow: var(--cb-shadow-sm);
+}
+
+.cb-work-project-workspace__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--cb-space-6);
+	margin: 0 0 var(--cb-space-5);
+}
+
+.cb-work-project-workspace__heading {
+	max-width: 760px;
+}
+
+.cb-work-project-workspace__eyebrow {
+	margin: 0 0 var(--cb-space-1);
+	color: var(--cb-work-project-muted);
+	font-weight: var(--cb-fw-semibold);
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.cb-work-project-workspace__heading h1 {
+	margin: 0 0 var(--cb-space-2);
+}
+
+.cb-work-project-workspace__heading .description {
+	max-width: 680px;
+	margin: 0;
+}
+
+.cb-work-project-workspace__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2);
+}
+
+.cb-work-project-workspace__actions .button {
+	margin: 0;
+}
+
+.cb-work-project-workspace__metrics {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(150px, 1fr));
+	gap: var(--cb-space-3);
+	margin: 0 0 var(--cb-space-5);
+}
+
+.cb-work-project-workspace__metric,
+.cb-work-project-workspace__panel {
+	box-sizing: border-box;
+	background: var(--cb-work-project-surface);
+	border: 1px solid var(--cb-work-project-border);
+	border-radius: var(--cb-work-project-radius);
+	box-shadow: var(--cb-work-project-shadow);
+}
+
+.cb-work-project-workspace__metric {
+	display: flex;
+	align-items: flex-start;
+	flex-direction: column;
+	gap: var(--cb-space-1);
+	min-height: 126px;
+	padding: var(--cb-space-4);
+}
+
+.cb-work-project-workspace__metric-value {
+	color: var(--cb-work-project-strong);
+	font-size: var(--cb-fs-xl);
+	font-weight: var(--cb-fw-semibold);
+	line-height: 1;
+}
+
+.cb-work-project-workspace__metric .description {
+	margin: 0;
+}
+
+.cb-work-project-workspace__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+	gap: var(--cb-space-5);
+	align-items: start;
+}
+
+.cb-work-project-workspace__panel {
+	padding: var(--cb-space-5);
+}
+
+.cb-work-project-workspace__panel > h2,
+.cb-work-project-workspace__panel-header h2 {
+	margin-top: 0;
+}
+
+.cb-work-project-workspace__panel-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--cb-space-4);
+	margin-bottom: var(--cb-space-4);
+}
+
+.cb-work-project-workspace__panel-header h2,
+.cb-work-project-workspace__panel-header .description {
+	margin-bottom: 0;
+}
+
+.cb-work-project-workspace__table-wrap {
+	overflow-x: auto;
+}
+
+.cb-work-project-workspace__work-table {
+	min-width: 680px;
+}
+
+.cb-work-project-workspace__empty {
+	padding: var(--cb-space-5);
+	background: var(--cb-work-project-surface-raised);
+	border: 1px solid var(--cb-work-project-border);
+	border-radius: var(--cb-work-project-radius);
+}
+
+.cb-work-project-workspace__empty h3 {
+	margin-top: 0;
+}
+
+.cb-work-project-workspace__empty .description {
+	margin-bottom: var(--cb-space-4);
+}
+
+.cb-work-project-workspace__more {
+	margin: var(--cb-space-3) 0 0;
+}
+
+.cb-work-project-workspace__facts {
+	margin: 0;
+}
+
+.cb-work-project-workspace__facts > div {
+	display: grid;
+	grid-template-columns: minmax(90px, .8fr) minmax(0, 1.2fr);
+	gap: var(--cb-space-3);
+	padding: var(--cb-space-3) 0;
+	border-bottom: 1px solid var(--cb-work-project-border);
+}
+
+.cb-work-project-workspace__facts > div:last-child {
+	border-bottom: 0;
+}
+
+.cb-work-project-workspace__facts dt {
+	color: var(--cb-work-project-muted);
+	font-weight: var(--cb-fw-semibold);
+}
+
+.cb-work-project-workspace__facts dd {
+	margin: 0;
+	color: var(--cb-work-project-text);
+}
+
+.cb-work-project-workspace__context-action {
+	margin: var(--cb-space-4) 0 0;
+	padding-top: var(--cb-space-4);
+	border-top: 1px solid var(--cb-work-project-border);
+}
+
+@media screen and (max-width: 1100px) {
+	.cb-work-project-workspace__metrics {
+		grid-template-columns: repeat(2, minmax(160px, 1fr));
+	}
+
+	.cb-work-project-workspace__layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-project-workspace__header {
+		flex-direction: column;
+		gap: var(--cb-space-4);
+	}
+
+	.cb-work-project-workspace__actions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+
+	.cb-work-project-workspace__actions .button {
+		width: 100%;
+		text-align: center;
+	}
+
+	.cb-work-project-workspace__metrics {
+		grid-template-columns: 1fr;
+	}
+
+	.cb-work-project-workspace__panel {
+		padding: var(--cb-space-4);
+	}
+
+	.cb-work-project-workspace__panel-header {
+		flex-direction: column;
+	}
+}

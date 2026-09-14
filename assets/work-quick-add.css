@@ -1,0 +1,109 @@
+/* Core Blueprint Work — Quick Add progressive enhancement. */
+.cb-work-quick-add[hidden] {
+	display: none !important;
+}
+
+.cb-work-quick-add {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	display: flex;
+	justify-content: flex-end;
+}
+
+.cb-work-quick-add__backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, .45);
+}
+
+.cb-work-quick-add__panel {
+	position: relative;
+	z-index: 1;
+	width: min(460px, calc(100vw - 32px));
+	height: 100%;
+	box-sizing: border-box;
+	overflow-y: auto;
+	padding: var(--cb-space-5);
+	background: var(--cb-surface-1);
+	border-left: 1px solid var(--cb-border);
+	box-shadow: var(--cb-shadow-lg);
+}
+
+.cb-work-quick-add__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--cb-space-4);
+	margin-bottom: var(--cb-space-5);
+}
+
+.cb-work-quick-add__header h2,
+.cb-work-quick-add__eyebrow {
+	margin: 0;
+}
+
+.cb-work-quick-add__eyebrow {
+	margin-bottom: var(--cb-space-1);
+	color: var(--cb-text-muted);
+	font-size: var(--cb-fs-sm);
+	font-weight: var(--cb-fw-semibold);
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.cb-work-quick-add__close {
+	font-size: 28px;
+	line-height: 1;
+	text-decoration: none;
+}
+
+.cb-work-quick-add input[type="text"],
+.cb-work-quick-add input[type="date"],
+.cb-work-quick-add select {
+	width: 100%;
+	max-width: none;
+}
+
+.cb-work-quick-add__fields {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(150px, .6fr);
+	gap: var(--cb-space-4);
+}
+
+.cb-work-quick-add__actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2);
+	margin-top: var(--cb-space-5);
+	padding-top: var(--cb-space-4);
+	border-top: 1px solid var(--cb-border);
+}
+
+.cb-work-quick-add__actions .button,
+.cb-work-quick-add__actions .button-link {
+	margin: 0;
+}
+
+body.cb-work-quick-add-open {
+	overflow: hidden;
+}
+
+@media screen and (max-width: 600px) {
+	.cb-work-quick-add {
+		align-items: flex-end;
+	}
+
+	.cb-work-quick-add__panel {
+		width: 100%;
+		height: auto;
+		max-height: calc(100vh - 40px);
+		border-left: 0;
+		border-top: 1px solid var(--cb-border);
+	}
+
+	.cb-work-quick-add__fields {
+		grid-template-columns: 1fr;
+	}
+}

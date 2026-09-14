@@ -70,19 +70,21 @@ final class WorkItemViewState {
 			$sort = WorkItemQuery::SORT_WORKLOAD;
 		}
 
-		$calendar_month = '';
-		$scheduled_from = self::date( $request['scheduled_from'] ?? '' );
-		$scheduled_to   = self::date( $request['scheduled_to'] ?? '' );
-		$per_page       = 50;
+		$calendar_month          = '';
+		$scheduled_from          = self::date( $request['scheduled_from'] ?? '' );
+		$scheduled_to            = self::date( $request['scheduled_to'] ?? '' );
+		$query_scheduled_from    = $scheduled_from;
+		$query_scheduled_to      = $scheduled_to;
+		$per_page                = 50;
 		if ( self::VIEW_CALENDAR === $view ) {
 			$calendar_month = self::month( $request['calendar_month'] ?? '' );
 			if ( '' === $calendar_month ) {
 				$calendar_month = self::month( current_time( 'Y-m' ) );
 			}
-			$bounds         = self::month_bounds( $calendar_month );
-			$scheduled_from = $bounds['from'];
-			$scheduled_to   = $bounds['to'];
-			$per_page       = 500;
+			$bounds               = self::month_bounds( $calendar_month );
+			$query_scheduled_from = $bounds['from'];
+			$query_scheduled_to   = $bounds['to'];
+			$per_page             = 500;
 		}
 
 		$state = [
@@ -98,6 +100,7 @@ final class WorkItemViewState {
 			'customer'       => $customer_token,
 			'customer_valid' => $customer_valid,
 			'calendar_month' => $calendar_month,
+			// Explicit user filters only. Calendar month bounds are query viewport state.
 			'scheduled_from' => $scheduled_from,
 			'scheduled_to'   => $scheduled_to,
 			'due_from'       => self::date( $request['due_from'] ?? '' ),
@@ -117,8 +120,8 @@ final class WorkItemViewState {
 			'assignee_id'          => $state['assignee_id'],
 			'billing_dispositions' => '' === $billing ? [] : [ $billing ],
 			'customer'             => $customer,
-			'scheduled_from'       => $state['scheduled_from'],
-			'scheduled_to'         => $state['scheduled_to'],
+			'scheduled_from'       => $query_scheduled_from,
+			'scheduled_to'         => $query_scheduled_to,
 			'due_from'             => $state['due_from'],
 			'due_to'               => $state['due_to'],
 			'sort'                 => $sort,
@@ -136,9 +139,10 @@ final class WorkItemViewState {
 	 */
 	public static function query_args( array $state, array $overrides = [] ): array {
 		$state = array_merge( $state, $overrides );
+		$view  = (string) ( $state['view'] ?? self::VIEW_TABLE );
 		$args = [
 			'page' => Menu::WORK_ITEMS_SLUG,
-			'view' => (string) ( $state['view'] ?? self::VIEW_TABLE ),
+			'view' => $view,
 		];
 		$map = [
 			'search'         => 's',
@@ -159,10 +163,7 @@ final class WorkItemViewState {
 			'page'           => 'paged',
 		];
 		foreach ( $map as $state_key => $query_key ) {
-			if (
-				self::VIEW_CALENDAR === (string) ( $state['view'] ?? '' )
-				&& in_array( $state_key, [ 'scheduled_from', 'scheduled_to' ], true )
-			) {
+			if ( 'calendar_month' === $state_key && self::VIEW_CALENDAR !== $view ) {
 				continue;
 			}
 			$value = $state[ $state_key ] ?? '';

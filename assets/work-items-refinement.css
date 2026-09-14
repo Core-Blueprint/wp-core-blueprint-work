@@ -1,0 +1,160 @@
+/* Core Blueprint Work — Work Items UX Refinement v1. */
+
+.cb-work-items-page--refined .cb-work-page-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--cb-space-5);
+	margin: 0 0 var(--cb-space-5);
+}
+
+.cb-work-items-page--refined .cb-work-page-header__copy {
+	min-width: 0;
+	max-width: 760px;
+}
+
+.cb-work-items-page--refined .cb-work-page-header__copy h1 {
+	margin: 0 0 var(--cb-space-1);
+}
+
+.cb-work-items-page--refined .cb-work-page-header__copy > .description {
+	margin: 0;
+}
+
+.cb-work-items-page--refined .cb-work-page-header__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--cb-space-2);
+	flex: 0 0 auto;
+}
+
+.cb-work-items-page--refined .cb-work-page-header__actions .button {
+	margin: 0;
+}
+
+.cb-work-items-page--refined .nav-tab-wrapper {
+	margin-bottom: 0;
+}
+
+.cb-work-items-page--refined .cb-work-toolbar {
+	padding: var(--cb-space-3);
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__row {
+	gap: var(--cb-space-3);
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__primary {
+	gap: var(--cb-space-2);
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__primary select[name="status"] {
+	min-width: 150px;
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__primary select[name="project_id"] {
+	min-width: 220px;
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__advanced {
+	margin-top: var(--cb-space-3);
+	padding: var(--cb-space-4);
+}
+
+.cb-work-items-page--refined .cb-work-toolbar__advanced-grid {
+	grid-template-columns: repeat(3, minmax(180px, 1fr));
+	gap: var(--cb-space-4);
+}
+
+.cb-work-items-page--refined .cb-work-filter-field--wide,
+.cb-work-items-page--refined .cb-work-filter-field--range {
+	grid-column: span 1;
+}
+
+.cb-work-items-page--refined .cb-work-filter-field--service select {
+	width: 100%;
+	max-width: none;
+}
+
+.cb-work-items-page--refined .cb-work-filter-summary {
+	margin-top: var(--cb-space-3);
+	padding-top: var(--cb-space-3);
+}
+
+.cb-work-items-page--refined .cb-work-results-header {
+	align-items: center;
+}
+
+.cb-work-items-page--refined .cb-work-results-header > .description {
+	margin-left: auto;
+}
+
+.cb-work-items-page--refined .cb-work-board-closed-toggle {
+	margin-left: var(--cb-space-2);
+	white-space: nowrap;
+}
+
+.cb-work-items-page--refined .cb-work-items-kanban {
+	display: grid;
+	gap: var(--cb-space-3) !important;
+	align-items: start;
+	overflow-x: auto;
+	padding-bottom: var(--cb-space-4) !important;
+}
+
+.cb-work-items-page--refined .cb-work-board__lane[hidden] {
+	display: none !important;
+}
+
+.cb-work-items-page--refined .cb-work-board__lane {
+	min-width: 240px !important;
+	margin: 0 !important;
+}
+
+.cb-work-items-page--refined .cb-work-empty-state--primary {
+	margin-top: var(--cb-space-2);
+}
+
+.cb-work-items-page--refined .cb-work-calendar-empty-note {
+	margin: 0 0 var(--cb-space-3);
+	padding: var(--cb-space-3) var(--cb-space-4);
+	background: var(--cb-surface-1);
+	border: 1px solid var(--cb-border);
+	border-radius: var(--cb-radius-md);
+}
+
+@media screen and (max-width: 1100px) {
+	.cb-work-items-page--refined .cb-work-toolbar__advanced-grid {
+		grid-template-columns: repeat(2, minmax(180px, 1fr));
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-items-page--refined .cb-work-page-header {
+		flex-direction: column;
+		gap: var(--cb-space-3);
+	}
+
+	.cb-work-items-page--refined .cb-work-page-header__actions,
+	.cb-work-items-page--refined .cb-work-page-header__actions .button {
+		width: 100%;
+	}
+
+	.cb-work-items-page--refined .cb-work-page-header__actions .button {
+		text-align: center;
+	}
+
+	.cb-work-items-page--refined .cb-work-toolbar__advanced-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.cb-work-items-page--refined .cb-work-results-header {
+		align-items: flex-start;
+	}
+
+	.cb-work-items-page--refined .cb-work-results-header > .description,
+	.cb-work-items-page--refined .cb-work-board-closed-toggle {
+		margin-left: 0;
+	}
+}

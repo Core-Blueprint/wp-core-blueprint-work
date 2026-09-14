@@ -9,18 +9,19 @@ use CB\Work\Content\PostTypes;
 defined( 'ABSPATH' ) || exit;
 
 final class Menu {
-	public const TOP_LEVEL_SLUG      = 'core-blueprint-work';
-	public const WORK_ITEMS_SLUG     = 'core-blueprint-work-items';
-	public const RECURRENCE_SLUG     = 'core-blueprint-work-recurrence';
-	public const TIME_SLUG           = 'core-blueprint-work-time';
-	public const WORK_TYPES_SLUG     = 'core-blueprint-work-types';
-	public const CONTEXT_OVERVIEW    = 'overview';
-	public const CONTEXT_WORK_ITEMS  = 'work_items';
-	public const CONTEXT_RECURRENCE  = 'recurrence';
-	public const CONTEXT_TIME        = 'time';
-	public const CONTEXT_PROJECTS    = 'projects';
-	public const CONTEXT_SERVICES    = 'services';
-	public const CONTEXT_WORK_TYPES  = 'work_types';
+	public const TOP_LEVEL_SLUG        = 'core-blueprint-work';
+	public const WORK_ITEMS_SLUG       = 'core-blueprint-work-items';
+	public const PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project';
+	public const RECURRENCE_SLUG       = 'core-blueprint-work-recurrence';
+	public const TIME_SLUG             = 'core-blueprint-work-time';
+	public const WORK_TYPES_SLUG       = 'core-blueprint-work-types';
+	public const CONTEXT_OVERVIEW      = 'overview';
+	public const CONTEXT_WORK_ITEMS    = 'work_items';
+	public const CONTEXT_RECURRENCE    = 'recurrence';
+	public const CONTEXT_TIME          = 'time';
+	public const CONTEXT_PROJECTS      = 'projects';
+	public const CONTEXT_SERVICES      = 'services';
+	public const CONTEXT_WORK_TYPES    = 'work_types';
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
@@ -37,14 +38,15 @@ final class Menu {
 		}
 
 		if ( $can_manage ) {
-			add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 'dashicons-clipboard', 26.5 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Operations::class, 'render_overview' ], 5 );
+			add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 'dashicons-clipboard', 26.5 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 5 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 10 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 15 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 17 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
+			add_submenu_page( null, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
 			return;
 		}
 
@@ -81,6 +83,13 @@ final class Menu {
 		return admin_url( self::projects_path() );
 	}
 
+	public static function project_workspace_url( int $project_id ): string {
+		return add_query_arg(
+			[ 'page' => self::PROJECT_WORKSPACE_SLUG, 'project_id' => max( 0, $project_id ) ],
+			admin_url( 'admin.php' )
+		);
+	}
+
 	/** @param array<string,int|string> $args */
 	public static function time_url( array $args = [] ): string {
 		$slug = current_user_can( Capabilities::MANAGE ) ? self::TIME_SLUG : self::TOP_LEVEL_SLUG;
@@ -110,6 +119,9 @@ final class Menu {
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( self::TOP_LEVEL_SLUG === $page ) {
 			return current_user_can( Capabilities::MANAGE ) ? self::CONTEXT_OVERVIEW : self::CONTEXT_TIME;
+		}
+		if ( self::PROJECT_WORKSPACE_SLUG === $page ) {
+			return self::CONTEXT_PROJECTS;
 		}
 		if ( self::WORK_ITEMS_SLUG === $page || PostTypes::WORK_ITEM === (string) $screen->post_type ) {
 			return self::CONTEXT_WORK_ITEMS;

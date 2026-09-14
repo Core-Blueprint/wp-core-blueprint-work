@@ -9,29 +9,99 @@ defined( 'ABSPATH' ) || exit;
  *
  * Base owns the global WordPress Admin Theme, theme state and shared primitive
  * presentation. Work only layers domain-specific workspace composition on top:
- * filters, Board layout, Calendar density and Work-specific empty states.
+ * shared Work navigation, filters, Board layout, Calendar density and
+ * Work-specific empty states.
  */
 final class Assets {
-	private const STYLE_HANDLE  = 'cb-work-admin';
-	private const SCRIPT_HANDLE = 'cb-work-admin';
+	private const STYLE_HANDLE             = 'cb-work-admin';
+	private const WORKSPACE_STYLE_HANDLE   = 'cb-work-workspace';
+	private const PROJECT_STYLE_HANDLE     = 'cb-work-project-workspace';
+	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
+	private const QUICK_ADD_STYLE_HANDLE   = 'cb-work-quick-add';
+	private const FAST_PATH_STYLE_HANDLE   = 'cb-work-fast-paths';
+	private const REFINEMENT_STYLE_HANDLE  = 'cb-work-items-refinement';
+	private const SCRIPT_HANDLE            = 'cb-work-admin';
+	private const QUICK_ADD_SCRIPT_HANDLE  = 'cb-work-quick-add';
+	private const FAST_PATH_SCRIPT_HANDLE  = 'cb-work-fast-paths';
+	private const REFINEMENT_SCRIPT_HANDLE = 'cb-work-items-refinement';
 
 	public static function init(): void {
-		// Base fires this public hook after the canonical Admin Theme assets are
-		// enqueued. Work therefore consumes the public integration contract rather
-		// than coupling to Base's internal stylesheet handles or theme slugs.
 		add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 	}
 
 	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
 		unset( $hook_suffix, $theme, $mode, $registered );
 
+		$context = Menu::screen_context();
+		if ( '' === $context ) {
+			return;
+		}
+
+		self::enqueue_workspace_style();
+		self::enqueue_quick_add_assets();
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
-		if ( Menu::WORK_ITEMS_SLUG !== $page ) {
+		if ( Menu::PROJECT_WORKSPACE_SLUG === $page ) {
+			self::enqueue_project_workspace_style();
+		}
+		if ( Menu::CONTEXT_OVERVIEW === $context ) {
+			self::enqueue_overview_style();
+		}
+
+		if ( Menu::CONTEXT_WORK_ITEMS !== $context ) {
 			return;
 		}
 
 		self::enqueue_style();
 		self::enqueue_script();
+		self::enqueue_refinement_assets();
+		self::enqueue_fast_path_assets();
+	}
+
+	private static function enqueue_workspace_style(): void {
+		$file = CB_WORK_DIR . 'assets/work-workspace.css';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_style( self::WORKSPACE_STYLE_HANDLE, CB_WORK_URL . 'assets/work-workspace.css', [], $version );
+	}
+
+	private static function enqueue_project_workspace_style(): void {
+		$file = CB_WORK_DIR . 'assets/project-workspace.css';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_style( self::PROJECT_STYLE_HANDLE, CB_WORK_URL . 'assets/project-workspace.css', [ self::WORKSPACE_STYLE_HANDLE ], $version );
+	}
+
+	private static function enqueue_overview_style(): void {
+		$file = CB_WORK_DIR . 'assets/work-overview.css';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_style( self::OVERVIEW_STYLE_HANDLE, CB_WORK_URL . 'assets/work-overview.css', [ self::WORKSPACE_STYLE_HANDLE ], $version );
+	}
+
+	private static function enqueue_quick_add_assets(): void {
+		$style = CB_WORK_DIR . 'assets/work-quick-add.css';
+		if ( is_file( $style ) ) {
+			$modified = filemtime( $style );
+			$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+			wp_enqueue_style( self::QUICK_ADD_STYLE_HANDLE, CB_WORK_URL . 'assets/work-quick-add.css', [ self::WORKSPACE_STYLE_HANDLE ], $version );
+		}
+
+		$script = CB_WORK_DIR . 'assets/work-quick-add.js';
+		if ( ! is_file( $script ) ) {
+			return;
+		}
+		$modified = filemtime( $script );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script( self::QUICK_ADD_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-quick-add.js', [], $version, true );
 	}
 
 	private static function enqueue_style(): void {
@@ -39,16 +109,9 @@ final class Assets {
 		if ( ! is_file( $file ) ) {
 			return;
 		}
-
 		$modified = filemtime( $file );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
-
-		wp_enqueue_style(
-			self::STYLE_HANDLE,
-			CB_WORK_URL . 'assets/work-admin.css',
-			[],
-			$version
-		);
+		wp_enqueue_style( self::STYLE_HANDLE, CB_WORK_URL . 'assets/work-admin.css', [ self::WORKSPACE_STYLE_HANDLE ], $version );
 	}
 
 	private static function enqueue_script(): void {
@@ -56,49 +119,93 @@ final class Assets {
 		if ( ! is_file( $file ) ) {
 			return;
 		}
-
 		$modified = filemtime( $file );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
-
-		wp_enqueue_script(
-			self::SCRIPT_HANDLE,
-			CB_WORK_URL . 'assets/work-admin.js',
-			[],
-			$version,
-			true
-		);
+		wp_enqueue_script( self::SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-admin.js', [], $version, true );
 
 		wp_localize_script( self::SCRIPT_HANDLE, 'cbWorkAdminUx', [
-			'filter'              => __( 'Filter', 'core-blueprint-work' ),
-			'search'              => __( 'Search', 'core-blueprint-work' ),
-			'moreFilters'         => __( 'More filters', 'core-blueprint-work' ),
-			'lessFilters'         => __( 'Hide filters', 'core-blueprint-work' ),
-			'activeFilters'       => __( 'Active filters', 'core-blueprint-work' ),
-			'selected'            => __( 'Selected', 'core-blueprint-work' ),
-			'today'               => __( 'Today', 'core-blueprint-work' ),
-			'status'              => __( 'Status', 'core-blueprint-work' ),
-			'project'             => __( 'Project', 'core-blueprint-work' ),
-			'service'             => __( 'Service', 'core-blueprint-work' ),
-			'customer'            => __( 'Customer', 'core-blueprint-work' ),
-			'assignee'            => __( 'Assignee', 'core-blueprint-work' ),
-			'priority'            => __( 'Priority', 'core-blueprint-work' ),
-			'workType'            => __( 'Work Type', 'core-blueprint-work' ),
-			'billing'             => __( 'Billing', 'core-blueprint-work' ),
-			'sort'                => __( 'Sort', 'core-blueprint-work' ),
-			'scheduled'           => __( 'Scheduled', 'core-blueprint-work' ),
-			'due'                 => __( 'Due', 'core-blueprint-work' ),
-			'to'                  => __( 'to', 'core-blueprint-work' ),
-			'board'               => __( 'Board', 'core-blueprint-work' ),
-			'noItemsYet'          => __( 'No Work Items yet.', 'core-blueprint-work' ),
-			'noItemsYetDetail'    => __( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ),
-			'noMatchingItems'     => __( 'No Work Items match these filters.', 'core-blueprint-work' ),
-			'noMatchingDetail'    => __( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ),
-			'planned'             => __( 'Planned', 'core-blueprint-work' ),
-			'inProgress'          => __( 'In Progress', 'core-blueprint-work' ),
-			'completed'           => __( 'Completed', 'core-blueprint-work' ),
-			'skipped'             => __( 'Skipped', 'core-blueprint-work' ),
-			'cancelled'           => __( 'Cancelled', 'core-blueprint-work' ),
-			'emptyLane'           => __( 'No Work Items', 'core-blueprint-work' ),
+			'filter'               => __( 'Filter', 'core-blueprint-work' ),
+			'filters'              => __( 'Filters', 'core-blueprint-work' ),
+			'search'               => __( 'Search', 'core-blueprint-work' ),
+			'moreFilters'          => __( 'More filters', 'core-blueprint-work' ),
+			'lessFilters'          => __( 'Hide filters', 'core-blueprint-work' ),
+			'activeFilters'        => __( 'Active filters', 'core-blueprint-work' ),
+			'selected'             => __( 'Selected', 'core-blueprint-work' ),
+			'today'                => __( 'Today', 'core-blueprint-work' ),
+			'status'               => __( 'Status', 'core-blueprint-work' ),
+			'project'              => __( 'Project', 'core-blueprint-work' ),
+			'service'              => __( 'Service', 'core-blueprint-work' ),
+			'customer'             => __( 'Customer', 'core-blueprint-work' ),
+			'assignee'             => __( 'Assignee', 'core-blueprint-work' ),
+			'priority'             => __( 'Priority', 'core-blueprint-work' ),
+			'workType'             => __( 'Work Type', 'core-blueprint-work' ),
+			'billing'              => __( 'Billing', 'core-blueprint-work' ),
+			'sort'                 => __( 'Sort', 'core-blueprint-work' ),
+			'scheduled'            => __( 'Scheduled', 'core-blueprint-work' ),
+			'due'                  => __( 'Due', 'core-blueprint-work' ),
+			'to'                   => __( 'to', 'core-blueprint-work' ),
+			'board'                => __( 'Board', 'core-blueprint-work' ),
+			'noItemsYet'           => __( 'No Work Items yet.', 'core-blueprint-work' ),
+			'noItemsYetDetail'     => __( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ),
+			'noMatchingItems'      => __( 'No Work Items match these filters.', 'core-blueprint-work' ),
+			'noMatchingDetail'     => __( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ),
+			'noScheduledThisMonth' => __( 'No scheduled work this month.', 'core-blueprint-work' ),
+			'planned'              => __( 'Planned', 'core-blueprint-work' ),
+			'inProgress'           => __( 'In Progress', 'core-blueprint-work' ),
+			'blocked'              => __( 'Blocked', 'core-blueprint-work' ),
+			'completed'            => __( 'Completed', 'core-blueprint-work' ),
+			'skipped'              => __( 'Skipped', 'core-blueprint-work' ),
+			'cancelled'            => __( 'Cancelled', 'core-blueprint-work' ),
+			'showClosed'           => __( 'Show closed', 'core-blueprint-work' ),
+			'hideClosed'           => __( 'Hide closed', 'core-blueprint-work' ),
+			'emptyLane'            => __( 'No Work Items', 'core-blueprint-work' ),
+		] );
+	}
+
+	private static function enqueue_refinement_assets(): void {
+		$style = CB_WORK_DIR . 'assets/work-items-refinement.css';
+		if ( is_file( $style ) ) {
+			$modified = filemtime( $style );
+			$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+			wp_enqueue_style( self::REFINEMENT_STYLE_HANDLE, CB_WORK_URL . 'assets/work-items-refinement.css', [ self::STYLE_HANDLE ], $version );
+		}
+
+		$script = CB_WORK_DIR . 'assets/work-items-refinement.js';
+		if ( ! is_file( $script ) ) {
+			return;
+		}
+		$modified = filemtime( $script );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script( self::REFINEMENT_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-items-refinement.js', [ self::SCRIPT_HANDLE ], $version, true );
+	}
+
+	private static function enqueue_fast_path_assets(): void {
+		$style = CB_WORK_DIR . 'assets/work-fast-paths.css';
+		if ( is_file( $style ) ) {
+			$modified = filemtime( $style );
+			$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+			wp_enqueue_style( self::FAST_PATH_STYLE_HANDLE, CB_WORK_URL . 'assets/work-fast-paths.css', [ self::REFINEMENT_STYLE_HANDLE ], $version );
+		}
+
+		$script = CB_WORK_DIR . 'assets/work-fast-paths.js';
+		if ( ! is_file( $script ) ) {
+			return;
+		}
+		$modified = filemtime( $script );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script( self::FAST_PATH_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-fast-paths.js', [ self::REFINEMENT_SCRIPT_HANDLE ], $version, true );
+		$today = current_time( 'Y-m-d' );
+		wp_localize_script( self::FAST_PATH_SCRIPT_HANDLE, 'cbWorkFastPaths', [
+			'userId'       => get_current_user_id(),
+			'today'        => $today,
+			'yesterday'    => wp_date( 'Y-m-d', strtotime( $today . ' -1 day' ) ),
+			'focusViews'   => __( 'Focus views', 'core-blueprint-work' ),
+			'all'          => __( 'All', 'core-blueprint-work' ),
+			'myWork'       => __( 'My work', 'core-blueprint-work' ),
+			'active'       => __( 'Active', 'core-blueprint-work' ),
+			'blocked'      => __( 'Blocked', 'core-blueprint-work' ),
+			'overdue'      => __( 'Overdue', 'core-blueprint-work' ),
+			'keyboardHint' => __( 'Shortcut: / search · Alt+N add Work Item', 'core-blueprint-work' ),
 		] );
 	}
 }

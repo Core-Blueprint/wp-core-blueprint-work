@@ -1,0 +1,73 @@
+<?php
+declare(strict_types=1);
+
+$root      = dirname( __DIR__ );
+$assets    = file_get_contents( $root . '/src/Admin/Assets.php' );
+$workspace = file_get_contents( $root . '/src/Admin/Workspace.php' );
+$state     = file_get_contents( $root . '/src/Admin/WorkItemViewState.php' );
+$script    = file_get_contents( $root . '/assets/work-items-refinement.js' );
+$css       = file_get_contents( $root . '/assets/work-items-refinement.css' );
+
+function refinement_assert( bool $condition, string $message ): void {
+	if ( ! $condition ) {
+		fwrite( STDERR, "Work Items UX refinement smoke failed: {$message}\n" );
+		exit( 1 );
+	}
+}
+
+refinement_assert(
+	false !== $assets && false !== $workspace && false !== $state && false !== $script && false !== $css,
+	'Refinement source files are readable.'
+);
+
+refinement_assert(
+	str_contains( $assets, "assets/work-items-refinement.css" )
+	&& str_contains( $assets, "assets/work-items-refinement.js" )
+	&& str_contains( $assets, "'blocked'" )
+	&& str_contains( $assets, "'showClosed'" ),
+	'Refinement assets and Board vocabulary are registered only through Work admin assets.'
+);
+
+refinement_assert(
+	str_contains( $workspace, "add_action( 'admin_head', [ self::class, 'hide_duplicate_submenus' ], 1 )" )
+	&& str_contains( $workspace, 'remove_submenu_page( Menu::TOP_LEVEL_SLUG, $slug )' )
+	&& str_contains( $workspace, 'user_can_access_admin_page()' ),
+	'WordPress routes remain registered through access checks before duplicate sidebar navigation is removed.'
+);
+
+refinement_assert(
+	str_contains( $state, '$query_scheduled_from' )
+	&& str_contains( $state, 'Explicit user filters only. Calendar month bounds are query viewport state.' )
+	&& str_contains( $state, "'calendar_month' === $state_key && self::VIEW_CALENDAR !== $view" ),
+	'Calendar viewport state is structurally separate from explicit scheduled filters.'
+);
+
+refinement_assert(
+	str_contains( $script, 'advanced.hidden = true' )
+	&& str_contains( $script, "strings.filters || 'Filters'" )
+	&& str_contains( $script, "cb-work-filter-field--service" ),
+	'Advanced filter power stays available but starts progressively disclosed.'
+);
+
+refinement_assert(
+	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
+	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
+	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
+	'Board prioritizes active workflow while preserving access to closed statuses.'
+);
+
+refinement_assert(
+	str_contains( $script, 'cb-work-empty-state--primary' )
+	&& str_contains( $script, 'cb-work-calendar-empty-note' )
+	&& str_contains( $script, 'cb-work-page-header' ),
+	'Header and empty states provide clear next actions without removing canonical functionality.'
+);
+
+refinement_assert(
+	str_contains( $css, '@media screen and (max-width: 782px)' )
+	&& str_contains( $css, '.cb-work-board__lane[hidden]' )
+	&& str_contains( $css, '.cb-work-page-header__primary' ),
+	'Refinement stays responsive and preserves native button semantics.'
+);
+
+echo "Work Items UX refinement smoke passed.\n";
