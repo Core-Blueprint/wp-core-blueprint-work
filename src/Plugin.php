@@ -26,7 +26,6 @@ use CB\Work\Governance\Events;
 use CB\Work\Recurrence\Scheduler;
 use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
-use CB\Work\Support\Requirements;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +33,7 @@ final class Plugin {
 	private static bool $booted = false;
 
 	public static function boot(): void {
-		if ( self::$booted || ! Requirements::runtime_ready() ) {
+		if ( self::$booted || ! function_exists( 'cb_work_runtime_ready' ) || ! \cb_work_runtime_ready() ) {
 			return;
 		}
 		self::$booted = true;
