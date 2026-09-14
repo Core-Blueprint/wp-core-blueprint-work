@@ -11,11 +11,15 @@ defined( 'ABSPATH' ) || exit;
 final class Projects {
 	/** @return array<string,mixed>|null */
 	public static function get( int $project_id ): ?array {
-		return ProjectRepository::get( $project_id );
+		return self::runtime_ready() ? ProjectRepository::get( $project_id ) : null;
 	}
 
 	/** @return array<int,array<string,mixed>> */
 	public static function all( int $limit = 250 ): array {
-		return ProjectRepository::all( $limit );
+		return self::runtime_ready() ? ProjectRepository::all( $limit ) : [];
+	}
+
+	private static function runtime_ready(): bool {
+		return function_exists( 'cb_work_runtime_ready' ) && \cb_work_runtime_ready();
 	}
 }
