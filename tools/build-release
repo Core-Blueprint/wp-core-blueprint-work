@@ -1,34 +1,125 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PLUGIN_SLUG="core-blueprint-work"
-VERSION="$(php -r '$s=file_get_contents($argv[1]); preg_match("/Version:\\s+([^\\r\\n]+)/", $s, $m); echo trim($m[1] ?? "");' "$ROOT_DIR/core-blueprint-work.php")"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PACKAGE="core-blueprint-work"
+MAIN_FILE="$ROOT/core-blueprint-work.php"
+DIST="${CB_RELEASE_DIST:-$ROOT/build}"
+ZIP="$DIST/$PACKAGE.zip"
+SHA_FILE="$ZIP.sha256"
+LOCALES=(nl_NL de_DE fr_FR es_ES it_IT pt_PT)
 
-if [[ -z "$VERSION" ]]; then
-  echo "Unable to determine plugin version." >&2
+fail() {
+  echo "ERROR: $*" >&2
   exit 1
+}
+
+for command_name in php python3 wp msgfmt node zip unzip sha256sum find sort touch git; do
+  command -v "$command_name" >/dev/null 2>&1 || fail "required release command is unavailable: $command_name"
+done
+
+php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);' || fail "PHP 8.4 or newer is required to build Work."
+
+VERSION="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Version:\\s*([^\\s]+)/m", $s, $m); echo trim($m[1] ?? "");' "$MAIN_FILE")"
+CONSTANT_VERSION="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\s*[\"\x27]CB_WORK_VERSION[\"\x27]\\s*,\\s*[\"\x27]([^\"\x27]+)[\"\x27]\\s*\\)/", $s, $m); echo trim($m[1] ?? "");' "$MAIN_FILE")"
+REQUIRES_PHP="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Requires PHP:\\s*([^\\s]+)/m", $s, $m); echo trim($m[1] ?? "");' "$MAIN_FILE")"
+REQUIRES_PLUGINS="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Requires Plugins:\\s*([^\\r\\n]+)/m", $s, $m); echo trim($m[1] ?? "");' "$MAIN_FILE")"
+REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\s*[\"\x27]CB_WORK_REQUIRED_API[\"\x27]\\s*,\\s*[\"\x27]([^\"\x27]+)[\"\x27]\\s*\\)/", $s, $m); echo trim($m[1] ?? "");' "$MAIN_FILE")"
+
+[[ "$VERSION" == "1.0.0-rc1" ]] || fail "release version must be exactly 1.0.0-rc1; got '$VERSION'"
+[[ "$CONSTANT_VERSION" == "$VERSION" ]] || fail "Version header and CB_WORK_VERSION must match"
+[[ "$REQUIRES_PHP" == "8.4" ]] || fail "Requires PHP must be exactly 8.4"
+[[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
+[[ "$REQUIRED_API" == "1.0" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.0"
+
+"$ROOT/tools/i18n/check"
+
+while IFS= read -r -d '' file; do
+  php -l "$file" >/dev/null
+done < <(find "$ROOT/src" -type f -name '*.php' -print0)
+php -l "$MAIN_FILE" >/dev/null
+
+while IFS= read -r -d '' file; do
+  node --check "$file" >/dev/null
+done < <(find "$ROOT/assets" -type f -name '*.js' -print0)
+
+[[ -d "$ROOT/languages" ]] || fail "languages directory is missing; generate and review the canonical Work catalogs first"
+[[ -f "$ROOT/languages/core-blueprint-work.pot" ]] || fail "canonical Work POT is missing"
+for locale in "${LOCALES[@]}"; do
+  [[ -f "$ROOT/languages/core-blueprint-work-$locale.po" ]] || fail "reviewed PO is missing for $locale"
+done
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+STAGE_PARENT="$TMP/stage"
+STAGE="$STAGE_PARENT/$PACKAGE"
+mkdir -p "$STAGE" "$DIST"
+rm -f "$ZIP" "$SHA_FILE"
+
+cp "$MAIN_FILE" "$STAGE/"
+cp "$ROOT/README.md" "$STAGE/"
+cp -R "$ROOT/src" "$STAGE/src"
+cp -R "$ROOT/assets" "$STAGE/assets"
+cp -R "$ROOT/languages" "$STAGE/languages"
+
+find "$STAGE/languages" -type f \( -name '*.mo' -o -name '*.l10n.php' \) -delete
+for locale in "${LOCALES[@]}"; do
+  msgfmt --check-format --check-header \
+    -o "$STAGE/languages/core-blueprint-work-$locale.mo" \
+    "$STAGE/languages/core-blueprint-work-$locale.po"
+done
+
+while IFS= read -r -d '' file; do
+  php -l "$file" >/dev/null
+done < <(find "$STAGE" -type f -name '*.php' -print0)
+while IFS= read -r -d '' file; do
+  node --check "$file" >/dev/null
+done < <(find "$STAGE/assets" -type f -name '*.js' -print0)
+
+if find "$STAGE" -type d \( -name '.git' -o -name '.github' -o -name tests -o -name tools -o -name docs -o -name vendor -o -name node_modules -o -name build -o -name dist \) -print -quit | grep -q .; then
+  fail "development-only directory leaked into release stage"
 fi
 
-BUILD_DIR="$ROOT_DIR/build"
-STAGE_DIR="$BUILD_DIR/$PLUGIN_SLUG"
-ZIP_PATH="$BUILD_DIR/${PLUGIN_SLUG}-${VERSION}.zip"
-rm -rf "$BUILD_DIR"
-mkdir -p "$STAGE_DIR"
-
-rsync -a \
-  --exclude='.git/' \
-  --exclude='.github/' \
-  --exclude='build/' \
-  --exclude='tests/' \
-  --exclude='tools/' \
-  --exclude='*.zip' \
-  "$ROOT_DIR/" "$STAGE_DIR/"
-
-find "$STAGE_DIR" -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+find "$STAGE" -exec touch -h -t 198001010000 {} +
+FILE_LIST="$TMP/files.txt"
 (
-  cd "$BUILD_DIR"
-  zip -qr "$(basename "$ZIP_PATH")" "$PLUGIN_SLUG"
+  cd "$STAGE_PARENT"
+  find "$PACKAGE" -type f -print | LC_ALL=C sort > "$FILE_LIST"
+  zip -X -q "$ZIP" -@ < "$FILE_LIST"
 )
 
-echo "$ZIP_PATH"
+[[ -f "$ZIP" ]] || fail "release ZIP was not created"
+[[ "$(unzip -Z1 "$ZIP" | head -n1 | cut -d/ -f1)" == "$PACKAGE" ]] || fail "ZIP root must be $PACKAGE/"
+
+if unzip -Z1 "$ZIP" | grep -Eq '(^|/)(\.git|\.github|tests|tools|docs|vendor|node_modules|build|dist)(/|$)'; then
+  fail "development-only path leaked into release ZIP"
+fi
+
+for required in \
+  "$PACKAGE/core-blueprint-work.php" \
+  "$PACKAGE/README.md" \
+  "$PACKAGE/src/Plugin.php" \
+  "$PACKAGE/src/Support/Requirements.php" \
+  "$PACKAGE/assets" \
+  "$PACKAGE/languages/core-blueprint-work.pot"; do
+  if [[ "$required" == "$PACKAGE/assets" ]]; then
+    unzip -Z1 "$ZIP" | grep -q "^$PACKAGE/assets/" || fail "assets runtime directory missing from ZIP"
+  else
+    unzip -Z1 "$ZIP" | grep -Fxq "$required" || fail "required runtime file missing from ZIP: $required"
+  fi
+done
+for locale in "${LOCALES[@]}"; do
+  unzip -Z1 "$ZIP" | grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.po" || fail "PO missing from ZIP for $locale"
+  unzip -Z1 "$ZIP" | grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.mo" || fail "MO missing from ZIP for $locale"
+done
+
+PACKAGED_MAIN="$TMP/packaged-main.php"
+unzip -p "$ZIP" "$PACKAGE/core-blueprint-work.php" > "$PACKAGED_MAIN"
+PACKAGED_VERSION="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Version:\\s*([^\\s]+)/m", $s, $m); echo trim($m[1] ?? "");' "$PACKAGED_MAIN")"
+PACKAGED_REQUIRES="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Requires Plugins:\\s*([^\\r\\n]+)/m", $s, $m); echo trim($m[1] ?? "");' "$PACKAGED_MAIN")"
+[[ "$PACKAGED_VERSION" == "$VERSION" ]] || fail "packaged version drift"
+[[ "$PACKAGED_REQUIRES" == "core-blueprint" ]] || fail "packaged Requires Plugins drift"
+
+SHA="$(sha256sum "$ZIP" | awk '{print $1}')"
+printf '%s  %s\n' "$SHA" "$(basename "$ZIP")" > "$SHA_FILE"
+printf '%s\n' "$ZIP"
