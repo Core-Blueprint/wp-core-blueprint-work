@@ -32,16 +32,8 @@ REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\
 [[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
 [[ "$REQUIRED_API" == "1.0" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.0"
 
-"$ROOT/tools/i18n/check"
-
-while IFS= read -r -d '' file; do
-  php -l "$file" >/dev/null
-done < <(find "$ROOT/src" -type f -name '*.php' -print0)
-php -l "$MAIN_FILE" >/dev/null
-
-while IFS= read -r -d '' file; do
-  node --check "$file" >/dev/null
-done < <(find "$ROOT/assets" -type f -name '*.js' -print0)
+# Release packaging is never allowed to bypass localization, lint or regressions.
+bash "$ROOT/tools/check"
 
 [[ -d "$ROOT/languages" ]] || fail "languages directory is missing; generate and review the canonical Work catalogs first"
 [[ -f "$ROOT/languages/core-blueprint-work.pot" ]] || fail "canonical Work POT is missing"
@@ -62,6 +54,7 @@ cp -R "$ROOT/src" "$STAGE/src"
 cp -R "$ROOT/assets" "$STAGE/assets"
 cp -R "$ROOT/languages" "$STAGE/languages"
 
+# Runtime artifacts are generated from reviewed PO source during release staging.
 find "$STAGE/languages" -type f \( -name '*.mo' -o -name '*.l10n.php' \) -delete
 for locale in "${LOCALES[@]}"; do
   msgfmt --check-format --check-header \
@@ -80,6 +73,7 @@ if find "$STAGE" -type d \( -name '.git' -o -name '.github' -o -name tests -o -n
   fail "development-only directory leaked into release stage"
 fi
 
+# Normalize metadata, then feed ZIP an explicitly sorted file list.
 find "$STAGE" -exec touch -h -t 198001010000 {} +
 FILE_LIST="$TMP/files.txt"
 (
@@ -89,6 +83,7 @@ FILE_LIST="$TMP/files.txt"
 )
 
 [[ -f "$ZIP" ]] || fail "release ZIP was not created"
+unzip -tqq "$ZIP" || fail "release ZIP integrity check failed"
 [[ "$(unzip -Z1 "$ZIP" | head -n1 | cut -d/ -f1)" == "$PACKAGE" ]] || fail "ZIP root must be $PACKAGE/"
 
 if unzip -Z1 "$ZIP" | grep -Eq '(^|/)(\.git|\.github|tests|tools|docs|vendor|node_modules|build|dist)(/|$)'; then
@@ -122,4 +117,4 @@ PACKAGED_REQUIRES="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\
 
 SHA="$(sha256sum "$ZIP" | awk '{print $1}')"
 printf '%s  %s\n' "$SHA" "$(basename "$ZIP")" > "$SHA_FILE"
-printf '%s\n' "$ZIP"
+printf 'Work release build: PASS\nPackage: %s\nCanonical root: %s/\nSHA-256: %s\n' "$ZIP" "$PACKAGE" "$SHA"
