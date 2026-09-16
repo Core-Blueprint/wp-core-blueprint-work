@@ -29,16 +29,19 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $workspace, "add_action( 'admin_head', [ self::class, 'hide_duplicate_submenus' ], 1 )" )
-	&& str_contains( $workspace, 'remove_submenu_page( Menu::TOP_LEVEL_SLUG, $slug )' )
-	&& str_contains( $workspace, 'user_can_access_admin_page()' ),
-	'WordPress routes remain registered through access checks before duplicate sidebar navigation is removed.'
+	str_contains( $workspace, "add_filter( 'admin_body_class', [ self::class, 'body_class' ] )" )
+	&& str_contains( $workspace, 'Menu::screen_context()' )
+	&& str_contains( $workspace, 'cb-work-workspace-screen' )
+	&& ! str_contains( $workspace, 'remove_submenu_page' )
+	&& ! str_contains( $workspace, 'hide_duplicate_submenus' ),
+	'WordPress native navigation remains canonical while Work adds only scoped workspace context.'
 );
 
 refinement_assert(
 	str_contains( $state, '$query_scheduled_from' )
+	&& str_contains( $state, '$query_scheduled_to' )
 	&& str_contains( $state, 'Explicit user filters only. Calendar month bounds are query viewport state.' )
-	&& str_contains( $state, "'calendar_month' === $state_key && self::VIEW_CALENDAR !== $view" ),
+	&& str_contains( $state, "'calendar_month' === \$state_key && self::VIEW_CALENDAR !== \$view" ),
 	'Calendar viewport state is structurally separate from explicit scheduled filters.'
 );
 
@@ -66,7 +69,8 @@ refinement_assert(
 refinement_assert(
 	str_contains( $css, '@media screen and (max-width: 782px)' )
 	&& str_contains( $css, '.cb-work-board__lane[hidden]' )
-	&& str_contains( $css, '.cb-work-page-header__primary' ),
+	&& str_contains( $css, '.cb-work-page-header__actions' )
+	&& str_contains( $css, '.cb-work-page-header__actions .button' ),
 	'Refinement stays responsive and preserves native button semantics.'
 );
 

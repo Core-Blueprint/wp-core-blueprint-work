@@ -20,6 +20,7 @@ namespace {
 	function sanitize_key( string $value ): string { return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $value ) ?? '' ); }
 	function absint( mixed $value ): int { return abs( (int) $value ); }
 	function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; }
+	function cb_work_runtime_ready(): bool { return true; }
 	function assert_true( bool $condition, string $message ): void {
 		if ( ! $condition ) {
 			fwrite( STDERR, "CRM customer picker smoke failed: {$message}\n" );

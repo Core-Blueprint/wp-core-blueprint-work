@@ -95,8 +95,29 @@ $adminMutations = [
 ];
 foreach ( $adminMutations as $path ) {
 	$source = $read( $path );
-	if ( ! str_contains( $source, 'current_user_can( Capabilities::MANAGE )' ) || ! str_contains( $source, 'check_admin_referer(' ) ) {
-		fwrite( STDERR, "Admin mutation boundary lost capability/nonce protection: {$path}\n" );
+
+	$has_capability_guard = str_contains(
+		$source,
+		'current_user_can( Capabilities::MANAGE )'
+	);
+
+	// Time has an intentional separate tracker capability. Its canonical
+	// Access policy grants managers or cb_track_work_time and applies the
+	// finer-grained ownership/assignment checks at the mutation boundary.
+	if ( 'src/Admin/TimeActions.php' === $path ) {
+		$has_capability_guard =
+			str_contains( $source, 'Access::can_track()' )
+			&& str_contains( $source, 'use CB\\Work\\Time\\Access;' );
+	}
+
+	if (
+		! $has_capability_guard
+		|| ! str_contains( $source, 'check_admin_referer(' )
+	) {
+		fwrite(
+			STDERR,
+			"Admin mutation boundary lost capability/nonce protection: {$path}\n"
+		);
 		$failed = true;
 	}
 }
@@ -128,7 +149,7 @@ $checks = [
 	'direct Plugin boot rechecks full runtime readiness' => str_contains( $plugin, "function_exists( 'cb_work_runtime_ready' )" ) && str_contains( $plugin, '! \\cb_work_runtime_ready()' ),
 	'Suite is idempotent and self-gated' => str_contains( $suite, 'private static bool $initialized = false;' ) && str_contains( $suite, '! self::runtime_ready()' ) && str_contains( $suite, 'cb_work_runtime_ready' ),
 	'Frontend access is current-time readiness gated' => str_contains( $frontendAccess, 'cb_work_runtime_ready' ),
-	'CRM adapter uses documented CRM query contracts only' => str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Contacts' ) && str_contains( $crm, '\\CB\\CRM\\Frontend\\Queries\\Organizations' ) && ! str_contains( $crm, '$wpdb' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ),
+	'CRM adapter uses documented CRM query contracts only' => str_contains( $crm, 'private const CONTACT_QUERY' ) && str_contains( $crm, 'private const ORGANIZATION_QUERY' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Contacts' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Organizations' ) && ! str_contains( $crm, '$wpdb' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ),
 	'CRM adapter is Work-readiness gated and fail soft' => str_contains( $crm, 'cb_work_runtime_ready' ) && str_contains( $crm, 'class_exists' ),
 	'Data Exchange remains optional and Work-readiness gated' => str_contains( $dataExchange, 'cb_work_runtime_ready' ) && str_contains( $dataExchange, 'class_exists( Registry::class )' ) && str_contains( $dataExchange, 'interface_exists( CsvEntityInterface::class )' ),
 	'no direct Docs Helpdesk or Commerce adapter is part of Work launch runtime' => ! is_file( $root . '/src/Integration/Docs.php' ) && ! is_file( $root . '/src/Integration/Helpdesk.php' ) && ! is_file( $root . '/src/Integration/Commerce.php' ),
