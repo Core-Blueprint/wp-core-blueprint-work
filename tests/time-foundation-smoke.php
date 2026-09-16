@@ -16,6 +16,7 @@ $parts   = null === $started ? null : TimeRange::utc_to_local_parts( $started );
 $bootstrap   = file_get_contents( $root . '/core-blueprint-work.php' );
 $schema      = file_get_contents( $root . '/src/Database/Schema.php' );
 $caps        = file_get_contents( $root . '/src/Capabilities.php' );
+$lifecycle   = file_get_contents( $root . '/src/Lifecycle.php' );
 $access      = file_get_contents( $root . '/src/Time/Access.php' );
 $entries     = file_get_contents( $root . '/src/Repository/TimeEntries.php' );
 $timers      = file_get_contents( $root . '/src/Repository/Timers.php' );
@@ -35,7 +36,7 @@ $checks = [
 	'Time Entries own UTC actual timestamps duration and revision' => str_contains( $schema, 'started_at datetime NOT NULL' ) && str_contains( $schema, 'ended_at datetime NULL' ) && str_contains( $schema, 'duration_seconds int unsigned' ) && str_contains( $schema, 'revision int unsigned NOT NULL DEFAULT 1' ),
 	'Work Item estimate is separate planning metadata' => str_contains( $workMeta, '_cb_work_item_estimated_minutes' ) && str_contains( $workMeta, 'estimated_minutes' ),
 	'Recurring Work inherits estimate into future canonical Work Items' => str_contains( $schema, 'estimated_minutes int unsigned NOT NULL DEFAULT 0' ) && str_contains( $recurrence, "'estimated_minutes'   => \$rule['estimated_minutes']" ),
-	'Time capability is separate from Work management' => str_contains( $caps, "TRACK_TIME = 'cb_track_work_time'" ) && str_contains( $caps, 'self::TRACK_TIME' ) && str_contains( $schema, "version_compare( \$previous_version, '1.6', '<' )" ),
+	'Time capability is separate from Work management and granted through the canonical fresh-install lifecycle' => str_contains( $caps, "TRACK_TIME = 'cb_track_work_time'" ) && str_contains( $caps, "[ 'administrator', 'cb_operator' ]" ) && str_contains( $caps, '$role->add_cap( self::TRACK_TIME )' ) && str_contains( $lifecycle, 'Capabilities::install();' ) && ! str_contains( $schema, 'previous_version' ),
 	'tracker access is own-user and Work Item assignment bounded' => str_contains( $access, 'get_current_user_id() !== $user_id' ) && str_contains( $access, "in_array( \$user_id, (array) ( \$item['assigned_user_ids'] ?? [] ), true )" ),
 	'manager access remains a strict superset for Time management' => str_contains( $access, 'if ( self::can_manage() )' ),
 	'a tracker can stop their own already-running timer after assignment removal' => str_contains( $access, 'can_stop_user_timer' ) && str_contains( $access, 'get_current_user_id() === $user_id' ),
