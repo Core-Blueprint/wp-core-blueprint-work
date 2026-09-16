@@ -8,9 +8,20 @@ $css    = file_get_contents( $root . '/assets/work-admin.css' );
 $js     = file_get_contents( $root . '/assets/work-admin.js' );
 $ops    = file_get_contents( $root . '/src/Admin/Operations.php' );
 
+$buttonReskin = false;
+if ( preg_match_all( '/([^{}]*\.button[^{}]*)\{([^{}]*)\}/im', $css, $buttonBlocks, PREG_SET_ORDER ) ) {
+	foreach ( $buttonBlocks as $block ) {
+		$declarations = (string) ( $block[2] ?? '' );
+		if ( preg_match( '/(?:^|;)\s*(?:background(?:-[a-z-]+)?|border(?:-[a-z-]+)?|color|box-shadow|font(?:-[a-z-]+)?|border-radius)\s*:/i', $declarations ) ) {
+			$buttonReskin = true;
+			break;
+		}
+	}
+}
+
 $checks = [
-	'admin asset loader exists' => str_contains( $assets, "STYLE_HANDLE  = 'cb-work-admin'" ) && str_contains( $assets, "SCRIPT_HANDLE = 'cb-work-admin'" ),
-	'asset loader is Work Items scoped' => str_contains( $assets, 'Menu::WORK_ITEMS_SLUG !== $page' ),
+	'admin asset loader exists' => 1 === preg_match( "/const\\s+STYLE_HANDLE\\s*=\\s*'cb-work-admin'/", $assets ) && 1 === preg_match( "/const\\s+SCRIPT_HANDLE\\s*=\\s*'cb-work-admin'/", $assets ),
+	'asset loader is Work Items scoped' => str_contains( $assets, 'Menu::screen_context()' ) && str_contains( $assets, 'Menu::CONTEXT_WORK_ITEMS !== $context' ),
 	'asset loader fingerprints same-version RC assets' => substr_count( $assets, 'filemtime( $file )' ) >= 2,
 	'asset loader localizes presentation labels' => str_contains( $assets, "'moreFilters'") && str_contains( $assets, "'noItemsYet'" ),
 	'plugin wires admin presentation assets' => str_contains( $plugin, 'Assets::init();' ),
@@ -27,7 +38,7 @@ $checks = [
 	'workspace stylesheet scopes itself to Work Items' => str_contains( $css, '.cb-work-items-page' ) && str_contains( $css, '.cb-work-toolbar' ),
 	'workspace stylesheet does not replace WordPress typography family' => ! preg_match( '/font-family\s*:/i', $css ),
 	'workspace stylesheet contains no hardcoded presentation colours' => ! preg_match( '/#[0-9a-f]{3,8}\b/i', $css ) && ! preg_match( '/\brgba?\s*\(/i', $css ),
-	'workspace stylesheet does not reskin WordPress buttons' => ! preg_match( '/\.button\s*\{/i', $css ) && ! preg_match( '/\.button[^,{]*,?\s*\{[^}]*background/im', $css ),
+	'workspace stylesheet does not reskin WordPress buttons' => ! $buttonReskin,
 	'workspace stylesheet leaves Base ObjectPicker internals intact' => ! str_contains( $css, '.cb-core-object-picker__selected' ) && ! str_contains( $css, '.cb-core-object-picker__results' ),
 	'Board and Calendar custom layout are explicitly scoped' => str_contains( $css, '.cb-work-items-kanban' ) && str_contains( $css, '.cb-work-items-calendar' ),
 ];

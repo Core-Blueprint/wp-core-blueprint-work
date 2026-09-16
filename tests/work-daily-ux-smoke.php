@@ -44,9 +44,12 @@ daily_ux_assert(
 );
 
 daily_ux_assert(
-	str_contains( $workspace, "add_action( 'admin_head', [ self::class, 'hide_duplicate_submenus' ], 1 )" )
-	&& ! str_contains( $workspace, "add_action( 'admin_menu', [ self::class, 'hide_duplicate_submenus' ]" ),
-	'Duplicate sidebar links are hidden only after WordPress route access checks.'
+	str_contains( $workspace, "add_filter( 'admin_body_class', [ self::class, 'body_class' ] )" )
+	&& str_contains( $workspace, 'Menu::screen_context()' )
+	&& str_contains( $workspace, 'cb-work-workspace-screen' )
+	&& ! str_contains( $workspace, 'remove_submenu_page' )
+	&& ! str_contains( $workspace, 'hide_duplicate_submenus' ),
+	'WordPress native sidebar navigation remains canonical while Work adds only scoped workspace context.'
 );
 
 daily_ux_assert(

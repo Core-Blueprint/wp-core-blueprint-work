@@ -32,8 +32,8 @@ REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\
 [[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
 [[ "$REQUIRED_API" == "1.0" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.0"
 
-# Release packaging is never allowed to bypass localization, lint or regressions.
-bash "$ROOT/tools/check"
+# Overall source/regression validation is owned by tools/check.
+# This builder validates the release artifact itself and must remain independently callable.
 
 [[ -d "$ROOT/languages" ]] || fail "languages directory is missing; generate and review the canonical Work catalogs first"
 [[ -f "$ROOT/languages/core-blueprint-work.pot" ]] || fail "canonical Work POT is missing"

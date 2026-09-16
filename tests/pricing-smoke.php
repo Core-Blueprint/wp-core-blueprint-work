@@ -7,6 +7,7 @@ namespace {
 	function sanitize_text_field( string $value ): string { return trim( strip_tags( $value ) ); }
 	function absint( mixed $value ): int { return abs( (int) $value ); }
 	function current_time( string $format ): string { return 'Y-m-d' === $format ? '2026-09-04' : ''; }
+	function cb_work_runtime_ready(): bool { return true; }
 	function do_action( string $hook ): void { unset( $hook ); }
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }

@@ -183,6 +183,7 @@ namespace CB\Work\Content {
 				'service_id' => $meta[self::SERVICE_ID] ?? null,
 				'work_type_id' => $meta[self::WORK_TYPE_ID] ?? null,
 				'priority' => $meta[self::PRIORITY] ?? 'normal',
+				'estimated_minutes' => 0,
 				'scheduled_on' => $meta[self::SCHEDULED_ON] ?? null,
 				'due_on' => $meta[self::DUE_ON] ?? null,
 				'status' => $meta[self::STATUS] ?? 'planned',

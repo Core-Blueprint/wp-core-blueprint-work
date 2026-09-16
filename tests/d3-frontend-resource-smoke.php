@@ -15,12 +15,12 @@ $actions = file_get_contents( $root . '/src/Frontend/Actions/WorkItems.php' );
 $all = implode( "\n", [ $access, $service, $project, $workItem, $serviceQuery, $projectQuery, $workItemQuery, $conditions, $actions ] );
 
 $checks = [
-	'D3 changes no release or schema identity' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.6'" ),
+	'D3 contracts preserve current release and schema identity' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
 	'frontend reads are default deny for non-managers' => str_contains( $access, "'cb_work_frontend_can_read'" ) && str_contains( $access, "false," ) && str_contains( $access, "'publish' !== \$post->post_status" ) && str_contains( $access, 'post_password_required( $post )' ),
 	'Work managers retain authenticated frontend preview access' => str_contains( $access, 'current_user_can( Capabilities::MANAGE )' ),
 	'frontend mutation requires a separate explicit opt-in and logged-in actor' => str_contains( $access, "'cb_work_frontend_can_transition_work_item'" ) && str_contains( $access, '$actor_user_id <= 0' ),
 	'Data projections exist for Services Projects and Work Items' => str_contains( $service, 'final class Service' ) && str_contains( $project, 'final class Project' ) && str_contains( $workItem, 'final class WorkItem' ),
-	'Work Item frontend data includes planning estimate but not billing/customer/source internals' => str_contains( $workItem, "'estimated_minutes'" ) && ! str_contains( $workItem, 'billing_disposition' ) && ! str_contains( $workItem, 'customer_provider' ) && ! str_contains( $workItem, 'assigned_user_ids' ) && ! str_contains( $workItem, 'source_' ),
+	'Work Item frontend data includes planning estimate but not billing/customer/source internals' => str_contains( $workItem, "'estimated_minutes'" ) && ! str_contains( $workItem, "'billing_disposition'" ) && ! str_contains( $workItem, "'customer_provider'" ) && ! str_contains( $workItem, "'customer_type'" ) && ! str_contains( $workItem, "'customer_id'" ) && ! str_contains( $workItem, "'assigned_user_ids'" ) && ! str_contains( $workItem, "'source_provider'" ) && ! str_contains( $workItem, "'source_type'" ) && ! str_contains( $workItem, "'source_id'" ),
 	'Service frontend data does not expose pricing' => ! str_contains( $service, "'pricing'" ),
 	'Project frontend data does not expose CRM customer references' => ! str_contains( $project, 'customer_' ),
 	'frontend queries are bounded' => str_contains( $serviceQuery, 'MAX_CANDIDATES = 250' ) && str_contains( $serviceQuery, 'MAX_RESULTS    = 100' ) && str_contains( $projectQuery, 'MAX_CANDIDATES = 250' ) && str_contains( $workItemQuery, 'MAX_CANDIDATES = 500' ) && str_contains( $workItemQuery, 'MAX_RESULTS    = 100' ),

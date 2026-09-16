@@ -9,9 +9,9 @@ $js     = file_get_contents( $root . '/assets/work-admin.js' );
 $plugin = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
-	'Work release identity remains rc1' => str_contains( $plugin, "define( 'CB_WORK_VERSION', '1.0.0-rc1' )" ) && str_contains( $plugin, "define( 'CB_WORK_SCHEMA_VERSION', '1.6' )" ),
+	'Work release identity remains rc1' => str_contains( $plugin, "define( 'CB_WORK_VERSION', '1.0.0-rc1' )" ) && str_contains( $plugin, "define( 'CB_WORK_SCHEMA_VERSION', '1.8' )" ),
 	'Work declares its admin screens compatible with Base Admin Theme' => str_contains( $menu, "add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] )" ) && str_contains( $menu, '\\CB\\Core\\UI\\AdminTheme::register_screen( $hook_suffix );' ),
-	'Admin Theme declaration covers canonical Work screen contexts' => str_contains( $menu, "'' === self::screen_context( $screen )" ),
+	'Admin Theme declaration covers canonical Work screen contexts' => str_contains( $menu, "self::screen_context( \$screen )" ) && str_contains( $menu, "PostTypes::WORK_ITEM" ) && str_contains( $menu, "PostTypes::PROJECT" ) && str_contains( $menu, "PostTypes::SERVICE" ),
 	'Work presentation uses the public Base Admin Theme enqueue hook' => str_contains( $assets, "add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 )" ),
 	'Work does not couple to Base internal asset handles or URLs' => ! str_contains( $assets, 'cb-core-css-admin-theme' ) && ! str_contains( $assets, 'cb-core-css-tokens' ) && ! str_contains( $assets, 'CB_CORE_URL' ),
 	'Work CSS consumes semantic Base tokens' => str_contains( $css, 'var(--cb-surface-1)' ) && str_contains( $css, 'var(--cb-border)' ) && str_contains( $css, 'var(--cb-space-4)' ) && str_contains( $css, 'var(--cb-interactive-hover)' ),
