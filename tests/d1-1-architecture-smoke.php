@@ -33,7 +33,7 @@ $checks = [
 	'normal Work Item UX uses human customer and assignee pickers' => str_contains( $workItemsAdmin, 'Pickers::customer' ) && str_contains( $workItemsAdmin, 'Pickers::assignees' ),
 	'CRM adapter uses only documented frontend query namespaces' => str_contains( $crm, 'private const CONTACT_QUERY' ) && str_contains( $crm, 'private const ORGANIZATION_QUERY' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Contacts' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Organizations' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ) && ! str_contains( $crm, '$wpdb' ),
 	'CRM integration remains fail-soft and Work-readiness gated' => str_contains( $crm, 'public static function available' ) && str_contains( $crm, 'class_exists' ) && str_contains( $crm, 'cb_work_runtime_ready' ),
-	'Base Object Picker backs async human selection' => str_contains( $pickers, 'CB\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ),
+	'Base Object Picker backs async human selection' => str_contains( $pickers, 'CoreBlueprint\\Core\\UI\\ObjectPicker' ) && str_contains( $pickers, 'Assets::enqueue_object_picker' ),
 	'assignee picker persists multiple IDs without jQuery' => str_contains( $pickers, 'self::render_user_picker( $name, $id, $user_ids, true );' ) && str_contains( $workItems, "explode( ',', (string) \$raw )" ),
 	'Work Item Gutenberg REST reads stay capability-gated' => str_contains( $workItemRest, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $workItemRest, 'get_items_permissions_check' ),
 ];
