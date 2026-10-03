@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace CB\Work\Integration\DataExchange;
 
-use CB\Core\DataExchange\CsvEntityInterface;
-use CB\Core\DataExchange\Foundation;
-use CB\Core\DataExchange\MappingEntityInterface;
+use CoreBlueprint\Core\DataExchange\CsvEntityInterface;
+use CoreBlueprint\Core\DataExchange\Foundation;
+use CoreBlueprint\Core\DataExchange\MappingEntityInterface;
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
 use CB\Work\PublicApi\TaxRateActions;

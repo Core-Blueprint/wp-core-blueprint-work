@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\UI\Assets;
+use CoreBlueprint\Core\UI\Assets;
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\TimeRange;

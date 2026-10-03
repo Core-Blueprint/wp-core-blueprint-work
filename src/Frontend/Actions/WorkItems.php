@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\Frontend\Actions;
 
-use CB\Core\Governance\Audit;
+use CoreBlueprint\Core\Governance\Audit;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Frontend\Access;
 use CB\Work\Frontend\Data\WorkItem;

@@ -3,13 +3,13 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\DataExchange\CsvEntityInterface;
-use CB\Core\DataExchange\Engine;
-use CB\Core\DataExchange\Foundation;
-use CB\Core\DataExchange\Mapper;
-use CB\Core\DataExchange\Mapper\Renderer;
-use CB\Core\DataExchange\MappingEntityInterface;
-use CB\Core\UI\Notice;
+use CoreBlueprint\Core\DataExchange\CsvEntityInterface;
+use CoreBlueprint\Core\DataExchange\Engine;
+use CoreBlueprint\Core\DataExchange\Foundation;
+use CoreBlueprint\Core\DataExchange\Mapper;
+use CoreBlueprint\Core\DataExchange\Mapper\Renderer;
+use CoreBlueprint\Core\DataExchange\MappingEntityInterface;
+use CoreBlueprint\Core\UI\Notice;
 use CB\Work\Capabilities;
 use CB\Work\Integration\DataExchange as DataExchangeIntegration;
 use CB\Work\Integration\DataExchange\TaxRateEntity;
