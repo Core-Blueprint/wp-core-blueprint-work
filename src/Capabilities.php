@@ -10,7 +10,7 @@ final class Capabilities {
 	public const TRACK_TIME = 'cb_track_work_time';
 
 	public static function init(): void {
-		add_filter( 'cb_core_capability_catalog', [ self::class, 'catalog' ] );
+		add_filter( 'core_blueprint_capability_catalog', [ self::class, 'catalog' ] );
 	}
 
 	public static function install(): void {

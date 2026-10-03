@@ -156,5 +156,5 @@ add_action( 'plugins_loaded', static function (): void {
 
 	\CB\Work\Database\Schema::register();
 	\CB\Work\Integration\Suite::init();
-	add_action( 'cb_core_booted', [ \CB\Work\Plugin::class, 'boot' ] );
+	add_action( 'core_blueprint_booted', [ \CB\Work\Plugin::class, 'boot' ] );
 }, 4 );

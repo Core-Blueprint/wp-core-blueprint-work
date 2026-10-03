@@ -151,7 +151,7 @@ namespace {
 	add_action( 'plugins_loaded', static function (): void {
 		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.8'; }
 	}, 5 );
-	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
+	add_action( 'plugins_loaded', static function (): void { do_action( 'core_blueprint_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
@@ -196,18 +196,18 @@ namespace {
 	assert_true( str_contains( \CB\Work\Admin\Menu::new_work_item_url( 42 ), 'post-new.php?post_type=cb_work_item&project_id=42' ), 'Work Item creation opens native Gutenberg with optional Project context.' );
 	assert_true( str_contains( \CB\Work\Admin\Menu::edit_work_item_url( 55 ), 'post.php?post=55&action=edit' ), 'Work Item editing opens native Gutenberg.' );
 
-	do_action( 'cb_core_register_extensions' );
+	do_action( 'core_blueprint_register_extensions' );
 	$extension = \CoreBlueprint\Core\ExtensionRegistry::$registrations['core-blueprint-work'] ?? null;
 	assert_true( is_array( $extension ), 'Extension registers through Base public contract.' );
 	assert_true( ! array_key_exists( 'requires_base', $extension ), 'Extension does not pin an internal Base RC.' );
 	assert_true( str_contains( (string) ( $extension['menu_url'] ?? '' ), 'page=core-blueprint-work' ), 'Suite extension link opens operational Work.' );
 
-	$status_defs = apply_filters( 'cb_core_module_status_definitions', [] );
+	$status_defs = apply_filters( 'core_blueprint_module_status_definitions', [] );
 	$status = ( $status_defs['work']['provider'] )();
 	assert_true( 'ok' === ( $status['state'] ?? '' ), 'Work health is ok after schema/runtime boot.' );
 	assert_true( '2 work items · 2 projects · 3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual operational counts.' );
 
-	do_action( 'cb_core_register_settings' );
+	do_action( 'core_blueprint_register_settings' );
 	$provider = \CoreBlueprint\Core\Admin\SettingsRegistry::$registrations['core-blueprint-work'] ?? null;
 	assert_true( is_array( $provider ), 'Work settings register through Base SettingsRegistry.' );
 	assert_true( 'business' === ( $provider['group'] ?? '' ), 'Work settings register in the Business group.' );
@@ -219,14 +219,14 @@ namespace {
 	assert_true( str_contains( \CB\Work\Admin\Page::settings_url(), 'extension=core-blueprint-work' ), 'VAT Settings route targets the canonical Work provider.' );
 	assert_true( ! str_contains( \CB\Work\Admin\Page::settings_url(), 'view=' ), 'VAT Settings route has no legacy operational view parameter.' );
 
-	do_action( 'cb_core_dashboard_register_cards' );
+	do_action( 'core_blueprint_dashboard_register_cards' );
 	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
 	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['work-items'] ), 'Work Items shortcut registers.' );
 	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects'] ), 'Projects shortcut registers.' );
 	assert_true( str_contains( (string) \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects']['url'], 'edit.php?post_type=cb_work_project' ), 'Projects shortcut opens native Project administration.' );
 	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work Services shortcut registers.' );
 
-	$catalog = apply_filters( 'cb_core_capability_catalog', [] );
+	$catalog = apply_filters( 'core_blueprint_capability_catalog', [] );
 	assert_true( isset( $catalog['cb_manage_work'] ), 'Work management capability is in Base capability catalog.' );
 	assert_true( isset( $catalog['cb_track_work_time'] ), 'Work Time capability is separately registered in Base capability catalog.' );
 

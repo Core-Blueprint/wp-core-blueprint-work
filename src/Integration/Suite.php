@@ -27,10 +27,10 @@ final class Suite {
 			return;
 		}
 		self::$initialized = true;
-		add_action( 'cb_core_register_extensions', [ self::class, 'register_extension' ] );
-		add_action( 'cb_core_register_interoperability_implementations', [ DataExchange::class, 'register' ] );
-		add_filter( 'cb_core_module_status_definitions', [ self::class, 'register_status_definition' ] );
-		add_action( 'cb_core_dashboard_register_cards', [ self::class, 'register_dashboard_shortcuts' ] );
+		add_action( 'core_blueprint_register_extensions', [ self::class, 'register_extension' ] );
+		add_action( 'core_blueprint_register_interoperability_implementations', [ DataExchange::class, 'register' ] );
+		add_filter( 'core_blueprint_module_status_definitions', [ self::class, 'register_status_definition' ] );
+		add_action( 'core_blueprint_dashboard_register_cards', [ self::class, 'register_dashboard_shortcuts' ] );
 	}
 
 	public static function register_extension(): void {

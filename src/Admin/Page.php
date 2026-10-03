@@ -20,7 +20,7 @@ final class Page {
 		}
 		self::$initialized = true;
 		TaxRateDataExchange::init();
-		add_action( 'cb_core_register_settings', [ self::class, 'register' ] );
+		add_action( 'core_blueprint_register_settings', [ self::class, 'register' ] );
 	}
 
 	public static function register(): void {

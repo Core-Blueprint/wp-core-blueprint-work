@@ -8,7 +8,7 @@ $bootstrap = (string) file_get_contents( $root . '/core-blueprint-work.php' );
 $menu = (string) file_get_contents( $root . '/src/Admin/Menu.php' );
 
 $checks = [
-	'Work registers settings on the Extensions Hub hook' => str_contains( $page, "add_action( 'cb_core_register_settings'" ),
+	'Work registers settings on the Extensions Hub hook' => str_contains( $page, "add_action( 'core_blueprint_register_settings'" ),
 	'Work settings use the canonical extension identity' => str_contains( $page, 'SettingsRegistry::register' ) && str_contains( $page, 'Suite::EXTENSION_ID' ),
 	'Work settings are grouped under Business' => str_contains( $page, 'SettingsRegistry::GROUP_BUSINESS' ),
 	'Work settings retain semantic Base component requirements' => str_contains( $page, "'panels'" ) && str_contains( $page, "'notices'" ) && str_contains( $page, "'fields'" ) && str_contains( $page, "'form-controls'" ),

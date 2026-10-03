@@ -24,7 +24,7 @@ $generic_gate = strpos( $bootstrap, 'Requirements::runtime_ready()', strpos( $bo
 $product_gate = strpos( $bootstrap, 'if ( ! cb_work_product_contracts_ready() )', false !== $generic_gate ? $generic_gate : 0 );
 $schema    = strpos( $bootstrap, 'Database\\Schema::register();', false !== $product_gate ? $product_gate : 0 );
 $suite_init = strpos( $bootstrap, 'Integration\\Suite::init();', false !== $schema ? $schema : 0 );
-$boot      = strpos( $bootstrap, "add_action( 'cb_core_booted'", false !== $suite_init ? $suite_init : 0 );
+$boot      = strpos( $bootstrap, "add_action( 'core_blueprint_booted'", false !== $suite_init ? $suite_init : 0 );
 
 assert_bootstrap( false !== $php_guard && false !== $autoload && $php_guard < $autoload, 'PHP guard runs before the Work autoloader.' );
 assert_bootstrap( false !== $generic_gate && false !== $product_gate && false !== $schema && false !== $suite_init && false !== $boot, 'Generic gate, product gate, schema, Suite and product boot are present.' );
