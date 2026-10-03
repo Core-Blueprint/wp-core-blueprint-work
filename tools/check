@@ -31,8 +31,8 @@ legacy_public_hooks=(
 	'cb_core_capability_catalog'
 )
 for hook in "${legacy_public_hooks[@]}"; do
-	if grep -R -nF "$hook" "$ROOT/src" "$ROOT/core-blueprint-work.php"; then
-		fail "legacy Base public hook remains in Work runtime: $hook"
+	if grep -R -nF "$hook" "$ROOT/src" "$ROOT/core-blueprint-work.php" "$ROOT/tests"; then
+		fail "legacy Base public hook remains in Work runtime or test fixtures: $hook"
 	fi
 done
 
