@@ -30,7 +30,7 @@ namespace {
 	}
 }
 
-namespace CB\Core\Governance {
+namespace CoreBlueprint\Core\Governance {
 	final class Audit {
 		public static array $records = [];
 		public static function record( string $event, string $severity, array $context = [] ): void {
@@ -39,7 +39,7 @@ namespace CB\Core\Governance {
 	}
 }
 
-namespace CB\Core\DataExchange {
+namespace CoreBlueprint\Core\DataExchange {
 	interface EntityInterface {
 		public function is_available(): bool;
 		public function schema_version(): int;
@@ -162,8 +162,8 @@ namespace CB\Work\PublicApi {
 }
 
 namespace {
-	use CB\Core\DataExchange\Foundation;
-	use CB\Core\Governance\Audit;
+	use CoreBlueprint\Core\DataExchange\Foundation;
+	use CoreBlueprint\Core\Governance\Audit;
 	use CB\Work\Integration\DataExchange\TaxRateEntity;
 	use CB\Work\PublicApi\TaxRateActions;
 	use CB\Work\Repository\TaxRates as RepositoryTaxRates;

@@ -111,7 +111,7 @@ namespace {
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
 
-namespace CB\Core\Admin {
+namespace CoreBlueprint\Core\Admin {
 	final class SettingsRegistry {
 		public const GROUP_BUSINESS = 'business';
 		public static array $registrations = [];
@@ -122,11 +122,11 @@ namespace CB\Core\Admin {
 	}
 }
 
-namespace CB\Core\Dashboard {
+namespace CoreBlueprint\Core\Dashboard {
 	final class CardRegistry { public static array $shortcuts = []; public static function register_shortcut( string $card_id, array $shortcut ): bool { self::$shortcuts[ $card_id ][ $shortcut['id'] ] = $shortcut; return true; } }
 }
 
-namespace CB\Core\Database {
+namespace CoreBlueprint\Core\Database {
 	final class SchemaRegistry { public static array $definitions = []; public static function register( array $definition ): bool { self::$definitions[ $definition['id'] ] = $definition; return true; } }
 }
 
@@ -134,12 +134,12 @@ namespace CB\Core {
 	final class ExtensionRegistry { public static array $registrations = []; public static function register( array $definition ): bool { self::$registrations[ $definition['id'] ] = $definition; return true; } }
 }
 
-namespace CB\Core\Governance {
+namespace CoreBlueprint\Core\Governance {
 	final class Audit { public static function record( string $id, string $severity = 'info', array $context = [] ): bool { return true; } }
 	final class EventRegistry { public static array $events = []; public static function register( array $definition ): bool { self::$events[ $definition['id'] ] = $definition; return true; } }
 }
 
-namespace CB\Core\UI {
+namespace CoreBlueprint\Core\UI {
 	final class Assets {}
 	final class ObjectPicker {}
 	final class Notice { public const SUCCESS = 'success'; public const INFO = 'info'; public const ERROR = 'error'; public static function render( array $args ): string { return '<div></div>'; } }
@@ -149,14 +149,14 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.8'; }
+		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.8'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'cb_core_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
 	assert_true( '1.8' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 1.8.' );
-	$schema = \CB\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
+	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
 	assert_true( 13 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence and Time tables; Projects and Work Items remain CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
@@ -174,14 +174,14 @@ namespace {
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_project_id'] ), 'Work Item Project meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_status'] ), 'Work Item operational status meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_estimated_minutes'] ), 'Work Item estimate meta registers separately from actual Time.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.updated'] ), 'Work Item update governance event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.item.generated'] ), 'Recurring Work generation governance event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.recurrence.generator.run'] ), 'Recurring Work generator run event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.time.entry.created'] ), 'Time entry governance event registers.' );
-	assert_true( isset( \CB\Core\Governance\EventRegistry::$events['work.time.timer.started'] ), 'Timer governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.project.created'] ), 'Project governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.item.updated'] ), 'Work Item update governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.item.status.changed'] ), 'Work Item lifecycle governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.recurrence.item.generated'] ), 'Recurring Work generation governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.recurrence.generator.run'] ), 'Recurring Work generator run event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.time.entry.created'] ), 'Time entry governance event registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.time.timer.started'] ), 'Timer governance event registers.' );
 	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Recurring Work hourly scheduler is registered during runtime init.' );
 	assert_true( 'hourly' === $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ]['recurrence'], 'Recurring Work scheduler uses the hourly WordPress cron recurrence.' );
 
@@ -197,7 +197,7 @@ namespace {
 	assert_true( str_contains( \CB\Work\Admin\Menu::edit_work_item_url( 55 ), 'post.php?post=55&action=edit' ), 'Work Item editing opens native Gutenberg.' );
 
 	do_action( 'cb_core_register_extensions' );
-	$extension = \CB\Core\ExtensionRegistry::$registrations['core-blueprint-work'] ?? null;
+	$extension = \CoreBlueprint\Core\ExtensionRegistry::$registrations['core-blueprint-work'] ?? null;
 	assert_true( is_array( $extension ), 'Extension registers through Base public contract.' );
 	assert_true( ! array_key_exists( 'requires_base', $extension ), 'Extension does not pin an internal Base RC.' );
 	assert_true( str_contains( (string) ( $extension['menu_url'] ?? '' ), 'page=core-blueprint-work' ), 'Suite extension link opens operational Work.' );
@@ -208,7 +208,7 @@ namespace {
 	assert_true( '2 work items · 2 projects · 3 services · 2 VAT rates' === ( $status['detail'] ?? '' ), 'Work health exposes bounded factual operational counts.' );
 
 	do_action( 'cb_core_register_settings' );
-	$provider = \CB\Core\Admin\SettingsRegistry::$registrations['core-blueprint-work'] ?? null;
+	$provider = \CoreBlueprint\Core\Admin\SettingsRegistry::$registrations['core-blueprint-work'] ?? null;
 	assert_true( is_array( $provider ), 'Work settings register through Base SettingsRegistry.' );
 	assert_true( 'business' === ( $provider['group'] ?? '' ), 'Work settings register in the Business group.' );
 	assert_true( 'cb_manage_work' === ( $provider['capability'] ?? '' ), 'Work settings preserve the management capability.' );
@@ -220,11 +220,11 @@ namespace {
 	assert_true( ! str_contains( \CB\Work\Admin\Page::settings_url(), 'view=' ), 'VAT Settings route has no legacy operational view parameter.' );
 
 	do_action( 'cb_core_dashboard_register_cards' );
-	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
-	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['work-items'] ), 'Work Items shortcut registers.' );
-	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects'] ), 'Projects shortcut registers.' );
-	assert_true( str_contains( (string) \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects']['url'], 'edit.php?post_type=cb_work_project' ), 'Projects shortcut opens native Project administration.' );
-	assert_true( isset( \CB\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work Services shortcut registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['workspace'] ), 'Work workspace shortcut registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['work-items'] ), 'Work Items shortcut registers.' );
+	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects'] ), 'Projects shortcut registers.' );
+	assert_true( str_contains( (string) \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['projects']['url'], 'edit.php?post_type=cb_work_project' ), 'Projects shortcut opens native Project administration.' );
+	assert_true( isset( \CoreBlueprint\Core\Dashboard\CardRegistry::$shortcuts['core-blueprint-work']['services'] ), 'Work Services shortcut registers.' );
 
 	$catalog = apply_filters( 'cb_core_capability_catalog', [] );
 	assert_true( isset( $catalog['cb_manage_work'] ), 'Work management capability is in Base capability catalog.' );

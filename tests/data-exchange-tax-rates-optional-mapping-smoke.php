@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/data-exchange-tax-rates-smoke.php';
 
-use CB\Core\DataExchange\Foundation;
+use CoreBlueprint\Core\DataExchange\Foundation;
 
 $GLOBALS['cb_work_test_authorized'] = true;
 
