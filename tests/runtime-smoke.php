@@ -130,7 +130,7 @@ namespace CoreBlueprint\Core\Database {
 	final class SchemaRegistry { public static array $definitions = []; public static function register( array $definition ): bool { self::$definitions[ $definition['id'] ] = $definition; return true; } }
 }
 
-namespace CB\Core {
+namespace CoreBlueprint\Core {
 	final class ExtensionRegistry { public static array $registrations = []; public static function register( array $definition ): bool { self::$registrations[ $definition['id'] ] = $definition; return true; } }
 }
 
