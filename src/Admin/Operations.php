@@ -92,7 +92,10 @@ final class Operations {
 			<?php if ( $project_filter > 0 ) : ?>
 				<?php $project_name = $project_map[ $project_filter ] ?? __( 'Unknown Project', 'core-blueprint-work' ); ?>
 				<div class="notice notice-info inline"><p>
-					<?php echo esc_html( sprintf( __( 'Showing Work Items for Project: %s', 'core-blueprint-work' ), $project_name ) ); ?>
+					<?php
+					/* translators: %s: Project name. */
+					echo esc_html( sprintf( __( 'Showing Work Items for Project: %s', 'core-blueprint-work' ), $project_name ) );
+					?>
 					<a href="<?php echo esc_url( self::work_items_url( $state, [ 'project_id' => 0, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'View all Work Items', 'core-blueprint-work' ); ?></a>
 				</p></div>
 			<?php endif; ?>
@@ -101,7 +104,10 @@ final class Operations {
 			<?php self::render_work_item_filters( $state, $projects, $services, $types, $selected_customer ); ?>
 
 			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
-			<p class="description"><?php echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></p>
+			<p class="description"><?php
+			/* translators: %d: number of Work Items matching the current view. */
+			echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) );
+			?></p>
 			<?php if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_calendar( $items, $project_map, $state ); ?>
 			<?php elseif ( [] === $items ) : ?>
@@ -500,11 +506,17 @@ final class Operations {
 		}
 		?>
 		<div class="tablenav bottom"><div class="tablenav-pages">
-			<span class="displaying-num"><?php echo esc_html( sprintf( _n( '%d item', '%d items', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) ); ?></span>
+			<span class="displaying-num"><?php
+			/* translators: %d: total number of Work Items in the current result set. */
+			echo esc_html( sprintf( _n( '%d item', '%d items', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) );
+			?></span>
 			<?php if ( $page > 1 ) : ?>
 				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'page' => $page - 1 ] ) ); ?>"><?php esc_html_e( 'Previous', 'core-blueprint-work' ); ?></a>
 			<?php endif; ?>
-			<span class="paging-input"><?php echo esc_html( sprintf( __( 'Page %1$d of %2$d', 'core-blueprint-work' ), $page, $pages ) ); ?></span>
+			<span class="paging-input"><?php
+			/* translators: 1: current page number, 2: total number of pages. */
+			echo esc_html( sprintf( __( 'Page %1$d of %2$d', 'core-blueprint-work' ), $page, $pages ) );
+			?></span>
 			<?php if ( $page < $pages ) : ?>
 				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'page' => $page + 1 ] ) ); ?>"><?php esc_html_e( 'Next', 'core-blueprint-work' ); ?></a>
 			<?php endif; ?>

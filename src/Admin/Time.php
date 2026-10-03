@@ -70,8 +70,14 @@ final class Time {
 				$item = WorkItems::get( (int) $active['work_item_id'] );
 				$parts = TimeRange::utc_to_local_parts( (string) $active['started_at'] );
 				?>
-				<p><strong><?php echo esc_html( (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $active['work_item_id'] ) ) ); ?></strong></p>
-				<p><?php echo esc_html( sprintf( __( 'Running since %1$s %2$s.', 'core-blueprint-work' ), (string) ( $parts['date'] ?? '' ), (string) ( $parts['time'] ?? '' ) ) ); ?></p>
+				<p><strong><?php
+				/* translators: %d: Work Item ID. */
+				echo esc_html( (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $active['work_item_id'] ) ) );
+				?></strong></p>
+				<p><?php
+				/* translators: 1: local start date, 2: local start time. */
+				echo esc_html( sprintf( __( 'Running since %1$s %2$s.', 'core-blueprint-work' ), (string) ( $parts['date'] ?? '' ), (string) ( $parts['time'] ?? '' ) ) );
+				?></p>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="cb_work_stop_timer">
 					<input type="hidden" name="user_id" value="<?php echo esc_attr( (string) $user_id ); ?>">

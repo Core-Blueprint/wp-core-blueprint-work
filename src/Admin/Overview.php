@@ -149,6 +149,7 @@ final class Overview {
 			$parts[] = $projects[ $project_id ];
 		}
 		if ( '' !== (string) ( $item['due_on'] ?? '' ) ) {
+			/* translators: %s: Work Item due date. */
 			$parts[] = sprintf( __( 'Due %s', 'core-blueprint-work' ), (string) $item['due_on'] );
 		}
 		$parts[] = ucwords( str_replace( '_', ' ', (string) ( $item['status'] ?? '' ) ) );

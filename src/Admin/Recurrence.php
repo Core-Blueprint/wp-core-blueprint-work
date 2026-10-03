@@ -92,7 +92,17 @@ final class Recurrence {
 					<tr><th scope="row"><label for="cb-work-recurrence-billing"><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-billing" name="recurrence[billing_disposition]"><option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option><?php foreach ( BillingDisposition::all() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $billing, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th><td><?php Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', $assignees ); ?></td></tr>
 					<?php if ( $locked ) : ?>
-						<tr><th scope="row"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><td><strong><?php echo esc_html( self::schedule_label( $rule ) ); ?></strong><p class="description"><?php echo esc_html( sprintf( __( 'Start %1$s%2$s.', 'core-blueprint-work' ), $start_on, '' !== $end_on ? sprintf( __( ', end %s', 'core-blueprint-work' ), $end_on ) : '' ) ); ?></p></td></tr>
+						<?php
+						$end_label = '';
+						if ( '' !== $end_on ) {
+							/* translators: %s: recurrence end date. */
+							$end_label = sprintf( __( ', end %s', 'core-blueprint-work' ), $end_on );
+						}
+						?>
+						<tr><th scope="row"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><td><strong><?php echo esc_html( self::schedule_label( $rule ) ); ?></strong><p class="description"><?php
+						/* translators: 1: recurrence start date, 2: optional translated end-date suffix. */
+						echo esc_html( sprintf( __( 'Start %1$s%2$s.', 'core-blueprint-work' ), $start_on, $end_label ) );
+						?></p></td></tr>
 					<?php else : ?>
 						<tr><th scope="row"><label for="cb-work-recurrence-frequency"><?php esc_html_e( 'Frequency', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-frequency" name="recurrence[frequency]"><?php foreach ( RecurrenceSchedule::frequencies() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $frequency, $value ); ?>><?php echo esc_html( ucfirst( $value ) ); ?></option><?php endforeach; ?></select> <label><?php esc_html_e( 'Every', 'core-blueprint-work' ); ?> <input class="small-text" type="number" min="1" max="999" name="recurrence[interval_count]" value="<?php echo esc_attr( (string) $interval ); ?>"></label></td></tr>
 						<tr><th scope="row"><label for="cb-work-recurrence-start"><?php esc_html_e( 'Start date', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-start" type="date" name="recurrence[start_on]" value="<?php echo esc_attr( $start_on ); ?>" required></td></tr>
@@ -107,7 +117,10 @@ final class Recurrence {
 			</div>
 
 			<h2><?php esc_html_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?></h2>
-			<p class="description"><?php echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) ); ?></p>
+			<p class="description"><?php
+			/* translators: %s: next WordPress cron timestamp, or a not-scheduled label. */
+			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
+			?></p>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
 				<input type="hidden" name="action" value="cb_work_run_recurrence_generator">
 				<?php wp_nonce_field( 'cb_work_run_recurrence_generator' ); ?>
@@ -146,6 +159,7 @@ final class Recurrence {
 			RecurrenceSchedule::YEARLY  => 1 === $interval ? __( 'year', 'core-blueprint-work' ) : __( 'years', 'core-blueprint-work' ),
 			default                     => __( 'interval', 'core-blueprint-work' ),
 		};
+		/* translators: 1: recurrence interval count, 2: translated recurrence unit. */
 		return sprintf( __( 'Every %1$d %2$s', 'core-blueprint-work' ), $interval, $unit );
 	}
 
@@ -176,6 +190,7 @@ final class Recurrence {
 			$generated = isset( $_GET['generated'] ) ? absint( $_GET['generated'] ) : 0;
 			$recovered = isset( $_GET['recovered'] ) ? absint( $_GET['recovered'] ) : 0;
 			$failed    = isset( $_GET['failed'] ) ? absint( $_GET['failed'] ) : 0;
+			/* translators: 1: generated count, 2: recovered count, 3: failed count. */
 			$message .= ' ' . sprintf( __( 'Generated: %1$d · recovered: %2$d · failed: %3$d.', 'core-blueprint-work' ), $generated, $recovered, $failed );
 		}
 		printf( '<div class="notice notice-%1$s inline"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );

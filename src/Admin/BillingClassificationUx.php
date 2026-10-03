@@ -68,6 +68,7 @@ final class BillingClassificationUx {
 
 		wp_localize_script( self::SCRIPT_HANDLE, 'cbWorkBillingUx', [
 			'services'       => $services,
+			/* translators: %s: default billing classification from the selected Service. */
 			'serviceDefault' => __( 'Selected Service default: %s. You can override it for this Work Item.', 'core-blueprint-work' ),
 			'noService'      => __( 'Choose a Service to prefill billing classification, or classify this Work Item manually.', 'core-blueprint-work' ),
 		] );

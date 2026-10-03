@@ -76,7 +76,10 @@ final class ProjectWorkspace {
 						<div class="cb-work-project-workspace__panel-header">
 							<div>
 								<h2><?php esc_html_e( 'Active work', 'core-blueprint-work' ); ?></h2>
-								<p class="description"><?php echo esc_html( sprintf( _n( '%d active Work Item.', '%d active Work Items.', $active_count, 'core-blueprint-work' ), $active_count ) ); ?></p>
+								<p class="description"><?php
+								/* translators: %d: number of active Work Items in this Project. */
+								echo esc_html( sprintf( _n( '%d active Work Item.', '%d active Work Items.', $active_count, 'core-blueprint-work' ), $active_count ) );
+								?></p>
 							</div>
 							<a class="button button-small" href="<?php echo esc_url( Menu::new_work_item_url( $project_id ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 						</div>
@@ -111,7 +114,10 @@ final class ProjectWorkspace {
 								</table>
 							</div>
 							<?php if ( $active_count > count( $items ) ) : ?>
-								<p class="description cb-work-project-workspace__more"><a href="<?php echo esc_url( $all_items_url ); ?>"><?php echo esc_html( sprintf( __( 'View all %d active Work Items', 'core-blueprint-work' ), $active_count ) ); ?></a></p>
+								<p class="description cb-work-project-workspace__more"><a href="<?php echo esc_url( $all_items_url ); ?>"><?php
+								/* translators: %d: total number of active Work Items in this Project. */
+								echo esc_html( sprintf( __( 'View all %d active Work Items', 'core-blueprint-work' ), $active_count ) );
+								?></a></p>
 							<?php endif; ?>
 						<?php endif; ?>
 					</section>

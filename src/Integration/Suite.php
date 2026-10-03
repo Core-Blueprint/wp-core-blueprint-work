@@ -82,7 +82,10 @@ final class Suite {
 		return [
 			'state'  => 'ok',
 			'detail' => sprintf(
-				self::i18n_ready() ? __( '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates', 'core-blueprint-work' ) : '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates',
+				self::i18n_ready()
+					? /* translators: 1: Work Item count, 2: Project count, 3: Service count, 4: VAT rate count. */
+					__( '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates', 'core-blueprint-work' )
+					: '%1$d work items · %2$d projects · %3$d services · %4$d VAT rates',
 				WorkItems::count(), Projects::count(), self::service_count(), TaxRates::count()
 			),
 			'url' => $url,

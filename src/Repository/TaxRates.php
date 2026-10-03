@@ -246,9 +246,12 @@ final class TaxRates {
 		if ( '' !== $from && '' !== $until ) {
 			return $from . ' → ' . $until;
 		}
-		return '' !== $from
-			? sprintf( __( 'From %s', 'core-blueprint-work' ), $from )
-			: sprintf( __( 'Until %s', 'core-blueprint-work' ), $until );
+		if ( '' !== $from ) {
+			/* translators: %s: tax rate validity start date. */
+			return sprintf( __( 'From %s', 'core-blueprint-work' ), $from );
+		}
+		/* translators: %s: tax rate validity end date. */
+		return sprintf( __( 'Until %s', 'core-blueprint-work' ), $until );
 	}
 
 	private static function schema_ready(): bool {
