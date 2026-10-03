@@ -61,13 +61,13 @@ final class Menu {
 	 * only the public compatibility declaration/hook point for the Work product.
 	 */
 	public static function register_admin_theme_screen( \WP_Screen $screen ): void {
-		if ( '' === self::screen_context( $screen ) || ! class_exists( '\\CB\\Core\\UI\\AdminTheme' ) ) {
+		if ( '' === self::screen_context( $screen ) || ! class_exists( '\\CoreBlueprint\\Core\\UI\\AdminTheme' ) ) {
 			return;
 		}
 
 		$hook_suffix = $GLOBALS['hook_suffix'] ?? '';
 		if ( is_string( $hook_suffix ) && '' !== $hook_suffix ) {
-			\CB\Core\UI\AdminTheme::register_screen( $hook_suffix );
+			\CoreBlueprint\Core\UI\AdminTheme::register_screen( $hook_suffix );
 		}
 	}
 
