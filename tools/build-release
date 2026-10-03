@@ -84,9 +84,15 @@ FILE_LIST="$TMP/files.txt"
 
 [[ -f "$ZIP" ]] || fail "release ZIP was not created"
 unzip -tqq "$ZIP" || fail "release ZIP integrity check failed"
-[[ "$(unzip -Z1 "$ZIP" | head -n1 | cut -d/ -f1)" == "$PACKAGE" ]] || fail "ZIP root must be $PACKAGE/"
 
-if unzip -Z1 "$ZIP" | grep -Eq '(^|/)(\.git|\.github|tests|tools|docs|vendor|node_modules|build|dist)(/|$)'; then
+# Materialize the archive listing once. With `set -o pipefail`, pipelines such as
+# `unzip -Z1 | grep -q` can report a false failure when grep exits early after a
+# match and unzip receives SIGPIPE. Archive validation must be deterministic.
+ZIP_ENTRIES="$(unzip -Z1 "$ZIP")"
+ZIP_ROOT="${ZIP_ENTRIES%%/*}"
+[[ "$ZIP_ROOT" == "$PACKAGE" ]] || fail "ZIP root must be $PACKAGE/"
+
+if grep -Eq '(^|/)(\.git|\.github|tests|tools|docs|vendor|node_modules|build|dist)(/|$)' <<< "$ZIP_ENTRIES"; then
   fail "development-only path leaked into release ZIP"
 fi
 
@@ -98,14 +104,14 @@ for required in \
   "$PACKAGE/assets" \
   "$PACKAGE/languages/core-blueprint-work.pot"; do
   if [[ "$required" == "$PACKAGE/assets" ]]; then
-    unzip -Z1 "$ZIP" | grep -q "^$PACKAGE/assets/" || fail "assets runtime directory missing from ZIP"
+    grep -q "^$PACKAGE/assets/" <<< "$ZIP_ENTRIES" || fail "assets runtime directory missing from ZIP"
   else
-    unzip -Z1 "$ZIP" | grep -Fxq "$required" || fail "required runtime file missing from ZIP: $required"
+    grep -Fxq "$required" <<< "$ZIP_ENTRIES" || fail "required runtime file missing from ZIP: $required"
   fi
 done
 for locale in "${LOCALES[@]}"; do
-  unzip -Z1 "$ZIP" | grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.po" || fail "PO missing from ZIP for $locale"
-  unzip -Z1 "$ZIP" | grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.mo" || fail "MO missing from ZIP for $locale"
+  grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.po" <<< "$ZIP_ENTRIES" || fail "PO missing from ZIP for $locale"
+  grep -Fxq "$PACKAGE/languages/core-blueprint-work-$locale.mo" <<< "$ZIP_ENTRIES" || fail "MO missing from ZIP for $locale"
 done
 
 PACKAGED_MAIN="$TMP/packaged-main.php"
