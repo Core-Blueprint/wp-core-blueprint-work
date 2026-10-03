@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\Admin\SettingsRegistry;
-use CB\Core\UI\Notice;
+use CoreBlueprint\Core\Admin\SettingsRegistry;
+use CoreBlueprint\Core\UI\Notice;
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
 use CB\Work\Integration\Suite;

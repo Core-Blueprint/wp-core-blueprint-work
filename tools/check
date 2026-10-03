@@ -16,6 +16,10 @@ php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);' || fail "PHP 8
 
 "$ROOT/tools/i18n/check"
 
+if grep -R -nF 'CB\\Core\\' "$ROOT/src" "$ROOT/core-blueprint-work.php"; then
+	fail "legacy Base namespace references remain in Work runtime"
+fi
+
 while IFS= read -r -d '' file; do
 	php -l "$file" >/dev/null || fail "PHP lint failed: $file"
 done < <(find "$ROOT" -type f -name '*.php' -not -path '*/.git/*' -not -path '*/dist/*' -not -path '*/build/*' -print0)

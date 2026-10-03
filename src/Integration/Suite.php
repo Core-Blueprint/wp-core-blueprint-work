@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Integration;
 
-use CB\Core\Dashboard\CardRegistry;
-use CB\Core\ExtensionRegistry;
+use CoreBlueprint\Core\Dashboard\CardRegistry;
+use CoreBlueprint\Core\ExtensionRegistry;
 use CB\Work\Admin\Menu;
 use CB\Work\Content\PostTypes;
 use CB\Work\Database\Schema;

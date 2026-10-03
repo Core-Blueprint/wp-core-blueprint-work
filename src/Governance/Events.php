@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\Governance;
 
-use CB\Core\Governance\EventRegistry;
+use CoreBlueprint\Core\Governance\EventRegistry;
 
 defined( 'ABSPATH' ) || exit;
 

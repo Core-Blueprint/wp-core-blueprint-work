@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\UI\Assets;
-use CB\Core\UI\ObjectPicker;
+use CoreBlueprint\Core\UI\Assets;
+use CoreBlueprint\Core\UI\ObjectPicker;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Integration\CRMCustomers;

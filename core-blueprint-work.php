@@ -79,15 +79,15 @@ spl_autoload_register( static function ( string $class ): void {
 
 /** Base services that are required by the canonical Work product runtime. */
 function cb_work_product_contracts_ready(): bool {
-	return class_exists( '\\CB\\Core\\Database\\SchemaRegistry' )
-		&& class_exists( '\\CB\\Core\\ExtensionRegistry' )
-		&& class_exists( '\\CB\\Core\\Governance\\Audit' )
-		&& class_exists( '\\CB\\Core\\Governance\\EventRegistry' )
-		&& class_exists( '\\CB\\Core\\Admin\\SettingsRegistry' )
-		&& class_exists( '\\CB\\Core\\Dashboard\\CardRegistry' )
-		&& class_exists( '\\CB\\Core\\UI\\Assets' )
-		&& class_exists( '\\CB\\Core\\UI\\ObjectPicker' )
-		&& class_exists( '\\CB\\Core\\UI\\Notice' );
+	return class_exists( '\\CoreBlueprint\\Core\\Database\\SchemaRegistry' )
+		&& class_exists( '\\CoreBlueprint\\Core\\ExtensionRegistry' )
+		&& class_exists( '\\CoreBlueprint\\Core\\Governance\\Audit' )
+		&& class_exists( '\\CoreBlueprint\\Core\\Governance\\EventRegistry' )
+		&& class_exists( '\\CoreBlueprint\\Core\\Admin\\SettingsRegistry' )
+		&& class_exists( '\\CoreBlueprint\\Core\\Dashboard\\CardRegistry' )
+		&& class_exists( '\\CoreBlueprint\\Core\\UI\\Assets' )
+		&& class_exists( '\\CoreBlueprint\\Core\\UI\\ObjectPicker' )
+		&& class_exists( '\\CoreBlueprint\\Core\\UI\\Notice' );
 }
 
 /** Canonical current-request readiness for Work feature/public runtime. */
