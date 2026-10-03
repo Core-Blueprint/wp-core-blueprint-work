@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Core\Governance\Audit;
+use CoreBlueprint\Core\Governance\Audit;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;

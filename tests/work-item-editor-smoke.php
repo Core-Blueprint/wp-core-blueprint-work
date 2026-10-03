@@ -57,7 +57,7 @@ namespace {
 	}
 }
 
-namespace CB\Core\Governance {
+namespace CoreBlueprint\Core\Governance {
 	final class Audit {
 		public static function record( string $id, string $severity = 'info', array $context = [] ): bool {
 			$GLOBALS['cb_work_audit_events'][] = [ 'id' => $id, 'severity' => $severity, 'context' => $context ];
@@ -66,7 +66,7 @@ namespace CB\Core\Governance {
 	}
 }
 
-namespace CB\Core\UI {
+namespace CoreBlueprint\Core\UI {
 	final class Assets {
 		public static function enqueue_object_picker(): void {
 			$GLOBALS['cb_work_picker_enqueue_count']++;
