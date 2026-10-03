@@ -1,0 +1,2061 @@
+# Copyright (C) 2026 Core Blueprint
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Core Blueprint Work 1.0.0-rc1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-core-blueprint-work\n"
+"Last-Translator: Core Blueprint\n"
+"Language-Team: nl_NL\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-10-03T13:07:57+00:00\n"
+"PO-Revision-Date: 2026-10-03T13:07:57+00:00\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: core-blueprint-work\n"
+"Generated-By: Core Blueprint i18n tooling 1.1.0\n"
+
+#. Plugin Name of the plugin
+#: core-blueprint-work.php
+#: src/Admin/Operations.php:26
+#: src/Capabilities.php:29
+msgid "Core Blueprint Work"
+msgstr "Core Blueprint Work"
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: core-blueprint-work.php
+msgid "https://coreblueprint.io"
+msgstr "https://coreblueprint.io"
+
+#. Description of the plugin
+#: core-blueprint-work.php
+msgid "First-party work management for services, projects, work items, time tracking and billing-ready reporting."
+msgstr "Eersteklas werkbeheer voor services, projecten, Work Items, tijdregistratie en facturatieklare rapportage."
+
+#. Author of the plugin
+#: core-blueprint-work.php
+msgid "Core Blueprint"
+msgstr "Core Blueprint"
+
+#: core-blueprint-work.php:60
+#: core-blueprint-work.php:133
+#: core-blueprint-work.php:148
+msgid "Core Blueprint Work:"
+msgstr "Core Blueprint Work:"
+
+#: core-blueprint-work.php:103
+#: core-blueprint-work.php:149
+#: src/Integration/Suite.php:69
+msgid "Required Core Blueprint Base contracts are unavailable."
+msgstr "Vereiste Core Blueprint Base-contracten zijn niet beschikbaar."
+
+#: src/Admin/Assets.php:127
+msgid "Filter"
+msgstr "Filter"
+
+#: src/Admin/Assets.php:128
+msgid "Filters"
+msgstr "Filters"
+
+#: src/Admin/Assets.php:129
+msgid "Search"
+msgstr "Zoeken"
+
+#: src/Admin/Assets.php:130
+msgid "More filters"
+msgstr "Meer filters"
+
+#: src/Admin/Assets.php:131
+msgid "Hide filters"
+msgstr "Filters verbergen"
+
+#: src/Admin/Assets.php:132
+msgid "Active filters"
+msgstr "Actieve filters"
+
+#: src/Admin/Assets.php:133
+msgid "Selected"
+msgstr "Geselecteerd"
+
+#: src/Admin/Assets.php:134
+#: src/Admin/Overview.php:47
+#: src/Admin/Overview.php:58
+msgid "Today"
+msgstr "Vandaag"
+
+#: src/Admin/Assets.php:135
+#: src/Admin/Operations.php:154
+#: src/Admin/Operations.php:219
+#: src/Admin/Operations.php:304
+#: src/Admin/Page.php:109
+#: src/Admin/Projects.php:108
+#: src/Admin/ProjectWorkspace.php:98
+#: src/Admin/Recurrence.php:113
+#: src/Admin/Recurrence.php:133
+msgid "Status"
+msgstr "Status"
+
+#: src/Admin/Assets.php:136
+#: src/Admin/Operations.php:232
+#: src/Admin/QuickAdd.php:40
+#: src/Admin/Recurrence.php:87
+#: src/Admin/WorkItems.php:93
+#: src/Content/PostTypes.php:57
+msgid "Project"
+msgstr "Project"
+
+#: src/Admin/Assets.php:137
+#: src/Admin/Operations.php:238
+#: src/Admin/Recurrence.php:88
+#: src/Admin/WorkItems.php:102
+#: src/Content/PostTypes.php:29
+msgid "Service"
+msgstr "Service"
+
+#: src/Admin/Assets.php:138
+#: src/Admin/Operations.php:259
+#: src/Admin/Operations.php:303
+#: src/Admin/Projects.php:63
+#: src/Admin/Projects.php:188
+#: src/Admin/ProjectWorkspace.php:130
+#: src/Admin/Recurrence.php:86
+#: src/Admin/WorkItems.php:78
+msgid "Customer"
+msgstr "Klant"
+
+#: src/Admin/Assets.php:139
+#: src/Admin/Operations.php:263
+msgid "Assignee"
+msgstr "Toegewezen aan"
+
+#: src/Admin/Assets.php:140
+#: src/Admin/Operations.php:226
+#: src/Admin/Operations.php:305
+#: src/Admin/Projects.php:109
+#: src/Admin/ProjectWorkspace.php:99
+#: src/Admin/Recurrence.php:90
+#: src/Admin/WorkItems.php:120
+msgid "Priority"
+msgstr "Prioriteit"
+
+#: src/Admin/Assets.php:141
+#: src/Admin/Operations.php:244
+#: src/Admin/Recurrence.php:89
+#: src/Admin/WorkItems.php:111
+msgid "Work Type"
+msgstr "Work Type"
+
+#: src/Admin/Assets.php:142
+#: src/Admin/Operations.php:250
+#: src/Admin/Operations.php:308
+msgid "Billing"
+msgstr "Facturatie"
+
+#: src/Admin/Assets.php:143
+#: src/Admin/Operations.php:277
+msgid "Sort"
+msgstr "Sorteren"
+
+#: src/Admin/Assets.php:144
+msgid "Scheduled"
+msgstr "Gepland"
+
+#: src/Admin/Assets.php:145
+#: src/Admin/Operations.php:307
+#: src/Admin/Projects.php:110
+#: src/Admin/Projects.php:189
+#: src/Admin/ProjectWorkspace.php:100
+#: src/Admin/ProjectWorkspace.php:132
+#: src/Admin/QuickAdd.php:41
+msgid "Due"
+msgstr "Vervaldatum"
+
+#: src/Admin/Assets.php:146
+#: src/Admin/Operations.php:270
+#: src/Admin/Operations.php:275
+msgid "to"
+msgstr "tot"
+
+#: src/Admin/Assets.php:147
+msgid "Board"
+msgstr "Bord"
+
+#: src/Admin/Assets.php:148
+msgid "No Work Items yet."
+msgstr "Nog geen Work Items."
+
+#: src/Admin/Assets.php:149
+msgid "Create your first Work Item to start planning and tracking customer work."
+msgstr "Maak je eerste Work Item om klantwerk te plannen en te volgen."
+
+#: src/Admin/Assets.php:150
+msgid "No Work Items match these filters."
+msgstr "Geen Work Items komen overeen met deze filters."
+
+#: src/Admin/Assets.php:151
+msgid "Adjust or clear the current filters to broaden this view."
+msgstr "Pas de huidige filters aan of wis ze om deze weergave te verbreden."
+
+#: src/Admin/Assets.php:152
+msgid "No scheduled work this month."
+msgstr "Geen gepland werk deze maand."
+
+#: src/Admin/Assets.php:153
+#: src/Admin/Operations.php:30
+msgid "Planned"
+msgstr "Gepland"
+
+#: src/Admin/Assets.php:154
+#: src/Admin/Operations.php:29
+msgid "In Progress"
+msgstr "In uitvoering"
+
+#: src/Admin/Assets.php:155
+#: src/Admin/Assets.php:206
+#: src/Admin/Overview.php:49
+#: src/Admin/ProjectWorkspace.php:69
+msgid "Blocked"
+msgstr "Geblokkeerd"
+
+#: src/Admin/Assets.php:156
+#: src/Admin/ProjectWorkspace.php:70
+msgid "Completed"
+msgstr "Voltooid"
+
+#: src/Admin/Assets.php:157
+msgid "Skipped"
+msgstr "Overgeslagen"
+
+#: src/Admin/Assets.php:158
+msgid "Cancelled"
+msgstr "Geannuleerd"
+
+#: src/Admin/Assets.php:159
+msgid "Show closed"
+msgstr "Gesloten tonen"
+
+#: src/Admin/Assets.php:160
+msgid "Hide closed"
+msgstr "Gesloten verbergen"
+
+#: src/Admin/Assets.php:161
+msgid "No Work Items"
+msgstr "Geen Work Items"
+
+#: src/Admin/Assets.php:202
+msgid "Focus views"
+msgstr "Focusweergaven"
+
+#: src/Admin/Assets.php:203
+msgid "All"
+msgstr "Alle"
+
+#: src/Admin/Assets.php:204
+msgid "My work"
+msgstr "Mijn werk"
+
+#: src/Admin/Assets.php:205
+#: src/Admin/Operations.php:159
+#: src/Admin/Operations.php:221
+#: src/Admin/Page.php:118
+#: src/Admin/ProjectWorkspace.php:67
+#: src/Admin/Recurrence.php:113
+#: src/Admin/Recurrence.php:141
+#: src/Integration/DataExchange/TaxRateEntity.php:194
+msgid "Active"
+msgstr "Actief"
+
+#: src/Admin/Assets.php:207
+#: src/Admin/Overview.php:48
+msgid "Overdue"
+msgstr "Achterstallig"
+
+#: src/Admin/Assets.php:208
+msgid "Shortcut: / search · Alt+N add Work Item"
+msgstr "Sneltoets: / zoeken · Alt+N Work Item toevoegen"
+
+#. translators: %s: default billing classification from the selected Service.
+#: src/Admin/BillingClassificationUx.php:72
+#, php-format
+msgid "Selected Service default: %s. You can override it for this Work Item."
+msgstr "Standaard van geselecteerde Service: %s. Je kunt dit voor dit Work Item overschrijven."
+
+#: src/Admin/BillingClassificationUx.php:73
+msgid "Choose a Service to prefill billing classification, or classify this Work Item manually."
+msgstr "Kies een Service om de facturatieclassificatie vooraf in te vullen, of classificeer dit Work Item handmatig."
+
+#: src/Admin/Menu.php:41
+#: src/Admin/Menu.php:53
+#: src/Admin/Overview.php:37
+#: src/Admin/Page.php:30
+#: src/Integration/Suite.php:56
+msgid "Work"
+msgstr "Work"
+
+#: src/Admin/Menu.php:42
+msgid "Overview"
+msgstr "Overzicht"
+
+#: src/Admin/Menu.php:43
+#: src/Admin/Operations.php:39
+#: src/Admin/Operations.php:82
+#: src/Admin/Projects.php:42
+#: src/Admin/Projects.php:190
+#: src/Content/PostTypes.php:86
+#: src/Integration/Suite.php:100
+msgid "Work Items"
+msgstr "Work Items"
+
+#: src/Admin/Menu.php:44
+#: src/Admin/Recurrence.php:61
+msgid "Recurring Work"
+msgstr "Terugkerend werk"
+
+#: src/Admin/Menu.php:45
+#: src/Admin/Menu.php:54
+#: src/Admin/Menu.php:55
+#: src/Admin/Time.php:38
+msgid "Time"
+msgstr "Tijd"
+
+#: src/Admin/Menu.php:46
+#: src/Admin/Operations.php:31
+#: src/Content/PostTypes.php:56
+#: src/Integration/Suite.php:101
+msgid "Projects"
+msgstr "Projecten"
+
+#: src/Admin/Menu.php:47
+#: src/Content/PostTypes.php:28
+#: src/Integration/Suite.php:102
+msgid "Services"
+msgstr "Services"
+
+#: src/Admin/Menu.php:48
+#: src/Admin/Operations.php:132
+msgid "Work Types"
+msgstr "Work Types"
+
+#: src/Admin/Menu.php:49
+msgid "Project Workspace"
+msgstr "Projectwerkruimte"
+
+#: src/Admin/OperationalActions.php:58
+#: src/Admin/Operations.php:618
+#: src/Admin/Overview.php:16
+#: src/Admin/Pickers.php:124
+#: src/Admin/QuickAdd.php:56
+#: src/Admin/Recurrence.php:201
+#: src/Admin/RecurrenceActions.php:115
+msgid "You do not have permission to manage Work."
+msgstr "Je hebt geen toestemming om Work te beheren."
+
+#: src/Admin/Operations.php:27
+msgid "Your operational workspace for actionable customer work."
+msgstr "Je operationele werkruimte voor uitvoerbaar klantwerk."
+
+#: src/Admin/Operations.php:29
+msgid "Open Work Items"
+msgstr "Openstaande Work Items"
+
+#: src/Admin/Operations.php:30
+msgid "Planned work remains actionable until it is completed, skipped or cancelled."
+msgstr "Gepland werk blijft uitvoerbaar totdat het is voltooid, overgeslagen of geannuleerd."
+
+#: src/Admin/Operations.php:31
+msgid "Manage Projects"
+msgstr "Projecten beheren"
+
+#: src/Admin/Operations.php:83
+#: src/Admin/Overview.php:41
+#: src/Admin/Projects.php:99
+#: src/Admin/ProjectWorkspace.php:58
+#: src/Admin/ProjectWorkspace.php:84
+#: src/Admin/QuickAdd.php:32
+#: src/Admin/QuickAdd.php:44
+#: src/Content/PostTypes.php:88
+#: src/Content/PostTypes.php:89
+msgid "Add Work Item"
+msgstr "Work Item toevoegen"
+
+#: src/Admin/Operations.php:85
+msgid "Manage actionable work across customers and Projects. Open a Work Item to edit it in Gutenberg."
+msgstr "Beheer uitvoerbaar werk voor klanten en Projecten. Open een Work Item om het in Gutenberg te bewerken."
+
+#: src/Admin/Operations.php:89
+msgid "The customer filter is invalid or no longer resolvable. No Work Items are shown until the filter is cleared."
+msgstr "Het klantfilter is ongeldig of kan niet meer worden gevonden. Er worden geen Work Items getoond totdat het filter is gewist."
+
+#: src/Admin/Operations.php:93
+msgid "Unknown Project"
+msgstr "Onbekend Project"
+
+#. translators: %s: Project name.
+#: src/Admin/Operations.php:97
+#, php-format
+msgid "Showing Work Items for Project: %s"
+msgstr "Work Items voor Project worden getoond: %s"
+
+#: src/Admin/Operations.php:99
+#: src/Admin/Projects.php:100
+#: src/Admin/ProjectWorkspace.php:59
+msgid "View all Work Items"
+msgstr "Alle Work Items bekijken"
+
+#: src/Admin/Operations.php:106
+msgid "Project Work Items"
+msgstr "Project-Work Items"
+
+#: src/Admin/Operations.php:106
+msgid "All Work Items"
+msgstr "Alle Work Items"
+
+#. translators: %d: number of Work Items matching the current view.
+#: src/Admin/Operations.php:109
+#, php-format
+msgid "%d Work Item matches the current view."
+msgid_plural "%d Work Items match the current view."
+msgstr[0] "%d Work Item komt overeen met de huidige weergave."
+msgstr[1] "%d Work Items komen overeen met de huidige weergave."
+
+#: src/Admin/Operations.php:114
+#: src/Content/PostTypes.php:94
+msgid "No Work Items found."
+msgstr "Geen Work Items gevonden."
+
+#: src/Admin/Operations.php:133
+msgid "Classify the nature of work independently from Services and pricing."
+msgstr "Classificeer de aard van het werk onafhankelijk van Services en prijsstelling."
+
+#: src/Admin/Operations.php:138
+#: src/Admin/Operations.php:146
+msgid "Add Work Type"
+msgstr "Work Type toevoegen"
+
+#: src/Admin/Operations.php:142
+#: src/Admin/Operations.php:154
+msgid "Name"
+msgstr "Naam"
+
+#: src/Admin/Operations.php:144
+#: src/Admin/Operations.php:154
+#: src/Admin/Page.php:87
+#: src/Admin/Page.php:109
+#: src/Integration/DataExchange/TaxRateEntity.php:190
+msgid "Code"
+msgstr "Code"
+
+#: src/Admin/Operations.php:145
+msgid "Optional; generated from the name when empty."
+msgstr "Optioneel; wordt uit de naam gegenereerd wanneer dit leeg is."
+
+#: src/Admin/Operations.php:150
+msgid "Configured Work Types"
+msgstr "Geconfigureerde Work Types"
+
+#: src/Admin/Operations.php:152
+msgid "No Work Types configured."
+msgstr "Geen Work Types geconfigureerd."
+
+#: src/Admin/Operations.php:154
+#: src/Admin/Page.php:109
+msgid "Action"
+msgstr "Actie"
+
+#: src/Admin/Operations.php:159
+#: src/Admin/Page.php:118
+#: src/Admin/Recurrence.php:141
+msgid "Inactive"
+msgstr "Inactief"
+
+#: src/Admin/Operations.php:166
+#: src/Admin/Page.php:125
+#: src/Admin/Recurrence.php:142
+msgid "Activate"
+msgstr "Activeren"
+
+#: src/Admin/Operations.php:166
+#: src/Admin/Page.php:125
+#: src/Admin/Recurrence.php:142
+msgid "Deactivate"
+msgstr "Deactiveren"
+
+#: src/Admin/Operations.php:181
+msgid "Table"
+msgstr "Tabel"
+
+#: src/Admin/Operations.php:182
+msgid "List"
+msgstr "Lijst"
+
+#: src/Admin/Operations.php:183
+msgid "Kanban"
+msgstr "Kanban"
+
+#: src/Admin/Operations.php:184
+msgid "Calendar"
+msgstr "Kalender"
+
+#: src/Admin/Operations.php:187
+msgid "Work Item view"
+msgstr "Work Item-weergave"
+
+#: src/Admin/Operations.php:217
+#: src/Content/PostTypes.php:93
+msgid "Search Work Items"
+msgstr "Work Items zoeken"
+
+#: src/Admin/Operations.php:218
+msgid "Search Work Items…"
+msgstr "Work Items zoeken…"
+
+#: src/Admin/Operations.php:220
+msgid "All statuses"
+msgstr "Alle statussen"
+
+#: src/Admin/Operations.php:227
+msgid "All priorities"
+msgstr "Alle prioriteiten"
+
+#: src/Admin/Operations.php:233
+msgid "All Projects"
+msgstr "Alle Projecten"
+
+#: src/Admin/Operations.php:239
+msgid "All Services"
+msgstr "Alle Services"
+
+#: src/Admin/Operations.php:245
+msgid "All Work Types"
+msgstr "Alle Work Types"
+
+#: src/Admin/Operations.php:251
+msgid "All billing classes"
+msgstr "Alle facturatieklassen"
+
+#: src/Admin/Operations.php:268
+msgid "Scheduled from"
+msgstr "Gepland vanaf"
+
+#: src/Admin/Operations.php:273
+msgid "Due from"
+msgstr "Vervaldatum vanaf"
+
+#: src/Admin/Operations.php:279
+msgid "Workload"
+msgstr "Werklast"
+
+#: src/Admin/Operations.php:280
+#: src/Admin/Projects.php:77
+#: src/Admin/WorkItems.php:147
+msgid "Due date"
+msgstr "Vervaldatum"
+
+#: src/Admin/Operations.php:281
+#: src/Admin/WorkItems.php:155
+msgid "Scheduled date"
+msgstr "Geplande datum"
+
+#: src/Admin/Operations.php:282
+msgid "Recently updated"
+msgstr "Recent bijgewerkt"
+
+#: src/Admin/Operations.php:283
+#: src/Admin/Recurrence.php:84
+msgid "Title"
+msgstr "Titel"
+
+#: src/Admin/Operations.php:285
+msgid "Apply filters"
+msgstr "Filters toepassen"
+
+#: src/Admin/Operations.php:286
+msgid "Clear filters"
+msgstr "Filters wissen"
+
+#: src/Admin/Operations.php:302
+#: src/Admin/Overview.php:96
+#: src/Admin/Projects.php:107
+#: src/Admin/ProjectWorkspace.php:97
+#: src/Admin/Time.php:93
+#: src/Admin/Time.php:127
+#: src/Admin/Time.php:156
+#: src/Content/PostTypes.php:87
+msgid "Work Item"
+msgstr "Work Item"
+
+#: src/Admin/Operations.php:306
+msgid "Project / Type"
+msgstr "Project / Type"
+
+#: src/Admin/Operations.php:309
+msgid "Assigned"
+msgstr "Toegewezen"
+
+#: src/Admin/Operations.php:310
+#: src/Admin/Recurrence.php:133
+#: src/Admin/Time.php:156
+msgid "Actions"
+msgstr "Acties"
+
+#: src/Admin/Operations.php:345
+msgid "Status:"
+msgstr "Status:"
+
+#: src/Admin/Operations.php:346
+#: src/Admin/Operations.php:393
+msgid "Priority:"
+msgstr "Prioriteit:"
+
+#: src/Admin/Operations.php:347
+#: src/Admin/Operations.php:394
+#: src/Admin/Operations.php:477
+msgid "Due:"
+msgstr "Vervaldatum:"
+
+#: src/Admin/Operations.php:350
+#: src/Admin/Operations.php:395
+msgid "Customer:"
+msgstr "Klant:"
+
+#: src/Admin/Operations.php:351
+#: src/Admin/Operations.php:396
+#: src/Admin/Operations.php:478
+msgid "Project:"
+msgstr "Project:"
+
+#: src/Admin/Operations.php:352
+#: src/Admin/Operations.php:397
+msgid "Type:"
+msgstr "Type:"
+
+#: src/Admin/Operations.php:355
+msgid "Billing:"
+msgstr "Facturatie:"
+
+#: src/Admin/Operations.php:356
+#: src/Admin/Operations.php:398
+#: src/Admin/Operations.php:479
+msgid "Assigned:"
+msgstr "Toegewezen:"
+
+#: src/Admin/Operations.php:388
+msgid "No Work Items in this status on the current page."
+msgstr "Geen Work Items met deze status op de huidige pagina."
+
+#: src/Admin/Operations.php:436
+msgid "Monday"
+msgstr "Maandag"
+
+#: src/Admin/Operations.php:437
+msgid "Tuesday"
+msgstr "Dinsdag"
+
+#: src/Admin/Operations.php:438
+msgid "Wednesday"
+msgstr "Woensdag"
+
+#: src/Admin/Operations.php:439
+msgid "Thursday"
+msgstr "Donderdag"
+
+#: src/Admin/Operations.php:440
+msgid "Friday"
+msgstr "Vrijdag"
+
+#: src/Admin/Operations.php:441
+msgid "Saturday"
+msgstr "Zaterdag"
+
+#: src/Admin/Operations.php:442
+msgid "Sunday"
+msgstr "Zondag"
+
+#: src/Admin/Operations.php:447
+msgid "Previous month"
+msgstr "Vorige maand"
+
+#: src/Admin/Operations.php:449
+msgid "Next month"
+msgstr "Volgende maand"
+
+#. translators: %d: total number of Work Items in the current result set.
+#: src/Admin/Operations.php:511
+#, php-format
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] "%d item"
+msgstr[1] "%d items"
+
+#: src/Admin/Operations.php:514
+msgid "Previous"
+msgstr "Vorige"
+
+#. translators: 1: current page number, 2: total number of pages.
+#: src/Admin/Operations.php:518
+#, php-format
+msgid "Page %1$d of %2$d"
+msgstr "Pagina %1$d van %2$d"
+
+#: src/Admin/Operations.php:521
+msgid "Next"
+msgstr "Volgende"
+
+#: src/Admin/Operations.php:581
+#: src/Admin/Time.php:136
+msgid "Start"
+msgstr "Starten"
+
+#: src/Admin/Operations.php:582
+#: src/Admin/Recurrence.php:139
+msgid "Complete"
+msgstr "Voltooien"
+
+#: src/Admin/Operations.php:583
+msgid "Skip"
+msgstr "Overslaan"
+
+#: src/Admin/Operations.php:584
+#: src/Admin/QuickAdd.php:46
+#: src/Admin/Time.php:141
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: src/Admin/Operations.php:592
+msgid "Work Item status updated."
+msgstr "Work Item-status bijgewerkt."
+
+#: src/Admin/Operations.php:593
+msgid "That Work Item status transition is not allowed."
+msgstr "Deze Work Item-statusovergang is niet toegestaan."
+
+#: src/Admin/Operations.php:594
+msgid "Work Type added."
+msgstr "Work Type toegevoegd."
+
+#: src/Admin/Operations.php:595
+msgid "Work Type could not be saved."
+msgstr "Work Type kon niet worden opgeslagen."
+
+#: src/Admin/Operations.php:596
+msgid "Work Type status updated."
+msgstr "Work Type-status bijgewerkt."
+
+#: src/Admin/Operations.php:609
+msgid "Work storage upgrade is pending. Work Items remain unavailable until Base reconciles the Work schema."
+msgstr "De Work-opslagupgrade is in afwachting. Work Items blijven niet beschikbaar totdat Base het Work-schema heeft gereconcilieerd."
+
+#: src/Admin/Overview.php:36
+msgid "Daily overview"
+msgstr "Dagoverzicht"
+
+#: src/Admin/Overview.php:38
+msgid "What needs attention now."
+msgstr "Wat nu aandacht nodig heeft."
+
+#: src/Admin/Overview.php:42
+msgid "Open Time"
+msgstr "Open tijdregistratie"
+
+#: src/Admin/Overview.php:50
+#: src/Admin/Overview.php:60
+#: src/Admin/ProjectWorkspace.php:68
+msgid "In progress"
+msgstr "In uitvoering"
+
+#: src/Admin/Overview.php:51
+msgid "Due soon"
+msgstr "Binnenkort vervallen"
+
+#: src/Admin/Overview.php:52
+#: src/Admin/Overview.php:129
+msgid "Ready to bill"
+msgstr "Klaar voor facturatie"
+
+#: src/Admin/Overview.php:58
+msgid "Scheduled or due today."
+msgstr "Vandaag gepland of vandaag vervallend."
+
+#: src/Admin/Overview.php:59
+#: src/Admin/ProjectWorkspace.php:69
+msgid "Needs attention"
+msgstr "Vereist aandacht"
+
+#: src/Admin/Overview.php:59
+msgid "Overdue and blocked work."
+msgstr "Achterstallig en geblokkeerd werk."
+
+#: src/Admin/Overview.php:60
+msgid "Work currently underway."
+msgstr "Werk dat momenteel in uitvoering is."
+
+#: src/Admin/Overview.php:61
+msgid "Coming up"
+msgstr "Komt eraan"
+
+#: src/Admin/Overview.php:61
+msgid "Due in the next seven days."
+msgstr "Vervalt binnen de komende zeven dagen."
+
+#: src/Admin/Overview.php:96
+msgid "Timer running"
+msgstr "Timer loopt"
+
+#: src/Admin/Overview.php:96
+msgid "Open timer"
+msgstr "Open timer"
+
+#: src/Admin/Overview.php:110
+msgid "Nothing needs your attention here."
+msgstr "Hier is niets dat je aandacht nodig heeft."
+
+#: src/Admin/Overview.php:129
+msgid "Operational work with a current billing-ready snapshot."
+msgstr "Operationeel werk met een actuele facturatieklare snapshot."
+
+#: src/Admin/Overview.php:131
+msgid "Nothing is waiting for commercial handoff."
+msgstr "Er wacht niets op commerciële overdracht."
+
+#: src/Admin/Overview.php:136
+msgid "Ready for handoff"
+msgstr "Klaar voor overdracht"
+
+#. translators: %s: Work Item due date.
+#: src/Admin/Overview.php:153
+#, php-format
+msgid "Due %s"
+msgstr "Vervalt %s"
+
+#: src/Admin/Page.php:31
+msgid "Configure Work-wide settings. Day-to-day operational work is managed from the separate Work menu."
+msgstr "Configureer instellingen voor heel Work. Dagelijks operationeel werk beheer je vanuit het aparte Work-menu."
+
+#: src/Admin/Page.php:49
+msgid "You do not have permission to access Work settings."
+msgstr "Je hebt geen toestemming om Work-instellingen te openen."
+
+#: src/Admin/Page.php:61
+msgid "Work storage unavailable"
+msgstr "Work-opslag niet beschikbaar"
+
+#: src/Admin/Page.php:62
+msgid "The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema."
+msgstr "Het Work-databaseschema is niet gereed. Work-instellingen blijven alleen-lezen totdat Base het geregistreerde schema heeft gereconcilieerd."
+
+#: src/Admin/Page.php:79
+msgid "VAT rates"
+msgstr "Btw-tarieven"
+
+#: src/Admin/Page.php:80
+msgid "Configure reusable VAT rates for Work service pricing. Deactivate old rates instead of changing or deleting them so historical references remain reliable."
+msgstr "Configureer herbruikbare btw-tarieven voor Work-serviceprijzen. Deactiveer oude tarieven in plaats van ze te wijzigen of te verwijderen, zodat historische verwijzingen betrouwbaar blijven."
+
+#: src/Admin/Page.php:86
+#: src/Admin/Page.php:109
+#: src/Integration/DataExchange/TaxRateEntity.php:191
+msgid "Label"
+msgstr "Label"
+
+#: src/Admin/Page.php:86
+msgid "Example: NL Standard or NL Reduced."
+msgstr "Voorbeeld: NL Standaard of NL Verlaagd."
+
+#: src/Admin/Page.php:87
+msgid "Optional stable internal code. When empty it is generated from the label."
+msgstr "Optionele stabiele interne code. Wanneer deze leeg is, wordt hij uit het label gegenereerd."
+
+#: src/Admin/Page.php:88
+#: src/Integration/DataExchange/TaxRateEntity.php:192
+msgid "Country code"
+msgstr "Landcode"
+
+#: src/Admin/Page.php:89
+#: src/Admin/Page.php:109
+msgid "Rate"
+msgstr "Tarief"
+
+#: src/Admin/Page.php:90
+#: src/Integration/DataExchange/TaxRateEntity.php:195
+msgid "Valid from"
+msgstr "Geldig vanaf"
+
+#: src/Admin/Page.php:91
+#: src/Integration/DataExchange/TaxRateEntity.php:196
+msgid "Valid until"
+msgstr "Geldig tot"
+
+#: src/Admin/Page.php:93
+msgid "Add VAT Rate"
+msgstr "Btw-tarief toevoegen"
+
+#: src/Admin/Page.php:98
+msgid "Configured VAT rates"
+msgstr "Geconfigureerde btw-tarieven"
+
+#: src/Admin/Page.php:101
+#: src/Admin/TaxRateDataExchange.php:75
+msgid "Import VAT rates"
+msgstr "Btw-tarieven importeren"
+
+#: src/Admin/Page.php:102
+msgid "Export VAT rates"
+msgstr "Btw-tarieven exporteren"
+
+#: src/Admin/Page.php:106
+msgid "No VAT rates configured yet."
+msgstr "Nog geen btw-tarieven geconfigureerd."
+
+#: src/Admin/Page.php:109
+msgid "Country"
+msgstr "Land"
+
+#: src/Admin/Page.php:109
+msgid "Validity"
+msgstr "Geldigheid"
+
+#: src/Admin/Page.php:139
+msgid "VAT rate added."
+msgstr "Btw-tarief toegevoegd."
+
+#: src/Admin/Page.php:140
+msgid "VAT rate activated."
+msgstr "Btw-tarief geactiveerd."
+
+#: src/Admin/Page.php:141
+msgid "VAT rate deactivated. Existing references remain intact."
+msgstr "Btw-tarief gedeactiveerd. Bestaande verwijzingen blijven intact."
+
+#: src/Admin/Page.php:142
+msgid "The VAT rate could not be saved. Check its code, percentage and validity dates."
+msgstr "Het btw-tarief kon niet worden opgeslagen. Controleer de code, het percentage en de geldigheidsdata."
+
+#: src/Admin/Page.php:150
+msgid "VAT Rates"
+msgstr "Btw-tarieven"
+
+#: src/Admin/Pickers.php:41
+msgid "Activate Core Blueprint CRM to link a customer. Work Items and Projects remain usable without CRM."
+msgstr "Activeer Core Blueprint CRM om een klant te koppelen. Work Items en Projecten blijven zonder CRM bruikbaar."
+
+#: src/Admin/Pickers.php:51
+msgid "Search contacts and organizations…"
+msgstr "Contacten en organisaties zoeken…"
+
+#: src/Admin/Pickers.php:52
+msgid "No matching CRM customers found."
+msgstr "Geen overeenkomende CRM-klanten gevonden."
+
+#: src/Admin/Pickers.php:117
+msgid "Search WordPress users…"
+msgstr "WordPress-gebruikers zoeken…"
+
+#: src/Admin/Pickers.php:118
+msgid "No matching users found."
+msgstr "Geen overeenkomende gebruikers gevonden."
+
+#: src/Admin/Projects.php:34
+msgid "Project Details"
+msgstr "Projectdetails"
+
+#: src/Admin/Projects.php:57
+msgid "Open Project Workspace"
+msgstr "Projectwerkruimte openen"
+
+#: src/Admin/Projects.php:66
+msgid "This Project already has a customer link that cannot be resolved for the current user. The link is preserved."
+msgstr "Dit Project heeft al een klantkoppeling die voor de huidige gebruiker niet kan worden opgelost. De koppeling blijft behouden."
+
+#: src/Admin/Projects.php:73
+#: src/Admin/Recurrence.php:108
+msgid "Start date"
+msgstr "Startdatum"
+
+#: src/Admin/Projects.php:87
+msgid "Save the Project before adding Work Items."
+msgstr "Sla het Project op voordat je Work Items toevoegt."
+
+#: src/Admin/Projects.php:103
+msgid "No active Work Items for this Project."
+msgstr "Geen actieve Work Items voor dit Project."
+
+#: src/Admin/Projects.php:111
+#: src/Admin/ProjectWorkspace.php:101
+#: src/Admin/Recurrence.php:93
+#: src/Admin/WorkItems.php:151
+msgid "Assignees"
+msgstr "Toegewezen personen"
+
+#: src/Admin/Projects.php:218
+msgid "Open workspace"
+msgstr "Werkruimte openen"
+
+#: src/Admin/Projects.php:224
+msgid "Project name"
+msgstr "Projectnaam"
+
+#: src/Admin/ProjectWorkspace.php:25
+msgid "You do not have permission to access this Project."
+msgstr "Je hebt geen toestemming om dit Project te openen."
+
+#: src/Admin/ProjectWorkspace.php:31
+msgid "Project not found."
+msgstr "Project niet gevonden."
+
+#: src/Admin/ProjectWorkspace.php:53
+msgid "Project workspace"
+msgstr "Projectwerkruimte"
+
+#: src/Admin/ProjectWorkspace.php:55
+msgid "No project description yet."
+msgstr "Nog geen projectbeschrijving."
+
+#: src/Admin/ProjectWorkspace.php:61
+msgid "Edit project details"
+msgstr "Projectdetails bewerken"
+
+#: src/Admin/ProjectWorkspace.php:66
+msgid "Project work summary"
+msgstr "Samenvatting van projectwerk"
+
+#: src/Admin/ProjectWorkspace.php:67
+msgid "Planned, in progress or blocked"
+msgstr "Gepland, in uitvoering of geblokkeerd"
+
+#: src/Admin/ProjectWorkspace.php:68
+msgid "Currently being worked on"
+msgstr "Momenteel in behandeling"
+
+#: src/Admin/ProjectWorkspace.php:70
+msgid "Finished Work Items"
+msgstr "Voltooide Work Items"
+
+#: src/Admin/ProjectWorkspace.php:78
+msgid "Active work"
+msgstr "Actief werk"
+
+#. translators: %d: number of active Work Items in this Project.
+#: src/Admin/ProjectWorkspace.php:81
+#, php-format
+msgid "%d active Work Item."
+msgid_plural "%d active Work Items."
+msgstr[0] "%d actief Work Item."
+msgstr[1] "%d actieve Work Items."
+
+#: src/Admin/ProjectWorkspace.php:89
+msgid "No active work"
+msgstr "Geen actief werk"
+
+#: src/Admin/ProjectWorkspace.php:90
+msgid "This Project has no planned, in-progress or blocked Work Items."
+msgstr "Dit Project heeft geen geplande, actieve of geblokkeerde Work Items."
+
+#: src/Admin/ProjectWorkspace.php:91
+msgid "Create Work Item"
+msgstr "Work Item maken"
+
+#. translators: %d: total number of active Work Items in this Project.
+#: src/Admin/ProjectWorkspace.php:119
+#, php-format
+msgid "View all %d active Work Items"
+msgstr "Alle %d actieve Work Items bekijken"
+
+#: src/Admin/ProjectWorkspace.php:128
+msgid "Project context"
+msgstr "Projectcontext"
+
+#: src/Admin/ProjectWorkspace.php:130
+msgid "Linked customer unavailable"
+msgstr "Gekoppelde klant niet beschikbaar"
+
+#: src/Admin/ProjectWorkspace.php:130
+msgid "Not linked"
+msgstr "Niet gekoppeld"
+
+#: src/Admin/ProjectWorkspace.php:131
+msgid "Starts"
+msgstr "Start"
+
+#: src/Admin/ProjectWorkspace.php:133
+msgid "Total Work Items"
+msgstr "Totaal aantal Work Items"
+
+#: src/Admin/ProjectWorkspace.php:136
+msgid "Edit customer, dates and description"
+msgstr "Klant, datums en beschrijving bewerken"
+
+#: src/Admin/ProjectWorkspace.php:157
+msgid "Not set"
+msgstr "Niet ingesteld"
+
+#: src/Admin/QuickAdd.php:32
+msgid "Quick capture"
+msgstr "Snel toevoegen"
+
+#: src/Admin/QuickAdd.php:33
+msgid "Close"
+msgstr "Sluiten"
+
+#: src/Admin/QuickAdd.php:38
+msgid "What needs to be done?"
+msgstr "Wat moet er gebeuren?"
+
+#: src/Admin/QuickAdd.php:40
+#: src/Admin/Recurrence.php:87
+msgid "No Project"
+msgstr "Geen Project"
+
+#: src/Admin/QuickAdd.php:45
+msgid "Open full editor"
+msgstr "Volledige editor openen"
+
+#: src/Admin/QuickAdd.php:93
+msgid "Work Item added."
+msgstr "Work Item toegevoegd."
+
+#: src/Admin/QuickAdd.php:95
+msgid "Open it"
+msgstr "Openen"
+
+#: src/Admin/QuickAdd.php:101
+msgid "The Work Item could not be added. Open the full editor to review all required details."
+msgstr "Het Work Item kon niet worden toegevoegd. Open de volledige editor om alle vereiste gegevens te controleren."
+
+#: src/Admin/Recurrence.php:63
+msgid "Add New Rule"
+msgstr "Nieuwe regel toevoegen"
+
+#: src/Admin/Recurrence.php:66
+msgid "Create real Work Items from reusable schedules. Commercial recurring service pricing is separate from Work Item recurrence."
+msgstr "Maak echte Work Items vanuit herbruikbare schema's. Commerciële prijsstelling voor terugkerende Services staat los van Work Item-herhaling."
+
+#: src/Admin/Recurrence.php:69
+msgid "Work storage is not ready yet. Recurring Work becomes available after the Work schema is installed."
+msgstr "Work-opslag is nog niet gereed. Terugkerend werk wordt beschikbaar nadat het Work-schema is geïnstalleerd."
+
+#: src/Admin/Recurrence.php:75
+msgid "Edit Recurring Work Rule"
+msgstr "Regel voor terugkerend werk bewerken"
+
+#: src/Admin/Recurrence.php:75
+#: src/Admin/Recurrence.php:115
+msgid "Add Recurring Work Rule"
+msgstr "Regel voor terugkerend werk toevoegen"
+
+#: src/Admin/Recurrence.php:77
+msgid "This rule already has occurrence history. Frequency, interval, start date and end date are locked so generated history cannot be rewound. Template fields and planning offsets remain editable."
+msgstr "Deze regel heeft al uitvoeringsgeschiedenis. Frequentie, interval, startdatum en einddatum zijn vergrendeld zodat gegenereerde historie niet kan worden teruggedraaid. Sjabloonvelden en planningsverschuivingen blijven bewerkbaar."
+
+#: src/Admin/Recurrence.php:85
+msgid "Description"
+msgstr "Beschrijving"
+
+#: src/Admin/Recurrence.php:88
+msgid "No Service"
+msgstr "Geen Service"
+
+#: src/Admin/Recurrence.php:89
+#: src/Admin/WorkItems.php:113
+msgid "No Work Type"
+msgstr "Geen Work Type"
+
+#: src/Admin/Recurrence.php:91
+#: src/Admin/WorkItems.php:128
+msgid "Estimated time (minutes)"
+msgstr "Geschatte tijd (minuten)"
+
+#: src/Admin/Recurrence.php:91
+msgid "Planning estimate inherited by future generated Work Items. Registered time remains separate."
+msgstr "Planningsschatting die wordt overgenomen door toekomstige gegenereerde Work Items. Geregistreerde tijd blijft afzonderlijk."
+
+#: src/Admin/Recurrence.php:92
+#: src/Admin/WorkItems.php:159
+msgid "Billing classification"
+msgstr "Facturatieclassificatie"
+
+#: src/Admin/Recurrence.php:92
+#: src/Admin/WorkItems.php:161
+msgid "Not classified"
+msgstr "Niet geclassificeerd"
+
+#. translators: %s: recurrence end date.
+#: src/Admin/Recurrence.php:99
+#, php-format
+msgid ", end %s"
+msgstr ", einde %s"
+
+#: src/Admin/Recurrence.php:102
+#: src/Admin/Recurrence.php:133
+msgid "Schedule"
+msgstr "Schema"
+
+#. translators: 1: recurrence start date, 2: optional translated end-date suffix.
+#: src/Admin/Recurrence.php:104
+#, php-format
+msgid "Start %1$s%2$s."
+msgstr "Start %1$s%2$s."
+
+#: src/Admin/Recurrence.php:107
+msgid "Frequency"
+msgstr "Frequentie"
+
+#: src/Admin/Recurrence.php:107
+msgid "Every"
+msgstr "Elke"
+
+#: src/Admin/Recurrence.php:109
+msgid "End date"
+msgstr "Einddatum"
+
+#: src/Admin/Recurrence.php:109
+msgid "Optional. Leave empty for an open-ended rule."
+msgstr "Optioneel. Laat leeg voor een regel zonder einddatum."
+
+#: src/Admin/Recurrence.php:111
+msgid "Create ahead"
+msgstr "Vooraf aanmaken"
+
+#: src/Admin/Recurrence.php:111
+#: src/Admin/Recurrence.php:156
+msgid "days"
+msgstr "dagen"
+
+#: src/Admin/Recurrence.php:111
+msgid "Work Items are generated when an occurrence enters this planning horizon."
+msgstr "Work Items worden gegenereerd wanneer een gebeurtenis binnen deze planningshorizon valt."
+
+#: src/Admin/Recurrence.php:112
+msgid "Due offset"
+msgstr "Vervaldatumverschuiving"
+
+#: src/Admin/Recurrence.php:112
+msgid "days after scheduled date"
+msgstr "dagen na de geplande datum"
+
+#: src/Admin/Recurrence.php:115
+msgid "Save Recurring Work Rule"
+msgstr "Regel voor terugkerend werk opslaan"
+
+#: src/Admin/Recurrence.php:119
+msgid "Recurring Work Rules"
+msgstr "Regels voor terugkerend werk"
+
+#. translators: %s: next WordPress cron timestamp, or a not-scheduled label.
+#: src/Admin/Recurrence.php:122
+#, php-format
+msgid "Generator hook: hourly. Next WordPress cron timestamp: %s"
+msgstr "Generator-hook: elk uur. Volgende WordPress-crontijdstempel: %s"
+
+#: src/Admin/Recurrence.php:127
+msgid "Run Generator Now"
+msgstr "Generator nu uitvoeren"
+
+#: src/Admin/Recurrence.php:131
+msgid "No recurring Work rules configured."
+msgstr "Geen regels voor terugkerend werk geconfigureerd."
+
+#: src/Admin/Recurrence.php:133
+msgid "Rule"
+msgstr "Regel"
+
+#: src/Admin/Recurrence.php:133
+msgid "Next occurrence"
+msgstr "Volgende gebeurtenis"
+
+#: src/Admin/Recurrence.php:133
+msgid "Generated"
+msgstr "Gegenereerd"
+
+#: src/Admin/Recurrence.php:142
+#: src/Admin/Time.php:170
+msgid "Edit"
+msgstr "Bewerken"
+
+#: src/Admin/Recurrence.php:156
+msgid "day"
+msgstr "dag"
+
+#: src/Admin/Recurrence.php:157
+msgid "week"
+msgstr "week"
+
+#: src/Admin/Recurrence.php:157
+msgid "weeks"
+msgstr "weken"
+
+#: src/Admin/Recurrence.php:158
+msgid "month"
+msgstr "maand"
+
+#: src/Admin/Recurrence.php:158
+msgid "months"
+msgstr "maanden"
+
+#: src/Admin/Recurrence.php:159
+msgid "year"
+msgstr "jaar"
+
+#: src/Admin/Recurrence.php:159
+msgid "years"
+msgstr "jaren"
+
+#: src/Admin/Recurrence.php:160
+msgid "interval"
+msgstr "interval"
+
+#. translators: 1: recurrence interval count, 2: translated recurrence unit.
+#: src/Admin/Recurrence.php:163
+#, php-format
+msgid "Every %1$d %2$s"
+msgstr "Elke %1$d %2$s"
+
+#: src/Admin/Recurrence.php:173
+msgid "not scheduled yet"
+msgstr "nog niet gepland"
+
+#: src/Admin/Recurrence.php:179
+msgid "Recurring Work rule created."
+msgstr "Regel voor terugkerend werk aangemaakt."
+
+#: src/Admin/Recurrence.php:180
+msgid "Recurring Work rule updated."
+msgstr "Regel voor terugkerend werk bijgewerkt."
+
+#: src/Admin/Recurrence.php:181
+msgid "Recurring Work rule status updated."
+msgstr "Status van regel voor terugkerend werk bijgewerkt."
+
+#: src/Admin/Recurrence.php:182
+msgid "The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history."
+msgstr "De regel voor terugkerend werk kon niet worden opgeslagen. Controleer de opgegeven waarden en of het schema al door historie is vergrendeld."
+
+#: src/Admin/Recurrence.php:183
+msgid "Recurring Work generator finished."
+msgstr "Generator voor terugkerend werk voltooid."
+
+#. translators: 1: generated count, 2: recovered count, 3: failed count.
+#: src/Admin/Recurrence.php:194
+#, php-format
+msgid "Generated: %1$d · recovered: %2$d · failed: %3$d."
+msgstr "Gegenereerd: %1$d · hersteld: %2$d · mislukt: %3$d."
+
+#: src/Admin/ServicePricing.php:27
+msgid "Service Pricing"
+msgstr "Serviceprijzen"
+
+#: src/Admin/ServicePricing.php:57
+msgid "Pricing model"
+msgstr "Prijsmodel"
+
+#: src/Admin/ServicePricing.php:64
+msgid "Defines the standard commercial model for this service. Individual work can override it later."
+msgstr "Bepaalt het standaard commerciële model voor deze Service. Individueel werk kan dit later overschrijven."
+
+#: src/Admin/ServicePricing.php:68
+msgid "Recurring period"
+msgstr "Terugkerende periode"
+
+#: src/Admin/ServicePricing.php:78
+msgid "Standard price"
+msgstr "Standaardprijs"
+
+#: src/Admin/ServicePricing.php:79
+msgid "Leave empty when the service has no standard price."
+msgstr "Laat leeg wanneer de Service geen standaardprijs heeft."
+
+#: src/Admin/ServicePricing.php:82
+msgid "Currency"
+msgstr "Valuta"
+
+#: src/Admin/ServicePricing.php:86
+msgid "Price is"
+msgstr "Prijs is"
+
+#: src/Admin/ServicePricing.php:96
+msgid "VAT rate"
+msgstr "Btw-tarief"
+
+#: src/Admin/ServicePricing.php:99
+msgid "No VAT rate selected"
+msgstr "Geen btw-tarief geselecteerd"
+
+#: src/Admin/ServicePricing.php:102
+msgid "inactive/historical"
+msgstr "inactief/historisch"
+
+#: src/Admin/ServicePricing.php:105
+msgid "Manage VAT rates in Work Settings"
+msgstr "Btw-tarieven beheren in Work-instellingen"
+
+#: src/Admin/ServicePricing.php:134
+msgid "Pricing"
+msgstr "Prijsstelling"
+
+#: src/Admin/ServicePricing.php:135
+#: src/Integration/DataExchange.php:28
+msgid "VAT"
+msgstr "Btw"
+
+#: src/Admin/ServicePricing.php:143
+#: src/Content/ServicePricing.php:230
+msgid "No standard price"
+msgstr "Geen standaardprijs"
+
+#: src/Admin/ServicePricing.php:150
+msgid "Exempt"
+msgstr "Vrijgesteld"
+
+#: src/Admin/ServicePricing.php:154
+msgid "No VAT rate"
+msgstr "Geen btw-tarief"
+
+#: src/Admin/ServicePricing.php:159
+msgid "Service name"
+msgstr "Servicenaam"
+
+#: src/Admin/TaxRateActions.php:42
+msgid "You do not have permission to manage Work VAT rates."
+msgstr "Je hebt geen toestemming om Work-btw-tarieven te beheren."
+
+#: src/Admin/TaxRateDataExchange.php:55
+msgid "You do not have permission to import Work VAT rates."
+msgstr "Je hebt geen toestemming om Work-btw-tarieven te importeren."
+
+#: src/Admin/TaxRateDataExchange.php:59
+#: src/Admin/TaxRateDataExchange.php:102
+#: src/Admin/TaxRateDataExchange.php:246
+msgid "Data Exchange is unavailable in the installed Core Blueprint Base build."
+msgstr "Data Exchange is niet beschikbaar in de geïnstalleerde Core Blueprint Base-build."
+
+#: src/Admin/TaxRateDataExchange.php:76
+msgid "CSV fields"
+msgstr "CSV-velden"
+
+#: src/Admin/TaxRateDataExchange.php:77
+msgid "Work VAT fields"
+msgstr "Work-btw-velden"
+
+#: src/Admin/TaxRateDataExchange.php:78
+#: src/Admin/TaxRateDataExchange.php:280
+msgid "Validate import"
+msgstr "Import valideren"
+
+#: src/Admin/TaxRateDataExchange.php:97
+msgid "You do not have permission to export Work VAT rates."
+msgstr "Je hebt geen toestemming om Work-btw-tarieven te exporteren."
+
+#: src/Admin/TaxRateDataExchange.php:159
+msgid "Preview ready. Review the changes, then apply the import."
+msgstr "Voorbeeld gereed. Controleer de wijzigingen en pas daarna de import toe."
+
+#: src/Admin/TaxRateDataExchange.php:160
+msgid "The import preview contains errors and cannot be applied."
+msgstr "Het importvoorbeeld bevat fouten en kan niet worden toegepast."
+
+#: src/Admin/TaxRateDataExchange.php:180
+msgid "Preview the import again before applying it."
+msgstr "Maak opnieuw een importvoorbeeld voordat je het toepast."
+
+#: src/Admin/TaxRateDataExchange.php:202
+msgid "The VAT import stopped before all changes could be applied."
+msgstr "De btw-import is gestopt voordat alle wijzigingen konden worden toegepast."
+
+#: src/Admin/TaxRateDataExchange.php:215
+msgid "VAT import completed."
+msgstr "Btw-import voltooid."
+
+#: src/Admin/TaxRateDataExchange.php:230
+msgid "You do not have permission to manage Work VAT imports."
+msgstr "Je hebt geen toestemming om Work-btw-imports te beheren."
+
+#: src/Admin/TaxRateDataExchange.php:238
+msgid "The VAT import request expired. Reload the page and try again."
+msgstr "Het btw-importverzoek is verlopen. Laad de pagina opnieuw en probeer het nogmaals."
+
+#: src/Admin/TaxRateDataExchange.php:276
+msgid "Inspecting CSV…"
+msgstr "CSV controleren…"
+
+#: src/Admin/TaxRateDataExchange.php:277
+msgid "CSV ready for mapping."
+msgstr "CSV gereed voor toewijzing."
+
+#: src/Admin/TaxRateDataExchange.php:278
+msgid "Building server preview…"
+msgstr "Servervoorbeeld opbouwen…"
+
+#: src/Admin/TaxRateDataExchange.php:279
+msgid "Applying VAT import…"
+msgstr "Btw-import toepassen…"
+
+#: src/Admin/TaxRateDataExchange.php:281
+msgid "Apply import"
+msgstr "Import toepassen"
+
+#: src/Admin/TaxRateDataExchange.php:282
+msgid "The VAT import request could not be completed."
+msgstr "Het btw-importverzoek kon niet worden voltooid."
+
+#: src/Admin/TaxRateDataExchange.php:333
+msgid "The VAT field mapping is missing or too large."
+msgstr "De toewijzing van btw-velden ontbreekt of is te groot."
+
+#: src/Admin/TaxRateDataExchange.php:340
+#: src/Admin/TaxRateDataExchange.php:344
+msgid "The VAT field mapping is invalid."
+msgstr "De toewijzing van btw-velden is ongeldig."
+
+#: src/Admin/TaxRateDataExchange.php:350
+msgid "Choose a CSV file to continue."
+msgstr "Kies een CSV-bestand om door te gaan."
+
+#: src/Admin/TaxRateDataExchange.php:359
+msgid "The CSV upload could not be verified."
+msgstr "De CSV-upload kon niet worden geverifieerd."
+
+#: src/Admin/TaxRateDataExchange.php:362
+msgid "VAT imports accept CSV files only."
+msgstr "Btw-imports accepteren alleen CSV-bestanden."
+
+#: src/Admin/TaxRateDataExchange.php:365
+msgid "The CSV file is empty or exceeds the Data Exchange size limit."
+msgstr "Het CSV-bestand is leeg of overschrijdt de limiet van Data Exchange."
+
+#: src/Admin/TaxRateDataExchange.php:370
+msgid "The CSV file could not be read safely."
+msgstr "Het CSV-bestand kon niet veilig worden gelezen."
+
+#: src/Admin/TaxRateDataExchange.php:404
+msgid "VAT Data Exchange"
+msgstr "Btw Data Exchange"
+
+#: src/Admin/Time.php:39
+msgid "Register actual Work time. Work Item estimates and billing classification remain separate planning and commercial facts."
+msgstr "Registreer werkelijke Work-tijd. Work Item-schattingen en facturatieclassificatie blijven afzonderlijke plannings- en commerciële gegevens."
+
+#: src/Admin/Time.php:42
+msgid "Work Time storage is not ready yet. Complete the Work schema upgrade first."
+msgstr "Work Time-opslag is nog niet gereed. Rond eerst de upgrade van het Work-schema af."
+
+#: src/Admin/Time.php:52
+msgid "You do not have permission to view this Time entry."
+msgstr "Je hebt geen toestemming om deze Time-entry te bekijken."
+
+#: src/Admin/Time.php:67
+msgid "Timer"
+msgstr "Timer"
+
+#. translators: %d: Work Item ID.
+#: src/Admin/Time.php:75
+#: src/Admin/Time.php:165
+#, php-format
+msgid "Work Item #%d"
+msgstr "Work Item #%d"
+
+#. translators: 1: local start date, 2: local start time.
+#: src/Admin/Time.php:79
+#, php-format
+msgid "Running since %1$s %2$s."
+msgstr "Loopt sinds %1$s %2$s."
+
+#: src/Admin/Time.php:85
+msgid "Stop Timer"
+msgstr "Timer stoppen"
+
+#: src/Admin/Time.php:88
+msgid "No Work Items are available for time tracking."
+msgstr "Er zijn geen Work Items beschikbaar voor tijdregistratie."
+
+#: src/Admin/Time.php:94
+#: src/Admin/Time.php:138
+#: src/Admin/Time.php:156
+msgid "Note"
+msgstr "Notitie"
+
+#: src/Admin/Time.php:95
+msgid "Start Timer"
+msgstr "Timer starten"
+
+#: src/Admin/Time.php:112
+msgid "Correct Time Entry"
+msgstr "Time-entry corrigeren"
+
+#: src/Admin/Time.php:112
+#: src/Admin/Time.php:140
+msgid "Add Time Entry"
+msgstr "Time-entry toevoegen"
+
+#: src/Admin/Time.php:113
+msgid "Corrections use revision checks. If someone saved this entry first, your stale form will not overwrite their change."
+msgstr "Correcties gebruiken revisiecontroles. Als iemand deze invoer eerder heeft opgeslagen, overschrijft jouw verouderde formulier die wijziging niet."
+
+#: src/Admin/Time.php:115
+msgid "No Work Items are available for this entry."
+msgstr "Er zijn geen Work Items beschikbaar voor deze invoer."
+
+#: src/Admin/Time.php:128
+#: src/Admin/Time.php:156
+msgid "User"
+msgstr "Gebruiker"
+
+#: src/Admin/Time.php:137
+msgid "End"
+msgstr "Einde"
+
+#: src/Admin/Time.php:140
+msgid "Save Correction"
+msgstr "Correctie opslaan"
+
+#: src/Admin/Time.php:151
+msgid "Recent Time Entries"
+msgstr "Recente Time-entries"
+
+#: src/Admin/Time.php:153
+msgid "No completed Time entries yet."
+msgstr "Nog geen voltooide Time-entries."
+
+#: src/Admin/Time.php:156
+msgid "When"
+msgstr "Wanneer"
+
+#: src/Admin/Time.php:156
+msgid "Duration"
+msgstr "Duur"
+
+#: src/Admin/Time.php:156
+msgid "Source"
+msgstr "Bron"
+
+#: src/Admin/Time.php:192
+msgid "Select a Work Item"
+msgstr "Selecteer een Work Item"
+
+#: src/Admin/Time.php:203
+msgid "Choose time"
+msgstr "Tijd kiezen"
+
+#: src/Admin/Time.php:223
+msgid "Timer started."
+msgstr "Timer gestart."
+
+#: src/Admin/Time.php:224
+msgid "Timer stopped and Time entry completed."
+msgstr "Timer gestopt en Time-entry voltooid."
+
+#: src/Admin/Time.php:225
+msgid "The timer could not be started. You may already have an active timer."
+msgstr "De timer kon niet worden gestart. Mogelijk heb je al een actieve timer."
+
+#: src/Admin/Time.php:226
+msgid "The active timer could not be stopped safely."
+msgstr "De actieve timer kon niet veilig worden gestopt."
+
+#: src/Admin/Time.php:227
+msgid "Time entry added."
+msgstr "Time-entry toegevoegd."
+
+#: src/Admin/Time.php:228
+msgid "Time entry updated."
+msgstr "Time-entry bijgewerkt."
+
+#: src/Admin/Time.php:229
+msgid "The Time entry could not be saved. Check the Work Item and time range."
+msgstr "De Time-entry kon niet worden opgeslagen. Controleer het Work Item en het tijdsbereik."
+
+#: src/Admin/Time.php:230
+msgid "This Time entry changed after you opened it. Reload the latest entry before editing again."
+msgstr "Deze Time-entry is gewijzigd nadat je hem hebt geopend. Laad de nieuwste invoer voordat je opnieuw bewerkt."
+
+#: src/Admin/Time.php:231
+msgid "You are not authorized to track time for that Work Item or user."
+msgstr "Je bent niet gemachtigd om tijd te registreren voor dat Work Item of die gebruiker."
+
+#: src/Admin/Time.php:241
+#: src/Admin/TimeActions.php:176
+msgid "You do not have permission to track Work time."
+msgstr "Je hebt geen toestemming om Work-tijd te registreren."
+
+#: src/Admin/WorkItems.php:36
+msgid "Work Item Details"
+msgstr "Work Item-details"
+
+#: src/Admin/WorkItems.php:81
+msgid "This Work Item already has a customer link that cannot be resolved for the current user. The link is preserved."
+msgstr "Dit Work Item heeft al een klantkoppeling die voor de huidige gebruiker niet kan worden opgelost. De koppeling blijft behouden."
+
+#: src/Admin/WorkItems.php:86
+msgid "Leave empty to use the Project customer when one is linked."
+msgstr "Laat leeg om de Project-klant te gebruiken wanneer er een is gekoppeld."
+
+#: src/Admin/WorkItems.php:88
+msgid "Optional. Uses CRM Contacts and Organizations when CRM is available."
+msgstr "Optioneel. Gebruikt CRM-contacten en -organisaties wanneer CRM beschikbaar is."
+
+#: src/Admin/WorkItems.php:95
+msgid "No project"
+msgstr "Geen project"
+
+#: src/Admin/WorkItems.php:104
+msgid "No service"
+msgstr "Geen service"
+
+#: src/Admin/WorkItems.php:131
+msgid "Planning estimate only. Registered time remains separate."
+msgstr "Alleen een planningsschatting. Geregistreerde tijd blijft afzonderlijk."
+
+#: src/Admin/WorkItems.php:135
+msgid "Operational status"
+msgstr "Operationele status"
+
+#: src/Admin/WorkItems.php:143
+msgid "Work status is separate from WordPress publishing state and only valid lifecycle transitions are offered."
+msgstr "Work-status staat los van de WordPress-publicatiestatus en alleen geldige levenscyclusovergangen worden aangeboden."
+
+#: src/Admin/WorkItems.php:228
+msgid "Work Item title"
+msgstr "Work Item-titel"
+
+#: src/Capabilities.php:32
+msgid "Manage Work"
+msgstr "Work beheren"
+
+#: src/Capabilities.php:36
+msgid "View and manage Work services, projects, work items, time and billing-ready records."
+msgstr "Bekijk en beheer Work-services, projecten, Work Items, tijd en facturatieklare gegevens."
+
+#: src/Capabilities.php:41
+msgid "Track Work time"
+msgstr "Work-tijd registreren"
+
+#: src/Capabilities.php:45
+msgid "Track your own time on Work Items assigned to you. Work managers retain full time-management access."
+msgstr "Registreer je eigen tijd op Work Items die aan jou zijn toegewezen. Work-beheerders behouden volledige toegang tot tijdbeheer."
+
+#: src/Content/PostTypes.php:30
+#: src/Content/PostTypes.php:31
+msgid "Add Service"
+msgstr "Service toevoegen"
+
+#: src/Content/PostTypes.php:32
+msgid "Edit Service"
+msgstr "Service bewerken"
+
+#: src/Content/PostTypes.php:33
+msgid "New Service"
+msgstr "Nieuwe Service"
+
+#: src/Content/PostTypes.php:34
+msgid "View Service"
+msgstr "Service bekijken"
+
+#: src/Content/PostTypes.php:35
+msgid "Search Services"
+msgstr "Services zoeken"
+
+#: src/Content/PostTypes.php:36
+msgid "No services found."
+msgstr "Geen Services gevonden."
+
+#: src/Content/PostTypes.php:58
+#: src/Content/PostTypes.php:59
+msgid "Add Project"
+msgstr "Project toevoegen"
+
+#: src/Content/PostTypes.php:60
+msgid "Edit Project"
+msgstr "Project bewerken"
+
+#: src/Content/PostTypes.php:61
+msgid "New Project"
+msgstr "Nieuw Project"
+
+#: src/Content/PostTypes.php:62
+msgid "View Project"
+msgstr "Project bekijken"
+
+#: src/Content/PostTypes.php:63
+msgid "Search Projects"
+msgstr "Projecten zoeken"
+
+#: src/Content/PostTypes.php:64
+msgid "No projects found."
+msgstr "Geen Projecten gevonden."
+
+#: src/Content/PostTypes.php:65
+msgid "No projects found in Trash."
+msgstr "Geen Projecten gevonden in de prullenbak."
+
+#: src/Content/PostTypes.php:90
+msgid "Edit Work Item"
+msgstr "Work Item bewerken"
+
+#: src/Content/PostTypes.php:91
+msgid "New Work Item"
+msgstr "Nieuw Work Item"
+
+#: src/Content/PostTypes.php:92
+msgid "View Work Item"
+msgstr "Work Item bekijken"
+
+#: src/Content/PostTypes.php:95
+msgid "No Work Items found in Trash."
+msgstr "Geen Work Items gevonden in de prullenbak."
+
+#: src/Content/ProjectRestController.php:37
+msgid "You do not have permission to read Work Projects."
+msgstr "Je hebt geen toestemming om Work-Projecten te lezen."
+
+#: src/Content/ServicePricing.php:151
+msgid "Hourly"
+msgstr "Per uur"
+
+#: src/Content/ServicePricing.php:152
+msgid "Fixed price"
+msgstr "Vaste prijs"
+
+#: src/Content/ServicePricing.php:153
+msgid "Recurring"
+msgstr "Terugkerend"
+
+#: src/Content/ServicePricing.php:160
+msgid "Weekly"
+msgstr "Wekelijks"
+
+#: src/Content/ServicePricing.php:161
+msgid "Monthly"
+msgstr "Maandelijks"
+
+#: src/Content/ServicePricing.php:162
+msgid "Quarterly"
+msgstr "Per kwartaal"
+
+#: src/Content/ServicePricing.php:163
+msgid "Yearly"
+msgstr "Jaarlijks"
+
+#: src/Content/ServicePricing.php:170
+msgid "Excluding VAT"
+msgstr "Exclusief btw"
+
+#: src/Content/ServicePricing.php:171
+msgid "Including VAT"
+msgstr "Inclusief btw"
+
+#: src/Content/ServicePricing.php:172
+msgid "VAT exempt / no VAT"
+msgstr "Btw-vrijgesteld / geen btw"
+
+#: src/Content/ServicePricing.php:217
+msgid "No pricing configured."
+msgstr "Geen prijsstelling geconfigureerd."
+
+#: src/Content/WorkItemRestController.php:34
+msgid "You do not have permission to read Work Items."
+msgstr "Je hebt geen toestemming om Work Items te lezen."
+
+#: src/Governance/Events.php:46
+msgid "Work service pricing updated"
+msgstr "Work-serviceprijzen bijgewerkt"
+
+#: src/Governance/Events.php:47
+msgid "Work VAT rate created"
+msgstr "Work-btw-tarief aangemaakt"
+
+#: src/Governance/Events.php:48
+msgid "Work VAT rate updated"
+msgstr "Work-btw-tarief bijgewerkt"
+
+#: src/Governance/Events.php:49
+msgid "Work VAT rate activated"
+msgstr "Work-btw-tarief geactiveerd"
+
+#: src/Governance/Events.php:50
+msgid "Work VAT rate deactivated"
+msgstr "Work-btw-tarief gedeactiveerd"
+
+#: src/Governance/Events.php:51
+msgid "Work Project created"
+msgstr "Work-Project aangemaakt"
+
+#: src/Governance/Events.php:52
+msgid "Work Project updated"
+msgstr "Work-Project bijgewerkt"
+
+#: src/Governance/Events.php:53
+msgid "Work Item created"
+msgstr "Work Item aangemaakt"
+
+#: src/Governance/Events.php:54
+msgid "Work Item updated"
+msgstr "Work Item bijgewerkt"
+
+#: src/Governance/Events.php:55
+msgid "Work Item status changed"
+msgstr "Work Item-status gewijzigd"
+
+#: src/Governance/Events.php:56
+msgid "Work Item source attached"
+msgstr "Work Item-bron gekoppeld"
+
+#: src/Governance/Events.php:57
+msgid "Work Item relation added"
+msgstr "Work Item-relatie toegevoegd"
+
+#: src/Governance/Events.php:58
+msgid "Work billing unit ready"
+msgstr "Work-facturatie-eenheid gereed"
+
+#: src/Governance/Events.php:59
+msgid "Work billing snapshot refreshed"
+msgstr "Work-facturatiesnapshot vernieuwd"
+
+#: src/Governance/Events.php:60
+msgid "Work billing unit linked externally"
+msgstr "Work-facturatie-eenheid extern gekoppeld"
+
+#: src/Governance/Events.php:61
+msgid "Work external billing status updated"
+msgstr "Externe Work-facturatiestatus bijgewerkt"
+
+#: src/Governance/Events.php:62
+msgid "Work Type created"
+msgstr "Work Type aangemaakt"
+
+#: src/Governance/Events.php:63
+msgid "Work Type status changed"
+msgstr "Work Type-status gewijzigd"
+
+#: src/Governance/Events.php:64
+msgid "Recurring Work rule created"
+msgstr "Regel voor terugkerend werk aangemaakt"
+
+#: src/Governance/Events.php:65
+msgid "Recurring Work rule updated"
+msgstr "Regel voor terugkerend werk bijgewerkt"
+
+#: src/Governance/Events.php:66
+msgid "Recurring Work rule status changed"
+msgstr "Status van regel voor terugkerend werk gewijzigd"
+
+#: src/Governance/Events.php:67
+msgid "Recurring Work Item generated"
+msgstr "Terugkerend Work Item gegenereerd"
+
+#: src/Governance/Events.php:68
+msgid "Recurring Work generation failed"
+msgstr "Genereren van terugkerend werk mislukt"
+
+#: src/Governance/Events.php:69
+msgid "Recurring Work generator run"
+msgstr "Generator voor terugkerend werk uitgevoerd"
+
+#: src/Governance/Events.php:70
+msgid "Work Time entry created"
+msgstr "Work Time-entry aangemaakt"
+
+#: src/Governance/Events.php:71
+msgid "Work Time entry updated"
+msgstr "Work Time-entry bijgewerkt"
+
+#: src/Governance/Events.php:72
+msgid "Work timer started"
+msgstr "Work-timer gestart"
+
+#: src/Governance/Events.php:73
+msgid "Work timer stopped"
+msgstr "Work-timer gestopt"
+
+#: src/Integration/CRMCustomers.php:25
+msgid "CRM customer selection is unavailable."
+msgstr "CRM-klantselectie is niet beschikbaar."
+
+#: src/Integration/CRMCustomers.php:35
+#: src/Integration/CRMCustomers.php:102
+msgid "Contact"
+msgstr "Contact"
+
+#: src/Integration/CRMCustomers.php:42
+#: src/Integration/CRMCustomers.php:102
+msgid "Organization"
+msgstr "Organisatie"
+
+#: src/Integration/CRMCustomers.php:54
+msgid "The selected CRM customer identifier is invalid."
+msgstr "De geselecteerde CRM-klantidentifier is ongeldig."
+
+#: src/Integration/CRMCustomers.php:57
+msgid "The selected CRM customer could not be resolved."
+msgstr "De geselecteerde CRM-klant kon niet worden gevonden."
+
+#: src/Integration/CRMCustomers.php:76
+msgid "Linked customer"
+msgstr "Gekoppelde klant"
+
+#: src/Integration/DataExchange/TaxRateEntity.php:193
+msgid "Rate (basis points)"
+msgstr "Tarief (basispunten)"
+
+#: src/Integration/Suite.php:74
+msgid "Work database upgrade pending."
+msgstr "Work-database-upgrade in afwachting."
+
+#: src/Integration/Suite.php:77
+msgid "Work database schema is newer than this plugin build."
+msgstr "Het Work-databaseschema is nieuwer dan deze pluginbuild."
+
+#: src/Integration/Suite.php:80
+msgid "Runtime is not initialized"
+msgstr "Runtime is niet geïnitialiseerd"
+
+#. translators: 1: Work Item count, 2: Project count, 3: Service count, 4: VAT rate count.
+#: src/Integration/Suite.php:87
+#, php-format
+msgid "%1$d work items · %2$d projects · %3$d services · %4$d VAT rates"
+msgstr "%1$d Work Items · %2$d projecten · %3$d services · %4$d btw-tarieven"
+
+#: src/Integration/Suite.php:99
+msgid "Open Work"
+msgstr "Work openen"
+
+#: src/Repository/TaxRates.php:244
+msgid "No date limit"
+msgstr "Geen datumlimiet"
+
+#. translators: %s: tax rate validity start date.
+#: src/Repository/TaxRates.php:251
+#, php-format
+msgid "From %s"
+msgstr "Vanaf %s"
+
+#. translators: %s: tax rate validity end date.
+#: src/Repository/TaxRates.php:254
+#, php-format
+msgid "Until %s"
+msgstr "Tot %s"
+
+#. translators: 1: required PHP version, 2: current PHP version.
+#: src/Support/Requirements.php:65
+#, php-format
+msgid "PHP %1$s or newer is required. This server runs PHP %2$s."
+msgstr "PHP %1$s of nieuwer is vereist. Deze server draait PHP %2$s."
+
+#: src/Support/Requirements.php:70
+msgid "Core Blueprint must be installed and active."
+msgstr "Core Blueprint moet geïnstalleerd en actief zijn."
+
+#. translators: 1: required Core API version, 2: available Core API version.
+#: src/Support/Requirements.php:74
+#, php-format
+msgid "Core API %1$s or a newer compatible minor version is required. Available Core API: %2$s."
+msgstr "Core API %1$s of een nieuwere compatibele minorversie is vereist. Beschikbare Core API: %2$s."
+
+#: src/Support/Requirements.php:76
+msgid "none"
+msgstr "geen"
+
+#: src/Support/Requirements.php:79
+msgid "Ready"
+msgstr "Gereed"
