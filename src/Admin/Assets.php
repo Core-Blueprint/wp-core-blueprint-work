@@ -139,6 +139,7 @@ final class Assets {
 			'assignee'             => __( 'Assignee', 'core-blueprint-work' ),
 			'priority'             => __( 'Priority', 'core-blueprint-work' ),
 			'workType'             => __( 'Work Type', 'core-blueprint-work' ),
+			'workContext'          => __( 'Work context', 'core-blueprint-work' ),
 			'billing'              => __( 'Billing', 'core-blueprint-work' ),
 			'sort'                 => __( 'Sort', 'core-blueprint-work' ),
 			'scheduled'            => __( 'Scheduled', 'core-blueprint-work' ),
