@@ -9,6 +9,7 @@ use CB\Work\Admin\Menu;
 use CB\Work\Admin\OperationalActions;
 use CB\Work\Admin\Page;
 use CB\Work\Admin\Pickers;
+use CB\Work\Admin\ProjectDataExchange;
 use CB\Work\Admin\Projects;
 use CB\Work\Admin\QuickAdd;
 use CB\Work\Admin\RecurrenceActions;
@@ -27,6 +28,7 @@ use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Governance\Events;
 use CB\Work\Recurrence\Scheduler;
+use CB\Work\Repository\PortableIdentities;
 use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 
@@ -48,6 +50,7 @@ final class Plugin {
 		WorkItemMeta::init();
 		WorkItemRepository::init();
 		WorkItemSources::init();
+		PortableIdentities::init();
 		ServicePricingDomain::init();
 		Scheduler::init();
 
@@ -60,6 +63,7 @@ final class Plugin {
 			Page::init();
 			Pickers::init();
 			Projects::init();
+			ProjectDataExchange::init();
 			WorkItemsAdmin::init();
 			WorkItemTablePreferences::init();
 			WorkItemBoardActions::init();
