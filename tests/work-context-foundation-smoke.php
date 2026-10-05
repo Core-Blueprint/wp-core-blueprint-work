@@ -21,6 +21,8 @@ $billing     = file_get_contents( $root . '/src/Billing/SnapshotBuilder.php' );
 $adminJs     = file_get_contents( $root . '/assets/work-admin.js' );
 $refineJs    = file_get_contents( $root . '/assets/work-items-refinement.js' );
 $fastJs      = file_get_contents( $root . '/assets/work-fast-paths.js' );
+$contextJs   = file_get_contents( $root . '/assets/work-context.js' );
+$assets      = file_get_contents( $root . '/src/Admin/Assets.php' );
 $bootstrap   = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
@@ -89,6 +91,21 @@ $checks = [
 		&& str_contains( $adminJs, 'controls.workContext' )
 		&& str_contains( $refineJs, "select[name=\"work_context\"]" )
 		&& str_contains( $fastJs, "'work_context'" ),
+
+	'editor behavior mirrors context invariants instead of leaving conflicting controls visible' =>
+		str_contains( $projectAdmin, 'data-cb-work-context-select' )
+		&& str_contains( $projectAdmin, 'data-cb-work-customer-row' )
+		&& str_contains( $itemAdmin, 'data-cb-work-project-select' )
+		&& str_contains( $itemAdmin, 'data-cb-work-billing-select' )
+		&& str_contains( $recurrence, 'data-cb-work-project-select' )
+		&& str_contains( $recurrence, 'data-cb-work-billing-select' )
+		&& str_contains( $contextJs, "context.value === 'internal'" )
+		&& str_contains( $contextJs, "billing.value = 'non_billable'" )
+		&& str_contains( $contextJs, 'context.disabled = inherited' ),
+
+	'Work context behavior is shipped through the normal Work asset dispatcher' =>
+		str_contains( $assets, "assets/work-context.js" )
+		&& str_contains( $assets, 'enqueue_context_script' ),
 ];
 
 $failed = false;
