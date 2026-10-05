@@ -2229,3 +2229,21 @@ msgstr "ninguno"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Listo"
+
+msgid "You are not allowed to move Work Items on the calendar."
+msgstr "No tienes permiso para mover elementos de trabajo en el calendario."
+
+msgid "The calendar move is invalid."
+msgstr "El movimiento en el calendario no es válido."
+
+msgid "The Work Item could not be found."
+msgstr "No se pudo encontrar el elemento de trabajo."
+
+msgid "The Work Item date could not be updated."
+msgstr "No se pudo actualizar la fecha del elemento de trabajo."
+
+msgid "Move %1$s %2$s date"
+msgstr "Mover la fecha %2$s de %1$s"
+
+msgid "Move to another date"
+msgstr "Mover a otra fecha"
