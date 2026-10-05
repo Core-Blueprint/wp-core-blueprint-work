@@ -2142,3 +2142,54 @@ msgstr "Bereit"
 
 msgid "Calendar navigation"
 msgstr "Kalendernavigation"
+
+msgid "Columns"
+msgstr "Spalten"
+
+msgid "Work Item table columns"
+msgstr "Spalten der Work-Item-Tabelle"
+
+msgid "Reorder %s"
+msgstr "%s neu anordnen"
+
+msgid "Move"
+msgstr "Verschieben"
+
+msgid "Reset to default"
+msgstr "Auf Standard zurücksetzen"
+
+msgid "Saving…"
+msgstr "Speichern…"
+
+msgid "Saved"
+msgstr "Gespeichert"
+
+msgid "Column preferences could not be saved."
+msgstr "Spalteneinstellungen konnten nicht gespeichert werden."
+
+msgid "You are not allowed to change Work Item table preferences."
+msgstr "Du bist nicht berechtigt, die Tabelleneinstellungen für Work Items zu ändern."
+
+msgid "The table preference operation is invalid."
+msgstr "Der Vorgang für die Tabelleneinstellungen ist ungültig."
+
+msgid "The table preference payload is invalid."
+msgstr "Die Daten für die Tabelleneinstellungen sind ungültig."
+
+msgid "You are not allowed to move Work Items."
+msgstr "Du bist nicht berechtigt, Work Items zu verschieben."
+
+msgid "The Work Item move is invalid."
+msgstr "Das Verschieben des Work Items ist ungültig."
+
+msgid "The Work Item status could not be updated."
+msgstr "Der Status des Work Items konnte nicht aktualisiert werden."
+
+msgid "Move %s to another status"
+msgstr "%s in einen anderen Status verschieben"
+
+msgid "Move to another status"
+msgstr "In einen anderen Status verschieben"
+
+msgid "No scheduled work or deadlines this month."
+msgstr "Keine geplanten Arbeiten oder Fristen in diesem Monat."
