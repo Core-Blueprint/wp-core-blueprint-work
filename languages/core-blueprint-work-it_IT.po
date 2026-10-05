@@ -185,10 +185,6 @@ msgstr "Nessun Work Item corrisponde a questi filtri."
 msgid "Adjust or clear the current filters to broaden this view."
 msgstr "Modifica o cancella i filtri correnti per ampliare questa vista."
 
-#: src/Admin/Assets.php:165
-msgid "No scheduled work this month."
-msgstr "Nessun lavoro pianificato questo mese."
-
 #: src/Admin/Assets.php:166 src/Admin/Operations.php:31
 msgid "Planned"
 msgstr "Pianificato"
