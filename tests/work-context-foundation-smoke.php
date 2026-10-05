@@ -18,6 +18,9 @@ $recurrence  = file_get_contents( $root . '/src/Admin/Recurrence.php' );
 $quickAdd    = file_get_contents( $root . '/src/Admin/QuickAdd.php' );
 $workspace   = file_get_contents( $root . '/src/Admin/ProjectWorkspace.php' );
 $billing     = file_get_contents( $root . '/src/Billing/SnapshotBuilder.php' );
+$adminJs     = file_get_contents( $root . '/assets/work-admin.js' );
+$refineJs    = file_get_contents( $root . '/assets/work-items-refinement.js' );
+$fastJs      = file_get_contents( $root . '/assets/work-fast-paths.js' );
 $bootstrap   = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
@@ -80,6 +83,12 @@ $checks = [
 	'Project operational surfaces expose and filter Work context' =>
 		str_contains( $projectAdmin, 'cb_work_context' )
 		&& str_contains( $workspace, "'Context', 'core-blueprint-work'" ),
+
+	'Work Items progressive enhancement preserves Work context filtering' =>
+		str_contains( $adminJs, "select[name=\"work_context\"]" )
+		&& str_contains( $adminJs, 'controls.workContext' )
+		&& str_contains( $refineJs, "select[name=\"work_context\"]" )
+		&& str_contains( $fastJs, "'work_context'" ),
 ];
 
 $failed = false;
