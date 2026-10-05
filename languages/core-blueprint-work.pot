@@ -209,10 +209,6 @@ msgstr ""
 msgid "Adjust or clear the current filters to broaden this view."
 msgstr ""
 
-#: src/Admin/Assets.php:165
-msgid "No scheduled work this month."
-msgstr ""
-
 #: src/Admin/Assets.php:166
 #: src/Admin/Operations.php:31
 msgid "Planned"
