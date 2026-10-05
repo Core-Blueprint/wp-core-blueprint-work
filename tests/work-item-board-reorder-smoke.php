@@ -33,8 +33,9 @@ $checks = [
 		&& str_contains( $module, 'move.from.listId === move.to.listId' )
 		&& str_contains( $module, 'allowedStatuses(card).has(move.to.listId)' ),
 
-	'Board client persists status and participates in Base rollback events' =>
+	'Board client persists status, refreshes server-rendered actions and participates in Base rollback events' =>
 		str_contains( $module, 'persistBoardTransition' )
+		&& str_contains( $module, 'window.location.reload()' )
 		&& str_contains( $module, "cb:reorder:error" )
 		&& str_contains( $module, "cb:reorder:change" ),
 
