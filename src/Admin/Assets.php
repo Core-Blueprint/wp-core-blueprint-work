@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
 final class Assets {
 	private const STYLE_HANDLE             = 'cb-work-admin';
 	private const WORKSPACE_STYLE_HANDLE   = 'cb-work-workspace';
+	private const CONTEXT_SCRIPT_HANDLE      = 'cb-work-context';
 	private const PROJECT_STYLE_HANDLE     = 'cb-work-project-workspace';
 	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
 	private const QUICK_ADD_STYLE_HANDLE   = 'cb-work-quick-add';
@@ -26,7 +27,7 @@ final class Assets {
 	private const REFINEMENT_SCRIPT_HANDLE = 'cb-work-items-refinement';
 
 	public static function init(): void {
-		add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
+		add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 	}
 
 	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
@@ -38,6 +39,7 @@ final class Assets {
 		}
 
 		self::enqueue_workspace_style();
+		self::enqueue_context_script();
 		self::enqueue_quick_add_assets();
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( Menu::PROJECT_WORKSPACE_SLUG === $page ) {
@@ -55,6 +57,17 @@ final class Assets {
 		self::enqueue_script();
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
+		self::enqueue_reorder_assets();
+	}
+
+	private static function enqueue_context_script(): void {
+		$file = CB_WORK_DIR . 'assets/work-context.js';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script( self::CONTEXT_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-context.js', [], $version, true );
 	}
 
 	private static function enqueue_workspace_style(): void {
@@ -139,6 +152,7 @@ final class Assets {
 			'assignee'             => __( 'Assignee', 'core-blueprint-work' ),
 			'priority'             => __( 'Priority', 'core-blueprint-work' ),
 			'workType'             => __( 'Work Type', 'core-blueprint-work' ),
+			'workContext'          => __( 'Work context', 'core-blueprint-work' ),
 			'billing'              => __( 'Billing', 'core-blueprint-work' ),
 			'sort'                 => __( 'Sort', 'core-blueprint-work' ),
 			'scheduled'            => __( 'Scheduled', 'core-blueprint-work' ),
@@ -149,7 +163,7 @@ final class Assets {
 			'noItemsYetDetail'     => __( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ),
 			'noMatchingItems'      => __( 'No Work Items match these filters.', 'core-blueprint-work' ),
 			'noMatchingDetail'     => __( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ),
-			'noScheduledThisMonth' => __( 'No scheduled work this month.', 'core-blueprint-work' ),
+			'noScheduledThisMonth' => __( 'No scheduled work or deadlines this month.', 'core-blueprint-work' ),
 			'planned'              => __( 'Planned', 'core-blueprint-work' ),
 			'inProgress'           => __( 'In Progress', 'core-blueprint-work' ),
 			'blocked'              => __( 'Blocked', 'core-blueprint-work' ),
@@ -177,6 +191,23 @@ final class Assets {
 		$modified = filemtime( $script );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
 		wp_enqueue_script( self::REFINEMENT_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-items-refinement.js', [ self::SCRIPT_HANDLE ], $version, true );
+	}
+
+	private static function enqueue_reorder_assets(): void {
+		\CoreBlueprint\Core\UI\Assets::enqueue_reorder();
+
+		$file = CB_WORK_DIR . 'assets/work-items-reorder.js';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script_module(
+			'@cb-work/work-items-reorder',
+			CB_WORK_URL . 'assets/work-items-reorder.js',
+			[ '@cb-core/reorder' ],
+			$version
+		);
 	}
 
 	private static function enqueue_fast_path_assets(): void {

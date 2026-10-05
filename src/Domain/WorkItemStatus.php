@@ -35,8 +35,9 @@ final class WorkItemStatus {
 	public static function transitions_from( string $status ): array {
 		return match ( $status ) {
 			self::PLANNED => [ self::IN_PROGRESS, self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
-			self::IN_PROGRESS => [ self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
+			self::IN_PROGRESS => [ self::PLANNED, self::BLOCKED, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
 			self::BLOCKED => [ self::PLANNED, self::IN_PROGRESS, self::COMPLETED, self::SKIPPED, self::CANCELLED ],
+			self::COMPLETED => [ self::PLANNED, self::IN_PROGRESS, self::BLOCKED ],
 			default => [],
 		};
 	}

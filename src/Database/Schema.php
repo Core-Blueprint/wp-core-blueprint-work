@@ -4,6 +4,10 @@ declare(strict_types=1);
 namespace CB\Work\Database;
 
 use CoreBlueprint\Core\Database\SchemaRegistry;
+use CB\Work\Content\PostTypes;
+use CB\Work\Content\ProjectMeta;
+use CB\Work\Content\WorkItemMeta;
+use CB\Work\Domain\WorkContext;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -227,6 +231,7 @@ final class Schema {
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			title varchar(190) NOT NULL,
 			description longtext NOT NULL,
+			work_context varchar(16) NOT NULL DEFAULT '',
 			customer_provider varchar(64) NOT NULL DEFAULT '',
 			customer_type varchar(64) NOT NULL DEFAULT '',
 			customer_id varchar(191) NOT NULL DEFAULT '',
@@ -253,7 +258,8 @@ final class Schema {
 			KEY project_id (project_id),
 			KEY service_id (service_id),
 			KEY work_type_id (work_type_id),
-			KEY customer (customer_provider,customer_type,customer_id)
+			KEY customer (customer_provider,customer_type,customer_id),
+			KEY work_context (work_context)
 		) {$charset};" );
 
 		dbDelta( 'CREATE TABLE ' . self::recurrence_assignments_table() . " (
@@ -310,8 +316,66 @@ final class Schema {
 			UNIQUE KEY time_entry_id (time_entry_id)
 		) {$charset};" );
 
+		self::backfill_work_contexts();
 		self::seed_default_work_types();
 		return true;
+	}
+
+	private static function backfill_work_contexts(): void {
+		global $wpdb;
+
+		$wpdb->query(
+			$wpdb->prepare(
+				'UPDATE ' . self::recurrence_rules_table() . ' SET work_context = %s WHERE work_context = %s AND customer_provider <> %s AND customer_type <> %s AND customer_id <> %s',
+				WorkContext::CUSTOMER,
+				'',
+				'',
+				'',
+				''
+			)
+		);
+
+		self::backfill_post_context(
+			PostTypes::PROJECT,
+			ProjectMeta::WORK_CONTEXT,
+			ProjectMeta::CUSTOMER_PROVIDER,
+			ProjectMeta::CUSTOMER_TYPE,
+			ProjectMeta::CUSTOMER_ID
+		);
+		self::backfill_post_context(
+			PostTypes::WORK_ITEM,
+			WorkItemMeta::WORK_CONTEXT,
+			WorkItemMeta::CUSTOMER_PROVIDER,
+			WorkItemMeta::CUSTOMER_TYPE,
+			WorkItemMeta::CUSTOMER_ID
+		);
+	}
+
+	private static function backfill_post_context( string $post_type, string $context_key, string $provider_key, string $type_key, string $id_key ): void {
+		global $wpdb;
+		$sql = $wpdb->prepare(
+			"SELECT DISTINCT p.ID
+			FROM {$wpdb->posts} p
+			INNER JOIN {$wpdb->postmeta} cp ON cp.post_id = p.ID AND cp.meta_key = %s AND cp.meta_value <> ''
+			INNER JOIN {$wpdb->postmeta} ct ON ct.post_id = p.ID AND ct.meta_key = %s AND ct.meta_value <> ''
+			INNER JOIN {$wpdb->postmeta} ci ON ci.post_id = p.ID AND ci.meta_key = %s AND ci.meta_value <> ''
+			LEFT JOIN {$wpdb->postmeta} wc ON wc.post_id = p.ID AND wc.meta_key = %s
+			WHERE p.post_type = %s AND p.post_status <> 'trash' AND wc.post_id IS NULL",
+			$provider_key,
+			$type_key,
+			$id_key,
+			$context_key,
+			$post_type
+		);
+		$ids = $wpdb->get_col( $sql );
+		if ( ! is_array( $ids ) ) {
+			return;
+		}
+		foreach ( array_map( 'absint', $ids ) as $post_id ) {
+			if ( $post_id > 0 ) {
+				update_post_meta( $post_id, $context_key, WorkContext::CUSTOMER );
+			}
+		}
 	}
 
 	private static function seed_default_work_types(): void {

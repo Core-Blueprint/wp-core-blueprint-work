@@ -12,7 +12,7 @@ $events     = file_get_contents( $root . '/src/Governance/Events.php' );
 $plugin     = file_get_contents( $root . '/src/Plugin.php' );
 
 $checks = [
-	'F1 remains present while Work schema advances to 1.8 and plugin remains rc1' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
+	'F1 remains present while Work schema advances to 1.9 and plugin remains rc1' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
 	'canonical external source identities have dedicated Work-owned storage' => str_contains( $schema, "'cb_work_item_sources'" ) && str_contains( $schema, 'source_type varchar(64)' ),
 	'external source identity is database-unique independent of ordinary relations' => str_contains( $schema, 'UNIQUE KEY source_identity (provider,source_type,external_id)' ) && str_contains( $schema, 'UNIQUE KEY work_item_source (work_item_id)' ),
 	'ordinary relations remain many-to-many per Work Item instead of globally unique' => str_contains( $schema, 'UNIQUE KEY relation (work_item_id,provider,relation_type,external_id)' ) && ! str_contains( $schema, 'UNIQUE KEY relation (provider,relation_type,external_id)' ),

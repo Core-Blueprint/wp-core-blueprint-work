@@ -8,6 +8,7 @@ use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Governance\Events;
@@ -62,6 +63,17 @@ final class WorkItems {
 		$projects          = Projects::all( 500 );
 		$services          = Services::all( 500 );
 		$work_types        = WorkTypes::all( false );
+		$context           = is_array( $item ) ? (string) ( $item['work_context'] ?? '' ) : '';
+		if ( $project_id > 0 ) {
+			$project = Projects::get( $project_id );
+			if ( is_array( $project ) && WorkContext::is_valid( (string) ( $project['work_context'] ?? '' ) ) ) {
+				$context = (string) $project['work_context'];
+			}
+		}
+		if ( '' === $context && ! is_array( $item ) ) {
+			$context = WorkContext::INTERNAL;
+		}
+
 		$priority          = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
 		$estimated_minutes = is_array( $item ) ? max( 0, (int) ( $item['estimated_minutes'] ?? 0 ) ) : 0;
 		$status            = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
@@ -74,7 +86,18 @@ final class WorkItems {
 		?>
 		<table class="form-table" role="presentation">
 			<tbody>
-			<tr>
+			<tr data-cb-work-context-row>
+				<th scope="row"><label for="cb-work-item-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label></th>
+				<td>
+					<select id="cb-work-item-context" name="cb_work_item[work_context]" data-cb-work-context-select required>
+						<?php if ( '' === $context ) : ?><option value="" selected><?php esc_html_e( 'Needs classification', 'core-blueprint-work' ); ?></option><?php endif; ?>
+						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $context, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $context, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'When a Project is selected, the Project context and customer are authoritative.', 'core-blueprint-work' ); ?></p>
+				</td>
+			</tr>
+			<tr data-cb-work-customer-row>
 				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
 				<td>
 					<?php if ( $customer_unresolved ) : ?>
@@ -91,10 +114,10 @@ final class WorkItems {
 			</tr>
 			<tr>
 				<th scope="row"><label for="cb-work-item-project"><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></label></th>
-				<td><select id="cb-work-item-project" name="cb_work_item[project_id]">
+				<td><select id="cb-work-item-project" name="cb_work_item[project_id]" data-cb-work-project-select>
 					<option value="0"><?php esc_html_e( 'No project', 'core-blueprint-work' ); ?></option>
 					<?php foreach ( $projects as $project ) : ?>
-						<option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( $project_id, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option>
+						<option value="<?php echo esc_attr( (string) $project['id'] ); ?>" data-cb-work-context="<?php echo esc_attr( (string) ( $project['work_context'] ?? '' ) ); ?>" <?php selected( $project_id, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option>
 					<?php endforeach; ?>
 				</select></td>
 			</tr>
@@ -157,7 +180,7 @@ final class WorkItems {
 			</tr>
 			<tr>
 				<th scope="row"><label for="cb-work-item-billing"><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></label></th>
-				<td><select id="cb-work-item-billing" name="cb_work_item[billing_disposition]">
+				<td><select id="cb-work-item-billing" name="cb_work_item[billing_disposition]" data-cb-work-billing-select>
 					<option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option>
 					<?php foreach ( BillingDisposition::all() as $value ) : ?>
 						<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $billing, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option>

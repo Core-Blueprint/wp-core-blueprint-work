@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Admin;
 
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Integration\CRMCustomers;
@@ -48,6 +49,8 @@ final class WorkItemViewState {
 			$priority = '';
 		}
 
+		$context = WorkContext::sanitize( $request['work_context'] ?? '' );
+
 		$billing = self::key( $request['billing'] ?? '' );
 		if ( ! BillingDisposition::is_valid( $billing ) ) {
 			$billing = '';
@@ -73,6 +76,8 @@ final class WorkItemViewState {
 		$calendar_month          = '';
 		$scheduled_from          = self::date( $request['scheduled_from'] ?? '' );
 		$scheduled_to            = self::date( $request['scheduled_to'] ?? '' );
+		$calendar_from           = '';
+		$calendar_to             = '';
 		$query_scheduled_from    = $scheduled_from;
 		$query_scheduled_to      = $scheduled_to;
 		$per_page                = 50;
@@ -82,8 +87,10 @@ final class WorkItemViewState {
 				$calendar_month = self::month( current_time( 'Y-m' ) );
 			}
 			$bounds               = self::month_bounds( $calendar_month );
-			$query_scheduled_from = $bounds['from'];
-			$query_scheduled_to   = $bounds['to'];
+			$calendar_from        = $bounds['from'];
+			$calendar_to          = $bounds['to'];
+			$query_scheduled_from = '';
+			$query_scheduled_to   = '';
 			$per_page             = 500;
 		}
 
@@ -97,6 +104,7 @@ final class WorkItemViewState {
 			'work_type_id'   => absint( $request['work_type_id'] ?? 0 ),
 			'assignee_id'    => absint( $request['assignee_id'] ?? 0 ),
 			'billing'        => $billing,
+			'work_context'   => $context,
 			'customer'       => $customer_token,
 			'customer_valid' => $customer_valid,
 			'calendar_month' => $calendar_month,
@@ -119,7 +127,10 @@ final class WorkItemViewState {
 			'work_type_id'         => $state['work_type_id'],
 			'assignee_id'          => $state['assignee_id'],
 			'billing_dispositions' => '' === $billing ? [] : [ $billing ],
+			'work_context'         => $context,
 			'customer'             => $customer,
+			'calendar_from'        => $calendar_from,
+			'calendar_to'          => $calendar_to,
 			'scheduled_from'       => $query_scheduled_from,
 			'scheduled_to'         => $query_scheduled_to,
 			'due_from'             => $state['due_from'],
@@ -153,6 +164,7 @@ final class WorkItemViewState {
 			'work_type_id'   => 'work_type_id',
 			'assignee_id'    => 'assignee_id',
 			'billing'        => 'billing',
+			'work_context'   => 'work_context',
 			'customer'       => 'customer',
 			'calendar_month' => 'calendar_month',
 			'scheduled_from' => 'scheduled_from',

@@ -31,6 +31,17 @@ namespace {
 }
 
 namespace CB\Work\Domain {
+	final class WorkContext {
+		public const INTERNAL = 'internal';
+		public const CUSTOMER = 'customer';
+		public static function all(): array { return [ self::INTERNAL, self::CUSTOMER ]; }
+		public static function is_valid( string $value ): bool { return in_array( $value, self::all(), true ); }
+		public static function sanitize( mixed $value ): string {
+			$value = \sanitize_key( is_scalar( $value ) ? (string) $value : '' );
+			return self::is_valid( $value ) ? $value : '';
+		}
+	}
+
 	final class WorkItemStatus {
 		public const PLANNED = 'planned';
 		public const IN_PROGRESS = 'in_progress';
@@ -78,7 +89,8 @@ namespace {
 	assert_true( '2028-02' === $calendar['calendar_month'], 'Calendar preserves a valid YYYY-MM month.' );
 	assert_true( '' === $calendar['scheduled_from'] && '' === $calendar['scheduled_to'], 'Calendar month bounds do not masquerade as explicit scheduled filters.' );
 	assert_true( 500 === $calendar['per_page'], 'Calendar uses the established 500-item operational page ceiling.' );
-	assert_true( '2028-02-01' === $calendar['query']['scheduled_from'] && '2028-02-29' === $calendar['query']['scheduled_to'], 'Calendar viewport boundaries flow only into the canonical query.' );
+	assert_true( '2028-02-01' === $calendar['query']['calendar_from'] && '2028-02-29' === $calendar['query']['calendar_to'], 'Calendar viewport boundaries flow into dedicated canonical Calendar criteria.' );
+	assert_true( '' === $calendar['query']['scheduled_from'] && '' === $calendar['query']['scheduled_to'], 'Calendar viewport never impersonates explicit scheduled filters in canonical criteria.' );
 	assert_true( 2 === $calendar['query']['page'], 'Calendar preserves canonical pagination.' );
 
 	$args = \CB\Work\Admin\WorkItemViewState::query_args( $calendar );
@@ -105,7 +117,7 @@ namespace {
 	] );
 	assert_true( '2026-09' === $default_month['calendar_month'], 'Invalid Calendar month falls back to the WordPress site month.' );
 	assert_true( '' === $default_month['scheduled_from'] && '' === $default_month['scheduled_to'], 'Default Calendar viewport does not create visible scheduled filters.' );
-	assert_true( '2026-09-01' === $default_month['query']['scheduled_from'] && '2026-09-30' === $default_month['query']['scheduled_to'], 'Default Calendar query still stays bounded to the site month.' );
+	assert_true( '2026-09-01' === $default_month['query']['calendar_from'] && '2026-09-30' === $default_month['query']['calendar_to'], 'Default Calendar query stays bounded to the site month through dedicated Calendar criteria.' );
 
 	$table = \CB\Work\Admin\WorkItemViewState::from_request( [
 		'view'           => 'table',
@@ -124,7 +136,8 @@ namespace {
 		'scheduled_to'   => '2028-03-31',
 	] );
 	assert_true( '2028-03-01' === $calendar_with_filter['scheduled_from'] && '2028-03-31' === $calendar_with_filter['scheduled_to'], 'Calendar preserves explicit scheduled filter state separately from its viewport.' );
-	assert_true( '2028-02-01' === $calendar_with_filter['query']['scheduled_from'] && '2028-02-29' === $calendar_with_filter['query']['scheduled_to'], 'Calendar viewport remains authoritative for Calendar query bounds.' );
+	assert_true( '2028-02-01' === $calendar_with_filter['query']['calendar_from'] && '2028-02-29' === $calendar_with_filter['query']['calendar_to'], 'Calendar viewport remains authoritative for Calendar query bounds.' );
+	assert_true( '' === $calendar_with_filter['query']['scheduled_from'] && '' === $calendar_with_filter['query']['scheduled_to'], 'Calendar keeps explicit scheduled filters out of its viewport query while preserving them in view state.' );
 
 	$back_to_table = \CB\Work\Admin\WorkItemViewState::query_args( $calendar_with_filter, [ 'view' => 'table', 'page' => 1 ] );
 	assert_true( '2028-03-01' === ( $back_to_table['scheduled_from'] ?? '' ) && '2028-03-31' === ( $back_to_table['scheduled_to'] ?? '' ), 'Explicit scheduled filters survive view switching.' );

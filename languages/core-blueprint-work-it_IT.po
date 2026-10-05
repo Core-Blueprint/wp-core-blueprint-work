@@ -5,8 +5,8 @@ msgstr ""
 "Project-Id-Version: Core Blueprint Work 1.0.0-rc1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-core-blueprint-"
 "work\n"
-"POT-Creation-Date: 2026-10-03 13:07+0000\n"
-"PO-Revision-Date: 2026-10-03 13:07+0000\n"
+"POT-Creation-Date: 2026-10-05 21:27+0000\n"
+"PO-Revision-Date: 2026-10-05 21:27+0000\n"
 "Last-Translator: Core Blueprint\n"
 "Language-Team: it_IT\n"
 "Language: it_IT\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Generated-By: Core Blueprint i18n tooling 1.1.0\n"
 
 #. Plugin Name of the plugin
-#: core-blueprint-work.php src/Admin/Operations.php:26 src/Capabilities.php:29
+#: core-blueprint-work.php src/Admin/Operations.php:27 src/Capabilities.php:29
 msgid "Core Blueprint Work"
 msgstr "Core Blueprint Work"
 
@@ -53,213 +53,229 @@ msgstr "Core Blueprint Work:"
 msgid "Required Core Blueprint Base contracts are unavailable."
 msgstr "I contratti Core Blueprint Base richiesti non sono disponibili."
 
-#: src/Admin/Assets.php:127
+#: src/Admin/Assets.php:140
 msgid "Filter"
 msgstr "Filtro"
 
-#: src/Admin/Assets.php:128
+#: src/Admin/Assets.php:141
 msgid "Filters"
 msgstr "Filtri"
 
-#: src/Admin/Assets.php:129
+#: src/Admin/Assets.php:142
 msgid "Search"
 msgstr "Cerca"
 
-#: src/Admin/Assets.php:130
+#: src/Admin/Assets.php:143
 msgid "More filters"
 msgstr "Altri filtri"
 
-#: src/Admin/Assets.php:131
+#: src/Admin/Assets.php:144
 msgid "Hide filters"
 msgstr "Nascondi filtri"
 
-#: src/Admin/Assets.php:132
+#: src/Admin/Assets.php:145
 msgid "Active filters"
 msgstr "Filtri attivi"
 
-#: src/Admin/Assets.php:133
+#: src/Admin/Assets.php:146
 msgid "Selected"
 msgstr "Selezionato"
 
-#: src/Admin/Assets.php:134 src/Admin/Overview.php:47 src/Admin/Overview.php:58
+#: src/Admin/Assets.php:147 src/Admin/Operations.php:620
+#: src/Admin/Overview.php:47 src/Admin/Overview.php:58
 msgid "Today"
 msgstr "Oggi"
 
-#: src/Admin/Assets.php:135 src/Admin/Operations.php:154
-#: src/Admin/Operations.php:219 src/Admin/Operations.php:304
-#: src/Admin/Page.php:109 src/Admin/Projects.php:108
-#: src/Admin/ProjectWorkspace.php:98 src/Admin/Recurrence.php:113
-#: src/Admin/Recurrence.php:133
+#: src/Admin/Assets.php:148 src/Admin/Operations.php:155
+#: src/Admin/Operations.php:220 src/Admin/Operations.php:402
+#: src/Admin/Page.php:109 src/Admin/Projects.php:127
+#: src/Admin/ProjectWorkspace.php:98 src/Admin/Recurrence.php:116
+#: src/Admin/Recurrence.php:136
 msgid "Status"
 msgstr "Stato"
 
-#: src/Admin/Assets.php:136 src/Admin/Operations.php:232
-#: src/Admin/QuickAdd.php:40 src/Admin/Recurrence.php:87
-#: src/Admin/WorkItems.php:93 src/Content/PostTypes.php:57
+#: src/Admin/Assets.php:149 src/Admin/Operations.php:233
+#: src/Admin/Operations.php:404 src/Admin/QuickAdd.php:41
+#: src/Admin/Recurrence.php:90 src/Admin/WorkItems.php:116
+#: src/Content/PostTypes.php:57
 msgid "Project"
 msgstr "Progetto"
 
-#: src/Admin/Assets.php:137 src/Admin/Operations.php:238
-#: src/Admin/Recurrence.php:88 src/Admin/WorkItems.php:102
+#: src/Admin/Assets.php:150 src/Admin/Operations.php:239
+#: src/Admin/Recurrence.php:91 src/Admin/WorkItems.php:125
 #: src/Content/PostTypes.php:29
 msgid "Service"
 msgstr "Servizio"
 
-#: src/Admin/Assets.php:138 src/Admin/Operations.php:259
-#: src/Admin/Operations.php:303 src/Admin/Projects.php:63
-#: src/Admin/Projects.php:188 src/Admin/ProjectWorkspace.php:130
-#: src/Admin/Recurrence.php:86 src/Admin/WorkItems.php:78
+#: src/Admin/Assets.php:151 src/Admin/Operations.php:254
+#: src/Admin/Operations.php:265 src/Admin/Operations.php:408
+#: src/Admin/Projects.php:76 src/Admin/Projects.php:82
+#: src/Admin/Projects.php:211 src/Admin/Projects.php:249
+#: src/Admin/ProjectWorkspace.php:131 src/Admin/Recurrence.php:88
+#: src/Admin/Recurrence.php:89 src/Admin/WorkItems.php:95
+#: src/Admin/WorkItems.php:101
 msgid "Customer"
 msgstr "Cliente"
 
-#: src/Admin/Assets.php:139 src/Admin/Operations.php:263
+#: src/Admin/Assets.php:152 src/Admin/Operations.php:269
 msgid "Assignee"
 msgstr "Assegnatario"
 
-#: src/Admin/Assets.php:140 src/Admin/Operations.php:226
-#: src/Admin/Operations.php:305 src/Admin/Projects.php:109
-#: src/Admin/ProjectWorkspace.php:99 src/Admin/Recurrence.php:90
-#: src/Admin/WorkItems.php:120
+#: src/Admin/Assets.php:153 src/Admin/Operations.php:227
+#: src/Admin/Operations.php:403 src/Admin/Projects.php:128
+#: src/Admin/ProjectWorkspace.php:99 src/Admin/Recurrence.php:93
+#: src/Admin/WorkItems.php:143
 msgid "Priority"
 msgstr "Priorità"
 
-#: src/Admin/Assets.php:141 src/Admin/Operations.php:244
-#: src/Admin/Recurrence.php:89 src/Admin/WorkItems.php:111
+#: src/Admin/Assets.php:154 src/Admin/Operations.php:245
+#: src/Admin/Recurrence.php:92 src/Admin/WorkItems.php:134
 msgid "Work Type"
 msgstr "Tipo di lavoro"
 
-#: src/Admin/Assets.php:142 src/Admin/Operations.php:250
-#: src/Admin/Operations.php:308
+#: src/Admin/Assets.php:155 src/Admin/Operations.php:251
+#: src/Admin/Projects.php:71 src/Admin/Recurrence.php:88
+#: src/Admin/WorkItems.php:90
+msgid "Work context"
+msgstr "Contesto di lavoro"
+
+#: src/Admin/Assets.php:156 src/Admin/Operations.php:256
+#: src/Admin/Operations.php:410
 msgid "Billing"
 msgstr "Fatturazione"
 
-#: src/Admin/Assets.php:143 src/Admin/Operations.php:277
+#: src/Admin/Assets.php:157 src/Admin/Operations.php:283
 msgid "Sort"
 msgstr "Ordina"
 
-#: src/Admin/Assets.php:144
+#: src/Admin/Assets.php:158 src/Admin/Operations.php:652
 msgid "Scheduled"
 msgstr "Pianificato"
 
-#: src/Admin/Assets.php:145 src/Admin/Operations.php:307
-#: src/Admin/Projects.php:110 src/Admin/Projects.php:189
-#: src/Admin/ProjectWorkspace.php:100 src/Admin/ProjectWorkspace.php:132
-#: src/Admin/QuickAdd.php:41
+#: src/Admin/Assets.php:159 src/Admin/Operations.php:405
+#: src/Admin/Operations.php:652 src/Admin/Operations.php:654
+#: src/Admin/Projects.php:129 src/Admin/Projects.php:212
+#: src/Admin/ProjectWorkspace.php:100 src/Admin/ProjectWorkspace.php:133
+#: src/Admin/QuickAdd.php:42
 msgid "Due"
 msgstr "Scadenza"
 
-#: src/Admin/Assets.php:146 src/Admin/Operations.php:270
-#: src/Admin/Operations.php:275
+#: src/Admin/Assets.php:160 src/Admin/Operations.php:276
+#: src/Admin/Operations.php:281
 msgid "to"
 msgstr "a"
 
-#: src/Admin/Assets.php:147
+#: src/Admin/Assets.php:161
 msgid "Board"
 msgstr "Bacheca"
 
-#: src/Admin/Assets.php:148
+#: src/Admin/Assets.php:162
 msgid "No Work Items yet."
 msgstr "Nessun Work Item per ora."
 
-#: src/Admin/Assets.php:149
+#: src/Admin/Assets.php:163
 msgid ""
 "Create your first Work Item to start planning and tracking customer work."
 msgstr ""
 "Crea il tuo primo Work Item per iniziare a pianificare e monitorare il "
 "lavoro dei clienti."
 
-#: src/Admin/Assets.php:150
+#: src/Admin/Assets.php:164
 msgid "No Work Items match these filters."
 msgstr "Nessun Work Item corrisponde a questi filtri."
 
-#: src/Admin/Assets.php:151
+#: src/Admin/Assets.php:165
 msgid "Adjust or clear the current filters to broaden this view."
 msgstr "Modifica o cancella i filtri correnti per ampliare questa vista."
 
-#: src/Admin/Assets.php:152
-msgid "No scheduled work this month."
-msgstr "Nessun lavoro pianificato questo mese."
+#: src/Admin/Assets.php:166
+msgid "No scheduled work or deadlines this month."
+msgstr "Nessun lavoro pianificato o scadenza questo mese."
 
-#: src/Admin/Assets.php:153 src/Admin/Operations.php:30
+#: src/Admin/Assets.php:167 src/Admin/Operations.php:31
 msgid "Planned"
 msgstr "Pianificato"
 
-#: src/Admin/Assets.php:154 src/Admin/Operations.php:29
+#: src/Admin/Assets.php:168 src/Admin/Operations.php:30
 msgid "In Progress"
 msgstr "In corso"
 
-#: src/Admin/Assets.php:155 src/Admin/Assets.php:206 src/Admin/Overview.php:49
+#: src/Admin/Assets.php:169 src/Admin/Assets.php:237 src/Admin/Overview.php:49
 #: src/Admin/ProjectWorkspace.php:69
 msgid "Blocked"
 msgstr "Bloccato"
 
-#: src/Admin/Assets.php:156 src/Admin/ProjectWorkspace.php:70
+#: src/Admin/Assets.php:170 src/Admin/ProjectWorkspace.php:70
 msgid "Completed"
 msgstr "Completato"
 
-#: src/Admin/Assets.php:157
+#: src/Admin/Assets.php:171
 msgid "Skipped"
 msgstr "Saltato"
 
-#: src/Admin/Assets.php:158
+#: src/Admin/Assets.php:172
 msgid "Cancelled"
 msgstr "Annullato"
 
-#: src/Admin/Assets.php:159
+#: src/Admin/Assets.php:173
 msgid "Show closed"
 msgstr "Mostra chiusi"
 
-#: src/Admin/Assets.php:160
+#: src/Admin/Assets.php:174
 msgid "Hide closed"
 msgstr "Nascondi chiusi"
 
-#: src/Admin/Assets.php:161
+#: src/Admin/Assets.php:175
 msgid "No Work Items"
 msgstr "Nessun Work Item"
 
-#: src/Admin/Assets.php:202
+#: src/Admin/Assets.php:233
 msgid "Focus views"
 msgstr "Viste focalizzate"
 
-#: src/Admin/Assets.php:203
+#: src/Admin/Assets.php:234
 msgid "All"
 msgstr "Tutti"
 
-#: src/Admin/Assets.php:204
+#: src/Admin/Assets.php:235
 msgid "My work"
 msgstr "Il mio lavoro"
 
-#: src/Admin/Assets.php:205 src/Admin/Operations.php:159
-#: src/Admin/Operations.php:221 src/Admin/Page.php:118
-#: src/Admin/ProjectWorkspace.php:67 src/Admin/Recurrence.php:113
-#: src/Admin/Recurrence.php:141
+#: src/Admin/Assets.php:236 src/Admin/Operations.php:160
+#: src/Admin/Operations.php:222 src/Admin/Page.php:118
+#: src/Admin/ProjectWorkspace.php:67 src/Admin/Recurrence.php:116
+#: src/Admin/Recurrence.php:144
 #: src/Integration/DataExchange/TaxRateEntity.php:194
 msgid "Active"
 msgstr "Attivo"
 
-#: src/Admin/Assets.php:207 src/Admin/Overview.php:48
+#: src/Admin/Assets.php:238 src/Admin/Overview.php:48
 msgid "Overdue"
 msgstr "Scaduto"
 
-#: src/Admin/Assets.php:208
+#: src/Admin/Assets.php:239
 msgid "Shortcut: / search · Alt+N add Work Item"
 msgstr "Scorciatoia: / cerca · Alt+N aggiungi Work Item"
 
 #. translators: %s: default billing classification from the selected Service.
-#: src/Admin/BillingClassificationUx.php:72
+#: src/Admin/BillingClassificationUx.php:74
 #, php-format
 msgid "Selected Service default: %s. You can override it for this Work Item."
 msgstr ""
 "Valore predefinito del Servizio selezionato: %s. Puoi sostituirlo per questo "
 "Work Item."
 
-#: src/Admin/BillingClassificationUx.php:73
+#: src/Admin/BillingClassificationUx.php:75
 msgid ""
 "Choose a Service to prefill billing classification, or classify this Work "
 "Item manually."
 msgstr ""
 "Scegli un Servizio per precompilare la classificazione di fatturazione "
 "oppure classifica manualmente questo Work Item."
+
+#: src/Admin/BillingClassificationUx.php:76
+msgid "Internal Work is always non-billable."
+msgstr "Il lavoro interno non è mai fatturabile."
 
 #: src/Admin/Menu.php:41 src/Admin/Menu.php:53 src/Admin/Overview.php:37
 #: src/Admin/Page.php:30 src/Integration/Suite.php:56
@@ -270,14 +286,14 @@ msgstr "Work"
 msgid "Overview"
 msgstr "Panoramica"
 
-#: src/Admin/Menu.php:43 src/Admin/Operations.php:39
-#: src/Admin/Operations.php:82 src/Admin/Projects.php:42
-#: src/Admin/Projects.php:190 src/Content/PostTypes.php:86
+#: src/Admin/Menu.php:43 src/Admin/Operations.php:40
+#: src/Admin/Operations.php:83 src/Admin/Projects.php:46
+#: src/Admin/Projects.php:213 src/Content/PostTypes.php:86
 #: src/Integration/Suite.php:100
 msgid "Work Items"
 msgstr "Work Item"
 
-#: src/Admin/Menu.php:44 src/Admin/Recurrence.php:61
+#: src/Admin/Menu.php:44 src/Admin/Recurrence.php:63
 msgid "Recurring Work"
 msgstr "Lavoro ricorrente"
 
@@ -286,7 +302,7 @@ msgstr "Lavoro ricorrente"
 msgid "Time"
 msgstr "Tempo"
 
-#: src/Admin/Menu.php:46 src/Admin/Operations.php:31
+#: src/Admin/Menu.php:46 src/Admin/Operations.php:32
 #: src/Content/PostTypes.php:56 src/Integration/Suite.php:101
 msgid "Projects"
 msgstr "Progetti"
@@ -296,7 +312,7 @@ msgstr "Progetti"
 msgid "Services"
 msgstr "Servizi"
 
-#: src/Admin/Menu.php:48 src/Admin/Operations.php:132
+#: src/Admin/Menu.php:48 src/Admin/Operations.php:133
 msgid "Work Types"
 msgstr "Tipi di lavoro"
 
@@ -304,41 +320,41 @@ msgstr "Tipi di lavoro"
 msgid "Project Workspace"
 msgstr "Area di lavoro del progetto"
 
-#: src/Admin/OperationalActions.php:58 src/Admin/Operations.php:618
+#: src/Admin/OperationalActions.php:58 src/Admin/Operations.php:809
 #: src/Admin/Overview.php:16 src/Admin/Pickers.php:124
-#: src/Admin/QuickAdd.php:56 src/Admin/Recurrence.php:201
+#: src/Admin/QuickAdd.php:57 src/Admin/Recurrence.php:204
 #: src/Admin/RecurrenceActions.php:115
 msgid "You do not have permission to manage Work."
 msgstr "Non hai l’autorizzazione per gestire Work."
 
-#: src/Admin/Operations.php:27
+#: src/Admin/Operations.php:28
 msgid "Your operational workspace for actionable customer work."
 msgstr "La tua area operativa per il lavoro cliente da gestire."
 
-#: src/Admin/Operations.php:29
+#: src/Admin/Operations.php:30
 msgid "Open Work Items"
 msgstr "Work Item aperti"
 
-#: src/Admin/Operations.php:30
+#: src/Admin/Operations.php:31
 msgid ""
 "Planned work remains actionable until it is completed, skipped or cancelled."
 msgstr ""
 "Il lavoro pianificato resta da gestire finché non viene completato, saltato "
 "o annullato."
 
-#: src/Admin/Operations.php:31
+#: src/Admin/Operations.php:32
 msgid "Manage Projects"
 msgstr "Gestisci progetti"
 
-#: src/Admin/Operations.php:83 src/Admin/Overview.php:41
-#: src/Admin/Projects.php:99 src/Admin/ProjectWorkspace.php:58
-#: src/Admin/ProjectWorkspace.php:84 src/Admin/QuickAdd.php:32
-#: src/Admin/QuickAdd.php:44 src/Content/PostTypes.php:88
+#: src/Admin/Operations.php:84 src/Admin/Overview.php:41
+#: src/Admin/Projects.php:118 src/Admin/ProjectWorkspace.php:58
+#: src/Admin/ProjectWorkspace.php:84 src/Admin/QuickAdd.php:33
+#: src/Admin/QuickAdd.php:45 src/Content/PostTypes.php:88
 #: src/Content/PostTypes.php:89
 msgid "Add Work Item"
 msgstr "Aggiungi Work Item"
 
-#: src/Admin/Operations.php:85
+#: src/Admin/Operations.php:86
 msgid ""
 "Manage actionable work across customers and Projects. Open a Work Item to "
 "edit it in Gutenberg."
@@ -346,7 +362,7 @@ msgstr ""
 "Gestisci il lavoro operativo tra clienti e progetti. Apri un Work Item per "
 "modificarlo in Gutenberg."
 
-#: src/Admin/Operations.php:89
+#: src/Admin/Operations.php:90
 msgid ""
 "The customer filter is invalid or no longer resolvable. No Work Items are "
 "shown until the filter is cleared."
@@ -354,335 +370,406 @@ msgstr ""
 "Il filtro cliente non è valido o non è più risolvibile. Nessun Work Item "
 "viene mostrato finché il filtro non viene cancellato."
 
-#: src/Admin/Operations.php:93
+#: src/Admin/Operations.php:94
 msgid "Unknown Project"
 msgstr "Progetto sconosciuto"
 
 #. translators: %s: Project name.
-#: src/Admin/Operations.php:97
+#: src/Admin/Operations.php:98
 #, php-format
 msgid "Showing Work Items for Project: %s"
 msgstr "Work Item mostrati per il progetto: %s"
 
-#: src/Admin/Operations.php:99 src/Admin/Projects.php:100
+#: src/Admin/Operations.php:100 src/Admin/Projects.php:119
 #: src/Admin/ProjectWorkspace.php:59
 msgid "View all Work Items"
 msgstr "Visualizza tutti i Work Item"
 
-#: src/Admin/Operations.php:106
+#: src/Admin/Operations.php:107
 msgid "Project Work Items"
 msgstr "Work Item del progetto"
 
-#: src/Admin/Operations.php:106
+#: src/Admin/Operations.php:107
 msgid "All Work Items"
 msgstr "Tutti i Work Item"
 
 #. translators: %d: number of Work Items matching the current view.
-#: src/Admin/Operations.php:109
+#: src/Admin/Operations.php:110
 #, php-format
 msgid "%d Work Item matches the current view."
 msgid_plural "%d Work Items match the current view."
 msgstr[0] "%d Work Item corrisponde alla vista corrente."
 msgstr[1] "%d Work Item corrispondono alla vista corrente."
 
-#: src/Admin/Operations.php:114 src/Content/PostTypes.php:94
+#: src/Admin/Operations.php:115 src/Content/PostTypes.php:94
 msgid "No Work Items found."
 msgstr "Nessun Work Item trovato."
 
-#: src/Admin/Operations.php:133
+#: src/Admin/Operations.php:134
 msgid "Classify the nature of work independently from Services and pricing."
 msgstr ""
 "Classifica la natura del lavoro indipendentemente dai Servizi e dai prezzi."
 
-#: src/Admin/Operations.php:138 src/Admin/Operations.php:146
+#: src/Admin/Operations.php:139 src/Admin/Operations.php:147
 msgid "Add Work Type"
 msgstr "Aggiungi tipo di lavoro"
 
-#: src/Admin/Operations.php:142 src/Admin/Operations.php:154
+#: src/Admin/Operations.php:143 src/Admin/Operations.php:155
 msgid "Name"
 msgstr "Nome"
 
-#: src/Admin/Operations.php:144 src/Admin/Operations.php:154
+#: src/Admin/Operations.php:145 src/Admin/Operations.php:155
 #: src/Admin/Page.php:87 src/Admin/Page.php:109
 #: src/Integration/DataExchange/TaxRateEntity.php:190
 msgid "Code"
 msgstr "Codice"
 
-#: src/Admin/Operations.php:145
+#: src/Admin/Operations.php:146
 msgid "Optional; generated from the name when empty."
 msgstr "Facoltativo; viene generato dal nome quando il campo è vuoto."
 
-#: src/Admin/Operations.php:150
+#: src/Admin/Operations.php:151
 msgid "Configured Work Types"
 msgstr "Tipi di lavoro configurati"
 
-#: src/Admin/Operations.php:152
+#: src/Admin/Operations.php:153
 msgid "No Work Types configured."
 msgstr "Nessun tipo di lavoro configurato."
 
-#: src/Admin/Operations.php:154 src/Admin/Page.php:109
+#: src/Admin/Operations.php:155 src/Admin/Page.php:109
 msgid "Action"
 msgstr "Azione"
 
-#: src/Admin/Operations.php:159 src/Admin/Page.php:118
-#: src/Admin/Recurrence.php:141
+#: src/Admin/Operations.php:160 src/Admin/Page.php:118
+#: src/Admin/Recurrence.php:144
 msgid "Inactive"
 msgstr "Inattivo"
 
-#: src/Admin/Operations.php:166 src/Admin/Page.php:125
-#: src/Admin/Recurrence.php:142
+#: src/Admin/Operations.php:167 src/Admin/Page.php:125
+#: src/Admin/Recurrence.php:145
 msgid "Activate"
 msgstr "Attiva"
 
-#: src/Admin/Operations.php:166 src/Admin/Page.php:125
-#: src/Admin/Recurrence.php:142
+#: src/Admin/Operations.php:167 src/Admin/Page.php:125
+#: src/Admin/Recurrence.php:145
 msgid "Deactivate"
 msgstr "Disattiva"
 
-#: src/Admin/Operations.php:181
+#: src/Admin/Operations.php:182
 msgid "Table"
 msgstr "Tabella"
 
-#: src/Admin/Operations.php:182
+#: src/Admin/Operations.php:183
 msgid "List"
 msgstr "Elenco"
 
-#: src/Admin/Operations.php:183
+#: src/Admin/Operations.php:184
 msgid "Kanban"
 msgstr "Kanban"
 
-#: src/Admin/Operations.php:184
+#: src/Admin/Operations.php:185
 msgid "Calendar"
 msgstr "Calendario"
 
-#: src/Admin/Operations.php:187
+#: src/Admin/Operations.php:188
 msgid "Work Item view"
 msgstr "Vista Work Item"
 
-#: src/Admin/Operations.php:217 src/Content/PostTypes.php:93
+#: src/Admin/Operations.php:218 src/Content/PostTypes.php:93
 msgid "Search Work Items"
 msgstr "Cerca Work Item"
 
-#: src/Admin/Operations.php:218
+#: src/Admin/Operations.php:219
 msgid "Search Work Items…"
 msgstr "Cerca Work Item…"
 
-#: src/Admin/Operations.php:220
+#: src/Admin/Operations.php:221
 msgid "All statuses"
 msgstr "Tutti gli stati"
 
-#: src/Admin/Operations.php:227
+#: src/Admin/Operations.php:228
 msgid "All priorities"
 msgstr "Tutte le priorità"
 
-#: src/Admin/Operations.php:233
+#: src/Admin/Operations.php:234
 msgid "All Projects"
 msgstr "Tutti i progetti"
 
-#: src/Admin/Operations.php:239
+#: src/Admin/Operations.php:240
 msgid "All Services"
 msgstr "Tutti i Servizi"
 
-#: src/Admin/Operations.php:245
+#: src/Admin/Operations.php:246
 msgid "All Work Types"
 msgstr "Tutti i tipi di lavoro"
 
-#: src/Admin/Operations.php:251
+#: src/Admin/Operations.php:252 src/Admin/Projects.php:247
+msgid "All contexts"
+msgstr "Tutti i contesti"
+
+#: src/Admin/Operations.php:253 src/Admin/Operations.php:748
+#: src/Admin/Projects.php:75 src/Admin/Projects.php:248
+#: src/Admin/Recurrence.php:88 src/Admin/WorkItems.php:94
+msgid "Internal"
+msgstr "Interno"
+
+#: src/Admin/Operations.php:257
 msgid "All billing classes"
 msgstr "Tutte le classi di fatturazione"
 
-#: src/Admin/Operations.php:268
+#: src/Admin/Operations.php:274
 msgid "Scheduled from"
 msgstr "Pianificato dal"
 
-#: src/Admin/Operations.php:273
+#: src/Admin/Operations.php:279
 msgid "Due from"
 msgstr "Scadenza dal"
 
-#: src/Admin/Operations.php:279
+#: src/Admin/Operations.php:285
 msgid "Workload"
 msgstr "Carico di lavoro"
 
-#: src/Admin/Operations.php:280 src/Admin/Projects.php:77
-#: src/Admin/WorkItems.php:147
+#: src/Admin/Operations.php:286 src/Admin/Projects.php:96
+#: src/Admin/WorkItems.php:170
 msgid "Due date"
 msgstr "Data di scadenza"
 
-#: src/Admin/Operations.php:281 src/Admin/WorkItems.php:155
+#: src/Admin/Operations.php:287 src/Admin/WorkItems.php:178
 msgid "Scheduled date"
 msgstr "Data pianificata"
 
-#: src/Admin/Operations.php:282
+#: src/Admin/Operations.php:288
 msgid "Recently updated"
 msgstr "Aggiornato di recente"
 
-#: src/Admin/Operations.php:283 src/Admin/Recurrence.php:84
+#: src/Admin/Operations.php:289 src/Admin/Recurrence.php:86
 msgid "Title"
 msgstr "Titolo"
 
-#: src/Admin/Operations.php:285
+#: src/Admin/Operations.php:291
 msgid "Apply filters"
 msgstr "Applica filtri"
 
-#: src/Admin/Operations.php:286
+#: src/Admin/Operations.php:292
 msgid "Clear filters"
 msgstr "Cancella filtri"
 
-#: src/Admin/Operations.php:302 src/Admin/Overview.php:96
-#: src/Admin/Projects.php:107 src/Admin/ProjectWorkspace.php:97
+#: src/Admin/Operations.php:316
+msgid "Saving…"
+msgstr "Salvataggio…"
+
+#: src/Admin/Operations.php:317
+msgid "Saved"
+msgstr "Salvato"
+
+#: src/Admin/Operations.php:318
+msgid "Column preferences could not be saved."
+msgstr "Impossibile salvare le preferenze delle colonne."
+
+#: src/Admin/Operations.php:327
+msgid "Columns"
+msgstr "Colonne"
+
+#: src/Admin/Operations.php:335
+msgid "Work Item table columns"
+msgstr "Colonne della tabella degli elementi di lavoro"
+
+#. translators: %s: Work Item table column label.
+#: src/Admin/Operations.php:342
+#, php-format
+msgid "Reorder %s"
+msgstr "Riordina %s"
+
+#: src/Admin/Operations.php:354
+msgid "Move"
+msgstr "Sposta"
+
+#: src/Admin/Operations.php:371
+msgid "Reset to default"
+msgstr "Ripristina impostazioni predefinite"
+
+#: src/Admin/Operations.php:401 src/Admin/Overview.php:96
+#: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
 msgid "Work Item"
 msgstr "Work Item"
 
-#: src/Admin/Operations.php:306
-msgid "Project / Type"
-msgstr "Progetto / Tipo"
-
-#: src/Admin/Operations.php:309
+#: src/Admin/Operations.php:406
 msgid "Assigned"
 msgstr "Assegnato"
 
-#: src/Admin/Operations.php:310 src/Admin/Recurrence.php:133
+#: src/Admin/Operations.php:407 src/Admin/Recurrence.php:136
 #: src/Admin/Time.php:156
 msgid "Actions"
 msgstr "Azioni"
 
-#: src/Admin/Operations.php:345
+#: src/Admin/Operations.php:409
+msgid "Type"
+msgstr "Tipo"
+
+#: src/Admin/Operations.php:470
 msgid "Status:"
 msgstr "Stato:"
 
-#: src/Admin/Operations.php:346 src/Admin/Operations.php:393
+#: src/Admin/Operations.php:471 src/Admin/Operations.php:551
 msgid "Priority:"
 msgstr "Priorità:"
 
-#: src/Admin/Operations.php:347 src/Admin/Operations.php:394
-#: src/Admin/Operations.php:477
+#: src/Admin/Operations.php:472 src/Admin/Operations.php:552
 msgid "Due:"
 msgstr "Scadenza:"
 
-#: src/Admin/Operations.php:350 src/Admin/Operations.php:395
+#: src/Admin/Operations.php:475 src/Admin/Operations.php:553
 msgid "Customer:"
 msgstr "Cliente:"
 
-#: src/Admin/Operations.php:351 src/Admin/Operations.php:396
-#: src/Admin/Operations.php:478
+#: src/Admin/Operations.php:476 src/Admin/Operations.php:554
 msgid "Project:"
 msgstr "Progetto:"
 
-#: src/Admin/Operations.php:352 src/Admin/Operations.php:397
+#: src/Admin/Operations.php:477 src/Admin/Operations.php:555
 msgid "Type:"
 msgstr "Tipo:"
 
-#: src/Admin/Operations.php:355
+#: src/Admin/Operations.php:480
 msgid "Billing:"
 msgstr "Fatturazione:"
 
-#: src/Admin/Operations.php:356 src/Admin/Operations.php:398
-#: src/Admin/Operations.php:479
+#: src/Admin/Operations.php:481 src/Admin/Operations.php:556
 msgid "Assigned:"
 msgstr "Assegnato:"
 
-#: src/Admin/Operations.php:388
+#: src/Admin/Operations.php:514 src/Admin/WorkItemBoardActions.php:40
+msgid "The Work Item status could not be updated."
+msgstr "Impossibile aggiornare lo stato dell’elemento di lavoro."
+
+#: src/Admin/Operations.php:526
 msgid "No Work Items in this status on the current page."
 msgstr "Nessun Work Item con questo stato nella pagina corrente."
 
-#: src/Admin/Operations.php:436
+#. translators: %s: Work Item title.
+#: src/Admin/Operations.php:531
+#, php-format
+msgid "Move %s to another status"
+msgstr "Sposta %s a un altro stato"
+
+#: src/Admin/Operations.php:548
+msgid "Move to another status"
+msgstr "Sposta a un altro stato"
+
+#: src/Admin/Operations.php:608
 msgid "Monday"
 msgstr "Lunedì"
 
-#: src/Admin/Operations.php:437
+#: src/Admin/Operations.php:609
 msgid "Tuesday"
 msgstr "Martedì"
 
-#: src/Admin/Operations.php:438
+#: src/Admin/Operations.php:610
 msgid "Wednesday"
 msgstr "Mercoledì"
 
-#: src/Admin/Operations.php:439
+#: src/Admin/Operations.php:611
 msgid "Thursday"
 msgstr "Giovedì"
 
-#: src/Admin/Operations.php:440
+#: src/Admin/Operations.php:612
 msgid "Friday"
 msgstr "Venerdì"
 
-#: src/Admin/Operations.php:441
+#: src/Admin/Operations.php:613
 msgid "Saturday"
 msgstr "Sabato"
 
-#: src/Admin/Operations.php:442
+#: src/Admin/Operations.php:614
 msgid "Sunday"
 msgstr "Domenica"
 
-#: src/Admin/Operations.php:447
+#: src/Admin/Operations.php:617
+msgid "Calendar navigation"
+msgstr "Navigazione del calendario"
+
+#: src/Admin/Operations.php:619
 msgid "Previous month"
 msgstr "Mese precedente"
 
-#: src/Admin/Operations.php:449
+#: src/Admin/Operations.php:622
 msgid "Next month"
 msgstr "Mese successivo"
 
 #. translators: %d: total number of Work Items in the current result set.
-#: src/Admin/Operations.php:511
+#: src/Admin/Operations.php:691
 #, php-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] "%d elemento"
 msgstr[1] "%d elementi"
 
-#: src/Admin/Operations.php:514
+#: src/Admin/Operations.php:694
 msgid "Previous"
 msgstr "Precedente"
 
 #. translators: 1: current page number, 2: total number of pages.
-#: src/Admin/Operations.php:518
+#: src/Admin/Operations.php:698
 #, php-format
 msgid "Page %1$d of %2$d"
 msgstr "Pagina %1$d di %2$d"
 
-#: src/Admin/Operations.php:521
+#: src/Admin/Operations.php:701
 msgid "Next"
 msgstr "Successivo"
 
-#: src/Admin/Operations.php:581 src/Admin/Time.php:136
+#: src/Admin/Operations.php:765
+msgid "Reopen as Planned"
+msgstr "Riapri come pianificato"
+
+#: src/Admin/Operations.php:766
+msgid "Reopen"
+msgstr "Riapri"
+
+#: src/Admin/Operations.php:767
+msgid "Reopen as Blocked"
+msgstr "Riapri come bloccato"
+
+#: src/Admin/Operations.php:772 src/Admin/Time.php:136
 msgid "Start"
 msgstr "Avvia"
 
-#: src/Admin/Operations.php:582 src/Admin/Recurrence.php:139
+#: src/Admin/Operations.php:773 src/Admin/Recurrence.php:142
 msgid "Complete"
 msgstr "Completa"
 
-#: src/Admin/Operations.php:583
+#: src/Admin/Operations.php:774
 msgid "Skip"
 msgstr "Salta"
 
-#: src/Admin/Operations.php:584 src/Admin/QuickAdd.php:46
+#: src/Admin/Operations.php:775 src/Admin/QuickAdd.php:47
 #: src/Admin/Time.php:141
 msgid "Cancel"
 msgstr "Annulla"
 
-#: src/Admin/Operations.php:592
+#: src/Admin/Operations.php:783
 msgid "Work Item status updated."
 msgstr "Stato del Work Item aggiornato."
 
-#: src/Admin/Operations.php:593
+#: src/Admin/Operations.php:784 src/Admin/WorkItemBoardActions.php:36
 msgid "That Work Item status transition is not allowed."
 msgstr "Questa transizione di stato del Work Item non è consentita."
 
-#: src/Admin/Operations.php:594
+#: src/Admin/Operations.php:785
 msgid "Work Type added."
 msgstr "Tipo di lavoro aggiunto."
 
-#: src/Admin/Operations.php:595
+#: src/Admin/Operations.php:786
 msgid "Work Type could not be saved."
 msgstr "Impossibile salvare il tipo di lavoro."
 
-#: src/Admin/Operations.php:596
+#: src/Admin/Operations.php:787
 msgid "Work Type status updated."
 msgstr "Stato del tipo di lavoro aggiornato."
 
-#: src/Admin/Operations.php:609
+#: src/Admin/Operations.php:800
 msgid ""
 "Work storage upgrade is pending. Work Items remain unavailable until Base "
 "reconciles the Work schema."
@@ -915,15 +1002,29 @@ msgstr "Cerca utenti WordPress…"
 msgid "No matching users found."
 msgstr "Nessun utente corrispondente trovato."
 
-#: src/Admin/Projects.php:34
+#: src/Admin/Projects.php:38
 msgid "Project Details"
 msgstr "Dettagli del progetto"
 
-#: src/Admin/Projects.php:57
+#: src/Admin/Projects.php:65
 msgid "Open Project Workspace"
 msgstr "Apri area di lavoro del progetto"
 
-#: src/Admin/Projects.php:66
+#: src/Admin/Projects.php:74 src/Admin/Projects.php:222
+#: src/Admin/ProjectWorkspace.php:130 src/Admin/Recurrence.php:88
+#: src/Admin/WorkItems.php:93
+msgid "Needs classification"
+msgstr "Classificazione richiesta"
+
+#: src/Admin/Projects.php:78
+msgid ""
+"Internal Projects have no customer and are never billable. Customer Projects "
+"require a CRM customer."
+msgstr ""
+"I progetti interni non hanno un cliente e non sono mai fatturabili. I "
+"progetti cliente richiedono un cliente CRM."
+
+#: src/Admin/Projects.php:85
 msgid ""
 "This Project already has a customer link that cannot be resolved for the "
 "current user. The link is preserved."
@@ -931,28 +1032,36 @@ msgstr ""
 "Questo progetto ha già un collegamento cliente che non può essere risolto "
 "per l’utente corrente. Il collegamento viene mantenuto."
 
-#: src/Admin/Projects.php:73 src/Admin/Recurrence.php:108
+#: src/Admin/Projects.php:92 src/Admin/Recurrence.php:111
 msgid "Start date"
 msgstr "Data di inizio"
 
-#: src/Admin/Projects.php:87
+#: src/Admin/Projects.php:106
 msgid "Save the Project before adding Work Items."
 msgstr "Salva il progetto prima di aggiungere Work Item."
 
-#: src/Admin/Projects.php:103
+#: src/Admin/Projects.php:122
 msgid "No active Work Items for this Project."
 msgstr "Nessun Work Item attivo per questo progetto."
 
-#: src/Admin/Projects.php:111 src/Admin/ProjectWorkspace.php:101
-#: src/Admin/Recurrence.php:93 src/Admin/WorkItems.php:151
+#: src/Admin/Projects.php:130 src/Admin/ProjectWorkspace.php:101
+#: src/Admin/Recurrence.php:96 src/Admin/WorkItems.php:174
 msgid "Assignees"
 msgstr "Assegnatari"
 
-#: src/Admin/Projects.php:218
+#: src/Admin/Projects.php:210 src/Admin/ProjectWorkspace.php:130
+msgid "Context"
+msgstr "Contesto"
+
+#: src/Admin/Projects.php:245
+msgid "Filter by Work context"
+msgstr "Filtra per contesto di lavoro"
+
+#: src/Admin/Projects.php:273
 msgid "Open workspace"
 msgstr "Apri area di lavoro"
 
-#: src/Admin/Projects.php:224
+#: src/Admin/Projects.php:279
 msgid "Project name"
 msgstr "Nome progetto"
 
@@ -1026,59 +1135,59 @@ msgstr "Visualizza tutti i %d Work Item attivi"
 msgid "Project context"
 msgstr "Contesto del progetto"
 
-#: src/Admin/ProjectWorkspace.php:130
+#: src/Admin/ProjectWorkspace.php:131
 msgid "Linked customer unavailable"
 msgstr "Cliente collegato non disponibile"
 
-#: src/Admin/ProjectWorkspace.php:130
+#: src/Admin/ProjectWorkspace.php:131
 msgid "Not linked"
 msgstr "Non collegato"
 
-#: src/Admin/ProjectWorkspace.php:131
+#: src/Admin/ProjectWorkspace.php:132
 msgid "Starts"
 msgstr "Inizia"
 
-#: src/Admin/ProjectWorkspace.php:133
+#: src/Admin/ProjectWorkspace.php:134
 msgid "Total Work Items"
 msgstr "Work Item totali"
 
-#: src/Admin/ProjectWorkspace.php:136
-msgid "Edit customer, dates and description"
-msgstr "Modifica cliente, date e descrizione"
+#: src/Admin/ProjectWorkspace.php:137
+msgid "Edit context, customer, dates and description"
+msgstr "Modifica contesto, cliente, date e descrizione"
 
-#: src/Admin/ProjectWorkspace.php:157
+#: src/Admin/ProjectWorkspace.php:158
 msgid "Not set"
 msgstr "Non impostato"
 
-#: src/Admin/QuickAdd.php:32
+#: src/Admin/QuickAdd.php:33
 msgid "Quick capture"
 msgstr "Acquisizione rapida"
 
-#: src/Admin/QuickAdd.php:33
+#: src/Admin/QuickAdd.php:34
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/Admin/QuickAdd.php:38
+#: src/Admin/QuickAdd.php:39
 msgid "What needs to be done?"
 msgstr "Cosa deve essere fatto?"
 
-#: src/Admin/QuickAdd.php:40 src/Admin/Recurrence.php:87
+#: src/Admin/QuickAdd.php:41 src/Admin/Recurrence.php:90
 msgid "No Project"
 msgstr "Nessun progetto"
 
-#: src/Admin/QuickAdd.php:45
+#: src/Admin/QuickAdd.php:46
 msgid "Open full editor"
 msgstr "Apri editor completo"
 
-#: src/Admin/QuickAdd.php:93
+#: src/Admin/QuickAdd.php:95
 msgid "Work Item added."
 msgstr "Work Item aggiunto."
 
-#: src/Admin/QuickAdd.php:95
+#: src/Admin/QuickAdd.php:97
 msgid "Open it"
 msgstr "Aprilo"
 
-#: src/Admin/QuickAdd.php:101
+#: src/Admin/QuickAdd.php:103
 msgid ""
 "The Work Item could not be added. Open the full editor to review all "
 "required details."
@@ -1086,11 +1195,11 @@ msgstr ""
 "Impossibile aggiungere il Work Item. Apri l’editor completo per verificare "
 "tutti i dettagli richiesti."
 
-#: src/Admin/Recurrence.php:63
+#: src/Admin/Recurrence.php:65
 msgid "Add New Rule"
 msgstr "Aggiungi nuova regola"
 
-#: src/Admin/Recurrence.php:66
+#: src/Admin/Recurrence.php:68
 msgid ""
 "Create real Work Items from reusable schedules. Commercial recurring service "
 "pricing is separate from Work Item recurrence."
@@ -1098,7 +1207,7 @@ msgstr ""
 "Crea Work Item reali da pianificazioni riutilizzabili. I prezzi commerciali "
 "dei Servizi ricorrenti sono separati dalla ricorrenza dei Work Item."
 
-#: src/Admin/Recurrence.php:69
+#: src/Admin/Recurrence.php:71
 msgid ""
 "Work storage is not ready yet. Recurring Work becomes available after the "
 "Work schema is installed."
@@ -1106,15 +1215,15 @@ msgstr ""
 "L’archiviazione Work non è ancora pronta. Il lavoro ricorrente diventa "
 "disponibile dopo l’installazione dello schema Work."
 
-#: src/Admin/Recurrence.php:75
+#: src/Admin/Recurrence.php:77
 msgid "Edit Recurring Work Rule"
 msgstr "Modifica regola di lavoro ricorrente"
 
-#: src/Admin/Recurrence.php:75 src/Admin/Recurrence.php:115
+#: src/Admin/Recurrence.php:77 src/Admin/Recurrence.php:118
 msgid "Add Recurring Work Rule"
 msgstr "Aggiungi regola di lavoro ricorrente"
 
-#: src/Admin/Recurrence.php:77
+#: src/Admin/Recurrence.php:79
 msgid ""
 "This rule already has occurrence history. Frequency, interval, start date "
 "and end date are locked so generated history cannot be rewound. Template "
@@ -1125,23 +1234,31 @@ msgstr ""
 "della cronologia generata. I campi del modello e gli offset di "
 "pianificazione restano modificabili."
 
-#: src/Admin/Recurrence.php:85
+#: src/Admin/Recurrence.php:87
 msgid "Description"
 msgstr "Descrizione"
 
-#: src/Admin/Recurrence.php:88
+#: src/Admin/Recurrence.php:88 src/Admin/WorkItems.php:97
+msgid ""
+"When a Project is selected, the Project context and customer are "
+"authoritative."
+msgstr ""
+"Quando è selezionato un progetto, prevalgono il contesto e il cliente del "
+"progetto."
+
+#: src/Admin/Recurrence.php:91
 msgid "No Service"
 msgstr "Nessun Servizio"
 
-#: src/Admin/Recurrence.php:89 src/Admin/WorkItems.php:113
+#: src/Admin/Recurrence.php:92 src/Admin/WorkItems.php:136
 msgid "No Work Type"
 msgstr "Nessun tipo di lavoro"
 
-#: src/Admin/Recurrence.php:91 src/Admin/WorkItems.php:128
+#: src/Admin/Recurrence.php:94 src/Admin/WorkItems.php:151
 msgid "Estimated time (minutes)"
 msgstr "Tempo stimato (minuti)"
 
-#: src/Admin/Recurrence.php:91
+#: src/Admin/Recurrence.php:94
 msgid ""
 "Planning estimate inherited by future generated Work Items. Registered time "
 "remains separate."
@@ -1149,163 +1266,163 @@ msgstr ""
 "Stima di pianificazione ereditata dai futuri Work Item generati. Il tempo "
 "registrato resta separato."
 
-#: src/Admin/Recurrence.php:92 src/Admin/WorkItems.php:159
+#: src/Admin/Recurrence.php:95 src/Admin/WorkItems.php:182
 msgid "Billing classification"
 msgstr "Classificazione di fatturazione"
 
-#: src/Admin/Recurrence.php:92 src/Admin/WorkItems.php:161
+#: src/Admin/Recurrence.php:95 src/Admin/WorkItems.php:184
 msgid "Not classified"
 msgstr "Non classificato"
 
 #. translators: %s: recurrence end date.
-#: src/Admin/Recurrence.php:99
+#: src/Admin/Recurrence.php:102
 #, php-format
 msgid ", end %s"
 msgstr ", fine %s"
 
-#: src/Admin/Recurrence.php:102 src/Admin/Recurrence.php:133
+#: src/Admin/Recurrence.php:105 src/Admin/Recurrence.php:136
 msgid "Schedule"
 msgstr "Pianificazione"
 
 #. translators: 1: recurrence start date, 2: optional translated end-date suffix.
-#: src/Admin/Recurrence.php:104
+#: src/Admin/Recurrence.php:107
 #, php-format
 msgid "Start %1$s%2$s."
 msgstr "Inizio %1$s%2$s."
 
-#: src/Admin/Recurrence.php:107
+#: src/Admin/Recurrence.php:110
 msgid "Frequency"
 msgstr "Frequenza"
 
-#: src/Admin/Recurrence.php:107
+#: src/Admin/Recurrence.php:110
 msgid "Every"
 msgstr "Ogni"
 
-#: src/Admin/Recurrence.php:109
+#: src/Admin/Recurrence.php:112
 msgid "End date"
 msgstr "Data di fine"
 
-#: src/Admin/Recurrence.php:109
+#: src/Admin/Recurrence.php:112
 msgid "Optional. Leave empty for an open-ended rule."
 msgstr "Facoltativo. Lascia vuoto per una regola senza data di fine."
 
-#: src/Admin/Recurrence.php:111
+#: src/Admin/Recurrence.php:114
 msgid "Create ahead"
 msgstr "Crea in anticipo"
 
-#: src/Admin/Recurrence.php:111 src/Admin/Recurrence.php:156
+#: src/Admin/Recurrence.php:114 src/Admin/Recurrence.php:159
 msgid "days"
 msgstr "giorni"
 
-#: src/Admin/Recurrence.php:111
+#: src/Admin/Recurrence.php:114
 msgid ""
 "Work Items are generated when an occurrence enters this planning horizon."
 msgstr ""
 "I Work Item vengono generati quando un’occorrenza entra in questo orizzonte "
 "di pianificazione."
 
-#: src/Admin/Recurrence.php:112
+#: src/Admin/Recurrence.php:115
 msgid "Due offset"
 msgstr "Offset di scadenza"
 
-#: src/Admin/Recurrence.php:112
+#: src/Admin/Recurrence.php:115
 msgid "days after scheduled date"
 msgstr "giorni dopo la data pianificata"
 
-#: src/Admin/Recurrence.php:115
+#: src/Admin/Recurrence.php:118
 msgid "Save Recurring Work Rule"
 msgstr "Salva regola di lavoro ricorrente"
 
-#: src/Admin/Recurrence.php:119
+#: src/Admin/Recurrence.php:122
 msgid "Recurring Work Rules"
 msgstr "Regole di lavoro ricorrente"
 
 #. translators: %s: next WordPress cron timestamp, or a not-scheduled label.
-#: src/Admin/Recurrence.php:122
+#: src/Admin/Recurrence.php:125
 #, php-format
 msgid "Generator hook: hourly. Next WordPress cron timestamp: %s"
 msgstr ""
 "Hook del generatore: ogni ora. Prossimo timestamp cron di WordPress: %s"
 
-#: src/Admin/Recurrence.php:127
+#: src/Admin/Recurrence.php:130
 msgid "Run Generator Now"
 msgstr "Esegui generatore ora"
 
-#: src/Admin/Recurrence.php:131
+#: src/Admin/Recurrence.php:134
 msgid "No recurring Work rules configured."
 msgstr "Nessuna regola di lavoro ricorrente configurata."
 
-#: src/Admin/Recurrence.php:133
+#: src/Admin/Recurrence.php:136
 msgid "Rule"
 msgstr "Regola"
 
-#: src/Admin/Recurrence.php:133
+#: src/Admin/Recurrence.php:136
 msgid "Next occurrence"
 msgstr "Prossima occorrenza"
 
-#: src/Admin/Recurrence.php:133
+#: src/Admin/Recurrence.php:136
 msgid "Generated"
 msgstr "Generato"
 
-#: src/Admin/Recurrence.php:142 src/Admin/Time.php:170
+#: src/Admin/Recurrence.php:145 src/Admin/Time.php:170
 msgid "Edit"
 msgstr "Modifica"
 
-#: src/Admin/Recurrence.php:156
+#: src/Admin/Recurrence.php:159
 msgid "day"
 msgstr "giorno"
 
-#: src/Admin/Recurrence.php:157
+#: src/Admin/Recurrence.php:160
 msgid "week"
 msgstr "settimana"
 
-#: src/Admin/Recurrence.php:157
+#: src/Admin/Recurrence.php:160
 msgid "weeks"
 msgstr "settimane"
 
-#: src/Admin/Recurrence.php:158
+#: src/Admin/Recurrence.php:161
 msgid "month"
 msgstr "mese"
 
-#: src/Admin/Recurrence.php:158
+#: src/Admin/Recurrence.php:161
 msgid "months"
 msgstr "mesi"
 
-#: src/Admin/Recurrence.php:159
+#: src/Admin/Recurrence.php:162
 msgid "year"
 msgstr "anno"
 
-#: src/Admin/Recurrence.php:159
+#: src/Admin/Recurrence.php:162
 msgid "years"
 msgstr "anni"
 
-#: src/Admin/Recurrence.php:160
+#: src/Admin/Recurrence.php:163
 msgid "interval"
 msgstr "intervallo"
 
 #. translators: 1: recurrence interval count, 2: translated recurrence unit.
-#: src/Admin/Recurrence.php:163
+#: src/Admin/Recurrence.php:166
 #, php-format
 msgid "Every %1$d %2$s"
 msgstr "Ogni %1$d %2$s"
 
-#: src/Admin/Recurrence.php:173
+#: src/Admin/Recurrence.php:176
 msgid "not scheduled yet"
 msgstr "non ancora pianificato"
 
-#: src/Admin/Recurrence.php:179
+#: src/Admin/Recurrence.php:182
 msgid "Recurring Work rule created."
 msgstr "Regola di lavoro ricorrente creata."
 
-#: src/Admin/Recurrence.php:180
+#: src/Admin/Recurrence.php:183
 msgid "Recurring Work rule updated."
 msgstr "Regola di lavoro ricorrente aggiornata."
 
-#: src/Admin/Recurrence.php:181
+#: src/Admin/Recurrence.php:184
 msgid "Recurring Work rule status updated."
 msgstr "Stato della regola di lavoro ricorrente aggiornato."
 
-#: src/Admin/Recurrence.php:182
+#: src/Admin/Recurrence.php:185
 msgid ""
 "The Recurring Work rule could not be saved. Check the supplied values and "
 "whether its schedule is already locked by history."
@@ -1313,12 +1430,12 @@ msgstr ""
 "Impossibile salvare la regola di lavoro ricorrente. Controlla i valori "
 "forniti e se la pianificazione è già bloccata dalla cronologia."
 
-#: src/Admin/Recurrence.php:183
+#: src/Admin/Recurrence.php:186
 msgid "Recurring Work generator finished."
 msgstr "Generatore di lavoro ricorrente completato."
 
 #. translators: 1: generated count, 2: recovered count, 3: failed count.
-#: src/Admin/Recurrence.php:194
+#: src/Admin/Recurrence.php:197
 #, php-format
 msgid "Generated: %1$d · recovered: %2$d · failed: %3$d."
 msgstr "Generati: %1$d · recuperati: %2$d · non riusciti: %3$d."
@@ -1678,11 +1795,19 @@ msgstr "Non sei autorizzato a registrare il tempo per quel Work Item o utente."
 msgid "You do not have permission to track Work time."
 msgstr "Non hai l’autorizzazione per registrare il tempo di Work."
 
-#: src/Admin/WorkItems.php:36
+#: src/Admin/WorkItemBoardActions.php:23
+msgid "You are not allowed to move Work Items."
+msgstr "Non hai l’autorizzazione per spostare gli elementi di lavoro."
+
+#: src/Admin/WorkItemBoardActions.php:31
+msgid "The Work Item move is invalid."
+msgstr "Lo spostamento dell’elemento di lavoro non è valido."
+
+#: src/Admin/WorkItems.php:37
 msgid "Work Item Details"
 msgstr "Dettagli Work Item"
 
-#: src/Admin/WorkItems.php:81
+#: src/Admin/WorkItems.php:104
 msgid ""
 "This Work Item already has a customer link that cannot be resolved for the "
 "current user. The link is preserved."
@@ -1690,33 +1815,33 @@ msgstr ""
 "Questo Work Item ha già un collegamento a un cliente che non può essere "
 "risolto per l’utente corrente. Il collegamento viene mantenuto."
 
-#: src/Admin/WorkItems.php:86
+#: src/Admin/WorkItems.php:109
 msgid "Leave empty to use the Project customer when one is linked."
 msgstr ""
 "Lascia vuoto per usare il cliente del Progetto quando ne è collegato uno."
 
-#: src/Admin/WorkItems.php:88
+#: src/Admin/WorkItems.php:111
 msgid "Optional. Uses CRM Contacts and Organizations when CRM is available."
 msgstr ""
 "Facoltativo. Usa Contatti e Organizzazioni CRM quando CRM è disponibile."
 
-#: src/Admin/WorkItems.php:95
+#: src/Admin/WorkItems.php:118
 msgid "No project"
 msgstr "Nessun progetto"
 
-#: src/Admin/WorkItems.php:104
+#: src/Admin/WorkItems.php:127
 msgid "No service"
 msgstr "Nessun servizio"
 
-#: src/Admin/WorkItems.php:131
+#: src/Admin/WorkItems.php:154
 msgid "Planning estimate only. Registered time remains separate."
 msgstr "Solo stima di pianificazione. Il tempo registrato rimane separato."
 
-#: src/Admin/WorkItems.php:135
+#: src/Admin/WorkItems.php:158
 msgid "Operational status"
 msgstr "Stato operativo"
 
-#: src/Admin/WorkItems.php:143
+#: src/Admin/WorkItems.php:166
 msgid ""
 "Work status is separate from WordPress publishing state and only valid "
 "lifecycle transitions are offered."
@@ -1724,9 +1849,25 @@ msgstr ""
 "Lo stato di Work è separato dallo stato di pubblicazione di WordPress e "
 "vengono offerte solo transizioni valide del ciclo di vita."
 
-#: src/Admin/WorkItems.php:228
+#: src/Admin/WorkItems.php:251
 msgid "Work Item title"
 msgstr "Titolo Work Item"
+
+#: src/Admin/WorkItemTablePreferences.php:99
+msgid "You are not allowed to change Work Item table preferences."
+msgstr ""
+"Non hai l’autorizzazione per modificare le preferenze della tabella degli "
+"elementi di lavoro."
+
+#: src/Admin/WorkItemTablePreferences.php:110
+msgid "The table preference operation is invalid."
+msgstr "L’operazione delle preferenze della tabella non è valida."
+
+#: src/Admin/WorkItemTablePreferences.php:115
+#: src/Admin/WorkItemTablePreferences.php:121
+#: src/Admin/WorkItemTablePreferences.php:124
+msgid "The table preference payload is invalid."
+msgstr "I dati delle preferenze della tabella non sono validi."
 
 #: src/Capabilities.php:32
 msgid "Manage Work"
@@ -2075,3 +2216,21 @@ msgstr "nessuno"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Pronto"
+
+msgid "You are not allowed to move Work Items on the calendar."
+msgstr "Non hai l’autorizzazione per spostare gli elementi di lavoro nel calendario."
+
+msgid "The calendar move is invalid."
+msgstr "Lo spostamento nel calendario non è valido."
+
+msgid "The Work Item could not be found."
+msgstr "Impossibile trovare l’elemento di lavoro."
+
+msgid "The Work Item date could not be updated."
+msgstr "Impossibile aggiornare la data dell’elemento di lavoro."
+
+msgid "Move %1$s %2$s date"
+msgstr "Sposta la data %2$s di %1$s"
+
+msgid "Move to another date"
+msgstr "Sposta a un’altra data"

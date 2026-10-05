@@ -7,6 +7,7 @@ use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\PublicApi\Services;
@@ -299,6 +300,32 @@ final class WorkItems {
 		return true;
 	}
 
+	public static function sync_project_context( int $project_id ): int {
+		if ( $project_id <= 0 || null === Projects::get( $project_id ) || ! self::schema_ready() ) {
+			return 0;
+		}
+
+		$page    = 1;
+		$updated = 0;
+		do {
+			$result = self::search( [
+				'statuses'   => WorkItemStatus::active(),
+				'project_id' => $project_id,
+				'page'       => $page,
+				'per_page'   => 100,
+				'sort'       => WorkItemQuery::SORT_UPDATED,
+			] );
+			foreach ( $result['items'] as $item ) {
+				if ( self::update( (int) $item['id'], [] ) ) {
+					$updated++;
+				}
+			}
+			$page++;
+		} while ( $page <= (int) $result['pages'] );
+
+		return $updated;
+	}
+
 	public static function transition_status( int $id, string $to, int $actor_user_id = 0 ): bool {
 		$item = self::get( $id );
 		$to   = sanitize_key( $to );
@@ -434,11 +461,30 @@ final class WorkItems {
 		if ( [] !== $criteria['billing_dispositions'] ) {
 			$filters[] = [ 'key' => WorkItemMeta::BILLING_DISPOSITION, 'value' => $criteria['billing_dispositions'], 'compare' => 'IN' ];
 		}
+		if ( WorkContext::is_valid( (string) $criteria['work_context'] ) ) {
+			$filters[] = [ 'key' => WorkItemMeta::WORK_CONTEXT, 'value' => (string) $criteria['work_context'] ];
+		}
 		if ( is_array( $criteria['customer'] ) ) {
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_PROVIDER, 'value' => $criteria['customer']['provider'] ];
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_TYPE, 'value' => $criteria['customer']['type'] ];
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_ID, 'value' => $criteria['customer']['id'] ];
 		}
+		if ( '' !== $criteria['calendar_from'] && '' !== $criteria['calendar_to'] ) {
+			$filters[] = [
+				'relation' => 'OR',
+				[
+					'relation' => 'AND',
+					[ 'key' => WorkItemMeta::SCHEDULED_ON, 'value' => $criteria['calendar_from'], 'compare' => '>=', 'type' => 'DATE' ],
+					[ 'key' => WorkItemMeta::SCHEDULED_ON, 'value' => $criteria['calendar_to'], 'compare' => '<=', 'type' => 'DATE' ],
+				],
+				[
+					'relation' => 'AND',
+					[ 'key' => WorkItemMeta::DUE_ON, 'value' => $criteria['calendar_from'], 'compare' => '>=', 'type' => 'DATE' ],
+					[ 'key' => WorkItemMeta::DUE_ON, 'value' => $criteria['calendar_to'], 'compare' => '<=', 'type' => 'DATE' ],
+				],
+			];
+		}
+
 		foreach ( [
 			[ 'from' => 'scheduled_from', 'to' => 'scheduled_to', 'key' => WorkItemMeta::SCHEDULED_ON ],
 			[ 'from' => 'due_from', 'to' => 'due_to', 'key' => WorkItemMeta::DUE_ON ],
@@ -529,6 +575,7 @@ final class WorkItems {
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
 		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
 		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$context           = WorkContext::sanitize( $input['work_context'] ?? ( $current['work_context'] ?? '' ) );
 		$customer          = self::reference( $input, 'customer_', $current );
 		$project_id        = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
 		$service_id        = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
@@ -548,20 +595,40 @@ final class WorkItems {
 			return null;
 		}
 
-		$project = null;
 		if ( $project_id > 0 ) {
 			$project = Projects::get( $project_id );
 			if ( null === $project ) {
 				return null;
 			}
-			if ( '' === $customer['provider'] && '' !== (string) ( $project['customer_provider'] ?? '' ) ) {
-				$customer = [
-					'provider' => (string) $project['customer_provider'],
-					'type'     => (string) $project['customer_type'],
-					'id'       => (string) $project['customer_id'],
-				];
+			$context = WorkContext::sanitize( $project['work_context'] ?? '' );
+			if ( ! WorkContext::is_valid( $context ) ) {
+				return null;
+			}
+			$customer = [
+				'provider' => (string) ( $project['customer_provider'] ?? '' ),
+				'type'     => (string) ( $project['customer_type'] ?? '' ),
+				'id'       => (string) ( $project['customer_id'] ?? '' ),
+			];
+		} elseif ( '' === $context && '' !== $customer['provider'] ) {
+			$context = WorkContext::CUSTOMER;
+		}
+
+		$legacy_unclassified = null !== $current
+			&& '' === $context
+			&& '' === (string) ( $current['work_context'] ?? '' );
+		if ( ! WorkContext::is_valid( $context ) && ! $legacy_unclassified ) {
+			return null;
+		}
+
+		if ( WorkContext::INTERNAL === $context ) {
+			$customer = [ 'provider' => '', 'type' => '', 'id' => '' ];
+			$billing  = BillingDisposition::NON_BILLABLE;
+		} elseif ( WorkContext::CUSTOMER === $context ) {
+			if ( '' === $customer['provider'] || '' === $customer['type'] || '' === $customer['id'] ) {
+				return null;
 			}
 		}
+
 		if ( $service_id > 0 && null === Services::get( $service_id ) ) {
 			return null;
 		}
@@ -581,6 +648,7 @@ final class WorkItems {
 		return [
 			'title'               => $title,
 			'description'         => $description,
+			'work_context'        => $context,
 			'customer_provider'   => $customer['provider'],
 			'customer_type'       => $customer['type'],
 			'customer_id'         => $customer['id'],
@@ -605,6 +673,7 @@ final class WorkItems {
 			'title'               => sanitize_text_field( (string) $post->post_title ),
 			'description'         => (string) $post->post_content,
 			'post_status'         => (string) $post->post_status,
+			'work_context'      => $meta['work_context'],
 			'customer_provider'   => $meta['customer_provider'],
 			'customer_type'       => $meta['customer_type'],
 			'customer_id'         => $meta['customer_id'],

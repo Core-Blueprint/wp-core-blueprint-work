@@ -114,26 +114,6 @@
 		container.appendChild( element( 'span', 'cb-work-filter-chip', label + ': ' + value ) );
 	}
 
-	function enhanceCalendarNavigation( page, currentView, strings ) {
-		if ( currentView !== 'calendar' ) {
-			return;
-		}
-
-		const actions = page.querySelector( '.cb-work-calendar-navigation .actions' );
-		const previous = actions ? actions.querySelector( 'a.button' ) : null;
-		if ( ! actions || ! previous || actions.querySelector( '.cb-work-calendar-today' ) ) {
-			return;
-		}
-
-		const now = new Date();
-		const month = String( now.getFullYear() ) + '-' + String( now.getMonth() + 1 ).padStart( 2, '0' );
-		const url = new URL( window.location.href );
-		url.searchParams.set( 'calendar_month', month );
-
-		const today = element( 'a', 'button cb-work-calendar-today', strings.today || 'Today' );
-		today.href = url.toString();
-		previous.insertAdjacentElement( 'afterend', today );
-	}
 
 	function initWorkItems() {
 		const page = document.querySelector( '.cb-work-items-page' );
@@ -153,6 +133,7 @@
 			project: form.querySelector( 'select[name="project_id"]' ),
 			service: form.querySelector( 'select[name="service_id"]' ),
 			workType: ensureId( form.querySelector( 'select[name="work_type_id"]' ), 'cb-work-filter-work-type' ),
+			workContext: ensureId( form.querySelector( 'select[name="work_context"]' ), 'cb-work-filter-work-context' ),
 			billing: ensureId( form.querySelector( 'select[name="billing"]' ), 'cb-work-filter-billing' ),
 			customer: pickerFor( 'cb-work-filter-customer' ),
 			assignee: pickerFor( 'cb-work-filter-assignee' ),
@@ -172,6 +153,7 @@
 		const advancedValues = [
 			controlValue( controls.priority ),
 			controlValue( controls.workType ) !== '0' ? controlValue( controls.workType ) : '',
+			controlValue( controls.workContext ),
 			controlValue( controls.billing ),
 			controlValue( controls.customer ),
 			controlValue( controls.assignee ),
@@ -242,6 +224,7 @@
 			appendSummaryChip( summary, strings.search || 'Search', controlValue( controls.search ) );
 			appendSummaryChip( summary, strings.priority || 'Priority', controlValue( controls.priority ) ? selectedText( controls.priority ) : '' );
 			appendSummaryChip( summary, strings.workType || 'Work Type', controlValue( controls.workType ) !== '0' ? selectedText( controls.workType ) : '' );
+			appendSummaryChip( summary, strings.workContext || 'Work context', controlValue( controls.workContext ) ? selectedText( controls.workContext ) : '' );
 			appendSummaryChip( summary, strings.billing || 'Billing', controlValue( controls.billing ) ? selectedText( controls.billing ) : '' );
 			appendSummaryChip( summary, strings.customer || 'Customer', pickerSelectedText( controls.customer ) || ( controlValue( controls.customer ) ? ( strings.selected || 'Selected' ) : '' ) );
 			appendSummaryChip( summary, strings.assignee || 'Assignee', pickerSelectedText( controls.assignee ) || ( controlValue( controls.assignee ) ? ( strings.selected || 'Selected' ) : '' ) );
@@ -257,6 +240,7 @@
 			field( strings.assignee || 'Assignee', controls.assignee, 'cb-work-filter-field--wide' ),
 			field( strings.priority || 'Priority', controls.priority ),
 			field( strings.workType || 'Work Type', controls.workType ),
+			field( strings.workContext || 'Work context', controls.workContext ),
 			field( strings.billing || 'Billing', controls.billing ),
 			field( strings.sort || 'Sort', controls.sort ),
 			currentView === 'calendar' ? null : rangeField( strings.scheduled || 'Scheduled', controls.scheduledFrom, controls.scheduledTo, strings.to || 'to' ),
@@ -309,7 +293,6 @@
 			header.appendChild( resultCount );
 		}
 
-		enhanceCalendarNavigation( page, currentView, strings );
 
 		const emptyParagraph = Array.from( page.children ).find( function ( child ) {
 			return child.tagName === 'P' && ! child.classList.contains( 'description' ) && child.textContent.trim() !== '';

@@ -11,7 +11,7 @@
 
 	function urlWith( overrides, clearFilters ) {
 		const url = new URL( window.location.href );
-		const filterKeys = [ 's', 'status', 'priority', 'project_id', 'service_id', 'work_type_id', 'assignee_id', 'billing', 'customer', 'scheduled_from', 'scheduled_to', 'due_from', 'due_to', 'sort', 'paged' ];
+		const filterKeys = [ 's', 'status', 'priority', 'project_id', 'service_id', 'work_type_id', 'assignee_id', 'work_context', 'billing', 'customer', 'scheduled_from', 'scheduled_to', 'due_from', 'due_to', 'sort', 'paged' ];
 		if ( clearFilters ) {
 			filterKeys.forEach( function ( key ) { url.searchParams.delete( key ); } );
 		}
@@ -53,7 +53,7 @@
 		const currentStatus = params.get( 'status' ) || '';
 		const currentAssignee = Number( params.get( 'assignee_id' ) || 0 );
 		const currentDueTo = params.get( 'due_to' ) || '';
-		const hasOtherFilters = [ 's', 'priority', 'project_id', 'service_id', 'work_type_id', 'billing', 'customer', 'scheduled_from', 'scheduled_to', 'due_from', 'sort' ].some( function ( key ) {
+		const hasOtherFilters = [ 's', 'priority', 'project_id', 'service_id', 'work_type_id', 'work_context', 'billing', 'customer', 'scheduled_from', 'scheduled_to', 'due_from', 'sort' ].some( function ( key ) {
 			return params.has( key ) && params.get( key ) !== '' && params.get( key ) !== '0' && !( key === 'sort' && params.get( key ) === 'workload' );
 		} );
 

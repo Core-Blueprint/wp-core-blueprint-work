@@ -98,6 +98,12 @@ namespace CB\Work\Content {
 }
 
 namespace CB\Work\Domain {
+	final class WorkContext {
+		public const INTERNAL = 'internal';
+		public const CUSTOMER = 'customer';
+		public static function is_valid( string $value ): bool { return in_array( $value, [ self::INTERNAL, self::CUSTOMER ], true ); }
+	}
+
 	final class BillingDisposition {
 		public static function all(): array { return [ 'hourly', 'fixed', 'included', 'non_billable' ]; }
 	}
@@ -205,6 +211,7 @@ namespace {
 		'cb_work_work_item_nonce' => 'valid',
 		'cb_work_item' => [
 			'customer_object_id' => 'crm:organization:42',
+			'work_context'       => 'customer',
 			'assigned_user_ids'  => '3,7',
 			'project_id'         => '0',
 			'priority'           => 'normal',
@@ -213,6 +220,7 @@ namespace {
 	];
 	\CB\Work\Admin\WorkItems::save( 123, $post, false );
 	$saved = \CB\Work\Repository\WorkItems::$saved;
+	assert_true( 'customer' === ( $saved['work_context'] ?? '' ), 'Editor save forwards explicit Work context.' );
 	assert_true( 'crm' === ( $saved['customer_provider'] ?? '' ) && 'organization' === ( $saved['customer_type'] ?? '' ) && '42' === ( $saved['customer_id'] ?? '' ), 'Editor save preserves the opaque Organization token and resolves it to canonical Work customer metadata.' );
 	assert_true( '3,7' === ( $saved['assigned_user_ids'] ?? '' ), 'Editor save forwards ObjectPicker assignments to repository normalization.' );
 	assert_true( ! array_key_exists( 'customer_object_id', $saved ), 'Transient picker object id does not leak into canonical Work Item persistence.' );

@@ -99,6 +99,7 @@
 			form.querySelector( 'select[name="service_id"]' ),
 			form.querySelector( 'select[name="priority"]' ),
 			form.querySelector( 'select[name="work_type_id"]' ),
+			form.querySelector( 'select[name="work_context"]' ),
 			form.querySelector( 'select[name="billing"]' ),
 			picker( form, 'cb-work-filter-customer' ),
 			picker( form, 'cb-work-filter-assignee' ),
@@ -294,7 +295,7 @@
 		if ( ! calendar || ! navigation || calendar.querySelector( '.card' ) || page.querySelector( '.cb-work-calendar-empty-note' ) ) {
 			return;
 		}
-		const note = element( 'p', 'description cb-work-calendar-empty-note', strings.noScheduledThisMonth || 'No scheduled work this month.' );
+		const note = element( 'p', 'description cb-work-calendar-empty-note', strings.noScheduledThisMonth || 'No scheduled work or deadlines this month.' );
 		navigation.insertAdjacentElement( 'afterend', note );
 	}
 

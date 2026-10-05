@@ -16,6 +16,8 @@
 	function initBillingDefaults() {
 		const service = document.getElementById( 'cb-work-item-service' );
 		const billing = document.getElementById( 'cb-work-item-billing' );
+		const context = document.getElementById( 'cb-work-item-context' );
+		const project = document.getElementById( 'cb-work-item-project' );
 		const config = window.cbWorkBillingUx || {};
 		const services = config.services || {};
 
@@ -46,7 +48,19 @@
 			return services[ String( service.value || '' ) ] || null;
 		}
 
+		function effectiveContext() {
+			if ( project && String( project.value || '0' ) !== '0' ) {
+				const option = project.options[ project.selectedIndex ];
+				return option ? String( option.dataset.cbWorkContext || '' ) : '';
+			}
+			return context ? String( context.value || '' ) : '';
+		}
+
 		function updateHint() {
+			if ( effectiveContext() === 'internal' ) {
+				hint.textContent = config.internal || 'Internal Work is always non-billable.';
+				return;
+			}
 			const metadata = selectedMetadata();
 			if ( metadata && metadata.billing ) {
 				hint.textContent = format( config.serviceDefault, metadata.billing.charAt( 0 ).toUpperCase() + metadata.billing.slice( 1 ) );
@@ -56,6 +70,13 @@
 		}
 
 		function applyDefault() {
+			if ( effectiveContext() === 'internal' ) {
+				billing.value = 'non_billable';
+				autoValue = '';
+				updateHint();
+				return;
+			}
+
 			const metadata = selectedMetadata();
 			const nextValue = metadata && metadata.billing ? String( metadata.billing ) : '';
 
@@ -78,6 +99,12 @@
 		} );
 
 		service.addEventListener( 'change', applyDefault );
+		if ( context ) {
+			context.addEventListener( 'change', applyDefault );
+		}
+		if ( project ) {
+			project.addEventListener( 'change', applyDefault );
+		}
 	}
 
 	ready( initBillingDefaults );

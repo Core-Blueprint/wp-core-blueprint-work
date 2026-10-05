@@ -105,6 +105,7 @@ final class Projects {
 			'title'             => sanitize_text_field( (string) $post->post_title ),
 			'description'       => (string) $post->post_content,
 			'post_status'       => (string) $post->post_status,
+			'work_context'      => $meta['work_context'],
 			'customer_provider' => $meta['customer_provider'],
 			'customer_type'     => $meta['customer_type'],
 			'customer_id'       => $meta['customer_id'],

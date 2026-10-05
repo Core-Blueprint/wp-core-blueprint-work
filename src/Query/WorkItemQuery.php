@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Query;
 
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 
@@ -35,6 +36,7 @@ final class WorkItemQuery {
 		$statuses   = self::enum_list( $input['statuses'] ?? [], [ WorkItemStatus::class, 'is_valid' ] );
 		$priorities = self::enum_list( $input['priorities'] ?? [], [ WorkItemPriority::class, 'is_valid' ] );
 		$billing    = self::enum_list( $input['billing_dispositions'] ?? [], [ BillingDisposition::class, 'is_valid' ] );
+		$context    = WorkContext::sanitize( $input['work_context'] ?? '' );
 		$sort       = sanitize_key( (string) ( $input['sort'] ?? self::SORT_WORKLOAD ) );
 		if ( ! in_array( $sort, self::sorts(), true ) ) {
 			$sort = self::SORT_WORKLOAD;
@@ -51,7 +53,10 @@ final class WorkItemQuery {
 			'work_type_id'         => absint( $input['work_type_id'] ?? 0 ),
 			'assignee_id'          => absint( $input['assignee_id'] ?? 0 ),
 			'billing_dispositions' => $billing,
+			'work_context'         => $context,
 			'customer'             => $customer,
+			'calendar_from'        => self::date( $input['calendar_from'] ?? '' ),
+			'calendar_to'          => self::date( $input['calendar_to'] ?? '' ),
 			'scheduled_from'       => self::date( $input['scheduled_from'] ?? '' ),
 			'scheduled_to'         => self::date( $input['scheduled_to'] ?? '' ),
 			'due_from'             => self::date( $input['due_from'] ?? '' ),

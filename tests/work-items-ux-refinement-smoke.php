@@ -5,8 +5,11 @@ $root      = dirname( __DIR__ );
 $assets    = file_get_contents( $root . '/src/Admin/Assets.php' );
 $workspace = file_get_contents( $root . '/src/Admin/Workspace.php' );
 $state     = file_get_contents( $root . '/src/Admin/WorkItemViewState.php' );
-$script    = file_get_contents( $root . '/assets/work-items-refinement.js' );
-$css       = file_get_contents( $root . '/assets/work-items-refinement.css' );
+$script      = file_get_contents( $root . '/assets/work-items-refinement.js' );
+$css         = file_get_contents( $root . '/assets/work-items-refinement.css' );
+$operations  = file_get_contents( $root . '/src/Admin/Operations.php' );
+$adminScript = file_get_contents( $root . '/assets/work-admin.js' );
+$adminCss    = file_get_contents( $root . '/assets/work-admin.css' );
 
 function refinement_assert( bool $condition, string $message ): void {
 	if ( ! $condition ) {
@@ -16,7 +19,7 @@ function refinement_assert( bool $condition, string $message ): void {
 }
 
 refinement_assert(
-	false !== $assets && false !== $workspace && false !== $state && false !== $script && false !== $css,
+	false !== $assets && false !== $workspace && false !== $state && false !== $script && false !== $css && false !== $operations && false !== $adminScript && false !== $adminCss,
 	'Refinement source files are readable.'
 );
 
@@ -38,11 +41,26 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $state, '$query_scheduled_from' )
+	str_contains( $state, '$calendar_from' )
+	&& str_contains( $state, '$calendar_to' )
+	&& str_contains( $state, '$query_scheduled_from' )
 	&& str_contains( $state, '$query_scheduled_to' )
+	&& str_contains( $state, "'calendar_from'        => \$calendar_from" )
 	&& str_contains( $state, 'Explicit user filters only. Calendar month bounds are query viewport state.' )
 	&& str_contains( $state, "'calendar_month' === \$state_key && self::VIEW_CALENDAR !== \$view" ),
 	'Calendar viewport state is structurally separate from explicit scheduled filters.'
+);
+
+refinement_assert(
+	str_contains( $operations, 'cb-work-calendar-navigation__controls' )
+	&& str_contains( $operations, "'Today', 'core-blueprint-work'" )
+	&& str_contains( $operations, "'Scheduled', 'core-blueprint-work'" )
+	&& str_contains( $operations, "'Due', 'core-blueprint-work'" )
+	&& str_contains( $operations, 'cb-work-calendar-entry--' )
+	&& ! str_contains( $adminScript, 'enhanceCalendarNavigation' )
+	&& str_contains( $adminCss, '.cb-work-calendar-navigation__controls' )
+	&& str_contains( $adminCss, '.cb-work-calendar-entry--due' ),
+	'Calendar renders aligned server-side navigation and distinguishes scheduled work from deadlines.'
 );
 
 refinement_assert(

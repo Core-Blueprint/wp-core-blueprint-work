@@ -29,6 +29,7 @@ legacy_public_hooks=(
 	'cb_core_module_status_definitions'
 	'cb_core_dashboard_register_cards'
 	'cb_core_capability_catalog'
+	'cb_admin_theme_enqueue'
 )
 for hook in "${legacy_public_hooks[@]}"; do
 	if grep -R -nF "$hook" "$ROOT/src" "$ROOT/core-blueprint-work.php" "$ROOT/tests"; then
@@ -71,8 +72,12 @@ php "$ROOT/tests/data-exchange-tax-rates-smoke.php"
 php "$ROOT/tests/data-exchange-tax-rates-optional-mapping-smoke.php"
 php "$ROOT/tests/data-exchange-tax-rates-admin-smoke.php"
 php "$ROOT/tests/workspace-foundation-smoke.php"
+php "$ROOT/tests/work-context-foundation-smoke.php"
 php "$ROOT/tests/project-workspace-smoke.php"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"
+php "$ROOT/tests/work-item-table-preferences-smoke.php"
+php "$ROOT/tests/work-item-board-reorder-smoke.php"
+php "$ROOT/tests/work-item-calendar-reorder-smoke.php"
 php "$ROOT/tests/work-daily-ux-smoke.php"
 php "$ROOT/tests/bootstrap-v1-smoke.php"
 php "$ROOT/tests/dependency-loss-regression.php"

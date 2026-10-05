@@ -5,6 +5,7 @@ namespace CB\Work\Repository;
 
 use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\RecurrenceSchedule;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\PublicApi\Services;
@@ -216,6 +217,7 @@ final class RecurrenceRules {
 		return [
 			'title'               => $rule['title'],
 			'description'         => $rule['description'],
+			'work_context'        => $rule['work_context'],
 			'customer_provider'   => $rule['customer_provider'],
 			'customer_type'       => $rule['customer_type'],
 			'customer_id'         => $rule['customer_id'],
@@ -312,6 +314,39 @@ final class RecurrenceRules {
 		return 1 === $updated;
 	}
 
+	public static function sync_project_context( int $project_id ): bool {
+		$project = Projects::get( $project_id );
+		if ( null === $project || ! self::schema_ready() ) {
+			return false;
+		}
+		$context = WorkContext::sanitize( $project['work_context'] ?? '' );
+		if ( ! WorkContext::is_valid( $context ) ) {
+			return false;
+		}
+		$data = [
+			'work_context'      => $context,
+			'customer_provider' => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_provider'] ?? '' ) : '',
+			'customer_type'     => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_type'] ?? '' ) : '',
+			'customer_id'       => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_id'] ?? '' ) : '',
+			'updated_by'        => get_current_user_id(),
+			'updated_at'        => current_time( 'mysql', true ),
+		];
+		$formats = [ '%s', '%s', '%s', '%s', '%d', '%s' ];
+		if ( WorkContext::INTERNAL === $context ) {
+			$data['billing_disposition'] = BillingDisposition::NON_BILLABLE;
+			$formats[] = '%s';
+		}
+		global $wpdb;
+		$updated = $wpdb->update(
+			Schema::recurrence_rules_table(),
+			$data,
+			[ 'project_id' => $project_id ],
+			$formats,
+			[ '%d' ]
+		);
+		return false !== $updated;
+	}
+
 	/** @param int[] $user_ids */
 	private static function replace_assignments( int $rule_id, array $user_ids, bool $start_transaction = true ): bool {
 		global $wpdb;
@@ -353,6 +388,7 @@ final class RecurrenceRules {
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
 		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
 		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$context           = WorkContext::sanitize( $input['work_context'] ?? ( $current['work_context'] ?? '' ) );
 		$customer          = self::customer_reference( $input, $current );
 		$project_id        = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
 		$service_id        = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
@@ -390,20 +426,40 @@ final class RecurrenceRules {
 			return null;
 		}
 
-		$project = null;
 		if ( $project_id > 0 ) {
 			$project = Projects::get( $project_id );
 			if ( null === $project ) {
 				return null;
 			}
-			if ( '' === $customer['provider'] && '' !== (string) ( $project['customer_provider'] ?? '' ) ) {
-				$customer = [
-					'provider' => (string) $project['customer_provider'],
-					'type'     => (string) $project['customer_type'],
-					'id'       => (string) $project['customer_id'],
-				];
+			$context = WorkContext::sanitize( $project['work_context'] ?? '' );
+			if ( ! WorkContext::is_valid( $context ) ) {
+				return null;
+			}
+			$customer = [
+				'provider' => (string) ( $project['customer_provider'] ?? '' ),
+				'type'     => (string) ( $project['customer_type'] ?? '' ),
+				'id'       => (string) ( $project['customer_id'] ?? '' ),
+			];
+		} elseif ( '' === $context && '' !== $customer['provider'] ) {
+			$context = WorkContext::CUSTOMER;
+		}
+
+		$legacy_unclassified = null !== $current
+			&& '' === $context
+			&& '' === (string) ( $current['work_context'] ?? '' );
+		if ( ! WorkContext::is_valid( $context ) && ! $legacy_unclassified ) {
+			return null;
+		}
+
+		if ( WorkContext::INTERNAL === $context ) {
+			$customer = [ 'provider' => '', 'type' => '', 'id' => '' ];
+			$billing  = BillingDisposition::NON_BILLABLE;
+		} elseif ( WorkContext::CUSTOMER === $context ) {
+			if ( '' === $customer['provider'] || '' === $customer['type'] || '' === $customer['id'] ) {
+				return null;
 			}
 		}
+
 		if ( $service_id > 0 && null === Services::get( $service_id ) ) {
 			return null;
 		}
@@ -424,6 +480,7 @@ final class RecurrenceRules {
 		return [
 			'title'               => $title,
 			'description'         => $description,
+			'work_context'        => $context,
 			'customer_provider'   => $customer['provider'],
 			'customer_type'       => $customer['type'],
 			'customer_id'         => $customer['id'],
@@ -493,6 +550,7 @@ final class RecurrenceRules {
 		$row = [
 			'title'               => $normalized['title'],
 			'description'         => $normalized['description'],
+			'work_context'        => $normalized['work_context'],
 			'customer_provider'   => $normalized['customer_provider'],
 			'customer_type'       => $normalized['customer_type'],
 			'customer_id'         => $normalized['customer_id'],
@@ -523,7 +581,7 @@ final class RecurrenceRules {
 	/** @return string[] */
 	private static function rule_formats( bool $creating = true ): array {
 		$formats = [
-			'%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d',
+			'%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d',
 			'%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s',
 		];
 		if ( $creating ) {
@@ -540,6 +598,7 @@ final class RecurrenceRules {
 			'id'                  => $id,
 			'title'               => (string) $row['title'],
 			'description'         => (string) $row['description'],
+			'work_context'        => WorkContext::sanitize( $row['work_context'] ?? '' ),
 			'customer_provider'   => (string) $row['customer_provider'],
 			'customer_type'       => (string) $row['customer_type'],
 			'customer_id'         => (string) $row['customer_id'],

@@ -127,13 +127,14 @@ final class ProjectWorkspace {
 					<section class="cb-work-project-workspace__panel">
 						<h2><?php esc_html_e( 'Project context', 'core-blueprint-work' ); ?></h2>
 						<dl class="cb-work-project-workspace__facts">
+							<div><dt><?php esc_html_e( 'Context', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( '' !== (string) $project['work_context'] ? self::humanize( (string) $project['work_context'] ) : __( 'Needs classification', 'core-blueprint-work' ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( '' !== $customer ? $customer : ( $has_customer_reference ? __( 'Linked customer unavailable', 'core-blueprint-work' ) : __( 'Not linked', 'core-blueprint-work' ) ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Starts', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( self::date_label( (string) $project['starts_on'] ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( self::date_label( (string) $project['due_on'] ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Total Work Items', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( (string) array_sum( $counts ) ); ?></dd></div>
 						</dl>
 						<?php if ( is_string( $edit_url ) && '' !== $edit_url ) : ?>
-							<p class="cb-work-project-workspace__context-action"><a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit customer, dates and description', 'core-blueprint-work' ); ?></a></p>
+							<p class="cb-work-project-workspace__context-action"><a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit context, customer, dates and description', 'core-blueprint-work' ); ?></a></p>
 						<?php endif; ?>
 					</section>
 				</aside>
