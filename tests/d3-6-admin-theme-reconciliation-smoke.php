@@ -5,8 +5,9 @@ $root   = dirname( __DIR__ );
 $menu   = file_get_contents( $root . '/src/Admin/Menu.php' );
 $assets = file_get_contents( $root . '/src/Admin/Assets.php' );
 $css    = file_get_contents( $root . '/assets/work-admin.css' );
-$js     = file_get_contents( $root . '/assets/work-admin.js' );
-$plugin = file_get_contents( $root . '/core-blueprint-work.php' );
+$js         = file_get_contents( $root . '/assets/work-admin.js' );
+$operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$plugin     = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
 	'Work release identity remains rc1' => str_contains( $plugin, "define( 'CB_WORK_VERSION', '1.0.0-rc1' )" ) && str_contains( $plugin, "define( 'CB_WORK_SCHEMA_VERSION', '1.9' )" ),
@@ -21,7 +22,11 @@ $checks = [
 	'Work CSS contains no hardcoded presentation colours' => ! preg_match( '/#[0-9a-f]{3,8}\b/i', $css ) && ! preg_match( '/\brgba?\s*\(/i', $css ),
 	'Work keeps domain-specific toolbar Board and Calendar composition' => str_contains( $css, '.cb-work-toolbar' ) && str_contains( $css, '.cb-work-items-kanban' ) && str_contains( $css, '.cb-work-items-calendar' ),
 	'active filter summary is preserved as Work-specific UX' => str_contains( $js, 'cb-work-filter-summary' ) && str_contains( $js, 'appendSummaryChip' ) && str_contains( $css, '.cb-work-filter-chip' ),
-	'Calendar Today action is preserved without domain persistence' => str_contains( $js, 'enhanceCalendarNavigation' ) && str_contains( $js, "url.searchParams.set( 'calendar_month', month )" ) && str_contains( $css, '.cb-work-calendar-today' ),
+	'Calendar Today action is preserved as server-rendered navigation without domain persistence' => str_contains( $operations, "current_time( 'Y-m' )" )
+		&& str_contains( $operations, "'calendar_month' => \$current_month" )
+		&& str_contains( $operations, "'Today', 'core-blueprint-work'" )
+		&& str_contains( $operations, 'self::work_items_url( $state' )
+		&& ! str_contains( $js, 'enhanceCalendarNavigation' ),
 	'presentation JS does not own Admin Theme state' => ! str_contains( $js, 'cbAdminTheme' ) && ! str_contains( $js, 'data-cb-theme' ) && ! str_contains( $js, 'data-cb-mode' ) && ! str_contains( $js, 'matchMedia' ),
 	'presentation JS remains transport and storage free' => ! str_contains( $js, 'fetch(' ) && ! str_contains( $js, 'XMLHttpRequest' ) && ! str_contains( $js, 'localStorage' ) && ! str_contains( $js, 'sessionStorage' ),
 ];
