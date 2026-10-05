@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 namespace {
+	define( 'ABSPATH', '/tmp/wp/' );
+
 	function sanitize_key( string $value ): string {
 		return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $value ) ?? '' );
 	}
