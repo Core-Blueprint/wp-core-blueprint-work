@@ -32,7 +32,7 @@ $checks = [
 		&& str_contains( $module, 'persistCalendarMove' ),
 
 	'Calendar refreshes server-authoritative projection after a persisted date move' =>
-		str_contains( $module, 'await persistCalendarMove( root, entry, move.to.listId )' )
+		str_contains( $module, 'await persistCalendarMove(root, entry, move.to.listId);' )
 		&& str_contains( $module, 'window.location.reload()' ),
 
 	'Calendar empty dates remain physical drop targets' =>
