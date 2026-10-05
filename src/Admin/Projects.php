@@ -67,10 +67,10 @@ final class Projects {
 		}
 		?>
 		<table class="form-table" role="presentation"><tbody>
-			<tr>
+			<tr data-cb-work-context-row>
 				<th scope="row"><label for="cb-work-project-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label></th>
 				<td>
-					<select id="cb-work-project-context" name="cb_work_project[work_context]" required>
+					<select id="cb-work-project-context" name="cb_work_project[work_context]" data-cb-work-context-select required>
 						<?php if ( '' === $context ) : ?><option value="" selected><?php esc_html_e( 'Needs classification', 'core-blueprint-work' ); ?></option><?php endif; ?>
 						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $context, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
 						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $context, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
@@ -78,7 +78,7 @@ final class Projects {
 					<p class="description"><?php esc_html_e( 'Internal Projects have no customer and are never billable. Customer Projects require a CRM customer.', 'core-blueprint-work' ); ?></p>
 				</td>
 			</tr>
-			<tr>
+			<tr data-cb-work-customer-row>
 				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
 				<td>
 					<?php if ( '' !== $meta['customer_provider'] && null === $selected ) : ?>
