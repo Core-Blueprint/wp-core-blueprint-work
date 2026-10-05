@@ -12,6 +12,7 @@ final class Menu {
 	public const TOP_LEVEL_SLUG        = 'core-blueprint-work';
 	public const WORK_ITEMS_SLUG       = 'core-blueprint-work-items';
 	public const PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project';
+	public const PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import';
 	public const RECURRENCE_SLUG       = 'core-blueprint-work-recurrence';
 	public const TIME_SLUG             = 'core-blueprint-work-time';
 	public const WORK_TYPES_SLUG       = 'core-blueprint-work-types';
@@ -47,6 +48,7 @@ final class Menu {
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
 			add_submenu_page( null, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
+			add_submenu_page( null, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
 			return;
 		}
 
@@ -81,6 +83,10 @@ final class Menu {
 
 	public static function projects_url(): string {
 		return admin_url( self::projects_path() );
+	}
+
+	public static function project_import_url(): string {
+		return add_query_arg( [ 'page' => self::PROJECT_IMPORT_SLUG ], admin_url( 'admin.php' ) );
 	}
 
 	public static function project_workspace_url( int $project_id ): string {
@@ -120,7 +126,7 @@ final class Menu {
 		if ( self::TOP_LEVEL_SLUG === $page ) {
 			return current_user_can( Capabilities::MANAGE ) ? self::CONTEXT_OVERVIEW : self::CONTEXT_TIME;
 		}
-		if ( self::PROJECT_WORKSPACE_SLUG === $page ) {
+		if ( in_array( $page, [ self::PROJECT_WORKSPACE_SLUG, self::PROJECT_IMPORT_SLUG ], true ) ) {
 			return self::CONTEXT_PROJECTS;
 		}
 		if ( self::WORK_ITEMS_SLUG === $page || PostTypes::WORK_ITEM === (string) $screen->post_type ) {
