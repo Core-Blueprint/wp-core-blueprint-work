@@ -1,0 +1,200 @@
+{
+  "format": "core-blueprint-data-exchange",
+  "format_version": 1,
+  "extension_id": "core-blueprint-work",
+  "entity": "project-bundle",
+  "schema_version": 1,
+  "exported_at": "2026-10-06T12:00:00Z",
+  "records": [
+    {
+      "portable_key": "cc72645c-fbc7-42e4-acee-1dfd2df974c2",
+      "title": "Core Blueprint — Acquisition Sprint v1",
+      "description": "Execute the first Core Blueprint customer-acquisition sprint for the WordPress Suite. Overseer remains canonical for strategy and commercial truth; Work tracks operational execution.",
+      "work_context": "internal",
+      "starts_on": "2026-10-07",
+      "due_on": "2026-10-20",
+      "work_items": [
+        {
+          "portable_key": "773c447b-c90f-45ed-be53-8da0d007b97e",
+          "title": "Review Acquisition Sprint v1 Overseer PR #5",
+          "description": "Review the canonical acquisition sprint and confirm the operating plan before execution.",
+          "priority": "urgent",
+          "estimated_minutes": 20,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "6affc0cc-9e85-4910-9718-3d4180e43e35",
+          "title": "Audit free plugin Marketplace inventory",
+          "description": "Identify which free plugins should be publicly downloadable now and verify listing, release and download-path state.",
+          "priority": "urgent",
+          "estimated_minutes": 30,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "1e12e996-d4b1-4027-8452-62a5f90569ef",
+          "title": "Complete Marketplace software listings for priority free plugins",
+          "description": "Complete the public software identity, descriptions, version, requirements, documentation, support, release metadata and download CTA for each priority free plugin.",
+          "priority": "urgent",
+          "estimated_minutes": 90,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "7d63b2a1-ae2f-41c0-9a7c-6c05efcbb0dd",
+          "title": "Build or verify canonical free plugin release ZIPs where required",
+          "description": "Reuse valid canonical artifacts where possible; otherwise build the governed release ZIP and verify package/version/checksum identity.",
+          "priority": "urgent",
+          "estimated_minutes": 60,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "f5b6a4c0-48d7-4aaa-9bde-491b67e3dfe3",
+          "title": "Publish free plugin releases through Marketplace and Repository",
+          "description": "Attach each correct release to its canonical software listing and verify that free delivery does not require a commercial entitlement.",
+          "priority": "urgent",
+          "estimated_minutes": 45,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "e2ac297f-7df8-4fd3-83fe-1087e61a2772",
+          "title": "Verify public free-download flow end-to-end",
+          "description": "Test archive discovery, software single page, download action, package delivery and received ZIP for priority free plugins.",
+          "priority": "urgent",
+          "estimated_minutes": 30,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "4194e40a-b0db-4535-b4aa-cf7794e0efcc",
+          "title": "Review Marketplace archive template",
+          "description": "Check hierarchy, spacing, free/commercial distinction, scanability and CTA clarity on the public software archive.",
+          "priority": "high",
+          "estimated_minutes": 45,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "163828e7-dd8f-446a-b9df-d9119546138a",
+          "title": "Review Marketplace single software template",
+          "description": "Verify that listing data, release/version, requirements, documentation, changelog and free download CTA are presented coherently.",
+          "priority": "high",
+          "estimated_minutes": 60,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "5ee2b0a8-5000-4449-a239-1248523da8ad",
+          "title": "Apply bounded Marketplace archive and single UX polish if needed",
+          "description": "Fix only concrete usability or consistency gaps found during the template review and re-run the relevant Marketplace regressions.",
+          "priority": "high",
+          "estimated_minutes": 75,
+          "scheduled_on": "2026-10-08",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "56b29a79-d0c5-42e1-98e8-19fa778f19ee",
+          "title": "Build acquisition pipeline foundation",
+          "description": "Set up Target → Contacted → Replied → Discovery → Demo → Qualified → Offer → Customer → Activated → Case Study and define the minimum prospect fields.",
+          "priority": "urgent",
+          "estimated_minutes": 45,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "7505913f-e431-4862-9fcf-3787d962b7e7",
+          "title": "Select first five testimonial candidates",
+          "description": "Select existing managed clients who can credibly speak about reliability, continuity, operational control, trust and responsibility.",
+          "priority": "high",
+          "estimated_minutes": 30,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "1f950ca9-b882-48cc-ab29-243b75c8d670",
+          "title": "Define testimonial outreach approach",
+          "description": "Create an outcome-focused testimonial request that asks about the real management experience rather than a generic Core Blueprint review.",
+          "priority": "high",
+          "estimated_minutes": 30,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "4f5bb5b3-48bd-4432-9b0b-41e61dc4e537",
+          "title": "Define ICP qualification and discovery questions",
+          "description": "Define qualification and discovery questions for both agency/operator prospects and organisations with serious digital responsibility.",
+          "priority": "urgent",
+          "estimated_minutes": 45,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "4573dcf5-8597-4e3e-8590-1890ea0fbc80",
+          "title": "Build Operator Pack 10–15 minute demo flow",
+          "description": "Build a concise live flow from operational problem to Base/Backups, Hub/Beacon, central operations, governed updates and the commercial offer.",
+          "priority": "urgent",
+          "estimated_minutes": 60,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "4e014886-d012-4daa-a80b-9b0356f2c247",
+          "title": "Build first qualified prospect batch",
+          "description": "Select and qualify the first ten serious prospects before scaling the prospect list.",
+          "priority": "urgent",
+          "estimated_minutes": 60,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "11473f03-f2e6-4e6d-a0f3-4a383c433973",
+          "title": "Start founder-led outreach batch #1",
+          "description": "Send the first high-quality personalised outreach messages where the acquisition foundation and target fit are clear.",
+          "priority": "urgent",
+          "estimated_minutes": 60,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-08",
+          "status": "planned"
+        },
+        {
+          "portable_key": "a8cd44f3-8c62-416b-b981-89a1836574da",
+          "title": "Review commercial E2E blockers",
+          "description": "Identify only the technical, commerce, legal or support blockers that prevent an interested prospect from becoming a real customer.",
+          "priority": "high",
+          "estimated_minutes": 30,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        },
+        {
+          "portable_key": "1e00c0a1-aa54-42ca-970c-49db88e38a18",
+          "title": "Acquisition sprint daily review",
+          "description": "Review active acquisition Work Items, replies, demos, blockers, overdue follow-ups and next actions; update the Work board and calendar.",
+          "priority": "normal",
+          "estimated_minutes": 15,
+          "scheduled_on": "2026-10-07",
+          "due_on": "2026-10-07",
+          "status": "planned"
+        }
+      ]
+    }
+  ]
+}
