@@ -2228,3 +2228,21 @@ msgstr "aucun"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Prêt"
+
+msgid "You are not allowed to move Work Items on the calendar."
+msgstr "Vous n’êtes pas autorisé à déplacer des éléments de travail dans le calendrier."
+
+msgid "The calendar move is invalid."
+msgstr "Le déplacement dans le calendrier est invalide."
+
+msgid "The Work Item could not be found."
+msgstr "L’élément de travail est introuvable."
+
+msgid "The Work Item date could not be updated."
+msgstr "La date de l’élément de travail n’a pas pu être mise à jour."
+
+msgid "Move %1$s %2$s date"
+msgstr "Déplacer la date %2$s de %1$s"
+
+msgid "Move to another date"
+msgstr "Déplacer vers une autre date"
