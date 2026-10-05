@@ -7,10 +7,12 @@ use CoreBlueprint\Core\Governance\Audit;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\ProjectMeta;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Governance\Events;
 use CB\Work\Integration\CRMCustomers;
 use CB\Work\Repository\Projects as ProjectRepository;
+use CB\Work\Repository\RecurrenceRules;
 use CB\Work\Repository\WorkItems;
 
 defined( 'ABSPATH' ) || exit;
@@ -49,6 +51,10 @@ final class Projects {
 
 	public static function render_details( \WP_Post $post ): void {
 		$meta     = ProjectMeta::get( (int) $post->ID );
+		$context  = (string) $meta['work_context'];
+		if ( '' === $context && 'auto-draft' === $post->post_status ) {
+			$context = WorkContext::INTERNAL;
+		}
 		$selected = CRMCustomers::selected( $meta['customer_provider'], $meta['customer_type'], $meta['customer_id'] );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
@@ -59,6 +65,17 @@ final class Projects {
 		}
 		?>
 		<table class="form-table" role="presentation"><tbody>
+			<tr>
+				<th scope="row"><label for="cb-work-project-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label></th>
+				<td>
+					<select id="cb-work-project-context" name="cb_work_project[work_context]" required>
+						<?php if ( '' === $context ) : ?><option value="" selected><?php esc_html_e( 'Needs classification', 'core-blueprint-work' ); ?></option><?php endif; ?>
+						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $context, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $context, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'Internal Projects have no customer and are never billable. Customer Projects require a CRM customer.', 'core-blueprint-work' ); ?></p>
+				</td>
+			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
 				<td>
@@ -162,6 +179,7 @@ final class Projects {
 		}
 
 		$save = [
+			'work_context'      => $input['work_context'] ?? $current['work_context'],
 			'customer_provider' => $current['customer_provider'],
 			'customer_type'     => $current['customer_type'],
 			'customer_id'       => $current['customer_id'],
@@ -169,6 +187,8 @@ final class Projects {
 			'due_on'            => $input['due_on'] ?? $current['due_on'],
 		];
 		if ( ProjectMeta::save( $post_id, $save ) ) {
+			WorkItems::sync_project_context( $post_id );
+			RecurrenceRules::sync_project_context( $post_id );
 			if ( ! ProjectMeta::is_initialized( $post_id ) ) {
 				ProjectMeta::mark_initialized( $post_id );
 				do_action( 'cb_work_project_created', $post_id, ProjectRepository::get( $post_id ) );
@@ -185,6 +205,7 @@ final class Projects {
 		foreach ( $columns as $key => $label ) {
 			$out[ $key ] = $label;
 			if ( 'title' === $key ) {
+				$out['cb_work_context']    = __( 'Context', 'core-blueprint-work' );
 				$out['cb_work_customer']   = __( 'Customer', 'core-blueprint-work' );
 				$out['cb_work_due']        = __( 'Due', 'core-blueprint-work' );
 				$out['cb_work_item_count'] = __( 'Work Items', 'core-blueprint-work' );
@@ -195,6 +216,10 @@ final class Projects {
 
 	public static function column( string $column, int $post_id ): void {
 		$meta = ProjectMeta::get( $post_id );
+		if ( 'cb_work_context' === $column ) {
+			echo esc_html( '' !== $meta['work_context'] ? self::humanize( $meta['work_context'] ) : __( 'Needs classification', 'core-blueprint-work' ) );
+			return;
+		}
 		if ( 'cb_work_customer' === $column ) {
 			$label = CRMCustomers::label( $meta['customer_provider'], $meta['customer_type'], $meta['customer_id'] );
 			echo esc_html( '' !== $label ? $label : '—' );
