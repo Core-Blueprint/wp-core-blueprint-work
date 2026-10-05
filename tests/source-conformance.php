@@ -138,7 +138,7 @@ foreach ( $schemaTables as $table ) {
 $checks = [
 	'launch candidate version is rc1' => str_contains( $bootstrap, 'Version:           1.0.0-rc1' ) && str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ),
 	'canonical native Base dependency is exact' => 1 === preg_match( '/^[ \t]*\*[ \t]*Requires Plugins:[ \t]*core-blueprint[ \t]*$/m', $bootstrap ),
-	'PHP and Core API launch boundaries are explicit' => str_contains( $bootstrap, "CB_WORK_MIN_PHP', '8.4'" ) && str_contains( $bootstrap, "CB_WORK_REQUIRED_API', '1.0'" ),
+	'PHP and Core API launch boundaries are explicit' => str_contains( $bootstrap, "CB_WORK_MIN_PHP', '8.4'" ) && str_contains( $bootstrap, "CB_WORK_REQUIRED_API', '1.1'" ),
 	'generic Bootstrap stays implementation agnostic' => ! str_contains( $requirements, 'class_exists(' ) && ! str_contains( $requirements, 'SchemaRegistry' ),
 	'canonical Bootstrap copy is present' => str_contains( $requirements, 'Core Blueprint must be installed and active.' ) && str_contains( $requirements, 'Available Core API: %2$s.' ),
 	'Work owns explicit product-contract readiness' => str_contains( $bootstrap, 'function cb_work_product_contracts_ready(): bool' ) && str_contains( $bootstrap, 'SchemaRegistry' ) && str_contains( $bootstrap, 'ExtensionRegistry' ) && str_contains( $bootstrap, 'Governance\\\\Audit' ) && str_contains( $bootstrap, 'SettingsRegistry' ),
