@@ -99,6 +99,7 @@
 			form.querySelector( 'select[name="service_id"]' ),
 			form.querySelector( 'select[name="priority"]' ),
 			form.querySelector( 'select[name="work_type_id"]' ),
+			form.querySelector( 'select[name="work_context"]' ),
 			form.querySelector( 'select[name="billing"]' ),
 			picker( form, 'cb-work-filter-customer' ),
 			picker( form, 'cb-work-filter-assignee' ),
