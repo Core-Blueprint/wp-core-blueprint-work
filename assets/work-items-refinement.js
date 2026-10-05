@@ -295,7 +295,7 @@
 		if ( ! calendar || ! navigation || calendar.querySelector( '.card' ) || page.querySelector( '.cb-work-calendar-empty-note' ) ) {
 			return;
 		}
-		const note = element( 'p', 'description cb-work-calendar-empty-note', strings.noScheduledThisMonth || 'No scheduled work this month.' );
+		const note = element( 'p', 'description cb-work-calendar-empty-note', strings.noScheduledThisMonth || 'No scheduled work or deadlines this month.' );
 		navigation.insertAdjacentElement( 'afterend', note );
 	}
 
