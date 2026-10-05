@@ -114,26 +114,6 @@
 		container.appendChild( element( 'span', 'cb-work-filter-chip', label + ': ' + value ) );
 	}
 
-	function enhanceCalendarNavigation( page, currentView, strings ) {
-		if ( currentView !== 'calendar' ) {
-			return;
-		}
-
-		const actions = page.querySelector( '.cb-work-calendar-navigation .actions' );
-		const previous = actions ? actions.querySelector( 'a.button' ) : null;
-		if ( ! actions || ! previous || actions.querySelector( '.cb-work-calendar-today' ) ) {
-			return;
-		}
-
-		const now = new Date();
-		const month = String( now.getFullYear() ) + '-' + String( now.getMonth() + 1 ).padStart( 2, '0' );
-		const url = new URL( window.location.href );
-		url.searchParams.set( 'calendar_month', month );
-
-		const today = element( 'a', 'button cb-work-calendar-today', strings.today || 'Today' );
-		today.href = url.toString();
-		previous.insertAdjacentElement( 'afterend', today );
-	}
 
 	function initWorkItems() {
 		const page = document.querySelector( '.cb-work-items-page' );
@@ -313,7 +293,6 @@
 			header.appendChild( resultCount );
 		}
 
-		enhanceCalendarNavigation( page, currentView, strings );
 
 		const emptyParagraph = Array.from( page.children ).find( function ( child ) {
 			return child.tagName === 'P' && ! child.classList.contains( 'description' ) && child.textContent.trim() !== '';
