@@ -80,6 +80,7 @@ namespace {
 			'_scheduled' => '2026-09-07',
 			'_due' => '2026-09-08',
 			'_billing' => 'hourly',
+			'_context' => 'customer',
 			'_customer_provider' => 'crm',
 			'_customer_type' => 'contact',
 			'_customer_id' => '42',
@@ -93,6 +94,7 @@ namespace {
 			'_scheduled' => '2026-09-09',
 			'_due' => '2026-09-20',
 			'_billing' => 'hourly',
+			'_context' => 'customer',
 			'_customer_provider' => 'crm',
 			'_customer_type' => 'organization',
 			'_customer_id' => '42',
@@ -106,6 +108,7 @@ namespace {
 			'_scheduled' => '2026-09-08',
 			'_due' => '2026-09-10',
 			'_billing' => 'hourly',
+			'_context' => 'customer',
 			'_customer_provider' => 'crm',
 			'_customer_type' => 'organization',
 			'_customer_id' => '42',
@@ -132,6 +135,18 @@ namespace {
 }
 
 namespace CB\Work\Domain {
+	final class WorkContext {
+		public const INTERNAL = 'internal';
+		public const CUSTOMER = 'customer';
+		public static function all(): array { return [ self::INTERNAL, self::CUSTOMER ]; }
+		public static function is_valid( string $value ): bool { return in_array( $value, self::all(), true ); }
+		public static function sanitize( mixed $value ): string {
+			$value = \sanitize_key( is_scalar( $value ) ? (string) $value : '' );
+			return self::is_valid( $value ) ? $value : '';
+		}
+		public static function requires_customer( string $value ): bool { return self::CUSTOMER === $value; }
+	}
+
 	final class WorkItemStatus {
 		public const PLANNED = 'planned';
 		public const IN_PROGRESS = 'in_progress';
@@ -160,6 +175,7 @@ namespace CB\Work\Content {
 	final class PostTypes { public const WORK_ITEM = 'cb_work_item'; }
 
 	final class WorkItemMeta {
+		public const WORK_CONTEXT = '_context';
 		public const CUSTOMER_PROVIDER = '_customer_provider';
 		public const CUSTOMER_TYPE = '_customer_type';
 		public const CUSTOMER_ID = '_customer_id';
@@ -176,6 +192,7 @@ namespace CB\Work\Content {
 		public static function get( int $id ): array {
 			$meta = $GLOBALS['cb_work_d2_meta'][ $id ];
 			return [
+				'work_context' => $meta[self::WORK_CONTEXT] ?? '',
 				'customer_provider' => $meta[self::CUSTOMER_PROVIDER] ?? '',
 				'customer_type' => $meta[self::CUSTOMER_TYPE] ?? '',
 				'customer_id' => $meta[self::CUSTOMER_ID] ?? '',
@@ -233,6 +250,7 @@ namespace {
 		'statuses' => [ 'planned', 'invalid', 'in_progress', 'planned' ],
 		'priorities' => 'high',
 		'billing_dispositions' => [ 'hourly', 'invalid' ],
+		'work_context' => 'customer',
 		'project_id' => '9',
 		'per_page' => 999,
 		'sort' => 'invalid',
@@ -240,6 +258,7 @@ namespace {
 	assert_true( [ 'planned', 'in_progress' ] === $criteria['statuses'], 'criteria normalize valid statuses once and preserve their order.' );
 	assert_true( [ 'high' ] === $criteria['priorities'], 'criteria accept scalar enum filters.' );
 	assert_true( [ 'hourly' ] === $criteria['billing_dispositions'], 'criteria reject invalid billing filters.' );
+	assert_true( 'customer' === $criteria['work_context'], 'criteria normalize canonical Work context.' );
 	assert_true( 9 === $criteria['project_id'], 'criteria normalize object IDs.' );
 	assert_true( 500 === $criteria['per_page'], 'criteria preserve the established repository limit ceiling.' );
 	assert_true( 'workload' === $criteria['sort'], 'invalid sort falls back to canonical workload order.' );
@@ -254,6 +273,7 @@ namespace {
 		'work_type_id' => '6',
 		'assignee_id' => '7',
 		'billing' => 'hourly',
+		'work_context' => 'customer',
 		'customer' => 'crm:organization:42',
 		'scheduled_from' => '2026-09-01',
 		'due_to' => '2026-09-30',
@@ -263,6 +283,7 @@ namespace {
 	assert_true( 'kanban' === $state['view'], 'view state preserves a supported renderer.' );
 	assert_true( true === $state['customer_valid'], 'opaque customer token resolves through the canonical Work adapter.' );
 	assert_true( [ 'provider' => 'crm', 'type' => 'organization', 'id' => '42' ] === $state['query']['customer'], 'view state maps opaque transport to canonical customer criteria.' );
+	assert_true( 'customer' === $state['query']['work_context'], 'view state carries Work context into canonical criteria.' );
 	assert_true( [ 'planned', 'in_progress' ] === $state['query']['statuses'], 'active status maps to the canonical active workload states.' );
 	assert_true( 2 === $state['query']['page'], 'view pagination flows into canonical query criteria.' );
 
@@ -302,6 +323,7 @@ namespace {
 		'work_type_id' => 6,
 		'assignee_id' => 7,
 		'billing_dispositions' => [ 'hourly' ],
+		'work_context' => 'customer',
 		'customer' => [ 'provider' => 'crm', 'type' => 'organization', 'id' => '42' ],
 		'scheduled_from' => '2026-09-01',
 		'due_to' => '2026-09-30',
@@ -315,7 +337,7 @@ namespace {
 	assert_true( [ 3, 1 ] === ( $args['post__in'] ?? [] ), 'assignee filter resolves through the Work-owned assignment table.' );
 	assert_true( isset( $args['meta_query'] ) && is_array( $args['meta_query'] ), 'canonical metadata filters are combined in one WP query.' );
 	$serialized_filters = serialize( $args['meta_query'] );
-	foreach ( [ '_status', '_priority', '_project', '_service', '_type', '_billing', '_customer_provider', '_customer_type', '_customer_id', '_scheduled', '_due' ] as $key ) {
+	foreach ( [ '_status', '_priority', '_project', '_service', '_type', '_billing', '_context', '_customer_provider', '_customer_type', '_customer_id', '_scheduled', '_due' ] as $key ) {
 		assert_true( str_contains( $serialized_filters, $key ), "meta filter {$key} is present." );
 	}
 	assert_true( 2 === $result['total'] && 2 === $result['pages'], 'result contract reports total and page count after assignee intersection.' );
