@@ -2208,3 +2208,12 @@ msgstr "nenhum"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Pronto"
+
+msgid "Reopen"
+msgstr "Reabrir"
+
+msgid "Reopen as Planned"
+msgstr "Reabrir como planeado"
+
+msgid "Reopen as Blocked"
+msgstr "Reabrir como bloqueado"
