@@ -76,8 +76,8 @@ final class WorkItemViewState {
 		$calendar_month          = '';
 		$scheduled_from          = self::date( $request['scheduled_from'] ?? '' );
 		$scheduled_to            = self::date( $request['scheduled_to'] ?? '' );
-		$query_scheduled_from    = $scheduled_from;
-		$query_scheduled_to      = $scheduled_to;
+		$calendar_from           = '';
+		$calendar_to             = '';
 		$per_page                = 50;
 		if ( self::VIEW_CALENDAR === $view ) {
 			$calendar_month = self::month( $request['calendar_month'] ?? '' );
@@ -85,8 +85,8 @@ final class WorkItemViewState {
 				$calendar_month = self::month( current_time( 'Y-m' ) );
 			}
 			$bounds               = self::month_bounds( $calendar_month );
-			$query_scheduled_from = $bounds['from'];
-			$query_scheduled_to   = $bounds['to'];
+			$calendar_from = $bounds['from'];
+			$calendar_to   = $bounds['to'];
 			$per_page             = 500;
 		}
 
@@ -125,8 +125,10 @@ final class WorkItemViewState {
 			'billing_dispositions' => '' === $billing ? [] : [ $billing ],
 			'work_context'         => $context,
 			'customer'             => $customer,
-			'scheduled_from'       => $query_scheduled_from,
-			'scheduled_to'         => $query_scheduled_to,
+			'calendar_from'        => $calendar_from,
+			'calendar_to'          => $calendar_to,
+			'scheduled_from'       => $state['scheduled_from'],
+			'scheduled_to'         => $state['scheduled_to'],
 			'due_from'             => $state['due_from'],
 			'due_to'               => $state['due_to'],
 			'sort'                 => $sort,
