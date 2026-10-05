@@ -55,6 +55,8 @@ final class WorkItemQuery {
 			'billing_dispositions' => $billing,
 			'work_context'         => $context,
 			'customer'             => $customer,
+			'calendar_from'        => self::date( $input['calendar_from'] ?? '' ),
+			'calendar_to'          => self::date( $input['calendar_to'] ?? '' ),
 			'scheduled_from'       => self::date( $input['scheduled_from'] ?? '' ),
 			'scheduled_to'         => self::date( $input['scheduled_to'] ?? '' ),
 			'due_from'             => self::date( $input['due_from'] ?? '' ),
