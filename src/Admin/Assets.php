@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
 final class Assets {
 	private const STYLE_HANDLE             = 'cb-work-admin';
 	private const WORKSPACE_STYLE_HANDLE   = 'cb-work-workspace';
+	private const CONTEXT_SCRIPT_HANDLE      = 'cb-work-context';
 	private const PROJECT_STYLE_HANDLE     = 'cb-work-project-workspace';
 	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
 	private const QUICK_ADD_STYLE_HANDLE   = 'cb-work-quick-add';
@@ -38,6 +39,7 @@ final class Assets {
 		}
 
 		self::enqueue_workspace_style();
+		self::enqueue_context_script();
 		self::enqueue_quick_add_assets();
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( Menu::PROJECT_WORKSPACE_SLUG === $page ) {
@@ -55,6 +57,16 @@ final class Assets {
 		self::enqueue_script();
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
+	}
+
+	private static function enqueue_context_script(): void {
+		$file = CB_WORK_DIR . 'assets/work-context.js';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script( self::CONTEXT_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-context.js', [], $version, true );
 	}
 
 	private static function enqueue_workspace_style(): void {
