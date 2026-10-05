@@ -307,6 +307,75 @@
 	margin: 0;
 }
 
+/* Table preferences ---------------------------------------------------- */
+
+.cb-work-table-preferences {
+	position: relative;
+}
+
+.cb-work-table-preferences__toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin: 0 0 var(--cb-space-2);
+}
+
+.cb-work-table-preferences__panel {
+	position: absolute;
+	z-index: 20;
+	inset-block-start: 34px;
+	inset-inline-end: 0;
+	width: min(320px, calc(100vw - 48px));
+	padding: var(--cb-space-3);
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-sm);
+	box-shadow: var(--cb-work-shadow);
+}
+
+.cb-work-table-preferences__list {
+	display: grid;
+	gap: var(--cb-space-1);
+}
+
+.cb-work-table-preferences__item {
+	display: grid;
+	grid-template-columns: 32px minmax(0, 1fr);
+	align-items: center;
+	gap: var(--cb-space-1);
+	min-height: 34px;
+	padding: var(--cb-space-1);
+	border-radius: var(--cb-radius-sm);
+}
+
+.cb-work-table-preferences__item:hover {
+	background: var(--cb-interactive-hover);
+}
+
+.cb-work-table-preferences__item label {
+	display: flex;
+	align-items: center;
+	gap: var(--cb-space-2);
+	margin: 0;
+}
+
+.cb-work-table-preferences__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--cb-space-2);
+	margin-top: var(--cb-space-3);
+	padding-top: var(--cb-space-2);
+	border-top: 1px solid var(--cb-work-border);
+}
+
+.cb-work-table-preferences__footer .description {
+	margin: 0;
+}
+
+.cb-work-items-table [data-cb-work-column="actions"] {
+	white-space: nowrap;
+}
+
 /* Calendar -------------------------------------------------------------
  * Semantic month grid with server-rendered navigation and explicit planning
  * versus deadline projection.
