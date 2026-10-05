@@ -2203,3 +2203,21 @@ msgstr ""
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr ""
+
+msgid "You are not allowed to move Work Items on the calendar."
+msgstr ""
+
+msgid "The calendar move is invalid."
+msgstr ""
+
+msgid "The Work Item could not be found."
+msgstr ""
+
+msgid "The Work Item date could not be updated."
+msgstr ""
+
+msgid "Move %1$s %2$s date"
+msgstr ""
+
+msgid "Move to another date"
+msgstr ""
