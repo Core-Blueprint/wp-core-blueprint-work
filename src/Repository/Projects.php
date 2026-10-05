@@ -94,6 +94,44 @@ final class Projects {
 		return $post_id;
 	}
 
+
+	/** @param array<string,mixed> $input */
+	public static function update( int $id, array $input ): bool {
+		$current = self::get( $id );
+		if ( null === $current ) {
+			return false;
+		}
+
+		$title = sanitize_text_field( (string) ( $input['title'] ?? $current['title'] ) );
+		if ( '' === $title ) {
+			return false;
+		}
+		$description = (string) ( $input['description'] ?? $current['description'] );
+		$meta = [
+			'work_context'      => $input['work_context'] ?? $current['work_context'],
+			'customer_provider' => $input['customer_provider'] ?? $current['customer_provider'],
+			'customer_type'     => $input['customer_type'] ?? $current['customer_type'],
+			'customer_id'       => $input['customer_id'] ?? $current['customer_id'],
+			'starts_on'         => $input['starts_on'] ?? $current['starts_on'],
+			'due_on'            => $input['due_on'] ?? $current['due_on'],
+		];
+
+		$result = wp_update_post( [
+			'ID'           => $id,
+			'post_title'   => $title,
+			'post_content' => wp_kses_post( $description ),
+		], true );
+		if ( is_wp_error( $result ) || $result <= 0 || ! ProjectMeta::save( $id, $meta ) ) {
+			return false;
+		}
+
+		if ( ! ProjectMeta::is_initialized( $id ) ) {
+			ProjectMeta::mark_initialized( $id );
+		}
+		do_action( 'cb_work_project_updated', $id, self::get( $id ), $current );
+		return true;
+	}
+
 	/** @return array<string,mixed>|null */
 	private static function project( \WP_Post $post ): ?array {
 		if ( PostTypes::PROJECT !== $post->post_type ) {
