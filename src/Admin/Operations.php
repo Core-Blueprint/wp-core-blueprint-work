@@ -425,17 +425,32 @@ final class Operations {
 			return;
 		}
 
-		$items_by_date = [];
+		$entries_by_date = [];
 		foreach ( $items as $item ) {
 			$scheduled_on = (string) ( $item['scheduled_on'] ?? '' );
-			if ( ! str_starts_with( $scheduled_on, $month . '-' ) ) {
-				continue;
+			$due_on       = (string) ( $item['due_on'] ?? '' );
+			$scheduled_in_month = str_starts_with( $scheduled_on, $month . '-' );
+			$due_in_month       = str_starts_with( $due_on, $month . '-' );
+
+			if ( $scheduled_in_month ) {
+				$entries_by_date[ $scheduled_on ][] = [
+					'kind'      => 'scheduled',
+					'item'      => $item,
+					'due_today' => '' !== $due_on && $due_on === $scheduled_on,
+				];
 			}
-			$items_by_date[ $scheduled_on ][] = $item;
+			if ( $due_in_month && ( ! $scheduled_in_month || $due_on !== $scheduled_on ) ) {
+				$entries_by_date[ $due_on ][] = [
+					'kind'      => 'due',
+					'item'      => $item,
+					'due_today' => true,
+				];
+			}
 		}
 
 		$previous_month = $first->modify( '-1 month' )->format( 'Y-m' );
 		$next_month     = $first->modify( '+1 month' )->format( 'Y-m' );
+		$current_month  = current_time( 'Y-m' );
 		$days_in_month  = (int) $first->format( 't' );
 		$leading_cells  = (int) $first->format( 'N' ) - 1;
 		$weekdays       = [
@@ -448,14 +463,15 @@ final class Operations {
 			__( 'Sunday', 'core-blueprint-work' ),
 		];
 		?>
-		<div class="tablenav top cb-work-calendar-navigation">
-			<div class="alignleft actions">
+		<nav class="cb-work-calendar-navigation" aria-label="<?php esc_attr_e( 'Calendar navigation', 'core-blueprint-work' ); ?>">
+			<div class="cb-work-calendar-navigation__controls">
 				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $previous_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Previous month', 'core-blueprint-work' ); ?></a>
-				<strong style="display:inline-block;padding:6px 12px"><?php echo esc_html( wp_date( 'F Y', $first->getTimestamp() ) ); ?></strong>
+				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $current_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></a>
+				<strong class="cb-work-calendar-navigation__month"><?php echo esc_html( wp_date( 'F Y', $first->getTimestamp() ) ); ?></strong>
 				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $next_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Next month', 'core-blueprint-work' ); ?></a>
 			</div>
-		</div>
-		<table class="widefat cb-work-items-calendar" style="table-layout:fixed">
+		</nav>
+		<table class="widefat cb-work-items-calendar">
 			<thead><tr>
 				<?php foreach ( $weekdays as $weekday ) : ?>
 					<th scope="col"><?php echo esc_html( $weekday ); ?></th>
@@ -470,22 +486,29 @@ final class Operations {
 			<?php endfor; ?>
 			<?php for ( $day = 1; $day <= $days_in_month; $day++ ) : ?>
 				<?php
-				$date      = $month . '-' . str_pad( (string) $day, 2, '0', STR_PAD_LEFT );
-				$day_items = $items_by_date[ $date ] ?? [];
+				$date        = $month . '-' . str_pad( (string) $day, 2, '0', STR_PAD_LEFT );
+				$day_entries = $entries_by_date[ $date ] ?? [];
 				?>
-				<td style="vertical-align:top;min-height:140px">
-					<strong><?php echo esc_html( (string) $day ); ?></strong>
-					<?php foreach ( $day_items as $item ) : ?>
-						<div class="card" style="max-width:none;margin:8px 0;padding:8px">
-							<strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong>
-							<p style="margin:6px 0">
+				<td class="cb-work-calendar-day">
+					<strong class="cb-work-calendar-day__number"><?php echo esc_html( (string) $day ); ?></strong>
+					<?php foreach ( $day_entries as $entry ) :
+						$item = $entry['item'];
+						$kind = (string) $entry['kind'];
+						$is_due = 'due' === $kind;
+						?>
+						<article class="cb-work-calendar-entry cb-work-calendar-entry--<?php echo esc_attr( $kind ); ?>">
+							<div class="cb-work-calendar-entry__meta">
+								<span class="cb-work-calendar-entry__kind"><?php echo esc_html( $is_due ? __( 'Due', 'core-blueprint-work' ) : __( 'Scheduled', 'core-blueprint-work' ) ); ?></span>
+								<?php if ( ! $is_due && ! empty( $entry['due_today'] ) ) : ?>
+									<span class="cb-work-calendar-entry__due"><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span>
+								<?php endif; ?>
+							</div>
+							<strong class="cb-work-calendar-entry__title"><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong>
+							<p class="cb-work-calendar-entry__details">
 								<?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?> · <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
-								<strong><?php esc_html_e( 'Due:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?><br>
-								<strong><?php esc_html_e( 'Project:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br>
-								<strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?>
+								<?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?>
 							</p>
-							<?php self::transition_buttons( $item, $state ); ?>
-						</div>
+						</article>
 					<?php endforeach; ?>
 				</td>
 				<?php $cell++; ?>
