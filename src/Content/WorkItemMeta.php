@@ -4,12 +4,14 @@ declare(strict_types=1);
 namespace CB\Work\Content;
 
 use CB\Work\Capabilities;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 
 defined( 'ABSPATH' ) || exit;
 
 final class WorkItemMeta {
+	public const WORK_CONTEXT         = '_cb_work_item_context';
 	public const CUSTOMER_PROVIDER    = '_cb_work_item_customer_provider';
 	public const CUSTOMER_TYPE        = '_cb_work_item_customer_type';
 	public const CUSTOMER_ID          = '_cb_work_item_customer_id';
@@ -46,6 +48,7 @@ final class WorkItemMeta {
 			'auth_callback'     => static fn(): bool => current_user_can( Capabilities::MANAGE ),
 		];
 
+		register_post_meta( PostTypes::WORK_ITEM, self::WORK_CONTEXT, $string( [ WorkContext::class, 'sanitize' ] ) );
 		register_post_meta( PostTypes::WORK_ITEM, self::CUSTOMER_PROVIDER, $string( [ self::class, 'sanitize_reference_part' ] ) );
 		register_post_meta( PostTypes::WORK_ITEM, self::CUSTOMER_TYPE, $string( [ self::class, 'sanitize_reference_part' ] ) );
 		register_post_meta( PostTypes::WORK_ITEM, self::CUSTOMER_ID, $string( [ self::class, 'sanitize_reference_id' ] ) );
@@ -71,6 +74,14 @@ final class WorkItemMeta {
 
 	/** @return array<string,mixed> */
 	public static function get( int $work_item_id ): array {
+		$context  = WorkContext::sanitize( get_post_meta( $work_item_id, self::WORK_CONTEXT, true ) );
+		$provider = (string) get_post_meta( $work_item_id, self::CUSTOMER_PROVIDER, true );
+		$type     = (string) get_post_meta( $work_item_id, self::CUSTOMER_TYPE, true );
+		$id       = (string) get_post_meta( $work_item_id, self::CUSTOMER_ID, true );
+		if ( '' === $context && '' !== $provider && '' !== $type && '' !== $id ) {
+			$context = WorkContext::CUSTOMER;
+		}
+
 		$priority = sanitize_key( (string) get_post_meta( $work_item_id, self::PRIORITY, true ) );
 		$status   = sanitize_key( (string) get_post_meta( $work_item_id, self::STATUS, true ) );
 
@@ -82,9 +93,10 @@ final class WorkItemMeta {
 		}
 
 		return [
-			'customer_provider'   => (string) get_post_meta( $work_item_id, self::CUSTOMER_PROVIDER, true ),
-			'customer_type'       => (string) get_post_meta( $work_item_id, self::CUSTOMER_TYPE, true ),
-			'customer_id'         => (string) get_post_meta( $work_item_id, self::CUSTOMER_ID, true ),
+			'work_context'        => $context,
+			'customer_provider'   => $provider,
+			'customer_type'       => $type,
+			'customer_id'         => $id,
 			'project_id'          => self::optional_id( $work_item_id, self::PROJECT_ID ),
 			'service_id'          => self::optional_id( $work_item_id, self::SERVICE_ID ),
 			'work_type_id'        => self::optional_id( $work_item_id, self::WORK_TYPE_ID ),
@@ -101,6 +113,7 @@ final class WorkItemMeta {
 
 	/** @param array<string,mixed> $details */
 	public static function save_details( int $work_item_id, array $details ): void {
+		self::write_string( $work_item_id, self::WORK_CONTEXT, (string) ( $details['work_context'] ?? '' ) );
 		self::write_string( $work_item_id, self::CUSTOMER_PROVIDER, (string) ( $details['customer_provider'] ?? '' ) );
 		self::write_string( $work_item_id, self::CUSTOMER_TYPE, (string) ( $details['customer_type'] ?? '' ) );
 		self::write_string( $work_item_id, self::CUSTOMER_ID, (string) ( $details['customer_id'] ?? '' ) );
