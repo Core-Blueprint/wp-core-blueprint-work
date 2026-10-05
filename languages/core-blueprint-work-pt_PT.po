@@ -2079,3 +2079,30 @@ msgstr "nenhum"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Pronto"
+
+msgid "Work context"
+msgstr "Contexto de trabalho"
+
+msgid "Needs classification"
+msgstr "Classificação necessária"
+
+msgid "Internal"
+msgstr "Interno"
+
+msgid "Internal Projects have no customer and are never billable. Customer Projects require a CRM customer."
+msgstr "Os projetos internos não têm cliente e nunca são faturáveis. Os projetos de cliente requerem um cliente no CRM."
+
+msgid "When a Project is selected, the Project context and customer are authoritative."
+msgstr "Quando um projeto está selecionado, prevalecem o contexto e o cliente do projeto."
+
+msgid "Context"
+msgstr "Contexto"
+
+msgid "Filter by Work context"
+msgstr "Filtrar por contexto de trabalho"
+
+msgid "All contexts"
+msgstr "Todos os contextos"
+
+msgid "Edit context, customer, dates and description"
+msgstr "Editar contexto, cliente, datas e descrição"
