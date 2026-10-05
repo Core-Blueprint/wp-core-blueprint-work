@@ -328,9 +328,10 @@ final class RecurrenceRules {
 			'customer_provider' => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_provider'] ?? '' ) : '',
 			'customer_type'     => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_type'] ?? '' ) : '',
 			'customer_id'       => WorkContext::CUSTOMER === $context ? (string) ( $project['customer_id'] ?? '' ) : '',
+			'updated_by'        => get_current_user_id(),
 			'updated_at'        => current_time( 'mysql', true ),
 		];
-		$formats = [ '%s', '%s', '%s', '%s', '%s' ];
+		$formats = [ '%s', '%s', '%s', '%s', '%d', '%s' ];
 		if ( WorkContext::INTERNAL === $context ) {
 			$data['billing_disposition'] = BillingDisposition::NON_BILLABLE;
 			$formats[] = '%s';
