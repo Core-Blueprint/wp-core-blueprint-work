@@ -300,6 +300,32 @@ final class WorkItems {
 		return true;
 	}
 
+	public static function sync_project_context( int $project_id ): int {
+		if ( $project_id <= 0 || null === Projects::get( $project_id ) || ! self::schema_ready() ) {
+			return 0;
+		}
+
+		$page    = 1;
+		$updated = 0;
+		do {
+			$result = self::search( [
+				'statuses'   => WorkItemStatus::active(),
+				'project_id' => $project_id,
+				'page'       => $page,
+				'per_page'   => 100,
+				'sort'       => WorkItemQuery::SORT_UPDATED,
+			] );
+			foreach ( $result['items'] as $item ) {
+				if ( self::update( (int) $item['id'], [] ) ) {
+					$updated++;
+				}
+			}
+			$page++;
+		} while ( $page <= (int) $result['pages'] );
+
+		return $updated;
+	}
+
 	public static function transition_status( int $id, string $to, int $actor_user_id = 0 ): bool {
 		$item = self::get( $id );
 		$to   = sanitize_key( $to );
