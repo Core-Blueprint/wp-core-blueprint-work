@@ -188,6 +188,7 @@ const initBoardReorder = (root) => {
 				? result.allowed_statuses.join(',')
 				: '';
 			refreshBoardCounts(root);
+			window.location.reload();
 			return true;
 		},
 	});
