@@ -132,7 +132,10 @@ final class WorkItemMeta {
 		if ( WorkItemStatus::COMPLETED === $status ) {
 			update_post_meta( $work_item_id, self::COMPLETED_AT, current_time( 'mysql', true ) );
 			self::write_id( $work_item_id, self::COMPLETED_BY, max( 0, $actor_user_id ) );
+			return;
 		}
+		delete_post_meta( $work_item_id, self::COMPLETED_AT );
+		delete_post_meta( $work_item_id, self::COMPLETED_BY );
 	}
 
 	public static function ensure_status( int $work_item_id ): void {
