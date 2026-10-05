@@ -2189,3 +2189,6 @@ msgstr "In einen anderen Status verschieben"
 
 msgid "No scheduled work or deadlines this month."
 msgstr "Keine geplanten Arbeiten oder Fristen in diesem Monat."
+
+msgid "Type"
+msgstr "Typ"
