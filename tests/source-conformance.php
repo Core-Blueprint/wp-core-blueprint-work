@@ -161,6 +161,7 @@ $checks = [
 	'pricing provider seam no longer labels active CRM input as legacy' => ! str_contains( $pricingProviders, 'legacy numeric compatibility field' ),
 	'failed activation uses canonical requirements title and Plugins return' => str_contains( $lifecycle, 'Core Blueprint requirements not met' ) && str_contains( $lifecycle, "admin_url( 'plugins.php' )" ) && str_contains( $lifecycle, 'deactivate_plugins( CB_WORK_BASENAME )' ),
 	'release builder is deterministic-authority aware' => str_contains( $buildRelease, 'core-blueprint-work' ),
+	'release builder defaults to canonical dist output' => str_contains( $buildRelease, 'DIST="${CB_RELEASE_DIST:-$ROOT/dist}"' ),
 	'check runner retains workspace and Data Exchange regressions' => str_contains( $checkRunner, 'workspace-foundation-smoke.php' ) && str_contains( $checkRunner, 'project-workspace-smoke.php' ) && str_contains( $checkRunner, 'data-exchange-tax-rates-smoke.php' ),
 ];
 
