@@ -724,7 +724,7 @@ final class Operations {
 					<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 				<?php endforeach; ?>
 				<?php wp_nonce_field( 'cb_work_transition_work_item_' . (int) $item['id'] ); ?>
-				<button class="button button-small" type="submit"><?php echo esc_html( self::transition_label( $to ) ); ?></button>
+				<button class="button button-small" type="submit"><?php echo esc_html( self::transition_label( $to, $from ) ); ?></button>
 			</form>
 			<?php
 		}
@@ -759,7 +759,10 @@ final class Operations {
 		return ucwords( str_replace( '_', ' ', $value ) );
 	}
 
-	private static function transition_label( string $status ): string {
+	private static function transition_label( string $status, string $from = '' ): string {
+		if ( WorkItemStatus::COMPLETED === $from && WorkItemStatus::IN_PROGRESS === $status ) {
+			return __( 'Reopen', 'core-blueprint-work' );
+		}
 		return match ( $status ) {
 			WorkItemStatus::IN_PROGRESS => __( 'Start', 'core-blueprint-work' ),
 			WorkItemStatus::COMPLETED   => __( 'Complete', 'core-blueprint-work' ),
