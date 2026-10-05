@@ -59,10 +59,10 @@
 		const warnings = Array.isArray(validation.warnings) ? validation.warnings : [];
 		const errors = Array.isArray(validation.errors) ? validation.errors : [];
 		const rows = [
-			['Projects to create', counts.projects_create || 0],
-			['Projects to update', counts.projects_update || 0],
-			['Projects skipped', counts.projects_skip || 0],
-			['Work Items in bundle', counts.work_items || 0],
+			[config.labels.projectsCreate, counts.projects_create || 0],
+			[config.labels.projectsUpdate, counts.projects_update || 0],
+			[config.labels.projectsSkip, counts.projects_skip || 0],
+			[config.labels.workItems, counts.work_items || 0],
 		];
 		let html = '<div class="notice notice-' + (validation.valid ? 'success' : 'error') + ' inline"><p><strong>' + escapeHtml(validation.message || '') + '</strong></p></div>';
 		html += '<table class="widefat striped" style="max-width:720px"><tbody>';
