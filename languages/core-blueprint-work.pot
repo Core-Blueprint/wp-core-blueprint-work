@@ -2191,3 +2191,12 @@ msgstr ""
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr ""
+
+msgid "Reopen"
+msgstr ""
+
+msgid "Reopen as Planned"
+msgstr ""
+
+msgid "Reopen as Blocked"
+msgstr ""
