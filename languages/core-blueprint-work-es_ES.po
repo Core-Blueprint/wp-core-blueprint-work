@@ -2141,3 +2141,6 @@ msgstr "ninguno"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Listo"
+
+msgid "Calendar navigation"
+msgstr "Navegación del calendario"
