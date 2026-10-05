@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
+use CB\Work\Domain\WorkContext;
 use CB\Work\PublicApi\WorkItemActions;
 use CB\Work\Repository\Projects;
 
@@ -62,7 +63,8 @@ final class QuickAdd {
 		$due_on = isset( $input['due_on'] ) && is_scalar( $input['due_on'] ) ? sanitize_text_field( (string) $input['due_on'] ) : '';
 
 		$result = '' === $title ? new \WP_Error( 'work_quick_add_title_required' ) : WorkItemActions::create( [
-			'title'      => $title,
+			'title'        => $title,
+			'work_context' => WorkContext::INTERNAL,
 			'project_id' => $project_id,
 			'due_on'     => $due_on,
 		] );
