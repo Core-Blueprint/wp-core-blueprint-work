@@ -31,6 +31,17 @@ namespace {
 }
 
 namespace CB\Work\Domain {
+	final class WorkContext {
+		public const INTERNAL = 'internal';
+		public const CUSTOMER = 'customer';
+		public static function all(): array { return [ self::INTERNAL, self::CUSTOMER ]; }
+		public static function is_valid( string $value ): bool { return in_array( $value, self::all(), true ); }
+		public static function sanitize( mixed $value ): string {
+			$value = \sanitize_key( is_scalar( $value ) ? (string) $value : '' );
+			return self::is_valid( $value ) ? $value : '';
+		}
+	}
+
 	final class WorkItemStatus {
 		public const PLANNED = 'planned';
 		public const IN_PROGRESS = 'in_progress';
