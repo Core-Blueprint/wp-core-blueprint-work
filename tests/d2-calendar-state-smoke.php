@@ -137,7 +137,7 @@ namespace {
 	] );
 	assert_true( '2028-03-01' === $calendar_with_filter['scheduled_from'] && '2028-03-31' === $calendar_with_filter['scheduled_to'], 'Calendar preserves explicit scheduled filter state separately from its viewport.' );
 	assert_true( '2028-02-01' === $calendar_with_filter['query']['calendar_from'] && '2028-02-29' === $calendar_with_filter['query']['calendar_to'], 'Calendar viewport remains authoritative for Calendar query bounds.' );
-	assert_true( '2028-03-01' === $calendar_with_filter['query']['scheduled_from'] && '2028-03-31' === $calendar_with_filter['query']['scheduled_to'], 'Explicit scheduled filters remain explicit canonical criteria alongside Calendar viewport bounds.' );
+	assert_true( '' === $calendar_with_filter['query']['scheduled_from'] && '' === $calendar_with_filter['query']['scheduled_to'], 'Calendar keeps explicit scheduled filters out of its viewport query while preserving them in view state.' );
 
 	$back_to_table = \CB\Work\Admin\WorkItemViewState::query_args( $calendar_with_filter, [ 'view' => 'table', 'page' => 1 ] );
 	assert_true( '2028-03-01' === ( $back_to_table['scheduled_from'] ?? '' ) && '2028-03-31' === ( $back_to_table['scheduled_to'] ?? '' ), 'Explicit scheduled filters survive view switching.' );
