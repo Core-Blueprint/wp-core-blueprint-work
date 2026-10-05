@@ -2221,3 +2221,107 @@ msgstr ""
 
 msgid "Move to another date"
 msgstr ""
+msgid "Applying Project import…"
+msgstr ""
+
+msgid "Back to Projects"
+msgstr ""
+
+msgid "Choose a JSON file to continue."
+msgstr ""
+
+msgid "Choose a supported Project import mode."
+msgstr ""
+
+msgid "Create only"
+msgstr ""
+
+msgid "Create only is safest for new plans. Create or update uses immutable portable identities and never matches by title or database ID."
+msgstr ""
+
+msgid "Create or update"
+msgstr ""
+
+msgid "Existing active Work Items that are not present in this bundle are preserved."
+msgstr ""
+
+msgid "Export JSON"
+msgstr ""
+
+msgid "Import a portable Project planning bundle containing one internal Project and its active Work Items."
+msgstr ""
+
+msgid "Import mode"
+msgstr ""
+
+msgid "Import project"
+msgstr ""
+
+msgid "Import Work Project"
+msgstr ""
+
+msgid "JSON file"
+msgstr ""
+
+msgid "Preview ready. Review the plan, then apply the import."
+msgstr ""
+
+msgid "Project bundle"
+msgstr ""
+
+msgid "Project Data Exchange is unavailable in the installed Core Blueprint Base build."
+msgstr ""
+
+msgid "Project Data Exchange is unavailable."
+msgstr ""
+
+msgid "Project import completed."
+msgstr ""
+
+msgid "Project imports accept JSON files only."
+msgstr ""
+
+msgid "Projects skipped"
+msgstr ""
+
+msgid "Projects to create"
+msgstr ""
+
+msgid "Projects to update"
+msgstr ""
+
+msgid "Schema v1 does not import customer links, assignments, Services, Work Types, recurrence, Time or terminal Work history."
+msgstr ""
+
+msgid "The import request expired. Reload the page and try again."
+msgstr ""
+
+msgid "The JSON file could not be read safely."
+msgstr ""
+
+msgid "The JSON file is empty or exceeds the Data Exchange size limit."
+msgstr ""
+
+msgid "The JSON upload could not be verified."
+msgstr ""
+
+msgid "The Project Data Exchange request failed validation."
+msgstr ""
+
+msgid "The Project export is unavailable."
+msgstr ""
+
+msgid "The Project import request could not be completed."
+msgstr ""
+
+msgid "The Project import stopped before it could complete."
+msgstr ""
+
+msgid "Validating Project import…"
+msgstr ""
+
+msgid "You do not have permission to export Work Projects."
+msgstr ""
+
+msgid "You do not have permission to import Work Projects."
+msgstr ""
