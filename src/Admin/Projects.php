@@ -248,6 +248,9 @@ final class Projects {
 			<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $value, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
 			<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $value, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
 		</select>
+		<?php if ( ProjectDataExchange::available() ) : ?>
+			<a class="button" href="<?php echo esc_url( ProjectDataExchange::import_url() ); ?>"><?php esc_html_e( 'Import project', 'core-blueprint-work' ); ?></a>
+		<?php endif; ?>
 		<?php
 	}
 
