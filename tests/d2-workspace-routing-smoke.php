@@ -23,8 +23,12 @@ $checks = [
 		&& str_contains( $operations, '$lanes[ $status ][] = $item;' )
 		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
 		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
-	'Calendar is a renderer over scheduled_on and the existing result set' => str_contains( $operations, "\$scheduled_on = (string) ( \$item['scheduled_on'] ?? '' );" )
-		&& str_contains( $operations, '$items_by_date[ $scheduled_on ][] = $item;' )
+	'Calendar is a renderer over scheduled and due dates from the existing result set' => str_contains( $operations, "\$scheduled_on = (string) ( \$item['scheduled_on'] ?? '' );" )
+		&& str_contains( $operations, "\$due_on       = (string) ( \$item['due_on'] ?? '' );" )
+		&& str_contains( $operations, '$entries_by_date[ $scheduled_on ][]' )
+		&& str_contains( $operations, '$entries_by_date[ $due_on ][]' )
+		&& str_contains( $operations, "'kind'      => 'scheduled'" )
+		&& str_contains( $operations, "'kind'      => 'due'" )
 		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' ),
 	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $operations, "[ 'calendar_month' => \$previous_month, 'page' => 1 ]" )
 		&& str_contains( $operations, "[ 'calendar_month' => \$next_month, 'page' => 1 ]" )
