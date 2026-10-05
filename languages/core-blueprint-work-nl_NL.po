@@ -5,8 +5,8 @@ msgstr ""
 "Project-Id-Version: Core Blueprint Work 1.0.0-rc1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-core-blueprint-"
 "work\n"
-"POT-Creation-Date: 2026-10-05 20:59+0000\n"
-"PO-Revision-Date: 2026-10-05 20:59+0000\n"
+"POT-Creation-Date: 2026-10-05 21:27+0000\n"
+"PO-Revision-Date: 2026-10-05 21:27+0000\n"
 "Last-Translator: Core Blueprint\n"
 "Language-Team: nl_NL\n"
 "Language: nl_NL\n"
@@ -318,7 +318,7 @@ msgstr "Work Types"
 msgid "Project Workspace"
 msgstr "Projectwerkruimte"
 
-#: src/Admin/OperationalActions.php:58 src/Admin/Operations.php:801
+#: src/Admin/OperationalActions.php:58 src/Admin/Operations.php:809
 #: src/Admin/Overview.php:16 src/Admin/Pickers.php:124
 #: src/Admin/QuickAdd.php:57 src/Admin/Recurrence.php:204
 #: src/Admin/RecurrenceActions.php:115
@@ -719,44 +719,56 @@ msgstr "Pagina %1$d van %2$d"
 msgid "Next"
 msgstr "Volgende"
 
-#: src/Admin/Operations.php:764 src/Admin/Time.php:136
+#: src/Admin/Operations.php:765
+msgid "Reopen as Planned"
+msgstr "Heropenen als Gepland"
+
+#: src/Admin/Operations.php:766
+msgid "Reopen"
+msgstr "Heropenen"
+
+#: src/Admin/Operations.php:767
+msgid "Reopen as Blocked"
+msgstr "Heropenen als Geblokkeerd"
+
+#: src/Admin/Operations.php:772 src/Admin/Time.php:136
 msgid "Start"
 msgstr "Starten"
 
-#: src/Admin/Operations.php:765 src/Admin/Recurrence.php:142
+#: src/Admin/Operations.php:773 src/Admin/Recurrence.php:142
 msgid "Complete"
 msgstr "Voltooien"
 
-#: src/Admin/Operations.php:766
+#: src/Admin/Operations.php:774
 msgid "Skip"
 msgstr "Overslaan"
 
-#: src/Admin/Operations.php:767 src/Admin/QuickAdd.php:47
+#: src/Admin/Operations.php:775 src/Admin/QuickAdd.php:47
 #: src/Admin/Time.php:141
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: src/Admin/Operations.php:775
+#: src/Admin/Operations.php:783
 msgid "Work Item status updated."
 msgstr "Work Item-status bijgewerkt."
 
-#: src/Admin/Operations.php:776 src/Admin/WorkItemBoardActions.php:36
+#: src/Admin/Operations.php:784 src/Admin/WorkItemBoardActions.php:36
 msgid "That Work Item status transition is not allowed."
 msgstr "Deze Work Item-statusovergang is niet toegestaan."
 
-#: src/Admin/Operations.php:777
+#: src/Admin/Operations.php:785
 msgid "Work Type added."
 msgstr "Work Type toegevoegd."
 
-#: src/Admin/Operations.php:778
+#: src/Admin/Operations.php:786
 msgid "Work Type could not be saved."
 msgstr "Work Type kon niet worden opgeslagen."
 
-#: src/Admin/Operations.php:779
+#: src/Admin/Operations.php:787
 msgid "Work Type status updated."
 msgstr "Work Type-status bijgewerkt."
 
-#: src/Admin/Operations.php:792
+#: src/Admin/Operations.php:800
 msgid ""
 "Work storage upgrade is pending. Work Items remain unavailable until Base "
 "reconciles the Work schema."
@@ -2204,12 +2216,3 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
-
-msgid "Reopen"
-msgstr "Heropenen"
-
-msgid "Reopen as Planned"
-msgstr "Heropenen als Gepland"
-
-msgid "Reopen as Blocked"
-msgstr "Heropenen als Geblokkeerd"
