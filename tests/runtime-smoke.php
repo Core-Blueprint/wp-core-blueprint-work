@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace {
 	define( 'ABSPATH', '/tmp/wp/' );
 	define( 'ARRAY_A', 'ARRAY_A' );
-	define( 'CB_CORE_API_VERSION', '1.0' );
+	define( 'CB_CORE_API_VERSION', '1.2' );
 	define( 'MINUTE_IN_SECONDS', 60 );
 	define( 'DAY_IN_SECONDS', 86400 );
 
