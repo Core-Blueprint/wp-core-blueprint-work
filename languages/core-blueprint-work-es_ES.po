@@ -2144,3 +2144,54 @@ msgstr "Listo"
 
 msgid "Calendar navigation"
 msgstr "Navegación del calendario"
+
+msgid "Columns"
+msgstr "Columnas"
+
+msgid "Work Item table columns"
+msgstr "Columnas de la tabla de elementos de trabajo"
+
+msgid "Reorder %s"
+msgstr "Reordenar %s"
+
+msgid "Move"
+msgstr "Mover"
+
+msgid "Reset to default"
+msgstr "Restablecer valores predeterminados"
+
+msgid "Saving…"
+msgstr "Guardando…"
+
+msgid "Saved"
+msgstr "Guardado"
+
+msgid "Column preferences could not be saved."
+msgstr "No se pudieron guardar las preferencias de columnas."
+
+msgid "You are not allowed to change Work Item table preferences."
+msgstr "No tienes permiso para cambiar las preferencias de la tabla de elementos de trabajo."
+
+msgid "The table preference operation is invalid."
+msgstr "La operación de preferencias de la tabla no es válida."
+
+msgid "The table preference payload is invalid."
+msgstr "Los datos de preferencias de la tabla no son válidos."
+
+msgid "You are not allowed to move Work Items."
+msgstr "No tienes permiso para mover elementos de trabajo."
+
+msgid "The Work Item move is invalid."
+msgstr "El movimiento del elemento de trabajo no es válido."
+
+msgid "The Work Item status could not be updated."
+msgstr "No se pudo actualizar el estado del elemento de trabajo."
+
+msgid "Move %s to another status"
+msgstr "Mover %s a otro estado"
+
+msgid "Move to another status"
+msgstr "Mover a otro estado"
+
+msgid "No scheduled work or deadlines this month."
+msgstr "No hay trabajo programado ni fechas límite este mes."
