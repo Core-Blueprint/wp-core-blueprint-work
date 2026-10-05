@@ -302,37 +302,156 @@ final class Operations {
 	 * @param array<string,mixed> $state
 	 */
 	private static function render_work_item_table( array $items, array $project_map, array $type_map, array $state ): void {
+		$preferences = WorkItemTablePreferences::get( get_current_user_id() );
+		$columns     = self::work_item_table_columns();
+		$hidden      = array_fill_keys( $preferences['hidden'], true );
+		$panel_id    = 'cb-work-table-columns-panel';
 		?>
-		<table class="widefat striped">
-			<thead><tr>
-				<th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Project / Type', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Billing', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Assigned', 'core-blueprint-work' ); ?></th>
-				<th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th>
-			</tr></thead>
-			<tbody>
-			<?php foreach ( $items as $item ) : ?>
-				<tr>
-					<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
-					<td><?php echo esc_html( self::customer_label( $item ) ); ?></td>
-					<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
-					<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
-					<td><?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br><span class="description"><?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?></span></td>
-					<td><?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></td>
-					<td><?php echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' ); ?></td>
-					<td><?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></td>
-					<td><?php self::transition_buttons( $item, $state ); ?></td>
-				</tr>
-			<?php endforeach; ?>
-			</tbody>
-		</table>
+		<div
+			class="cb-work-table-preferences"
+			data-cb-work-table-preferences
+			data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+			data-action="<?php echo esc_attr( WorkItemTablePreferences::ACTION ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemTablePreferences::NONCE_ACTION ) ); ?>"
+			data-saving="<?php echo esc_attr__( 'Saving…', 'core-blueprint-work' ); ?>"
+			data-saved="<?php echo esc_attr__( 'Saved', 'core-blueprint-work' ); ?>"
+			data-error="<?php echo esc_attr__( 'Column preferences could not be saved.', 'core-blueprint-work' ); ?>"
+		>
+			<div class="cb-work-table-preferences__toolbar">
+				<button
+					type="button"
+					class="button"
+					data-cb-work-table-columns-toggle
+					aria-controls="<?php echo esc_attr( $panel_id ); ?>"
+					aria-expanded="false"
+				><?php esc_html_e( 'Columns', 'core-blueprint-work' ); ?></button>
+			</div>
+
+			<div id="<?php echo esc_attr( $panel_id ); ?>" class="cb-work-table-preferences__panel" data-cb-work-table-columns-panel hidden>
+				<div data-cb-core-reorder>
+					<div
+						class="cb-work-table-preferences__list"
+						data-cb-core-reorder-list="columns"
+						data-cb-core-reorder-list-label="<?php esc_attr_e( 'Work Item table columns', 'core-blueprint-work' ); ?>"
+					>
+						<?php foreach ( $preferences['order'] as $column_id ) :
+							$label = $columns[ $column_id ] ?? $column_id;
+							$is_hidden = isset( $hidden[ $column_id ] );
+							$protected = 'work_item' === $column_id;
+							/* translators: %s: Work Item table column label. */
+							$reorder_label = sprintf( __( 'Reorder %s', 'core-blueprint-work' ), $label );
+							?>
+							<div
+								class="cb-work-table-preferences__item"
+								data-cb-core-reorder-item="<?php echo esc_attr( $column_id ); ?>"
+								data-cb-core-reorder-label="<?php echo esc_attr( $label ); ?>"
+							>
+								<button
+									type="button"
+									class="button-link cb-core-icon-control cb-core-reorder-handle"
+									data-cb-core-reorder-handle
+									aria-label="<?php echo esc_attr( $reorder_label ); ?>"
+									title="<?php esc_attr_e( 'Move', 'core-blueprint-work' ); ?>"
+								><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+								<label>
+									<input
+										type="checkbox"
+										value="<?php echo esc_attr( $column_id ); ?>"
+										data-cb-work-column-visible
+										<?php checked( ! $is_hidden ); ?>
+										<?php disabled( $protected ); ?>
+									>
+									<span><?php echo esc_html( $label ); ?></span>
+								</label>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
+				<div class="cb-work-table-preferences__footer">
+					<button type="button" class="button-link" data-cb-work-table-columns-reset><?php esc_html_e( 'Reset to default', 'core-blueprint-work' ); ?></button>
+					<span class="description" data-cb-work-table-preferences-status role="status" aria-live="polite"></span>
+				</div>
+			</div>
+
+			<table class="widefat striped cb-work-items-table" data-cb-work-items-table>
+				<thead><tr>
+					<?php foreach ( $preferences['order'] as $column_id ) : ?>
+						<th data-cb-work-column="<?php echo esc_attr( $column_id ); ?>" <?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>><?php echo esc_html( $columns[ $column_id ] ?? $column_id ); ?></th>
+					<?php endforeach; ?>
+				</tr></thead>
+				<tbody>
+				<?php foreach ( $items as $item ) : ?>
+					<tr>
+						<?php foreach ( $preferences['order'] as $column_id ) : ?>
+							<td data-cb-work-column="<?php echo esc_attr( $column_id ); ?>" <?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>>
+								<?php self::render_work_item_table_cell( $column_id, $item, $project_map, $type_map, $state ); ?>
+							</td>
+						<?php endforeach; ?>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
 		<?php
 	}
+
+	/** @return array<string,string> */
+	private static function work_item_table_columns(): array {
+		return [
+			'work_item' => __( 'Work Item', 'core-blueprint-work' ),
+			'status'    => __( 'Status', 'core-blueprint-work' ),
+			'priority'  => __( 'Priority', 'core-blueprint-work' ),
+			'project'   => __( 'Project', 'core-blueprint-work' ),
+			'due'       => __( 'Due', 'core-blueprint-work' ),
+			'assigned'  => __( 'Assigned', 'core-blueprint-work' ),
+			'actions'   => __( 'Actions', 'core-blueprint-work' ),
+			'customer'  => __( 'Customer', 'core-blueprint-work' ),
+			'type'      => __( 'Type', 'core-blueprint-work' ),
+			'billing'   => __( 'Billing', 'core-blueprint-work' ),
+		];
+	}
+
+	/**
+	 * @param array<string,mixed> $item
+	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
+	 */
+	private static function render_work_item_table_cell( string $column_id, array $item, array $project_map, array $type_map, array $state ): void {
+		switch ( $column_id ) {
+			case 'work_item':
+				?><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong><?php
+				return;
+			case 'status':
+				echo esc_html( self::humanize( (string) $item['status'] ) );
+				return;
+			case 'priority':
+				echo esc_html( self::humanize( (string) $item['priority'] ) );
+				return;
+			case 'project':
+				echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' );
+				return;
+			case 'due':
+				echo esc_html( (string) ( $item['due_on'] ?: '—' ) );
+				return;
+			case 'assigned':
+				echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) );
+				return;
+			case 'actions':
+				self::transition_buttons( $item, $state );
+				return;
+			case 'customer':
+				echo esc_html( self::customer_label( $item ) );
+				return;
+			case 'type':
+				echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' );
+				return;
+			case 'billing':
+				echo esc_html( '' !== (string) $item['billing_disposition'] ? self::humanize( (string) $item['billing_disposition'] ) : '—' );
+				return;
+		}
+	}
+
 
 	/**
 	 * @param array<int,array<string,mixed>> $items
