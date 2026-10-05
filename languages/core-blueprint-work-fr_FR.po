@@ -2190,3 +2190,6 @@ msgstr "Déplacer vers un autre statut"
 
 msgid "No scheduled work or deadlines this month."
 msgstr "Aucun travail planifié ni aucune échéance ce mois-ci."
+
+msgid "Type"
+msgstr "Type"
