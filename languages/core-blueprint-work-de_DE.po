@@ -187,10 +187,6 @@ msgstr ""
 "Passen Sie die aktuellen Filter an oder löschen Sie sie, um diese Ansicht zu "
 "erweitern."
 
-#: src/Admin/Assets.php:165
-msgid "No scheduled work this month."
-msgstr "Diesen Monat gibt es keine geplante Arbeit."
-
 #: src/Admin/Assets.php:166 src/Admin/Operations.php:31
 msgid "Planned"
 msgstr "Geplant"
