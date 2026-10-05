@@ -30,7 +30,7 @@ REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\
 [[ "$CONSTANT_VERSION" == "$VERSION" ]] || fail "Version header and CB_WORK_VERSION must match"
 [[ "$REQUIRES_PHP" == "8.4" ]] || fail "Requires PHP must be exactly 8.4"
 [[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
-[[ "$REQUIRED_API" == "1.0" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.0"
+[[ "$REQUIRED_API" == "1.1" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.1"
 
 # Overall source/regression validation is owned by tools/check.
 # This builder validates the release artifact itself and must remain independently callable.
