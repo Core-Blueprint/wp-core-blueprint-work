@@ -2139,3 +2139,6 @@ msgstr "keine"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Bereit"
+
+msgid "Calendar navigation"
+msgstr "Kalendernavigation"
