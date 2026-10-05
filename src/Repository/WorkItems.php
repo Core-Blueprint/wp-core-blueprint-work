@@ -7,6 +7,7 @@ use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\PublicApi\Services;
@@ -529,6 +530,7 @@ final class WorkItems {
 	private static function normalize_write( array $input, ?array $current = null ): ?array {
 		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
 		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
+		$context           = WorkContext::sanitize( $input['work_context'] ?? ( $current['work_context'] ?? '' ) );
 		$customer          = self::reference( $input, 'customer_', $current );
 		$project_id        = max( 0, (int) ( $input['project_id'] ?? ( $current['project_id'] ?? 0 ) ) );
 		$service_id        = max( 0, (int) ( $input['service_id'] ?? ( $current['service_id'] ?? 0 ) ) );
@@ -548,20 +550,40 @@ final class WorkItems {
 			return null;
 		}
 
-		$project = null;
 		if ( $project_id > 0 ) {
 			$project = Projects::get( $project_id );
 			if ( null === $project ) {
 				return null;
 			}
-			if ( '' === $customer['provider'] && '' !== (string) ( $project['customer_provider'] ?? '' ) ) {
-				$customer = [
-					'provider' => (string) $project['customer_provider'],
-					'type'     => (string) $project['customer_type'],
-					'id'       => (string) $project['customer_id'],
-				];
+			$context = WorkContext::sanitize( $project['work_context'] ?? '' );
+			if ( ! WorkContext::is_valid( $context ) ) {
+				return null;
+			}
+			$customer = [
+				'provider' => (string) ( $project['customer_provider'] ?? '' ),
+				'type'     => (string) ( $project['customer_type'] ?? '' ),
+				'id'       => (string) ( $project['customer_id'] ?? '' ),
+			];
+		} elseif ( '' === $context && '' !== $customer['provider'] ) {
+			$context = WorkContext::CUSTOMER;
+		}
+
+		$legacy_unclassified = null !== $current
+			&& '' === $context
+			&& '' === (string) ( $current['work_context'] ?? '' );
+		if ( ! WorkContext::is_valid( $context ) && ! $legacy_unclassified ) {
+			return null;
+		}
+
+		if ( WorkContext::INTERNAL === $context ) {
+			$customer = [ 'provider' => '', 'type' => '', 'id' => '' ];
+			$billing  = BillingDisposition::NON_BILLABLE;
+		} elseif ( WorkContext::CUSTOMER === $context ) {
+			if ( '' === $customer['provider'] || '' === $customer['type'] || '' === $customer['id'] ) {
+				return null;
 			}
 		}
+
 		if ( $service_id > 0 && null === Services::get( $service_id ) ) {
 			return null;
 		}
@@ -581,6 +603,7 @@ final class WorkItems {
 		return [
 			'title'               => $title,
 			'description'         => $description,
+			'work_context'        => $context,
 			'customer_provider'   => $customer['provider'],
 			'customer_type'       => $customer['type'],
 			'customer_id'         => $customer['id'],
@@ -605,6 +628,7 @@ final class WorkItems {
 			'title'               => sanitize_text_field( (string) $post->post_title ),
 			'description'         => (string) $post->post_content,
 			'post_status'         => (string) $post->post_status,
+			'work_context'      => $meta['work_context'],
 			'customer_provider'   => $meta['customer_provider'],
 			'customer_type'       => $meta['customer_type'],
 			'customer_id'         => $meta['customer_id'],
