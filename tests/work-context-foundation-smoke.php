@@ -68,8 +68,8 @@ $checks = [
 		&& str_contains( $projectAdmin, 'RecurrenceRules::sync_project_context( $post_id )' ),
 
 	'Work Items expose canonical context filtering through shared query state' =>
-		str_contains( $query, "'work_context'         => $context" )
-		&& str_contains( $viewState, "'work_context'   => $context" )
+		str_contains( $query, "'work_context'         => \$context" )
+		&& str_contains( $viewState, "'work_context'   => \$context" )
 		&& str_contains( $viewState, "'work_context'   => 'work_context'" ),
 
 	'Project, Work Item and Recurrence editors expose Work context explicitly' =>
