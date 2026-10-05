@@ -57,6 +57,9 @@ final class ProjectWorkspace {
 				<div class="cb-work-project-workspace__actions">
 					<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url( $project_id ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 					<a class="button" href="<?php echo esc_url( $all_items_url ); ?>"><?php esc_html_e( 'View all Work Items', 'core-blueprint-work' ); ?></a>
+					<?php if ( ProjectDataExchange::available() ) : ?>
+						<a class="button" href="<?php echo esc_url( ProjectDataExchange::export_url( $project_id ) ); ?>"><?php esc_html_e( 'Export JSON', 'core-blueprint-work' ); ?></a>
+					<?php endif; ?>
 					<?php if ( is_string( $edit_url ) && '' !== $edit_url ) : ?>
 						<a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit project details', 'core-blueprint-work' ); ?></a>
 					<?php endif; ?>
