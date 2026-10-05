@@ -158,7 +158,7 @@ final class ProjectBundleEntity implements EntityInterface {
 				'record'     => $record,
 			],
 			'warnings'  => Foundation::OP_UPDATE === $operation
-				? [ 'Existing active Work Items that are not present in this bundle are preserved.' ]
+				? [ __( 'Existing active Work Items that are not present in this bundle are preserved.', 'core-blueprint-work' ) ]
 				: [],
 		];
 	}
