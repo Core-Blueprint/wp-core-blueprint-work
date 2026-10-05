@@ -26,7 +26,7 @@
 
 		function sync() {
 			const inheritedContext = selectedProjectContext( project );
-			const inherited = inheritedContext !== '';
+			const inherited = Boolean( project && String( project.value || '0' ) !== '0' );
 			if ( inherited ) {
 				context.value = inheritedContext;
 			}
