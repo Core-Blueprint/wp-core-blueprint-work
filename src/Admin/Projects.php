@@ -240,7 +240,7 @@ final class Projects {
 		if ( PostTypes::PROJECT !== $post_type || 'top' !== $which ) {
 			return;
 		}
-		$value = WorkContext::sanitize( $_GET['cb_work_context'] ?? '' );
+		$value = WorkContext::sanitize( isset( $_GET['cb_work_context'] ) ? wp_unslash( $_GET['cb_work_context'] ) : '' );
 		?>
 		<label class="screen-reader-text" for="cb-work-project-context-filter"><?php esc_html_e( 'Filter by Work context', 'core-blueprint-work' ); ?></label>
 		<select id="cb-work-project-context-filter" name="cb_work_context">
