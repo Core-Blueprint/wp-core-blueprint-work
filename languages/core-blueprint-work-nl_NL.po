@@ -2132,3 +2132,54 @@ msgstr "Gereed"
 
 msgid "Calendar navigation"
 msgstr "Kalendernavigatie"
+
+msgid "Columns"
+msgstr "Kolommen"
+
+msgid "Work Item table columns"
+msgstr "Kolommen van de Work Item-tabel"
+
+msgid "Reorder %s"
+msgstr "%s herordenen"
+
+msgid "Move"
+msgstr "Verplaatsen"
+
+msgid "Reset to default"
+msgstr "Standaard herstellen"
+
+msgid "Saving…"
+msgstr "Opslaan…"
+
+msgid "Saved"
+msgstr "Opgeslagen"
+
+msgid "Column preferences could not be saved."
+msgstr "Kolomvoorkeuren konden niet worden opgeslagen."
+
+msgid "You are not allowed to change Work Item table preferences."
+msgstr "Je hebt geen toestemming om de tabelvoorkeuren voor Work Items te wijzigen."
+
+msgid "The table preference operation is invalid."
+msgstr "De bewerking voor tabelvoorkeuren is ongeldig."
+
+msgid "The table preference payload is invalid."
+msgstr "De gegevens voor tabelvoorkeuren zijn ongeldig."
+
+msgid "You are not allowed to move Work Items."
+msgstr "Je hebt geen toestemming om Work Items te verplaatsen."
+
+msgid "The Work Item move is invalid."
+msgstr "Het verplaatsen van het Work Item is ongeldig."
+
+msgid "The Work Item status could not be updated."
+msgstr "De status van het Work Item kon niet worden bijgewerkt."
+
+msgid "Move %s to another status"
+msgstr "%s naar een andere status verplaatsen"
+
+msgid "Move to another status"
+msgstr "Naar een andere status verplaatsen"
+
+msgid "No scheduled work or deadlines this month."
+msgstr "Geen gepland werk of deadlines deze maand."
