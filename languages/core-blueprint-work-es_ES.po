@@ -2247,3 +2247,107 @@ msgstr "Mover la fecha %2$s de %1$s"
 
 msgid "Move to another date"
 msgstr "Mover a otra fecha"
+msgid "Applying Project import…"
+msgstr "Aplicando la importación del proyecto…"
+
+msgid "Back to Projects"
+msgstr "Volver a Proyectos"
+
+msgid "Choose a JSON file to continue."
+msgstr "Elige un archivo JSON para continuar."
+
+msgid "Choose a supported Project import mode."
+msgstr "Elige un modo de importación de proyecto compatible."
+
+msgid "Create only"
+msgstr "Solo crear"
+
+msgid "Create only is safest for new plans. Create or update uses immutable portable identities and never matches by title or database ID."
+msgstr "Solo crear es la opción más segura para planes nuevos. Crear o actualizar usa identidades portátiles inmutables y nunca compara por título ni por ID de base de datos."
+
+msgid "Create or update"
+msgstr "Crear o actualizar"
+
+msgid "Existing active Work Items that are not present in this bundle are preserved."
+msgstr "Los Work Items activos existentes que no estén en este paquete se conservarán."
+
+msgid "Export JSON"
+msgstr "Exportar JSON"
+
+msgid "Import a portable Project planning bundle containing one internal Project and its active Work Items."
+msgstr "Importa un paquete portátil de planificación de proyecto que contiene un proyecto interno y sus Work Items activos."
+
+msgid "Import mode"
+msgstr "Modo de importación"
+
+msgid "Import project"
+msgstr "Importar proyecto"
+
+msgid "Import Work Project"
+msgstr "Importar proyecto de Work"
+
+msgid "JSON file"
+msgstr "Archivo JSON"
+
+msgid "Preview ready. Review the plan, then apply the import."
+msgstr "Vista previa lista. Revisa el plan y después aplica la importación."
+
+msgid "Project bundle"
+msgstr "Paquete de proyecto"
+
+msgid "Project Data Exchange is unavailable in the installed Core Blueprint Base build."
+msgstr "Project Data Exchange no está disponible en la compilación instalada de Core Blueprint Base."
+
+msgid "Project Data Exchange is unavailable."
+msgstr "Project Data Exchange no está disponible."
+
+msgid "Project import completed."
+msgstr "Importación del proyecto completada."
+
+msgid "Project imports accept JSON files only."
+msgstr "Las importaciones de proyectos solo aceptan archivos JSON."
+
+msgid "Projects skipped"
+msgstr "Proyectos omitidos"
+
+msgid "Projects to create"
+msgstr "Proyectos que se crearán"
+
+msgid "Projects to update"
+msgstr "Proyectos que se actualizarán"
+
+msgid "Schema v1 does not import customer links, assignments, Services, Work Types, recurrence, Time or terminal Work history."
+msgstr "El esquema v1 no importa vínculos de clientes, asignaciones, Services, Work Types, recurrencia, Time ni historial terminal de Work."
+
+msgid "The import request expired. Reload the page and try again."
+msgstr "La solicitud de importación ha caducado. Recarga la página e inténtalo de nuevo."
+
+msgid "The JSON file could not be read safely."
+msgstr "No se pudo leer el archivo JSON de forma segura."
+
+msgid "The JSON file is empty or exceeds the Data Exchange size limit."
+msgstr "El archivo JSON está vacío o supera el límite de tamaño de Data Exchange."
+
+msgid "The JSON upload could not be verified."
+msgstr "No se pudo verificar la carga del JSON."
+
+msgid "The Project Data Exchange request failed validation."
+msgstr "La solicitud de Project Data Exchange no superó la validación."
+
+msgid "The Project export is unavailable."
+msgstr "La exportación del proyecto no está disponible."
+
+msgid "The Project import request could not be completed."
+msgstr "No se pudo completar la solicitud de importación del proyecto."
+
+msgid "The Project import stopped before it could complete."
+msgstr "La importación del proyecto se detuvo antes de poder completarse."
+
+msgid "Validating Project import…"
+msgstr "Validando la importación del proyecto…"
+
+msgid "You do not have permission to export Work Projects."
+msgstr "No tienes permiso para exportar proyectos de Work."
+
+msgid "You do not have permission to import Work Projects."
+msgstr "No tienes permiso para importar proyectos de Work."
