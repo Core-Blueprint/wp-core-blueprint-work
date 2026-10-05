@@ -15,7 +15,7 @@ $actions = file_get_contents( $root . '/src/Frontend/Actions/WorkItems.php' );
 $all = implode( "\n", [ $access, $service, $project, $workItem, $serviceQuery, $projectQuery, $workItemQuery, $conditions, $actions ] );
 
 $checks = [
-	'D3 contracts preserve current release and schema identity' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
+	'D3 contracts preserve current release and schema identity' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
 	'frontend reads are default deny for non-managers' => str_contains( $access, "'cb_work_frontend_can_read'" ) && str_contains( $access, "false," ) && str_contains( $access, "'publish' !== \$post->post_status" ) && str_contains( $access, 'post_password_required( $post )' ),
 	'Work managers retain authenticated frontend preview access' => str_contains( $access, 'current_user_can( Capabilities::MANAGE )' ),
 	'frontend mutation requires a separate explicit opt-in and logged-in actor' => str_contains( $access, "'cb_work_frontend_can_transition_work_item'" ) && str_contains( $access, '$actor_user_id <= 0' ),
