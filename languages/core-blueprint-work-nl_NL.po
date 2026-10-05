@@ -2204,3 +2204,12 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
+
+msgid "Reopen"
+msgstr "Heropenen"
+
+msgid "Reopen as Planned"
+msgstr "Heropenen als Gepland"
+
+msgid "Reopen as Blocked"
+msgstr "Heropenen als Geblokkeerd"
