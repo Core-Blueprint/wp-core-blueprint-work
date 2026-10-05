@@ -2114,3 +2114,6 @@ msgstr "Tous les contextes"
 
 msgid "Edit context, customer, dates and description"
 msgstr "Modifier le contexte, le client, les dates et la description"
+
+msgid "Internal Work is always non-billable."
+msgstr "Le travail interne n’est jamais facturable."
