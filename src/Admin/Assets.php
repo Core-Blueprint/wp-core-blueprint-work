@@ -57,6 +57,7 @@ final class Assets {
 		self::enqueue_script();
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
+		self::enqueue_reorder_assets();
 	}
 
 	private static function enqueue_context_script(): void {
@@ -190,6 +191,23 @@ final class Assets {
 		$modified = filemtime( $script );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
 		wp_enqueue_script( self::REFINEMENT_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-items-refinement.js', [ self::SCRIPT_HANDLE ], $version, true );
+	}
+
+	private static function enqueue_reorder_assets(): void {
+		\CoreBlueprint\Core\UI\Assets::enqueue_reorder();
+
+		$file = CB_WORK_DIR . 'assets/work-items-reorder.js';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script_module(
+			'@cb-work/work-items-reorder',
+			CB_WORK_URL . 'assets/work-items-reorder.js',
+			[ '@cb-core/reorder' ],
+			$version
+		);
 	}
 
 	private static function enqueue_fast_path_assets(): void {
