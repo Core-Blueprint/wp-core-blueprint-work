@@ -622,6 +622,15 @@ final class Operations {
 				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $next_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Next month', 'core-blueprint-work' ); ?></a>
 			</div>
 		</nav>
+		<div
+			class="cb-work-calendar-reorder"
+			data-cb-work-calendar-reorder
+			data-cb-core-reorder
+			data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+			data-action="<?php echo esc_attr( WorkItemCalendarActions::ACTION ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemCalendarActions::NONCE_ACTION ) ); ?>"
+			data-error="<?php echo esc_attr__( 'The Work Item date could not be updated.', 'core-blueprint-work' ); ?>"
+		>
 		<table class="widefat cb-work-items-calendar">
 			<thead><tr>
 				<?php foreach ( $weekdays as $weekday ) : ?>
@@ -642,25 +651,54 @@ final class Operations {
 				?>
 				<td class="cb-work-calendar-day">
 					<strong class="cb-work-calendar-day__number"><?php echo esc_html( (string) $day ); ?></strong>
-					<?php foreach ( $day_entries as $entry ) :
-						$item = $entry['item'];
-						$kind = (string) $entry['kind'];
-						$is_due = 'due' === $kind;
-						?>
-						<article class="cb-work-calendar-entry cb-work-calendar-entry--<?php echo esc_attr( $kind ); ?>">
-							<div class="cb-work-calendar-entry__meta">
-								<span class="cb-work-calendar-entry__kind"><?php echo esc_html( $is_due ? __( 'Due', 'core-blueprint-work' ) : __( 'Scheduled', 'core-blueprint-work' ) ); ?></span>
-								<?php if ( ! $is_due && ! empty( $entry['due_today'] ) ) : ?>
-									<span class="cb-work-calendar-entry__due"><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span>
-								<?php endif; ?>
-							</div>
-							<strong class="cb-work-calendar-entry__title"><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong>
-							<p class="cb-work-calendar-entry__details">
-								<?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?> · <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
-								<?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?>
-							</p>
-						</article>
-					<?php endforeach; ?>
+					<div
+						class="cb-work-calendar-day__list"
+						data-cb-core-reorder-list="<?php echo esc_attr( $date ); ?>"
+						data-cb-core-reorder-list-label="<?php echo esc_attr( $date ); ?>"
+					>
+						<?php foreach ( $day_entries as $entry ) :
+							$item    = $entry['item'];
+							$kind    = (string) $entry['kind'];
+							$is_due  = 'due' === $kind;
+							$item_id = (int) $item['id'];
+							$title   = (string) $item['title'];
+							/* translators: 1: Work Item title, 2: date field label. */
+							$move_label = sprintf(
+								__( 'Move %1$s %2$s date', 'core-blueprint-work' ),
+								$title,
+								$is_due ? __( 'Due', 'core-blueprint-work' ) : __( 'Scheduled', 'core-blueprint-work' )
+							);
+							?>
+							<article
+								class="cb-work-calendar-entry cb-work-calendar-entry--<?php echo esc_attr( $kind ); ?>"
+								data-cb-core-reorder-item="calendar:<?php echo esc_attr( $kind ); ?>:<?php echo esc_attr( (string) $item_id ); ?>"
+								data-cb-core-reorder-label="<?php echo esc_attr( $title ); ?>"
+								data-cb-work-item-id="<?php echo esc_attr( (string) $item_id ); ?>"
+								data-cb-work-calendar-kind="<?php echo esc_attr( $kind ); ?>"
+							>
+								<div class="cb-work-calendar-entry__header">
+									<div class="cb-work-calendar-entry__meta">
+										<span class="cb-work-calendar-entry__kind"><?php echo esc_html( $is_due ? __( 'Due', 'core-blueprint-work' ) : __( 'Scheduled', 'core-blueprint-work' ) ); ?></span>
+										<?php if ( ! $is_due && ! empty( $entry['due_today'] ) ) : ?>
+											<span class="cb-work-calendar-entry__due"><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span>
+										<?php endif; ?>
+									</div>
+									<button
+										type="button"
+										class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-calendar-entry__drag-handle"
+										data-cb-core-reorder-handle
+										aria-label="<?php echo esc_attr( $move_label ); ?>"
+										title="<?php esc_attr_e( 'Move to another date', 'core-blueprint-work' ); ?>"
+									><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+								</div>
+								<strong class="cb-work-calendar-entry__title"><a href="<?php echo esc_url( Menu::edit_work_item_url( $item_id ) ); ?>"><?php echo esc_html( $title ); ?></a></strong>
+								<p class="cb-work-calendar-entry__details">
+									<?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?> · <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
+									<?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?>
+								</p>
+							</article>
+						<?php endforeach; ?>
+					</div>
 				</td>
 				<?php $cell++; ?>
 				<?php if ( 0 === $cell % 7 && $day < $days_in_month ) : ?>
@@ -674,6 +712,7 @@ final class Operations {
 			</tr>
 			</tbody>
 		</table>
+		</div>
 		<?php
 	}
 
