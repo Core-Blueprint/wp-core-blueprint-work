@@ -199,9 +199,15 @@ final class ProjectBundleEntity implements EntityInterface {
 			if ( Foundation::OP_UPDATE !== $operation ) {
 				return new WP_Error( 'work_project_bundle_apply_contract' );
 			}
-			$project = ProjectActions::update( $project_id, self::project_input( $record ) );
-			if ( is_wp_error( $project ) ) {
-				return $project;
+			$project = Projects::get( $project_id );
+			if ( null === $project ) {
+				return new WP_Error( 'work_project_bundle_project_unavailable' );
+			}
+			if ( ! self::same_project( $project, $record ) ) {
+				$project = ProjectActions::update( $project_id, self::project_input( $record ) );
+				if ( is_wp_error( $project ) ) {
+					return $project;
+				}
 			}
 		}
 
@@ -345,6 +351,9 @@ final class ProjectBundleEntity implements EntityInterface {
 			if ( null === $current || (int) $current['project_id'] !== $project_id || ! in_array( (string) $current['status'], WorkItemStatus::active(), true ) ) {
 				return new WP_Error( 'work_project_bundle_item_identity_collision' );
 			}
+			if ( self::same_item( $current, $record ) ) {
+				return $current;
+			}
 			$item = WorkItemActions::update( $work_item_id, $input );
 			if ( is_wp_error( $item ) ) {
 				return $item;
@@ -365,14 +374,17 @@ final class ProjectBundleEntity implements EntityInterface {
 	}
 
 	/** @param array<string,mixed> $current @param array<string,mixed> $record */
+	private static function same_project( array $current, array $record ): bool {
+		return (string) $current['title'] === $record['title']
+			&& (string) $current['description'] === $record['description']
+			&& (string) $current['work_context'] === WorkContext::INTERNAL
+			&& (string) $current['starts_on'] === $record['starts_on']
+			&& (string) $current['due_on'] === $record['due_on'];
+	}
+
+	/** @param array<string,mixed> $current @param array<string,mixed> $record */
 	private static function same_bundle( array $current, array $record ): bool {
-		if (
-			(string) $current['title'] !== $record['title']
-			|| (string) $current['description'] !== $record['description']
-			|| (string) $current['work_context'] !== WorkContext::INTERNAL
-			|| (string) $current['starts_on'] !== $record['starts_on']
-			|| (string) $current['due_on'] !== $record['due_on']
-		) {
+		if ( ! self::same_project( $current, $record ) ) {
 			return false;
 		}
 		foreach ( $record['work_items'] as $item_record ) {
