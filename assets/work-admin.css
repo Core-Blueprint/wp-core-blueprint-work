@@ -244,6 +244,11 @@
  */
 
 .cb-work-items-kanban {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(240px, 1fr));
+	gap: var(--cb-space-3);
+	align-items: start;
+	overflow-x: auto;
 	padding: var(--cb-space-1) 0 var(--cb-space-4);
 }
 
@@ -269,6 +274,31 @@
 .cb-work-board__lane > .inside {
 	min-height: 96px;
 	padding: var(--cb-space-3);
+}
+
+.cb-work-board__list {
+	min-height: 128px;
+}
+
+.cb-work-board__card-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	gap: var(--cb-space-2);
+	margin-bottom: var(--cb-space-2);
+}
+
+.cb-work-board__card-header h3 {
+	margin: 0;
+	line-height: 1.35;
+}
+
+.cb-work-board__drag-handle {
+	margin-top: -2px;
+}
+
+.cb-work-board[data-cb-core-reorder-pending="true"] .cb-work-board__drag-handle {
+	pointer-events: none;
 }
 
 .cb-work-items-kanban .inside > .description,
