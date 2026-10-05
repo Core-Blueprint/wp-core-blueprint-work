@@ -760,8 +760,13 @@ final class Operations {
 	}
 
 	private static function transition_label( string $status, string $from = '' ): string {
-		if ( WorkItemStatus::COMPLETED === $from && WorkItemStatus::IN_PROGRESS === $status ) {
-			return __( 'Reopen', 'core-blueprint-work' );
+		if ( WorkItemStatus::COMPLETED === $from ) {
+			return match ( $status ) {
+				WorkItemStatus::PLANNED     => __( 'Reopen as Planned', 'core-blueprint-work' ),
+				WorkItemStatus::IN_PROGRESS => __( 'Reopen', 'core-blueprint-work' ),
+				WorkItemStatus::BLOCKED     => __( 'Reopen as Blocked', 'core-blueprint-work' ),
+				default                     => self::humanize( $status ),
+			};
 		}
 		return match ( $status ) {
 			WorkItemStatus::IN_PROGRESS => __( 'Start', 'core-blueprint-work' ),
