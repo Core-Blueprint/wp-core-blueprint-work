@@ -3,15 +3,20 @@ declare(strict_types=1);
 
 define( 'ABSPATH', '/tmp/wp/' );
 
+require dirname( __DIR__ ) . '/src/Domain/WorkContext.php';
 require dirname( __DIR__ ) . '/src/Domain/WorkItemStatus.php';
 require dirname( __DIR__ ) . '/src/Domain/WorkItemPriority.php';
 require dirname( __DIR__ ) . '/src/Domain/BillingDisposition.php';
 
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 
 $checks = [
+	'Work context explicit states are bounded to Internal and Customer' => WorkContext::all() === [ 'internal', 'customer' ],
+	'Work context validation accepts only canonical explicit states' => WorkContext::is_valid( 'internal' ) && WorkContext::is_valid( 'customer' ) && ! WorkContext::is_valid( '' ) && ! WorkContext::is_valid( 'unclassified' ),
+	'only Customer context requires a customer reference' => WorkContext::requires_customer( 'customer' ) && ! WorkContext::requires_customer( 'internal' ),
 	'baseline Work Item statuses are canonical' => WorkItemStatus::all() === [ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ],
 	'active workload includes blocked work and excludes terminal states' => WorkItemStatus::active() === [ 'planned', 'in_progress', 'blocked' ],
 	'planned can enter progress, become blocked or close explicitly' => WorkItemStatus::can_transition( 'planned', 'in_progress' ) && WorkItemStatus::can_transition( 'planned', 'blocked' ) && WorkItemStatus::can_transition( 'planned', 'completed' ) && WorkItemStatus::can_transition( 'planned', 'skipped' ) && WorkItemStatus::can_transition( 'planned', 'cancelled' ),
