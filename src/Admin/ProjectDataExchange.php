@@ -228,9 +228,13 @@ final class ProjectDataExchange {
 				'apply'   => 'cb_work_project_bundle_apply',
 			],
 			'labels' => [
-				'validating' => __( 'Validating Project import…', 'core-blueprint-work' ),
-				'applying'   => __( 'Applying Project import…', 'core-blueprint-work' ),
-				'failed'     => __( 'The Project import request could not be completed.', 'core-blueprint-work' ),
+				'validating'    => __( 'Validating Project import…', 'core-blueprint-work' ),
+				'applying'      => __( 'Applying Project import…', 'core-blueprint-work' ),
+				'failed'        => __( 'The Project import request could not be completed.', 'core-blueprint-work' ),
+				'projectsCreate'=> __( 'Projects to create', 'core-blueprint-work' ),
+				'projectsUpdate'=> __( 'Projects to update', 'core-blueprint-work' ),
+				'projectsSkip'  => __( 'Projects skipped', 'core-blueprint-work' ),
+				'workItems'     => __( 'Work Items', 'core-blueprint-work' ),
 			],
 		] );
 	}
