@@ -2077,3 +2077,30 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
+
+msgid "Work context"
+msgstr "Werkcontext"
+
+msgid "Needs classification"
+msgstr "Classificatie vereist"
+
+msgid "Internal"
+msgstr "Intern"
+
+msgid "Internal Projects have no customer and are never billable. Customer Projects require a CRM customer."
+msgstr "Interne projecten hebben geen klant en zijn nooit factureerbaar. Klantprojecten vereisen een CRM-klant."
+
+msgid "When a Project is selected, the Project context and customer are authoritative."
+msgstr "Wanneer een project is geselecteerd, zijn de projectcontext en klant leidend."
+
+msgid "Context"
+msgstr "Context"
+
+msgid "Filter by Work context"
+msgstr "Filteren op werkcontext"
+
+msgid "All contexts"
+msgstr "Alle contexten"
+
+msgid "Edit context, customer, dates and description"
+msgstr "Context, klant, datums en beschrijving bewerken"
