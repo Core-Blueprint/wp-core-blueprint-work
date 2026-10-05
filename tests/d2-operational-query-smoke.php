@@ -344,7 +344,22 @@ namespace {
 	assert_true( 1 === count( $result['items'] ) && 3 === $result['items'][0]['id'], 'workload sorting runs before pagination and hydrates only the selected page.' );
 	assert_true( [ 7 ] === $result['items'][0]['assigned_user_ids'], 'hydrated page retains canonical assignment data.' );
 
+	$calendar_criteria = \CB\Work\Query\WorkItemQuery::normalize( [
+		'calendar_from' => '2026-10-01',
+		'calendar_to'   => '2026-10-31',
+	] );
+	assert_true( '2026-10-01' === $calendar_criteria['calendar_from'] && '2026-10-31' === $calendar_criteria['calendar_to'], 'Calendar viewport criteria normalize as bounded dates.' );
+
 	$source = file_get_contents( dirname( __DIR__ ) . '/src/Repository/WorkItems.php' );
+	assert_true(
+		is_string( $source )
+		&& str_contains( $source, "'relation' => 'OR'" )
+		&& str_contains( $source, 'WorkItemMeta::SCHEDULED_ON' )
+		&& str_contains( $source, 'WorkItemMeta::DUE_ON' )
+		&& str_contains( $source, "\$criteria['calendar_from']" )
+		&& str_contains( $source, "\$criteria['calendar_to']" ),
+		'Calendar viewport query composes scheduled and due ranges through one canonical OR meta query.'
+	);
 	assert_true( is_string( $source ) && str_contains( $source, 'public static function search(' ), 'repository exposes one internal canonical operational search engine.' );
 	assert_true( substr_count( $source, 'self::search(' ) >= 2, 'legacy all/project helpers are thin wrappers over the canonical engine.' );
 	assert_true( str_contains( $source, "array_slice( \$ids" ) && str_contains( $source, 'self::hydrate( $post )' ), 'engine paginates the matchset before full Work Item hydration.' );
