@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PACKAGE="core-blueprint-work"
 MAIN_FILE="$ROOT/core-blueprint-work.php"
-DIST="${CB_RELEASE_DIST:-$ROOT/build}"
+DIST="${CB_RELEASE_DIST:-$ROOT/dist}"
 ZIP="$DIST/$PACKAGE.zip"
 SHA_FILE="$ZIP.sha256"
 LOCALES=(nl_NL de_DE fr_FR es_ES it_IT pt_PT)
