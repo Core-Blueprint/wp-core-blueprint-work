@@ -2116,3 +2116,54 @@ msgstr ""
 
 msgid "Calendar navigation"
 msgstr ""
+
+msgid "Columns"
+msgstr ""
+
+msgid "Work Item table columns"
+msgstr ""
+
+msgid "Reorder %s"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Reset to default"
+msgstr ""
+
+msgid "Saving…"
+msgstr ""
+
+msgid "Saved"
+msgstr ""
+
+msgid "Column preferences could not be saved."
+msgstr ""
+
+msgid "You are not allowed to change Work Item table preferences."
+msgstr ""
+
+msgid "The table preference operation is invalid."
+msgstr ""
+
+msgid "The table preference payload is invalid."
+msgstr ""
+
+msgid "You are not allowed to move Work Items."
+msgstr ""
+
+msgid "The Work Item move is invalid."
+msgstr ""
+
+msgid "The Work Item status could not be updated."
+msgstr ""
+
+msgid "Move %s to another status"
+msgstr ""
+
+msgid "Move to another status"
+msgstr ""
+
+msgid "No scheduled work or deadlines this month."
+msgstr ""
