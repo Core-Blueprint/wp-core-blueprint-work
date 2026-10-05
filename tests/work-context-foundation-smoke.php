@@ -42,12 +42,12 @@ $checks = [
 
 	'Recurring Work persists and projects the same Work context' =>
 		str_contains( $schema, "work_context varchar(16) NOT NULL DEFAULT ''" )
-		&& str_contains( $rules, "'work_context'        => $normalized['work_context']" )
-		&& str_contains( $rules, "'work_context'        => $rule['work_context']" ),
+		&& str_contains( $rules, "'work_context'        => \$normalized['work_context']" )
+		&& str_contains( $rules, "'work_context'        => \$rule['work_context']" ),
 
 	'Project-linked Work Items take authoritative Project context' =>
-		str_contains( $items, "$context = WorkContext::sanitize( $project['work_context'] ?? '' );" )
-		&& str_contains( $items, "'provider' => (string) ( $project['customer_provider'] ?? '' )" ),
+		str_contains( $items, "\$context = WorkContext::sanitize( \$project['work_context'] ?? '' );" )
+		&& str_contains( $items, "'provider' => (string) ( \$project['customer_provider'] ?? '' )" ),
 
 	'Internal Work is forced non-billable at the write boundary' =>
 		str_contains( $items, '$billing  = BillingDisposition::NON_BILLABLE;' )
