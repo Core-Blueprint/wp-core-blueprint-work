@@ -2216,3 +2216,21 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
+
+msgid "You are not allowed to move Work Items on the calendar."
+msgstr "Je hebt geen toestemming om Work Items op de kalender te verplaatsen."
+
+msgid "The calendar move is invalid."
+msgstr "De kalenderverplaatsing is ongeldig."
+
+msgid "The Work Item could not be found."
+msgstr "Het Work Item kon niet worden gevonden."
+
+msgid "The Work Item date could not be updated."
+msgstr "De datum van het Work Item kon niet worden bijgewerkt."
+
+msgid "Move %1$s %2$s date"
+msgstr "Datum %2$s van %1$s verplaatsen"
+
+msgid "Move to another date"
+msgstr "Naar een andere datum verplaatsen"
