@@ -570,6 +570,9 @@ final class Operations {
 
 	/** @param array<string,mixed> $item */
 	private static function customer_label( array $item ): string {
+		if ( WorkContext::INTERNAL === WorkContext::sanitize( $item['work_context'] ?? '' ) ) {
+			return __( 'Internal', 'core-blueprint-work' );
+		}
 		$label = CRMCustomers::label(
 			(string) ( $item['customer_provider'] ?? '' ),
 			(string) ( $item['customer_type'] ?? '' ),
