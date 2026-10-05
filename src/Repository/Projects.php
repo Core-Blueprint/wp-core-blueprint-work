@@ -115,6 +115,9 @@ final class Projects {
 			'starts_on'         => $input['starts_on'] ?? $current['starts_on'],
 			'due_on'            => $input['due_on'] ?? $current['due_on'],
 		];
+		if ( null === ProjectMeta::normalize( $id, $meta ) ) {
+			return false;
+		}
 
 		$result = wp_update_post( [
 			'ID'           => $id,
