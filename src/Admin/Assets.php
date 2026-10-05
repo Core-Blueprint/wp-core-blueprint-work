@@ -26,7 +26,7 @@ final class Assets {
 	private const REFINEMENT_SCRIPT_HANDLE = 'cb-work-items-refinement';
 
 	public static function init(): void {
-		add_action( 'cb_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
+		add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 	}
 
 	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
