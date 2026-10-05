@@ -6,6 +6,7 @@ namespace CB\Work\Billing;
 use CB\Work\Content\ServicePricing;
 use CB\Work\Domain\BillingDisposition;
 use CB\Work\Domain\BillingUnit;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Pricing\Resolver;
 use CB\Work\PublicApi\Services;
@@ -40,6 +41,11 @@ final class SnapshotBuilder {
 		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {
 			return new \WP_Error( 'work_billing_work_item_unavailable' );
+		}
+
+		$context = WorkContext::sanitize( $item['work_context'] ?? '' );
+		if ( WorkContext::CUSTOMER !== $context ) {
+			return new \WP_Error( WorkContext::INTERNAL === $context ? 'work_billing_internal' : 'work_billing_context_required' );
 		}
 
 		$disposition = sanitize_key( (string) ( $item['billing_disposition'] ?? '' ) );
@@ -147,6 +153,7 @@ final class SnapshotBuilder {
 			],
 			'work'     => [
 				'title'               => sanitize_text_field( (string) ( $item['title'] ?? '' ) ),
+				'work_context'        => $context,
 				'project_id'          => (int) ( $item['project_id'] ?? 0 ),
 				'service_id'          => $service_id,
 				'work_type_id'        => (int) ( $item['work_type_id'] ?? 0 ),
