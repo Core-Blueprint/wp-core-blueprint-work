@@ -114,9 +114,10 @@
 				window.location.assign(validation.url);
 			}
 		} catch (error) {
+			fingerprint = '';
 			result.innerHTML = '<div class="notice notice-error inline"><p>' + escapeHtml(error.message || config.labels.failed) + '</p></div>';
 			previewButton.disabled = false;
-			applyButton.disabled = false;
+			applyButton.disabled = true;
 		}
 	});
 
