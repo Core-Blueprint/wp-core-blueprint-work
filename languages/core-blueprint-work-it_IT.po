@@ -2204,3 +2204,12 @@ msgstr "nessuno"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Pronto"
+
+msgid "Reopen"
+msgstr "Riapri"
+
+msgid "Reopen as Planned"
+msgstr "Riapri come pianificato"
+
+msgid "Reopen as Blocked"
+msgstr "Riapri come bloccato"
