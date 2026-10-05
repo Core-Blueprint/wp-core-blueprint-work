@@ -2129,3 +2129,6 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
+
+msgid "Calendar navigation"
+msgstr "Kalendernavigatie"
