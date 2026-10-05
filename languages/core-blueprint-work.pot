@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-05 20:11+0000\n"
+"POT-Creation-Date: 2026-10-05 20:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: core-blueprint-work\n"
@@ -49,44 +49,45 @@ msgstr ""
 msgid "Required Core Blueprint Base contracts are unavailable."
 msgstr ""
 
-#: src/Admin/Assets.php:139
+#: src/Admin/Assets.php:140
 msgid "Filter"
 msgstr ""
 
-#: src/Admin/Assets.php:140
+#: src/Admin/Assets.php:141
 msgid "Filters"
 msgstr ""
 
-#: src/Admin/Assets.php:141
+#: src/Admin/Assets.php:142
 msgid "Search"
 msgstr ""
 
-#: src/Admin/Assets.php:142
+#: src/Admin/Assets.php:143
 msgid "More filters"
 msgstr ""
 
-#: src/Admin/Assets.php:143
+#: src/Admin/Assets.php:144
 msgid "Hide filters"
 msgstr ""
 
-#: src/Admin/Assets.php:144
+#: src/Admin/Assets.php:145
 msgid "Active filters"
 msgstr ""
 
-#: src/Admin/Assets.php:145
+#: src/Admin/Assets.php:146
 msgid "Selected"
 msgstr ""
 
-#: src/Admin/Assets.php:146
+#: src/Admin/Assets.php:147
+#: src/Admin/Operations.php:620
 #: src/Admin/Overview.php:47
 #: src/Admin/Overview.php:58
 msgid "Today"
 msgstr ""
 
-#: src/Admin/Assets.php:147
+#: src/Admin/Assets.php:148
 #: src/Admin/Operations.php:155
 #: src/Admin/Operations.php:220
-#: src/Admin/Operations.php:310
+#: src/Admin/Operations.php:402
 #: src/Admin/Page.php:109
 #: src/Admin/Projects.php:127
 #: src/Admin/ProjectWorkspace.php:98
@@ -95,8 +96,9 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
-#: src/Admin/Assets.php:148
+#: src/Admin/Assets.php:149
 #: src/Admin/Operations.php:233
+#: src/Admin/Operations.php:404
 #: src/Admin/QuickAdd.php:41
 #: src/Admin/Recurrence.php:90
 #: src/Admin/WorkItems.php:116
@@ -104,7 +106,7 @@ msgstr ""
 msgid "Project"
 msgstr ""
 
-#: src/Admin/Assets.php:149
+#: src/Admin/Assets.php:150
 #: src/Admin/Operations.php:239
 #: src/Admin/Recurrence.php:91
 #: src/Admin/WorkItems.php:125
@@ -112,10 +114,10 @@ msgstr ""
 msgid "Service"
 msgstr ""
 
-#: src/Admin/Assets.php:150
+#: src/Admin/Assets.php:151
 #: src/Admin/Operations.php:254
 #: src/Admin/Operations.php:265
-#: src/Admin/Operations.php:309
+#: src/Admin/Operations.php:408
 #: src/Admin/Projects.php:76
 #: src/Admin/Projects.php:82
 #: src/Admin/Projects.php:211
@@ -128,14 +130,14 @@ msgstr ""
 msgid "Customer"
 msgstr ""
 
-#: src/Admin/Assets.php:151
+#: src/Admin/Assets.php:152
 #: src/Admin/Operations.php:269
 msgid "Assignee"
 msgstr ""
 
-#: src/Admin/Assets.php:152
+#: src/Admin/Assets.php:153
 #: src/Admin/Operations.php:227
-#: src/Admin/Operations.php:311
+#: src/Admin/Operations.php:403
 #: src/Admin/Projects.php:128
 #: src/Admin/ProjectWorkspace.php:99
 #: src/Admin/Recurrence.php:93
@@ -143,14 +145,14 @@ msgstr ""
 msgid "Priority"
 msgstr ""
 
-#: src/Admin/Assets.php:153
+#: src/Admin/Assets.php:154
 #: src/Admin/Operations.php:245
 #: src/Admin/Recurrence.php:92
 #: src/Admin/WorkItems.php:134
 msgid "Work Type"
 msgstr ""
 
-#: src/Admin/Assets.php:154
+#: src/Admin/Assets.php:155
 #: src/Admin/Operations.php:251
 #: src/Admin/Projects.php:71
 #: src/Admin/Recurrence.php:88
@@ -158,23 +160,26 @@ msgstr ""
 msgid "Work context"
 msgstr ""
 
-#: src/Admin/Assets.php:155
+#: src/Admin/Assets.php:156
 #: src/Admin/Operations.php:256
-#: src/Admin/Operations.php:314
+#: src/Admin/Operations.php:410
 msgid "Billing"
 msgstr ""
 
-#: src/Admin/Assets.php:156
+#: src/Admin/Assets.php:157
 #: src/Admin/Operations.php:283
 msgid "Sort"
 msgstr ""
 
-#: src/Admin/Assets.php:157
+#: src/Admin/Assets.php:158
+#: src/Admin/Operations.php:652
 msgid "Scheduled"
 msgstr ""
 
-#: src/Admin/Assets.php:158
-#: src/Admin/Operations.php:313
+#: src/Admin/Assets.php:159
+#: src/Admin/Operations.php:405
+#: src/Admin/Operations.php:652
+#: src/Admin/Operations.php:654
 #: src/Admin/Projects.php:129
 #: src/Admin/Projects.php:212
 #: src/Admin/ProjectWorkspace.php:100
@@ -183,87 +188,91 @@ msgstr ""
 msgid "Due"
 msgstr ""
 
-#: src/Admin/Assets.php:159
+#: src/Admin/Assets.php:160
 #: src/Admin/Operations.php:276
 #: src/Admin/Operations.php:281
 msgid "to"
 msgstr ""
 
-#: src/Admin/Assets.php:160
+#: src/Admin/Assets.php:161
 msgid "Board"
 msgstr ""
 
-#: src/Admin/Assets.php:161
+#: src/Admin/Assets.php:162
 msgid "No Work Items yet."
 msgstr ""
 
-#: src/Admin/Assets.php:162
+#: src/Admin/Assets.php:163
 msgid "Create your first Work Item to start planning and tracking customer work."
 msgstr ""
 
-#: src/Admin/Assets.php:163
+#: src/Admin/Assets.php:164
 msgid "No Work Items match these filters."
 msgstr ""
 
-#: src/Admin/Assets.php:164
+#: src/Admin/Assets.php:165
 msgid "Adjust or clear the current filters to broaden this view."
 msgstr ""
 
 #: src/Admin/Assets.php:166
+msgid "No scheduled work or deadlines this month."
+msgstr ""
+
+#: src/Admin/Assets.php:167
 #: src/Admin/Operations.php:31
 msgid "Planned"
 msgstr ""
 
-#: src/Admin/Assets.php:167
+#: src/Admin/Assets.php:168
 #: src/Admin/Operations.php:30
 msgid "In Progress"
 msgstr ""
 
-#: src/Admin/Assets.php:168
-#: src/Admin/Assets.php:219
+#: src/Admin/Assets.php:169
+#: src/Admin/Assets.php:237
 #: src/Admin/Overview.php:49
 #: src/Admin/ProjectWorkspace.php:69
 msgid "Blocked"
 msgstr ""
 
-#: src/Admin/Assets.php:169
+#: src/Admin/Assets.php:170
 #: src/Admin/ProjectWorkspace.php:70
 msgid "Completed"
 msgstr ""
 
-#: src/Admin/Assets.php:170
+#: src/Admin/Assets.php:171
 msgid "Skipped"
 msgstr ""
 
-#: src/Admin/Assets.php:171
+#: src/Admin/Assets.php:172
 msgid "Cancelled"
 msgstr ""
 
-#: src/Admin/Assets.php:172
+#: src/Admin/Assets.php:173
 msgid "Show closed"
 msgstr ""
 
-#: src/Admin/Assets.php:173
+#: src/Admin/Assets.php:174
 msgid "Hide closed"
 msgstr ""
 
-#: src/Admin/Assets.php:174
+#: src/Admin/Assets.php:175
 msgid "No Work Items"
 msgstr ""
 
-#: src/Admin/Assets.php:215
+#: src/Admin/Assets.php:233
 msgid "Focus views"
 msgstr ""
 
-#: src/Admin/Assets.php:216
+#: src/Admin/Assets.php:234
 msgid "All"
 msgstr ""
 
-#: src/Admin/Assets.php:217
+#: src/Admin/Assets.php:235
 msgid "My work"
 msgstr ""
 
-#: src/Admin/Assets.php:218
+#: src/Admin/Assets.php:236
 #: src/Admin/Operations.php:160
 #: src/Admin/Operations.php:222
 #: src/Admin/Page.php:118
@@ -274,12 +283,12 @@ msgstr ""
 msgid "Active"
 msgstr ""
 
-#: src/Admin/Assets.php:220
+#: src/Admin/Assets.php:238
 #: src/Admin/Overview.php:48
 msgid "Overdue"
 msgstr ""
 
-#: src/Admin/Assets.php:221
+#: src/Admin/Assets.php:239
 msgid "Shortcut: / search · Alt+N add Work Item"
 msgstr ""
 
@@ -354,7 +363,7 @@ msgid "Project Workspace"
 msgstr ""
 
 #: src/Admin/OperationalActions.php:58
-#: src/Admin/Operations.php:627
+#: src/Admin/Operations.php:801
 #: src/Admin/Overview.php:16
 #: src/Admin/Pickers.php:124
 #: src/Admin/QuickAdd.php:57
@@ -548,7 +557,7 @@ msgid "All contexts"
 msgstr ""
 
 #: src/Admin/Operations.php:253
-#: src/Admin/Operations.php:574
+#: src/Admin/Operations.php:748
 #: src/Admin/Projects.php:75
 #: src/Admin/Projects.php:248
 #: src/Admin/Recurrence.php:88
@@ -600,7 +609,41 @@ msgstr ""
 msgid "Clear filters"
 msgstr ""
 
-#: src/Admin/Operations.php:308
+#: src/Admin/Operations.php:316
+msgid "Saving…"
+msgstr ""
+
+#: src/Admin/Operations.php:317
+msgid "Saved"
+msgstr ""
+
+#: src/Admin/Operations.php:318
+msgid "Column preferences could not be saved."
+msgstr ""
+
+#: src/Admin/Operations.php:327
+msgid "Columns"
+msgstr ""
+
+#: src/Admin/Operations.php:335
+msgid "Work Item table columns"
+msgstr ""
+
+#. translators: %s: Work Item table column label.
+#: src/Admin/Operations.php:342
+#, php-format
+msgid "Reorder %s"
+msgstr ""
+
+#: src/Admin/Operations.php:354
+msgid "Move"
+msgstr ""
+
+#: src/Admin/Operations.php:371
+msgid "Reset to default"
+msgstr ""
+
+#: src/Admin/Operations.php:401
 #: src/Admin/Overview.php:96
 #: src/Admin/Projects.php:126
 #: src/Admin/ProjectWorkspace.php:97
@@ -611,164 +654,181 @@ msgstr ""
 msgid "Work Item"
 msgstr ""
 
-#: src/Admin/Operations.php:312
-msgid "Project / Type"
-msgstr ""
-
-#: src/Admin/Operations.php:315
+#: src/Admin/Operations.php:406
 msgid "Assigned"
 msgstr ""
 
-#: src/Admin/Operations.php:316
+#: src/Admin/Operations.php:407
 #: src/Admin/Recurrence.php:136
 #: src/Admin/Time.php:156
 msgid "Actions"
 msgstr ""
 
-#: src/Admin/Operations.php:351
+#: src/Admin/Operations.php:409
+msgid "Type"
+msgstr ""
+
+#: src/Admin/Operations.php:470
 msgid "Status:"
 msgstr ""
 
-#: src/Admin/Operations.php:352
-#: src/Admin/Operations.php:399
+#: src/Admin/Operations.php:471
+#: src/Admin/Operations.php:551
 msgid "Priority:"
 msgstr ""
 
-#: src/Admin/Operations.php:353
-#: src/Admin/Operations.php:400
-#: src/Admin/Operations.php:483
+#: src/Admin/Operations.php:472
+#: src/Admin/Operations.php:552
 msgid "Due:"
 msgstr ""
 
-#: src/Admin/Operations.php:356
-#: src/Admin/Operations.php:401
+#: src/Admin/Operations.php:475
+#: src/Admin/Operations.php:553
 msgid "Customer:"
 msgstr ""
 
-#: src/Admin/Operations.php:357
-#: src/Admin/Operations.php:402
-#: src/Admin/Operations.php:484
+#: src/Admin/Operations.php:476
+#: src/Admin/Operations.php:554
 msgid "Project:"
 msgstr ""
 
-#: src/Admin/Operations.php:358
-#: src/Admin/Operations.php:403
+#: src/Admin/Operations.php:477
+#: src/Admin/Operations.php:555
 msgid "Type:"
 msgstr ""
 
-#: src/Admin/Operations.php:361
+#: src/Admin/Operations.php:480
 msgid "Billing:"
 msgstr ""
 
-#: src/Admin/Operations.php:362
-#: src/Admin/Operations.php:404
-#: src/Admin/Operations.php:485
+#: src/Admin/Operations.php:481
+#: src/Admin/Operations.php:556
 msgid "Assigned:"
 msgstr ""
 
-#: src/Admin/Operations.php:394
+#: src/Admin/Operations.php:514
+#: src/Admin/WorkItemBoardActions.php:40
+msgid "The Work Item status could not be updated."
+msgstr ""
+
+#: src/Admin/Operations.php:526
 msgid "No Work Items in this status on the current page."
 msgstr ""
 
-#: src/Admin/Operations.php:442
+#. translators: %s: Work Item title.
+#: src/Admin/Operations.php:531
+#, php-format
+msgid "Move %s to another status"
+msgstr ""
+
+#: src/Admin/Operations.php:548
+msgid "Move to another status"
+msgstr ""
+
+#: src/Admin/Operations.php:608
 msgid "Monday"
 msgstr ""
 
-#: src/Admin/Operations.php:443
+#: src/Admin/Operations.php:609
 msgid "Tuesday"
 msgstr ""
 
-#: src/Admin/Operations.php:444
+#: src/Admin/Operations.php:610
 msgid "Wednesday"
 msgstr ""
 
-#: src/Admin/Operations.php:445
+#: src/Admin/Operations.php:611
 msgid "Thursday"
 msgstr ""
 
-#: src/Admin/Operations.php:446
+#: src/Admin/Operations.php:612
 msgid "Friday"
 msgstr ""
 
-#: src/Admin/Operations.php:447
+#: src/Admin/Operations.php:613
 msgid "Saturday"
 msgstr ""
 
-#: src/Admin/Operations.php:448
+#: src/Admin/Operations.php:614
 msgid "Sunday"
 msgstr ""
 
-#: src/Admin/Operations.php:453
+#: src/Admin/Operations.php:617
+msgid "Calendar navigation"
+msgstr ""
+
+#: src/Admin/Operations.php:619
 msgid "Previous month"
 msgstr ""
 
-#: src/Admin/Operations.php:455
+#: src/Admin/Operations.php:622
 msgid "Next month"
 msgstr ""
 
 #. translators: %d: total number of Work Items in the current result set.
-#: src/Admin/Operations.php:517
+#: src/Admin/Operations.php:691
 #, php-format
 msgid "%d item"
 msgid_plural "%d items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/Operations.php:520
+#: src/Admin/Operations.php:694
 msgid "Previous"
 msgstr ""
 
 #. translators: 1: current page number, 2: total number of pages.
-#: src/Admin/Operations.php:524
+#: src/Admin/Operations.php:698
 #, php-format
 msgid "Page %1$d of %2$d"
 msgstr ""
 
-#: src/Admin/Operations.php:527
+#: src/Admin/Operations.php:701
 msgid "Next"
 msgstr ""
 
-#: src/Admin/Operations.php:590
+#: src/Admin/Operations.php:764
 #: src/Admin/Time.php:136
 msgid "Start"
 msgstr ""
 
-#: src/Admin/Operations.php:591
+#: src/Admin/Operations.php:765
 #: src/Admin/Recurrence.php:142
 msgid "Complete"
 msgstr ""
 
-#: src/Admin/Operations.php:592
+#: src/Admin/Operations.php:766
 msgid "Skip"
 msgstr ""
 
-#: src/Admin/Operations.php:593
+#: src/Admin/Operations.php:767
 #: src/Admin/QuickAdd.php:47
 #: src/Admin/Time.php:141
 msgid "Cancel"
 msgstr ""
 
-#: src/Admin/Operations.php:601
+#: src/Admin/Operations.php:775
 msgid "Work Item status updated."
 msgstr ""
 
-#: src/Admin/Operations.php:602
+#: src/Admin/Operations.php:776
+#: src/Admin/WorkItemBoardActions.php:36
 msgid "That Work Item status transition is not allowed."
 msgstr ""
 
-#: src/Admin/Operations.php:603
+#: src/Admin/Operations.php:777
 msgid "Work Type added."
 msgstr ""
 
-#: src/Admin/Operations.php:604
+#: src/Admin/Operations.php:778
 msgid "Work Type could not be saved."
 msgstr ""
 
-#: src/Admin/Operations.php:605
+#: src/Admin/Operations.php:779
 msgid "Work Type status updated."
 msgstr ""
 
-#: src/Admin/Operations.php:618
+#: src/Admin/Operations.php:792
 msgid "Work storage upgrade is pending. Work Items remain unavailable until Base reconciles the Work schema."
 msgstr ""
 
@@ -1728,6 +1788,14 @@ msgstr ""
 msgid "You do not have permission to track Work time."
 msgstr ""
 
+#: src/Admin/WorkItemBoardActions.php:23
+msgid "You are not allowed to move Work Items."
+msgstr ""
+
+#: src/Admin/WorkItemBoardActions.php:31
+msgid "The Work Item move is invalid."
+msgstr ""
+
 #: src/Admin/WorkItems.php:37
 msgid "Work Item Details"
 msgstr ""
@@ -1766,6 +1834,20 @@ msgstr ""
 
 #: src/Admin/WorkItems.php:251
 msgid "Work Item title"
+msgstr ""
+
+#: src/Admin/WorkItemTablePreferences.php:99
+msgid "You are not allowed to change Work Item table preferences."
+msgstr ""
+
+#: src/Admin/WorkItemTablePreferences.php:110
+msgid "The table preference operation is invalid."
+msgstr ""
+
+#: src/Admin/WorkItemTablePreferences.php:115
+#: src/Admin/WorkItemTablePreferences.php:121
+#: src/Admin/WorkItemTablePreferences.php:124
+msgid "The table preference payload is invalid."
 msgstr ""
 
 #: src/Capabilities.php:32
@@ -2108,61 +2190,4 @@ msgstr ""
 
 #: src/Support/Requirements.php:79
 msgid "Ready"
-msgstr ""
-
-msgid "Calendar navigation"
-msgstr ""
-
-msgid "Columns"
-msgstr ""
-
-msgid "Work Item table columns"
-msgstr ""
-
-msgid "Reorder %s"
-msgstr ""
-
-msgid "Move"
-msgstr ""
-
-msgid "Reset to default"
-msgstr ""
-
-msgid "Saving…"
-msgstr ""
-
-msgid "Saved"
-msgstr ""
-
-msgid "Column preferences could not be saved."
-msgstr ""
-
-msgid "You are not allowed to change Work Item table preferences."
-msgstr ""
-
-msgid "The table preference operation is invalid."
-msgstr ""
-
-msgid "The table preference payload is invalid."
-msgstr ""
-
-msgid "You are not allowed to move Work Items."
-msgstr ""
-
-msgid "The Work Item move is invalid."
-msgstr ""
-
-msgid "The Work Item status could not be updated."
-msgstr ""
-
-msgid "Move %s to another status"
-msgstr ""
-
-msgid "Move to another status"
-msgstr ""
-
-msgid "No scheduled work or deadlines this month."
-msgstr ""
-
-msgid "Type"
 msgstr ""
