@@ -2182,3 +2182,6 @@ msgstr "Mover para outro estado"
 
 msgid "No scheduled work or deadlines this month."
 msgstr "Sem trabalho agendado ou prazos este mês."
+
+msgid "Type"
+msgstr "Tipo"
