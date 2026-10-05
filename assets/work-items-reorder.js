@@ -123,3 +123,84 @@ const initTablePreferences = (root) => {
 };
 
 document.querySelectorAll('[data-cb-work-table-preferences]').forEach(initTablePreferences);
+
+
+const boardCardByReorderId = (root, itemId) => [...root.querySelectorAll('[data-cb-core-reorder-item]')]
+	.find((item) => String(item.dataset.cbCoreReorderItem || '') === itemId) || null;
+
+const allowedStatuses = (card) => new Set(
+	String(card?.dataset?.cbWorkAllowedStatuses || '')
+		.split(',')
+		.map((value) => value.trim())
+		.filter(Boolean)
+);
+
+const refreshBoardCounts = (root) => {
+	root.querySelectorAll('[data-cb-work-status-lane]').forEach((lane) => {
+		const list = lane.querySelector('[data-cb-core-reorder-list]');
+		const count = list ? list.querySelectorAll('[data-cb-core-reorder-item]').length : 0;
+		const counter = lane.querySelector('.count');
+		const empty = lane.querySelector('[data-cb-work-board-empty]');
+		if (counter) counter.textContent = '(' + String(count) + ')';
+		if (empty) empty.hidden = count > 0;
+	});
+};
+
+const persistBoardTransition = async (root, card, targetStatus) => {
+	const body = new FormData();
+	body.set('action', root.dataset.action || '');
+	body.set('nonce', root.dataset.nonce || '');
+	body.set('work_item_id', card.dataset.cbWorkItemId || '');
+	body.set('status', targetStatus);
+
+	const response = await fetch(root.dataset.ajaxUrl || '', {
+		method: 'POST',
+		credentials: 'same-origin',
+		body,
+	});
+	const payload = await response.json().catch(() => null);
+	if (!response.ok || !payload?.success) {
+		throw new Error(payload?.data?.message || root.dataset.error || 'Work Item status update failed.');
+	}
+	return payload.data || {};
+};
+
+const initBoardReorder = (root) => {
+	const reorder = window.cbCore?.reorder;
+	if (!reorder?.enhance) return;
+
+	reorder.enhance(root, {
+		crossList: true,
+
+		canMove(move) {
+			if (move.from.listId === move.to.listId) return false;
+			const card = boardCardByReorderId(root, move.itemId);
+			return Boolean(card && allowedStatuses(card).has(move.to.listId));
+		},
+
+		async onMove(move) {
+			const card = boardCardByReorderId(root, move.itemId);
+			if (!card) return false;
+
+			const result = await persistBoardTransition(root, card, move.to.listId);
+			card.dataset.cbWorkStatus = String(result.status || move.to.listId);
+			card.dataset.cbWorkAllowedStatuses = Array.isArray(result.allowed_statuses)
+				? result.allowed_statuses.join(',')
+				: '';
+			refreshBoardCounts(root);
+			return true;
+		},
+	});
+
+	root.addEventListener('cb:reorder:error', () => {
+		refreshBoardCounts(root);
+	});
+
+	root.addEventListener('cb:reorder:change', () => {
+		refreshBoardCounts(root);
+	});
+
+	refreshBoardCounts(root);
+};
+
+document.querySelectorAll('[data-cb-work-board-reorder]').forEach(initBoardReorder);
