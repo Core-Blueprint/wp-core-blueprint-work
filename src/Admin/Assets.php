@@ -163,7 +163,7 @@ final class Assets {
 			'noItemsYetDetail'     => __( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ),
 			'noMatchingItems'      => __( 'No Work Items match these filters.', 'core-blueprint-work' ),
 			'noMatchingDetail'     => __( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ),
-			'noScheduledThisMonth' => __( 'No scheduled work this month.', 'core-blueprint-work' ),
+			'noScheduledThisMonth' => __( 'No scheduled work or deadlines this month.', 'core-blueprint-work' ),
 			'planned'              => __( 'Planned', 'core-blueprint-work' ),
 			'inProgress'           => __( 'In Progress', 'core-blueprint-work' ),
 			'blocked'              => __( 'Blocked', 'core-blueprint-work' ),
