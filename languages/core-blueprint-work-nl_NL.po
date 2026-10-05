@@ -183,10 +183,6 @@ msgstr "Geen Work Items komen overeen met deze filters."
 msgid "Adjust or clear the current filters to broaden this view."
 msgstr "Pas de huidige filters aan of wis ze om deze weergave te verbreden."
 
-#: src/Admin/Assets.php:165
-msgid "No scheduled work this month."
-msgstr "Geen gepland werk deze maand."
-
 #: src/Admin/Assets.php:166 src/Admin/Operations.php:31
 msgid "Planned"
 msgstr "Gepland"
