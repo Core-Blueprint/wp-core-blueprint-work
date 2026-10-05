@@ -11,7 +11,7 @@ $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 
 $checks = [
-	'current Work schema is 1.8 after billing readiness foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
+	'current Work schema is 1.9 after Work context foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
 	'Project storage remains cb_work_project' => str_contains( $postTypes, "PROJECT   = 'cb_work_project'" ) && str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
 	'Work Item storage remains cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
 	'pre-v1 Project and Work Item relational schema is fully absent' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ) && ! str_contains( $schema, 'cb_work_projects' ) && ! str_contains( $schema, 'cb_work_items' ),
