@@ -461,6 +461,9 @@ final class WorkItems {
 		if ( [] !== $criteria['billing_dispositions'] ) {
 			$filters[] = [ 'key' => WorkItemMeta::BILLING_DISPOSITION, 'value' => $criteria['billing_dispositions'], 'compare' => 'IN' ];
 		}
+		if ( WorkContext::is_valid( (string) $criteria['work_context'] ) ) {
+			$filters[] = [ 'key' => WorkItemMeta::WORK_CONTEXT, 'value' => (string) $criteria['work_context'] ];
+		}
 		if ( is_array( $criteria['customer'] ) ) {
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_PROVIDER, 'value' => $criteria['customer']['provider'] ];
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_TYPE, 'value' => $criteria['customer']['type'] ];
