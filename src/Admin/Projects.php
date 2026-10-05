@@ -28,6 +28,8 @@ final class Projects {
 		add_action( 'manage_' . PostTypes::PROJECT . '_posts_custom_column', [ self::class, 'column' ], 10, 2 );
 		add_filter( 'post_row_actions', [ self::class, 'row_actions' ], 10, 2 );
 		add_filter( 'enter_title_here', [ self::class, 'title_placeholder' ], 10, 2 );
+		add_action( 'restrict_manage_posts', [ self::class, 'context_filter' ], 10, 2 );
+		add_action( 'pre_get_posts', [ self::class, 'apply_context_filter' ] );
 	}
 
 	public static function register_meta_boxes(): void {
@@ -232,6 +234,34 @@ final class Projects {
 		if ( 'cb_work_item_count' === $column ) {
 			echo esc_html( (string) WorkItems::count_for_project( $post_id ) );
 		}
+	}
+
+	public static function context_filter( string $post_type, string $which ): void {
+		if ( PostTypes::PROJECT !== $post_type || 'top' !== $which ) {
+			return;
+		}
+		$value = WorkContext::sanitize( $_GET['cb_work_context'] ?? '' );
+		?>
+		<label class="screen-reader-text" for="cb-work-project-context-filter"><?php esc_html_e( 'Filter by Work context', 'core-blueprint-work' ); ?></label>
+		<select id="cb-work-project-context-filter" name="cb_work_context">
+			<option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option>
+			<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $value, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+			<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $value, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
+		</select>
+		<?php
+	}
+
+	public static function apply_context_filter( \WP_Query $query ): void {
+		if ( ! is_admin() || ! $query->is_main_query() || PostTypes::PROJECT !== $query->get( 'post_type' ) ) {
+			return;
+		}
+		$context = WorkContext::sanitize( $_GET['cb_work_context'] ?? '' );
+		if ( ! WorkContext::is_valid( $context ) ) {
+			return;
+		}
+		$meta_query   = (array) $query->get( 'meta_query' );
+		$meta_query[] = [ 'key' => ProjectMeta::WORK_CONTEXT, 'value' => $context ];
+		$query->set( 'meta_query', $meta_query );
 	}
 
 	/** @param array<string,string> $actions @return array<string,string> */
