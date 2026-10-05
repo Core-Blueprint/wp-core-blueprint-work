@@ -6,6 +6,7 @@ namespace CB\Work\Admin;
 use CB\Work\Capabilities;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Integration\CRMCustomers;
@@ -246,6 +247,11 @@ final class Operations {
 						<?php foreach ( $types as $type ) : ?>
 							<option value="<?php echo esc_attr( (string) $type['id'] ); ?>" <?php selected( (int) $state['work_type_id'], (int) $type['id'] ); ?>><?php echo esc_html( (string) $type['label'] ); ?></option>
 						<?php endforeach; ?>
+					</select>
+					<select name="work_context" aria-label="<?php esc_attr_e( 'Work context', 'core-blueprint-work' ); ?>">
+						<option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option>
+						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( WorkContext::INTERNAL, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( WorkContext::CUSTOMER, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
 					</select>
 					<select name="billing" aria-label="<?php esc_attr_e( 'Billing', 'core-blueprint-work' ); ?>">
 						<option value=""><?php esc_html_e( 'All billing classes', 'core-blueprint-work' ); ?></option>
