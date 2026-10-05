@@ -2163,3 +2163,6 @@ msgstr ""
 
 msgid "No scheduled work or deadlines this month."
 msgstr ""
+
+msgid "Type"
+msgstr ""
