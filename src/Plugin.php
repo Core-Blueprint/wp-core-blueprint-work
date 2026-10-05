@@ -19,6 +19,7 @@ use CB\Work\Admin\TimeActions;
 use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
 use CB\Work\Admin\WorkItemTablePreferences;
+use CB\Work\Admin\WorkItemBoardActions;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\ServicePricing as ServicePricingDomain;
@@ -60,6 +61,7 @@ final class Plugin {
 			Projects::init();
 			WorkItemsAdmin::init();
 			WorkItemTablePreferences::init();
+			WorkItemBoardActions::init();
 			RecurrenceActions::init();
 			Time::init();
 			TimeActions::init();
