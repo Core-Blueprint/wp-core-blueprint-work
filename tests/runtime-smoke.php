@@ -149,13 +149,13 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.8'; }
+		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.9'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'core_blueprint_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '1.8' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 1.8.' );
+	assert_true( '1.9' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 1.9.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
 	assert_true( 13 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence and Time tables; Projects and Work Items remain CPT-backed.' );
@@ -171,7 +171,9 @@ namespace {
 	assert_true( \CB\Work\Content\WorkItemRestController::class === ( $GLOBALS['post_types']['cb_work_item']['rest_controller_class'] ?? '' ), 'Work Item CPT uses the capability-gated REST controller.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_service']['_cb_work_service_pricing_model'] ), 'Service pricing model meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_project']['_cb_work_project_due_on'] ), 'Project due date meta registers.' );
+	assert_true( isset( $GLOBALS['post_meta']['cb_work_project']['_cb_work_project_context'] ), 'Project Work context meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_project_id'] ), 'Work Item Project meta registers.' );
+	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_context'] ), 'Work Item context meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_status'] ), 'Work Item operational status meta registers.' );
 	assert_true( isset( $GLOBALS['post_meta']['cb_work_item']['_cb_work_item_estimated_minutes'] ), 'Work Item estimate meta registers separately from actual Time.' );
 	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.tax.rate.created'] ), 'Work VAT governance events register.' );
