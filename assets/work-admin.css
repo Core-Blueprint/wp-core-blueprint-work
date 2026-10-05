@@ -308,29 +308,32 @@
 }
 
 /* Calendar -------------------------------------------------------------
- * The calendar remains a semantic widefat table. Work owns only planning
- * density and event composition; Base owns the table/control theme itself.
+ * Semantic month grid with server-rendered navigation and explicit planning
+ * versus deadline projection.
  */
 
 .cb-work-calendar-navigation {
-	height: auto;
 	margin: 0 0 var(--cb-space-3);
-	padding: 0;
 }
 
-.cb-work-calendar-navigation .actions {
+.cb-work-calendar-navigation__controls {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: var(--cb-space-2);
-	padding: 0;
 }
 
-.cb-work-calendar-navigation strong {
-	padding: 0 var(--cb-space-2) !important;
+.cb-work-calendar-navigation__controls .button {
+	margin: 0;
 }
 
-.cb-work-calendar-today {
-	margin-inline: var(--cb-space-1) 0;
+.cb-work-calendar-navigation__month {
+	display: inline-flex;
+	align-items: center;
+	min-height: 30px;
+	padding-inline: var(--cb-space-2);
+	font-weight: var(--cb-fw-semibold);
+	white-space: nowrap;
 }
 
 .cb-work-items-calendar {
@@ -347,24 +350,58 @@
 	font-weight: var(--cb-fw-semibold);
 }
 
-.cb-work-items-calendar td {
-	height: 88px;
+.cb-work-calendar-day {
+	height: 112px;
 	vertical-align: top;
 	transition: background var(--cb-work-transition);
 }
 
-.cb-work-items-calendar td:hover {
+.cb-work-calendar-day:hover {
 	background: var(--cb-interactive-hover);
 }
 
-.cb-work-items-calendar .card {
-	max-width: none !important;
-	margin: var(--cb-space-2) 0 0 !important;
-	padding: var(--cb-space-2) !important;
+.cb-work-calendar-day__number {
+	display: block;
+	margin-bottom: var(--cb-space-2);
+}
+
+.cb-work-calendar-entry {
+	margin-top: var(--cb-space-2);
+	padding: var(--cb-space-2);
 	background: var(--cb-work-surface-raised);
-	border-color: var(--cb-work-border);
+	border: 1px solid var(--cb-work-border);
 	border-radius: var(--cb-radius-sm);
-	box-shadow: none;
+}
+
+.cb-work-calendar-entry--due {
+	border-inline-start-width: 3px;
+}
+
+.cb-work-calendar-entry__meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--cb-space-1);
+	margin-bottom: var(--cb-space-1);
+	font-size: 11px;
+	font-weight: var(--cb-fw-semibold);
+	text-transform: uppercase;
+	letter-spacing: .04em;
+}
+
+.cb-work-calendar-entry__due {
+	opacity: .72;
+}
+
+.cb-work-calendar-entry__title {
+	display: block;
+	line-height: 1.35;
+}
+
+.cb-work-calendar-entry__details {
+	margin: var(--cb-space-1) 0 0;
+	font-size: 12px;
+	line-height: 1.45;
 }
 
 .cb-work-calendar-empty,
