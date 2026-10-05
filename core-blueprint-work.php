@@ -26,7 +26,7 @@ if ( defined( 'CB_WORK_FILE' ) ) {
 }
 
 define( 'CB_WORK_VERSION', '1.0.0-rc1' );
-define( 'CB_WORK_SCHEMA_VERSION', '1.9' );
+define( 'CB_WORK_SCHEMA_VERSION', '2.0' );
 define( 'CB_WORK_MIN_PHP', '8.4' );
 define( 'CB_WORK_REQUIRED_API', '1.1' );
 define( 'CB_WORK_FILE', __FILE__ );
