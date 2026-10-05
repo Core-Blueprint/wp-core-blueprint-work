@@ -469,6 +469,22 @@ final class WorkItems {
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_TYPE, 'value' => $criteria['customer']['type'] ];
 			$filters[] = [ 'key' => WorkItemMeta::CUSTOMER_ID, 'value' => $criteria['customer']['id'] ];
 		}
+		if ( '' !== $criteria['calendar_from'] && '' !== $criteria['calendar_to'] ) {
+			$filters[] = [
+				'relation' => 'OR',
+				[
+					'relation' => 'AND',
+					[ 'key' => WorkItemMeta::SCHEDULED_ON, 'value' => $criteria['calendar_from'], 'compare' => '>=', 'type' => 'DATE' ],
+					[ 'key' => WorkItemMeta::SCHEDULED_ON, 'value' => $criteria['calendar_to'], 'compare' => '<=', 'type' => 'DATE' ],
+				],
+				[
+					'relation' => 'AND',
+					[ 'key' => WorkItemMeta::DUE_ON, 'value' => $criteria['calendar_from'], 'compare' => '>=', 'type' => 'DATE' ],
+					[ 'key' => WorkItemMeta::DUE_ON, 'value' => $criteria['calendar_to'], 'compare' => '<=', 'type' => 'DATE' ],
+				],
+			];
+		}
+
 		foreach ( [
 			[ 'from' => 'scheduled_from', 'to' => 'scheduled_to', 'key' => WorkItemMeta::SCHEDULED_ON ],
 			[ 'from' => 'due_from', 'to' => 'due_to', 'key' => WorkItemMeta::DUE_ON ],
