@@ -8,6 +8,7 @@ use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Governance\Events;
@@ -62,6 +63,17 @@ final class WorkItems {
 		$projects          = Projects::all( 500 );
 		$services          = Services::all( 500 );
 		$work_types        = WorkTypes::all( false );
+		$context           = is_array( $item ) ? (string) ( $item['work_context'] ?? '' ) : '';
+		if ( $project_id > 0 ) {
+			$project = Projects::get( $project_id );
+			if ( is_array( $project ) && WorkContext::is_valid( (string) ( $project['work_context'] ?? '' ) ) ) {
+				$context = (string) $project['work_context'];
+			}
+		}
+		if ( '' === $context && ! is_array( $item ) ) {
+			$context = WorkContext::INTERNAL;
+		}
+
 		$priority          = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
 		$estimated_minutes = is_array( $item ) ? max( 0, (int) ( $item['estimated_minutes'] ?? 0 ) ) : 0;
 		$status            = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
@@ -74,6 +86,17 @@ final class WorkItems {
 		?>
 		<table class="form-table" role="presentation">
 			<tbody>
+			<tr>
+				<th scope="row"><label for="cb-work-item-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label></th>
+				<td>
+					<select id="cb-work-item-context" name="cb_work_item[work_context]" required>
+						<?php if ( '' === $context ) : ?><option value="" selected><?php esc_html_e( 'Needs classification', 'core-blueprint-work' ); ?></option><?php endif; ?>
+						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $context, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $context, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'When a Project is selected, the Project context and customer are authoritative.', 'core-blueprint-work' ); ?></p>
+				</td>
+			</tr>
 			<tr>
 				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
 				<td>
