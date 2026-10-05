@@ -7,7 +7,9 @@ use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\ServicePricing;
 use CB\Work\Domain\BillingDisposition;
+use CB\Work\Domain\WorkContext;
 use CB\Work\PublicApi\Services;
+use CB\Work\Repository\Projects;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -71,6 +73,7 @@ final class BillingClassificationUx {
 			/* translators: %s: default billing classification from the selected Service. */
 			'serviceDefault' => __( 'Selected Service default: %s. You can override it for this Work Item.', 'core-blueprint-work' ),
 			'noService'      => __( 'Choose a Service to prefill billing classification, or classify this Work Item manually.', 'core-blueprint-work' ),
+			'internal'       => __( 'Internal Work is always non-billable.', 'core-blueprint-work' ),
 		] );
 	}
 
@@ -95,7 +98,20 @@ final class BillingClassificationUx {
 			return;
 		}
 
-		$input   = wp_unslash( $_POST['cb_work_item'] );
+		$input      = wp_unslash( $_POST['cb_work_item'] );
+		$context    = WorkContext::sanitize( $input['work_context'] ?? '' );
+		$project_id = absint( $input['project_id'] ?? 0 );
+		if ( $project_id > 0 ) {
+			$project = Projects::get( $project_id );
+			if ( is_array( $project ) ) {
+				$context = WorkContext::sanitize( $project['work_context'] ?? '' );
+			}
+		}
+		if ( WorkContext::INTERNAL === $context ) {
+			$_POST['cb_work_item']['billing_disposition'] = BillingDisposition::NON_BILLABLE;
+			return;
+		}
+
 		$billing = sanitize_key( (string) ( $input['billing_disposition'] ?? '' ) );
 		if ( '' !== $billing ) {
 			return;
