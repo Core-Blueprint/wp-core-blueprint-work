@@ -18,7 +18,7 @@ $relationLookup = strpos( $scheduler, 'RecurrenceOccurrences::find_work_item' );
 $createCall     = strpos( $scheduler, 'WorkItems::create( $input )' );
 
 $checks = [
-	'launch identity remains rc1 while later Work domains advance schema only' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.8'" ),
+	'launch identity remains rc1 while later Work domains advance schema only' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
 	'occurrence ledger retains unique rule date identity' => str_contains( $schema, 'UNIQUE KEY rule_occurrence (rule_id,occurrence_on)' ),
 	'occurrence ledger stores bounded claim retry state' => str_contains( $schema, 'claim_token varchar(64)' ) && str_contains( $schema, 'claimed_at datetime NULL' ) && str_contains( $schema, 'attempt_count int unsigned NOT NULL DEFAULT 0' ) && str_contains( $schema, 'last_error varchar(190)' ),
 	'claim is atomic and only targets ungenerated free or stale occurrences' => str_contains( $occurrences, 'attempt_count = attempt_count + 1' ) && str_contains( $occurrences, 'work_item_id = 0' ) && str_contains( $occurrences, "claim_token = '' OR claimed_at IS NULL OR claimed_at < %s" ),
