@@ -28,7 +28,7 @@ final class WorkItemStatus {
 	}
 
 	public static function is_terminal( string $status ): bool {
-		return in_array( $status, [ self::SKIPPED, self::CANCELLED ], true );
+		return in_array( $status, [ self::COMPLETED, self::SKIPPED, self::CANCELLED ], true );
 	}
 
 	/** @return string[] */
