@@ -74,10 +74,15 @@ final class ProjectMeta {
 		];
 	}
 
-	/** @param array<string,mixed> $input */
-	public static function save( int $project_id, array $input ): bool {
+	/**
+	 * Validate and normalize canonical Project details without mutating storage.
+	 *
+	 * @param array<string,mixed> $input
+	 * @return array{work_context:string,customer_provider:string,customer_type:string,customer_id:string,starts_on:string,due_on:string}|null
+	 */
+	public static function normalize( int $project_id, array $input ): ?array {
 		if ( PostTypes::PROJECT !== get_post_type( $project_id ) ) {
-			return false;
+			return null;
 		}
 
 		$context  = WorkContext::sanitize( $input['work_context'] ?? '' );
@@ -93,30 +98,47 @@ final class ProjectMeta {
 		if ( '' === $context && self::is_initialized( $project_id ) ) {
 			// Legacy initialized Projects may remain pending classification until explicitly resolved.
 			if ( ! self::reference_valid( $provider, $type, $id ) ) {
-				return false;
+				return null;
 			}
 		} elseif ( ! WorkContext::is_valid( $context ) ) {
-			return false;
+			return null;
 		}
 		if ( WorkContext::INTERNAL === $context ) {
 			$provider = '';
 			$type     = '';
 			$id       = '';
 		} elseif ( WorkContext::CUSTOMER === $context && ( '' === $provider || ! self::reference_valid( $provider, $type, $id ) ) ) {
-			return false;
+			return null;
 		} elseif ( ! self::reference_valid( $provider, $type, $id ) ) {
-			return false;
+			return null;
 		}
 		if ( '' !== $starts && '' !== $due && $due < $starts ) {
+			return null;
+		}
+
+		return [
+			'work_context'      => $context,
+			'customer_provider' => $provider,
+			'customer_type'     => $type,
+			'customer_id'       => $id,
+			'starts_on'         => $starts,
+			'due_on'            => $due,
+		];
+	}
+
+	/** @param array<string,mixed> $input */
+	public static function save( int $project_id, array $input ): bool {
+		$normalized = self::normalize( $project_id, $input );
+		if ( null === $normalized ) {
 			return false;
 		}
 
-		self::write( $project_id, self::WORK_CONTEXT, $context );
-		self::write( $project_id, self::CUSTOMER_PROVIDER, $provider );
-		self::write( $project_id, self::CUSTOMER_TYPE, $type );
-		self::write( $project_id, self::CUSTOMER_ID, $id );
-		self::write( $project_id, self::STARTS_ON, $starts );
-		self::write( $project_id, self::DUE_ON, $due );
+		self::write( $project_id, self::WORK_CONTEXT, $normalized['work_context'] );
+		self::write( $project_id, self::CUSTOMER_PROVIDER, $normalized['customer_provider'] );
+		self::write( $project_id, self::CUSTOMER_TYPE, $normalized['customer_type'] );
+		self::write( $project_id, self::CUSTOMER_ID, $normalized['customer_id'] );
+		self::write( $project_id, self::STARTS_ON, $normalized['starts_on'] );
+		self::write( $project_id, self::DUE_ON, $normalized['due_on'] );
 		return true;
 	}
 
