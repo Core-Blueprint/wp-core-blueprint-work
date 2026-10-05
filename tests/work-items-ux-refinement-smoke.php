@@ -43,6 +43,8 @@ refinement_assert(
 refinement_assert(
 	str_contains( $state, '$calendar_from' )
 	&& str_contains( $state, '$calendar_to' )
+	&& str_contains( $state, '$query_scheduled_from' )
+	&& str_contains( $state, '$query_scheduled_to' )
 	&& str_contains( $state, "'calendar_from'        => \$calendar_from" )
 	&& str_contains( $state, 'Explicit user filters only. Calendar month bounds are query viewport state.' )
 	&& str_contains( $state, "'calendar_month' === \$state_key && self::VIEW_CALENDAR !== \$view" ),
