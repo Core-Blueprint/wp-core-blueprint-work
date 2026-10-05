@@ -464,6 +464,25 @@
 	margin-bottom: var(--cb-space-2);
 }
 
+.cb-work-calendar-day__list {
+	min-height: 84px;
+}
+
+.cb-work-calendar-entry__header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	gap: var(--cb-space-1);
+}
+
+.cb-work-calendar-entry__drag-handle {
+	margin-top: -2px;
+}
+
+.cb-work-calendar-reorder[data-cb-core-reorder-pending="true"] .cb-work-calendar-entry__drag-handle {
+	pointer-events: none;
+}
+
 .cb-work-calendar-entry {
 	margin-top: var(--cb-space-2);
 	padding: var(--cb-space-2);
