@@ -17,6 +17,7 @@ $required = [
 	'src/Frontend/Access.php',
 	'src/Frontend/Actions/WorkItems.php',
 	'src/PublicApi/Projects.php',
+	'src/PublicApi/ProjectActions.php',
 	'src/PublicApi/Services.php',
 	'src/PublicApi/TaxRates.php',
 	'src/PublicApi/Pricing.php',
@@ -33,8 +34,11 @@ $required = [
 	'src/Admin/RecurrenceActions.php',
 	'src/Admin/TimeActions.php',
 	'src/Admin/TaxRateActions.php',
+	'src/Admin/ProjectDataExchange.php',
 	'src/Admin/Workspace.php',
 	'src/Admin/ProjectWorkspace.php',
+	'src/Integration/DataExchange/ProjectBundleEntity.php',
+	'src/Repository/PortableIdentities.php',
 	'src/Admin/DailyOverview.php',
 	'src/Admin/QuickAdd.php',
 	'assets/work-workspace.css',
@@ -126,7 +130,7 @@ $schemaTables = [
 	'cb_work_tax_rates', 'cb_work_types', 'cb_work_item_assignments', 'cb_work_item_relations',
 	'cb_work_item_sources', 'cb_work_billing_units', 'cb_work_billing_snapshots',
 	'cb_work_billing_external_refs', 'cb_work_recurrence_rules', 'cb_work_recurrence_rule_assignments',
-	'cb_work_recurrence_occurrences', 'cb_work_time_entries', 'cb_work_active_timers',
+	'cb_work_recurrence_occurrences', 'cb_work_time_entries', 'cb_work_active_timers', 'cb_work_portable_identities',
 ];
 foreach ( $schemaTables as $table ) {
 	if ( ! str_contains( $schema, $table ) ) {
@@ -151,7 +155,7 @@ $checks = [
 	'Frontend access is current-time readiness gated' => str_contains( $frontendAccess, 'cb_work_runtime_ready' ),
 	'CRM adapter uses documented CRM query contracts only' => str_contains( $crm, 'private const CONTACT_QUERY' ) && str_contains( $crm, 'private const ORGANIZATION_QUERY' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Contacts' ) && str_contains( $crm, 'CB\\\\CRM\\\\Frontend\\\\Queries\\\\Organizations' ) && ! str_contains( $crm, '$wpdb' ) && ! str_contains( $crm, 'CB\\CRM\\Repository' ),
 	'CRM adapter is Work-readiness gated and fail soft' => str_contains( $crm, 'cb_work_runtime_ready' ) && str_contains( $crm, 'class_exists' ),
-	'Data Exchange remains optional and Work-readiness gated' => str_contains( $dataExchange, 'cb_work_runtime_ready' ) && str_contains( $dataExchange, 'class_exists( Registry::class )' ) && str_contains( $dataExchange, 'interface_exists( CsvEntityInterface::class )' ),
+	'Data Exchange remains optional and Work-readiness gated' => str_contains( $dataExchange, 'cb_work_runtime_ready' ) && str_contains( $dataExchange, 'class_exists( Registry::class )' ) && str_contains( $dataExchange, 'interface_exists( EntityInterface::class )' ) && str_contains( $dataExchange, 'interface_exists( CsvEntityInterface::class )' ) && str_contains( $dataExchange, "PROJECT_BUNDLE_ENTITY = 'project-bundle'" ),
 	'no direct Docs Helpdesk or Commerce adapter is part of Work launch runtime' => ! is_file( $root . '/src/Integration/Docs.php' ) && ! is_file( $root . '/src/Integration/Helpdesk.php' ) && ! is_file( $root . '/src/Integration/Commerce.php' ),
 	'Project REST remains capability gated' => str_contains( $projectRest, 'current_user_can( Capabilities::MANAGE )' ),
 	'Work Item REST remains capability gated' => str_contains( $workItemRest, 'current_user_can( Capabilities::MANAGE )' ),
@@ -162,7 +166,7 @@ $checks = [
 	'failed activation uses canonical requirements title and Plugins return' => str_contains( $lifecycle, 'Core Blueprint requirements not met' ) && str_contains( $lifecycle, "admin_url( 'plugins.php' )" ) && str_contains( $lifecycle, 'deactivate_plugins( CB_WORK_BASENAME )' ),
 	'release builder is deterministic-authority aware' => str_contains( $buildRelease, 'core-blueprint-work' ),
 	'release builder defaults to canonical dist output' => str_contains( $buildRelease, 'DIST="${CB_RELEASE_DIST:-$ROOT/dist}"' ),
-	'check runner retains workspace and Data Exchange regressions' => str_contains( $checkRunner, 'workspace-foundation-smoke.php' ) && str_contains( $checkRunner, 'project-workspace-smoke.php' ) && str_contains( $checkRunner, 'data-exchange-tax-rates-smoke.php' ),
+	'check runner retains workspace and Data Exchange regressions' => str_contains( $checkRunner, 'workspace-foundation-smoke.php' ) && str_contains( $checkRunner, 'project-workspace-smoke.php' ) && str_contains( $checkRunner, 'data-exchange-tax-rates-smoke.php' ) && str_contains( $checkRunner, 'project-bundle-data-exchange-smoke.php' ),
 ];
 
 foreach ( $checks as $label => $passed ) {
