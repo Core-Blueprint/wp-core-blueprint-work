@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace CB\Work\Content;
 
 use CB\Work\Capabilities;
+use CB\Work\Domain\WorkContext;
 
 defined( 'ABSPATH' ) || exit;
 
 final class ProjectMeta {
+	public const WORK_CONTEXT      = '_cb_work_project_context';
 	public const CUSTOMER_PROVIDER = '_cb_work_project_customer_provider';
 	public const CUSTOMER_TYPE     = '_cb_work_project_customer_type';
 	public const CUSTOMER_ID       = '_cb_work_project_customer_id';
@@ -28,6 +30,7 @@ final class ProjectMeta {
 			'auth_callback'     => static fn(): bool => current_user_can( Capabilities::MANAGE ),
 		];
 
+		register_post_meta( PostTypes::PROJECT, self::WORK_CONTEXT, $string( [ WorkContext::class, 'sanitize' ] ) );
 		register_post_meta( PostTypes::PROJECT, self::CUSTOMER_PROVIDER, $string( [ self::class, 'sanitize_reference_part' ] ) );
 		register_post_meta( PostTypes::PROJECT, self::CUSTOMER_TYPE, $string( [ self::class, 'sanitize_reference_part' ] ) );
 		register_post_meta( PostTypes::PROJECT, self::CUSTOMER_ID, $string( [ self::class, 'sanitize_reference_id' ] ) );
@@ -42,12 +45,20 @@ final class ProjectMeta {
 		] );
 	}
 
-	/** @return array{customer_provider:string,customer_type:string,customer_id:string,starts_on:string,due_on:string} */
+	/** @return array{work_context:string,customer_provider:string,customer_type:string,customer_id:string,starts_on:string,due_on:string} */
 	public static function get( int $project_id ): array {
+		$provider = (string) get_post_meta( $project_id, self::CUSTOMER_PROVIDER, true );
+		$type     = (string) get_post_meta( $project_id, self::CUSTOMER_TYPE, true );
+		$id       = (string) get_post_meta( $project_id, self::CUSTOMER_ID, true );
+		$context  = WorkContext::sanitize( get_post_meta( $project_id, self::WORK_CONTEXT, true ) );
+		if ( '' === $context && self::reference_valid( $provider, $type, $id ) && '' !== $provider ) {
+			$context = WorkContext::CUSTOMER;
+		}
 		return [
-			'customer_provider' => (string) get_post_meta( $project_id, self::CUSTOMER_PROVIDER, true ),
-			'customer_type'     => (string) get_post_meta( $project_id, self::CUSTOMER_TYPE, true ),
-			'customer_id'       => (string) get_post_meta( $project_id, self::CUSTOMER_ID, true ),
+			'work_context'      => $context,
+			'customer_provider' => $provider,
+			'customer_type'     => $type,
+			'customer_id'       => $id,
 			'starts_on'         => (string) get_post_meta( $project_id, self::STARTS_ON, true ),
 			'due_on'            => (string) get_post_meta( $project_id, self::DUE_ON, true ),
 		];
@@ -69,19 +80,38 @@ final class ProjectMeta {
 			return false;
 		}
 
+		$context  = WorkContext::sanitize( $input['work_context'] ?? '' );
 		$provider = self::sanitize_reference_part( $input['customer_provider'] ?? '' );
 		$type     = self::sanitize_reference_part( $input['customer_type'] ?? '' );
 		$id       = self::sanitize_reference_id( $input['customer_id'] ?? '' );
 		$starts   = self::sanitize_date( $input['starts_on'] ?? '' );
 		$due      = self::sanitize_date( $input['due_on'] ?? '' );
 
-		if ( ! self::reference_valid( $provider, $type, $id ) ) {
+		if ( '' === $context && '' !== $provider && self::reference_valid( $provider, $type, $id ) ) {
+			$context = WorkContext::CUSTOMER;
+		}
+		if ( '' === $context && self::is_initialized( $project_id ) ) {
+			// Legacy initialized Projects may remain pending classification until explicitly resolved.
+			if ( ! self::reference_valid( $provider, $type, $id ) ) {
+				return false;
+			}
+		} elseif ( ! WorkContext::is_valid( $context ) ) {
+			return false;
+		}
+		if ( WorkContext::INTERNAL === $context ) {
+			$provider = '';
+			$type     = '';
+			$id       = '';
+		} elseif ( WorkContext::CUSTOMER === $context && ( '' === $provider || ! self::reference_valid( $provider, $type, $id ) ) ) {
+			return false;
+		} elseif ( ! self::reference_valid( $provider, $type, $id ) ) {
 			return false;
 		}
 		if ( '' !== $starts && '' !== $due && $due < $starts ) {
 			return false;
 		}
 
+		self::write( $project_id, self::WORK_CONTEXT, $context );
 		self::write( $project_id, self::CUSTOMER_PROVIDER, $provider );
 		self::write( $project_id, self::CUSTOMER_TYPE, $type );
 		self::write( $project_id, self::CUSTOMER_ID, $id );
