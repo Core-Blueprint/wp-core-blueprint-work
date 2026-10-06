@@ -26,6 +26,7 @@ final class Menu {
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
+		add_action( 'admin_head', [ self::class, 'hide_contextual_submenu_pages' ] );
 		add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] );
 		add_filter( 'parent_file', [ self::class, 'parent_file' ] );
 		add_filter( 'submenu_file', [ self::class, 'submenu_file' ], 10, 2 );
@@ -49,15 +50,29 @@ final class Menu {
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
-			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG );
-			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG );
 			return;
 		}
 
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TIME_SLUG, [ Time::class, 'render' ] );
-		remove_submenu_page( self::TOP_LEVEL_SLUG, self::TIME_SLUG );
+	}
+
+
+	/**
+	 * Keep contextual routes registered through WordPress access and title resolution,
+	 * then remove only their visible submenu entries before the admin menu is rendered.
+	 */
+	public static function hide_contextual_submenu_pages(): void {
+		if ( current_user_can( Capabilities::MANAGE ) ) {
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG );
+			return;
+		}
+
+		if ( current_user_can( Capabilities::TRACK_TIME ) ) {
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::TIME_SLUG );
+		}
 	}
 
 	/**
