@@ -2234,6 +2234,7 @@ msgstr "Sposta la data %2$s di %1$s"
 
 msgid "Move to another date"
 msgstr "Sposta a un’altra data"
+
 msgid "Applying Project import…"
 msgstr "Applicazione dell’importazione del progetto…"
 
