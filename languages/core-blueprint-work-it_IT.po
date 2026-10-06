@@ -592,6 +592,9 @@ msgstr "Ripristina impostazioni predefinite"
 #: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
+msgid "min"
+msgstr "min"
+
 msgid "Work Item"
 msgstr "Work Item"
 
@@ -2234,3 +2237,118 @@ msgstr "Sposta la data %2$s di %1$s"
 
 msgid "Move to another date"
 msgstr "Sposta a un’altra data"
+
+msgid "Applying Project import…"
+msgstr "Applicazione dell’importazione del progetto…"
+
+msgid "Back to Projects"
+msgstr "Torna ai Progetti"
+
+msgid "Choose a JSON file to continue."
+msgstr "Scegli un file JSON per continuare."
+
+msgid "Choose a supported Project import mode."
+msgstr "Scegli una modalità di importazione del progetto supportata."
+
+msgid "Create only"
+msgstr "Solo creazione"
+
+msgid "Create only is safest for new plans. Create or update uses immutable portable identities and never matches by title or database ID."
+msgstr "Solo creazione è l’opzione più sicura per i nuovi piani. Crea o aggiorna usa identità portabili immutabili e non effettua mai corrispondenze per titolo o ID del database."
+
+msgid "Create or update"
+msgstr "Crea o aggiorna"
+
+msgid "Estimate"
+msgstr "Stima"
+
+msgid "Existing active Work Items that are not present in this bundle are preserved."
+msgstr "I Work Item attivi esistenti che non sono presenti in questo bundle vengono mantenuti."
+
+msgid "Export JSON"
+msgstr "Esporta JSON"
+
+msgid "Import a portable Project planning bundle containing one internal Project and its active Work Items."
+msgstr "Importa un bundle portabile di pianificazione del progetto contenente un progetto interno e i relativi Work Item attivi."
+
+msgid "Import mode"
+msgstr "Modalità di importazione"
+
+msgid "Import project"
+msgstr "Importa progetto"
+
+msgid "Import review"
+msgstr "Revisione importazione"
+
+msgid "Import Work Project"
+msgstr "Importa progetto Work"
+
+msgid "JSON file"
+msgstr "File JSON"
+
+msgid "Preview ready. Review the plan, then apply the import."
+msgstr "Anteprima pronta. Controlla il piano, quindi applica l’importazione."
+
+msgid "Project bundle"
+msgstr "Bundle di progetto"
+
+msgid "Project Data Exchange is unavailable in the installed Core Blueprint Base build."
+msgstr "Project Data Exchange non è disponibile nella build installata di Core Blueprint Base."
+
+msgid "Project Data Exchange is unavailable."
+msgstr "Project Data Exchange non è disponibile."
+
+msgid "Project import completed."
+msgstr "Importazione del progetto completata."
+
+msgid "Project imports accept JSON files only."
+msgstr "Le importazioni dei progetti accettano solo file JSON."
+
+msgid "Projects skipped"
+msgstr "Progetti ignorati"
+
+msgid "Projects to create"
+msgstr "Progetti da creare"
+
+msgid "Projects to update"
+msgstr "Progetti da aggiornare"
+
+msgid "Schema v1 does not import customer links, assignments, Services, Work Types, recurrence, Time or terminal Work history."
+msgstr "Lo schema v1 non importa collegamenti cliente, assegnazioni, Services, Work Types, ricorrenza, Time o cronologia Work terminale."
+
+msgid "The import request expired. Reload the page and try again."
+msgstr "La richiesta di importazione è scaduta. Ricarica la pagina e riprova."
+
+msgid "The JSON file could not be read safely."
+msgstr "Impossibile leggere il file JSON in modo sicuro."
+
+msgid "The JSON file is empty or exceeds the Data Exchange size limit."
+msgstr "Il file JSON è vuoto o supera il limite di dimensione di Data Exchange."
+
+msgid "The JSON upload could not be verified."
+msgstr "Impossibile verificare il caricamento JSON."
+
+msgid "The Project Data Exchange request failed validation."
+msgstr "La richiesta Project Data Exchange non ha superato la validazione."
+
+msgid "The Project export is unavailable."
+msgstr "L’esportazione del progetto non è disponibile."
+
+msgid "The Project import request could not be completed."
+msgstr "Impossibile completare la richiesta di importazione del progetto."
+
+msgid "The Project import stopped before it could complete."
+msgstr "L’importazione del progetto si è interrotta prima del completamento."
+
+msgid "Validating Project import…"
+msgstr "Validazione dell’importazione del progetto…"
+
+msgid "You do not have permission to export Work Projects."
+msgstr "Non hai l’autorizzazione per esportare i progetti Work."
+
+msgid "You do not have permission to import Work Projects."
+msgstr "Non hai l’autorizzazione per importare i progetti Work."
+
+#: core-blueprint-work.php:49
+msgid "Plugins"
+msgstr "Plugin"

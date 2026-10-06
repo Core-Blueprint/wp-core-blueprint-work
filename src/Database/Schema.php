@@ -33,6 +33,7 @@ final class Schema {
 				[ self::class, 'recurrence_occurrences_table' ],
 				[ self::class, 'time_entries_table' ],
 				[ self::class, 'active_timers_table' ],
+				[ self::class, 'portable_identities_table' ],
 			],
 			'install'    => [ self::class, 'install' ],
 		] );
@@ -101,6 +102,11 @@ final class Schema {
 	public static function active_timers_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_active_timers';
+	}
+
+	public static function portable_identities_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_portable_identities';
 	}
 
 	public static function install(): bool {
@@ -314,6 +320,18 @@ final class Schema {
 			created_at datetime NOT NULL,
 			PRIMARY KEY  (user_id),
 			UNIQUE KEY time_entry_id (time_entry_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::portable_identities_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			entity_type varchar(32) NOT NULL,
+			local_id bigint(20) unsigned NOT NULL,
+			portable_key char(36) NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY entity_local (entity_type,local_id),
+			UNIQUE KEY portable_key (portable_key),
+			KEY entity_type (entity_type)
 		) {$charset};" );
 
 		self::backfill_work_contexts();

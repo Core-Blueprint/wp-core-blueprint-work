@@ -26,7 +26,7 @@ if ( defined( 'CB_WORK_FILE' ) ) {
 }
 
 define( 'CB_WORK_VERSION', '1.0.0-rc1' );
-define( 'CB_WORK_SCHEMA_VERSION', '1.9' );
+define( 'CB_WORK_SCHEMA_VERSION', '2.0' );
 define( 'CB_WORK_MIN_PHP', '8.4' );
 define( 'CB_WORK_REQUIRED_API', '1.1' );
 define( 'CB_WORK_FILE', __FILE__ );
@@ -46,7 +46,7 @@ if ( version_compare( PHP_VERSION, CB_WORK_MIN_PHP, '<' ) ) {
 			esc_html( 'Core Blueprint requirements not met' ),
 			[
 				'link_url'  => admin_url( 'plugins.php' ),
-				'link_text' => __( 'Plugins' ),
+				'link_text' => __( 'Plugins', 'core-blueprint-work' ),
 			]
 		);
 	} );

@@ -12,6 +12,7 @@ final class Menu {
 	public const TOP_LEVEL_SLUG        = 'core-blueprint-work';
 	public const WORK_ITEMS_SLUG       = 'core-blueprint-work-items';
 	public const PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project';
+	public const PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import';
 	public const RECURRENCE_SLUG       = 'core-blueprint-work-recurrence';
 	public const TIME_SLUG             = 'core-blueprint-work-time';
 	public const WORK_TYPES_SLUG       = 'core-blueprint-work-types';
@@ -25,6 +26,7 @@ final class Menu {
 
 	public static function init(): void {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
+		add_action( 'admin_head', [ self::class, 'hide_contextual_submenu_pages' ] );
 		add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] );
 		add_filter( 'parent_file', [ self::class, 'parent_file' ] );
 		add_filter( 'submenu_file', [ self::class, 'submenu_file' ], 10, 2 );
@@ -46,13 +48,31 @@ final class Menu {
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
-			add_submenu_page( null, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
 			return;
 		}
 
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 5 );
-		add_submenu_page( null, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TIME_SLUG, [ Time::class, 'render' ] );
+		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TIME_SLUG, [ Time::class, 'render' ] );
+	}
+
+
+	/**
+	 * Keep contextual routes registered through WordPress access and title resolution,
+	 * then remove only their visible submenu entries before the admin menu is rendered.
+	 */
+	public static function hide_contextual_submenu_pages(): void {
+		if ( current_user_can( Capabilities::MANAGE ) ) {
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG );
+			return;
+		}
+
+		if ( current_user_can( Capabilities::TRACK_TIME ) ) {
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::TIME_SLUG );
+		}
 	}
 
 	/**
@@ -81,6 +101,10 @@ final class Menu {
 
 	public static function projects_url(): string {
 		return admin_url( self::projects_path() );
+	}
+
+	public static function project_import_url(): string {
+		return add_query_arg( [ 'page' => self::PROJECT_IMPORT_SLUG ], admin_url( 'admin.php' ) );
 	}
 
 	public static function project_workspace_url( int $project_id ): string {
@@ -120,7 +144,7 @@ final class Menu {
 		if ( self::TOP_LEVEL_SLUG === $page ) {
 			return current_user_can( Capabilities::MANAGE ) ? self::CONTEXT_OVERVIEW : self::CONTEXT_TIME;
 		}
-		if ( self::PROJECT_WORKSPACE_SLUG === $page ) {
+		if ( in_array( $page, [ self::PROJECT_WORKSPACE_SLUG, self::PROJECT_IMPORT_SLUG ], true ) ) {
 			return self::CONTEXT_PROJECTS;
 		}
 		if ( self::WORK_ITEMS_SLUG === $page || PostTypes::WORK_ITEM === (string) $screen->post_type ) {

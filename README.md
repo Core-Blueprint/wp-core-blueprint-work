@@ -19,6 +19,7 @@ The current `1.0.0-rc1` baseline includes:
 - canonical `cb_work_service` Service records and Work-owned VAT/tax rates;
 - effective pricing resolution with optional customer-agreement providers;
 - WordPress-native CPT-backed Projects and Work Items;
+- portable JSON Project planning bundles with immutable Project/Work Item UUID identity and preview/apply import governance;
 - Work Type classification;
 - planned / in-progress / completed / skipped / cancelled Work Item lifecycle;
 - low / normal / high / urgent priorities;

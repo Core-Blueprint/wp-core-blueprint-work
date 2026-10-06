@@ -37,6 +37,15 @@ Projects are WordPress-native content using `cb_work_project`.
 
 The relational `cb_work_projects` table introduced in the first D1 implementation was transitional. D1.1 removes it destructively rather than preserving a compatibility layer.
 
+
+#### Portable Project planning identity
+
+Projects and Work Items may participate in Work Data Exchange through a Work-owned portable identity registry. The registry stores immutable UUIDv4 identity separately from local WordPress post IDs and enforces hard uniqueness for both the local entity mapping and the portable key.
+
+The first consumer is the JSON-only `project-bundle` schema v1. It transports one internal Project and its active Work Items as planning data. It never matches by title or local database ID and does not make CRM references, WordPress users, Services, Work Types, recurrence, Time or terminal history portable by implication.
+
+This registry is intentionally entity-neutral so future Work-owned domains can adopt portable identity only after defining their own import/export semantics.
+
 #### Gutenberg / REST boundary
 
 `cb_work_project` enables WordPress REST support so the native block editor can operate. Project post reads use a Work-owned REST controller that requires the Work management capability before delegating to WordPress core. This REST route is authenticated admin editing infrastructure, not a frontend resource contract.

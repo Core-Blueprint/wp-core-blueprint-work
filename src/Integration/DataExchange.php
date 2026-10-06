@@ -4,15 +4,18 @@ declare(strict_types=1);
 namespace CB\Work\Integration;
 
 use CoreBlueprint\Core\DataExchange\CsvEntityInterface;
+use CoreBlueprint\Core\DataExchange\EntityInterface;
 use CoreBlueprint\Core\DataExchange\Foundation;
 use CoreBlueprint\Core\DataExchange\MappingEntityInterface;
 use CoreBlueprint\Core\Interoperability\Registry;
+use CB\Work\Integration\DataExchange\ProjectBundleEntity;
 use CB\Work\Integration\DataExchange\TaxRateEntity;
 
 defined( 'ABSPATH' ) || exit;
 
 final class DataExchange {
-	public const TAX_RATE_ENTITY = 'tax-rate';
+	public const TAX_RATE_ENTITY       = 'tax-rate';
+	public const PROJECT_BUNDLE_ENTITY = 'project-bundle';
 
 	public static function register(): void {
 		if (
@@ -20,9 +23,25 @@ final class DataExchange {
 			|| ! \cb_work_runtime_ready()
 			|| ! class_exists( Registry::class )
 			|| ! class_exists( Foundation::class )
-			|| ! interface_exists( CsvEntityInterface::class )
-			|| ! interface_exists( MappingEntityInterface::class )
+			|| ! interface_exists( EntityInterface::class )
 		) {
+			return;
+		}
+
+		$project_label = did_action( 'init' ) > 0 || doing_action( 'init' ) ? __( 'Project bundle', 'core-blueprint-work' ) : 'Project bundle';
+		Registry::register_implementation( [
+			'provider' => Suite::EXTENSION_ID,
+			'id' => self::PROJECT_BUNDLE_ENTITY,
+			'label' => $project_label,
+			'description' => $project_label,
+			'contract_owner' => Foundation::CONTRACT_OWNER,
+			'contract' => Foundation::CONTRACT_ID,
+			'contract_version' => Foundation::CONTRACT_VERSION,
+			'supports' => [ Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_IMPORT, Foundation::SUPPORT_JSON ],
+			'factory' => static fn() => new ProjectBundleEntity(),
+		] );
+
+		if ( ! interface_exists( CsvEntityInterface::class ) || ! interface_exists( MappingEntityInterface::class ) ) {
 			return;
 		}
 		$label = did_action( 'init' ) > 0 || doing_action( 'init' ) ? __( 'VAT', 'core-blueprint-work' ) : 'VAT';

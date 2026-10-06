@@ -108,6 +108,14 @@ namespace {
 		$GLOBALS['submenus'][ (string) $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
 		return (string) $parent_slug . '_page_' . sanitize_key( $menu_slug );
 	}
+	function remove_submenu_page( string $menu_slug, string $submenu_slug ): array|false {
+		if ( ! isset( $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ] ) ) {
+			return false;
+		}
+		$removed = $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ];
+		unset( $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ] );
+		return $removed;
+	}
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
 
@@ -149,16 +157,16 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '1.9'; }
+		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '2.0'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'core_blueprint_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '1.9' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 1.9.' );
+	assert_true( '2.0' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 2.0.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 13 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence and Time tables; Projects and Work Items remain CPT-backed.' );
+	assert_true( 14 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence, Time and portable identity tables; Projects and Work Items remain CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
@@ -189,12 +197,20 @@ namespace {
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace remains registered through the WordPress access-check phase.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import remains registered through the WordPress access-check phase.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Time is mounted under Work for managers.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-types'] ), 'Work Types are mounted under Work.' );
+
+	do_action( 'admin_head' );
+	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace is hidden only after WordPress access and title resolution.' );
+	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import is hidden only after WordPress access and title resolution.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Manager Time navigation remains visible after contextual routes are hidden.' );
+
 	assert_true( str_contains( \CB\Work\Admin\Menu::new_work_item_url( 42 ), 'post-new.php?post_type=cb_work_item&project_id=42' ), 'Work Item creation opens native Gutenberg with optional Project context.' );
 	assert_true( str_contains( \CB\Work\Admin\Menu::edit_work_item_url( 55 ), 'post.php?post=55&action=edit' ), 'Work Item editing opens native Gutenberg.' );
 

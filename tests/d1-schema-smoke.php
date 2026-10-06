@@ -11,7 +11,7 @@ $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 
 $checks = [
-	'current Work schema is 1.9 after Work context foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
+	'current Work schema is 2.0 after portable identity foundation' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.0'" ),
 	'Project storage remains cb_work_project' => str_contains( $postTypes, "PROJECT   = 'cb_work_project'" ) && str_contains( $projectMeta, 'register_post_meta( PostTypes::PROJECT' ),
 	'Work Item storage remains cb_work_item' => str_contains( $postTypes, "WORK_ITEM = 'cb_work_item'" ) && str_contains( $workItemMeta, 'register_post_meta( PostTypes::WORK_ITEM' ),
 	'pre-v1 Project and Work Item relational schema is fully absent' => ! str_contains( $schema, 'projects_table' ) && ! str_contains( $schema, 'work_items_table' ) && ! str_contains( $schema, 'cb_work_projects' ) && ! str_contains( $schema, 'cb_work_items' ),
@@ -20,6 +20,7 @@ $checks = [
 	'assignments remain relational many-to-many rows keyed by Work Item post ID' => str_contains( $schema, "'cb_work_item_assignments'" ) && str_contains( $schema, 'PRIMARY KEY  (work_item_id,user_id)' ),
 	'external relations remain generic many-to-many integration metadata' => str_contains( $schema, "'cb_work_item_relations'" ) && str_contains( $schema, 'provider varchar(64)' ) && str_contains( $schema, 'relation_type varchar(64)' ) && str_contains( $schema, 'external_id varchar(191)' ) && str_contains( $schema, 'UNIQUE KEY relation (work_item_id,provider,relation_type,external_id)' ),
 	'canonical source identity is separate from ordinary relations' => str_contains( $schema, "'cb_work_item_sources'" ) && str_contains( $schema, 'UNIQUE KEY source_identity (provider,source_type,external_id)' ),
+	'portable identity registry has hard local and UUID uniqueness' => str_contains( $schema, "'cb_work_portable_identities'" ) && str_contains( $schema, 'UNIQUE KEY entity_local (entity_type,local_id)' ) && str_contains( $schema, 'UNIQUE KEY portable_key (portable_key)' ),
 	'cross-plugin SQL foreign keys remain forbidden' => ! str_contains( strtoupper( $schema ), 'FOREIGN KEY' ),
 	'completion metadata remains separate from billing classification' => str_contains( $workItemMeta, '_cb_work_item_completed_at' ) && str_contains( $workItemMeta, '_cb_work_item_billing_disposition' ),
 	'default Work Types seed idempotently by stable code' => str_contains( $schema, 'seed_default_work_types' ) && str_contains( $schema, "'development'    => 'Development'" ),
