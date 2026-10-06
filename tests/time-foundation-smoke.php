@@ -29,7 +29,7 @@ $workMeta    = file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $recurrence  = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' );
 
 $checks = [
-	'plugin stays rc1 while later foundations advance Work schema beyond E3 to 1.9' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
+	'plugin stays rc1 while later foundations advance Work schema beyond E3 to 2.0' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.0'" ),
 	'Work owns exactly named Time Entry and Active Timer tables' => str_contains( $schema, "'cb_work_time_entries'" ) && str_contains( $schema, "'cb_work_active_timers'" ),
 	'Time storage has no SQL foreign keys' => ! str_contains( strtoupper( $schema ), 'FOREIGN KEY' ),
 	'one active timer per WordPress user is a database boundary' => str_contains( $schema, 'PRIMARY KEY  (user_id)' ) && str_contains( $schema, 'UNIQUE KEY time_entry_id (time_entry_id)' ),
