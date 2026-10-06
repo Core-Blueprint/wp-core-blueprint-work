@@ -12,6 +12,9 @@ $projectActions = file_get_contents( $root . '/src/PublicApi/ProjectActions.php'
 $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 $menu = file_get_contents( $root . '/src/Admin/Menu.php' );
+$projectAdmin = file_get_contents( $root . '/src/Admin/Projects.php' );
+$assets = file_get_contents( $root . '/src/Admin/Assets.php' );
+$projectListJs = file_get_contents( $root . '/assets/projects-list.js' );
 $fixturePath = $root . '/docs/examples/acquisition-sprint-v1.cb-work.json';
 $fixtureRaw = file_get_contents( $fixturePath );
 $fixture = is_string( $fixtureRaw ) ? json_decode( $fixtureRaw, true ) : null;
@@ -94,6 +97,12 @@ $checks = [
 		str_contains( $plugin, 'ProjectDataExchange::init();' )
 		&& str_contains( $menu, "PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import'" )
 		&& str_contains( $menu, 'ProjectDataExchange::class' ),
+	'Project import is a page-level action beside Add Project rather than a filter control' =>
+		str_contains( $assets, "CB_WORK_DIR . 'assets/projects-list.js'" )
+		&& str_contains( $assets, "'importUrl'   => ProjectDataExchange::import_url()" )
+		&& str_contains( $projectListJs, "action.className = 'page-title-action'" )
+		&& str_contains( $projectListJs, "addProject.insertAdjacentElement('afterend', action)" )
+		&& ! str_contains( $projectAdmin, 'ProjectDataExchange::import_url()' ),
 	'Acquisition Sprint fixture is valid portable schema v1 with 18 active Work Items' => $fixtureValid,
 ];
 
