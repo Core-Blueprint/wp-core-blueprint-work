@@ -15,6 +15,7 @@ $menu = file_get_contents( $root . '/src/Admin/Menu.php' );
 $projectAdmin = file_get_contents( $root . '/src/Admin/Projects.php' );
 $assets = file_get_contents( $root . '/src/Admin/Assets.php' );
 $projectListJs = file_get_contents( $root . '/assets/projects-list.js' );
+$projectDataExchangeJs = file_get_contents( $root . '/assets/project-data-exchange.js' );
 $fixturePath = $root . '/docs/examples/acquisition-sprint-v1.cb-work.json';
 $fixtureRaw = file_get_contents( $fixturePath );
 $fixture = is_string( $fixtureRaw ) ? json_decode( $fixtureRaw, true ) : null;
@@ -108,6 +109,13 @@ $checks = [
 		&& str_contains( $projectListJs, "action.className = 'page-title-action'" )
 		&& str_contains( $projectListJs, "addProject.insertAdjacentElement('afterend', action)" )
 		&& ! str_contains( $projectAdmin, 'ProjectDataExchange::import_url()' ),
+	'Project import preview exposes validated review content before apply' =>
+		str_contains( $admin, "'review'      => $review" )
+		&& str_contains( $admin, 'private static function envelope_review' )
+		&& str_contains( $admin, "'work_items' => $items" )
+		&& str_contains( $projectDataExchangeJs, 'const review = validation.review || {}' )
+		&& str_contains( $projectDataExchangeJs, "config.labels.importReview" )
+		&& str_contains( $projectDataExchangeJs, "workItems.forEach((item)" ),
 	'Acquisition Sprint fixture is valid portable schema v1 with 18 active Work Items' => $fixtureValid,
 ];
 
