@@ -94,8 +94,10 @@ namespace {
 	assert_true(
 		str_contains( $menu, "PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project'" )
 		&& str_contains( $menu, "[ ProjectWorkspace::class, 'render' ]" )
+		&& str_contains( $menu, "add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace'" )
+		&& str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG )' )
 		&& str_contains( $menu, 'project_workspace_url' ),
-		'Project workspace uses one capability-gated hidden Work route.'
+		'Project workspace is a capability-gated contextual route registered under Work and hidden only from submenu navigation.'
 	);
 	assert_true(
 		str_contains( $workspace, 'ProjectWorkSummary::counts_by_status' )
