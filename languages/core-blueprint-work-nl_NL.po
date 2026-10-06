@@ -591,6 +591,9 @@ msgstr "Standaard herstellen"
 #: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
+msgid "min"
+msgstr "min"
+
 msgid "Work Item"
 msgstr "Work Item"
 
@@ -2256,6 +2259,9 @@ msgstr "Alleen aanmaken is het veiligst voor nieuwe plannen. Aanmaken of bijwerk
 msgid "Create or update"
 msgstr "Aanmaken of bijwerken"
 
+msgid "Estimate"
+msgstr "Schatting"
+
 msgid "Existing active Work Items that are not present in this bundle are preserved."
 msgstr "Bestaande actieve Work Items die niet in deze bundel staan, blijven behouden."
 
@@ -2270,6 +2276,9 @@ msgstr "Importmodus"
 
 msgid "Import project"
 msgstr "Project importeren"
+
+msgid "Import review"
+msgstr "Importoverzicht"
 
 msgid "Import Work Project"
 msgstr "Work Project importeren"
