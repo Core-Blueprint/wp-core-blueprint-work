@@ -96,6 +96,8 @@ $checks = [
 	'Project import/export is integrated into Work admin runtime' =>
 		str_contains( $plugin, 'ProjectDataExchange::init();' )
 		&& str_contains( $menu, "PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import'" )
+		&& str_contains( $menu, "add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project'" )
+		&& str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG )' )
 		&& str_contains( $menu, 'ProjectDataExchange::class' ),
 	'Project import is a page-level action beside Add Project rather than a filter control' =>
 		str_contains( $assets, "CB_WORK_DIR . 'assets/projects-list.js'" )
