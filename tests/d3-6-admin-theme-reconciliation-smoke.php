@@ -10,7 +10,7 @@ $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $plugin     = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
-	'Work release identity remains rc1' => str_contains( $plugin, "define( 'CB_WORK_VERSION', '1.0.0-rc1' )" ) && str_contains( $plugin, "define( 'CB_WORK_SCHEMA_VERSION', '1.9' )" ),
+	'Work release identity remains rc1' => str_contains( $plugin, "define( 'CB_WORK_VERSION', '1.0.0-rc1' )" ) && str_contains( $plugin, "define( 'CB_WORK_SCHEMA_VERSION', '2.0' )" ),
 	'Work declares its admin screens compatible with Base Admin Theme' => str_contains( $menu, "add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] )" ) && str_contains( $menu, '\\CoreBlueprint\\Core\\UI\\AdminTheme::register_screen( $hook_suffix );' ),
 	'Admin Theme declaration covers canonical Work screen contexts' => str_contains( $menu, "self::screen_context( \$screen )" ) && str_contains( $menu, "PostTypes::WORK_ITEM" ) && str_contains( $menu, "PostTypes::PROJECT" ) && str_contains( $menu, "PostTypes::SERVICE" ),
 	'Work presentation uses the current public Base Admin Theme enqueue hook' => str_contains( $assets, "add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 )" ) && ! str_contains( $assets, "add_action( '" . 'cb_admin_theme_' . "enqueue'" ),
