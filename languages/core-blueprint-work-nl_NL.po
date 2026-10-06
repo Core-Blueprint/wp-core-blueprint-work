@@ -2338,3 +2338,7 @@ msgstr "Je hebt geen toestemming om Work Projects te exporteren."
 
 msgid "You do not have permission to import Work Projects."
 msgstr "Je hebt geen toestemming om Work Projects te importeren."
+
+#: core-blueprint-work.php:49
+msgid "Plugins"
+msgstr "Plugins"
