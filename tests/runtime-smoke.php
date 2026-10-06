@@ -108,6 +108,14 @@ namespace {
 		$GLOBALS['submenus'][ (string) $parent_slug ][ $menu_slug ] = compact( 'parent_slug', 'page_title', 'menu_title', 'capability', 'menu_slug', 'callback', 'position' );
 		return (string) $parent_slug . '_page_' . sanitize_key( $menu_slug );
 	}
+	function remove_submenu_page( string $menu_slug, string $submenu_slug ): array|false {
+		if ( ! isset( $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ] ) ) {
+			return false;
+		}
+		$removed = $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ];
+		unset( $GLOBALS['submenus'][ $menu_slug ][ $submenu_slug ] );
+		return $removed;
+	}
 	function assert_true( bool $condition, string $message ): void { if ( ! $condition ) { fwrite( STDERR, "FAIL: {$message}\n" ); exit( 1 ); } }
 }
 
