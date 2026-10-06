@@ -158,7 +158,7 @@ namespace {
 	assert_true( '2.0' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 2.0.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 13 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence and Time tables; Projects and Work Items remain CPT-backed.' );
+	assert_true( 14 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence, Time and portable identity tables; Projects and Work Items remain CPT-backed.' );
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
