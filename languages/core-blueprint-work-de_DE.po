@@ -595,6 +595,9 @@ msgstr "Auf Standard zurücksetzen"
 #: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
+msgid "min"
+msgstr "Min."
+
 msgid "Work Item"
 msgstr "Work Item"
 
@@ -2266,6 +2269,9 @@ msgstr "Nur erstellen ist für neue Pläne am sichersten. Erstellen oder aktuali
 msgid "Create or update"
 msgstr "Erstellen oder aktualisieren"
 
+msgid "Estimate"
+msgstr "Schätzung"
+
 msgid "Existing active Work Items that are not present in this bundle are preserved."
 msgstr "Bestehende aktive Work Items, die nicht in diesem Bundle enthalten sind, bleiben erhalten."
 
@@ -2280,6 +2286,9 @@ msgstr "Importmodus"
 
 msgid "Import project"
 msgstr "Projekt importieren"
+
+msgid "Import review"
+msgstr "Importübersicht"
 
 msgid "Import Work Project"
 msgstr "Work-Projekt importieren"
