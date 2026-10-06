@@ -21,6 +21,16 @@
 		.replaceAll('"', '&quot;')
 		.replaceAll("'", '&#039;');
 
+	const displayValue = (value) => {
+		const normalized = String(value ?? '').trim();
+		return normalized || '—';
+	};
+
+	const humanize = (value) => {
+		const normalized = String(value ?? '').trim().replaceAll('_', ' ');
+		return normalized ? normalized.replace(/\b\w/g, (character) => character.toUpperCase()) : '—';
+	};
+
 	const reset = () => {
 		fingerprint = '';
 		applyButton.disabled = true;
@@ -79,6 +89,41 @@
 			html += '<ul>';
 			errors.forEach((error) => { html += '<li>' + escapeHtml(error.message || error.code || '') + '</li>'; });
 			html += '</ul>';
+		}
+
+		const review = validation.review || {};
+		const project = review.project && typeof review.project === 'object' ? review.project : null;
+		const workItems = Array.isArray(review.work_items) ? review.work_items : [];
+		if (validation.valid && project) {
+			html += '<h2>' + escapeHtml(config.labels.importReview) + '</h2>';
+			html += '<h3>' + escapeHtml(config.labels.project) + '</h3>';
+			html += '<table class="widefat striped" style="max-width:920px"><tbody>';
+			html += '<tr><th>' + escapeHtml(config.labels.project) + '</th><td><strong>' + escapeHtml(displayValue(project.title)) + '</strong></td></tr>';
+			html += '<tr><th>' + escapeHtml(config.labels.context) + '</th><td>' + escapeHtml(humanize(project.work_context)) + '</td></tr>';
+			html += '<tr><th>' + escapeHtml(config.labels.startDate) + '</th><td>' + escapeHtml(displayValue(project.starts_on)) + '</td></tr>';
+			html += '<tr><th>' + escapeHtml(config.labels.dueDate) + '</th><td>' + escapeHtml(displayValue(project.due_on)) + '</td></tr>';
+			html += '</tbody></table>';
+
+			html += '<h3>' + escapeHtml(config.labels.workItems) + ' (' + escapeHtml(workItems.length) + ')</h3>';
+			html += '<table class="widefat striped"><thead><tr>';
+			html += '<th>' + escapeHtml(config.labels.workItem) + '</th>';
+			html += '<th>' + escapeHtml(config.labels.status) + '</th>';
+			html += '<th>' + escapeHtml(config.labels.priority) + '</th>';
+			html += '<th>' + escapeHtml(config.labels.scheduled) + '</th>';
+			html += '<th>' + escapeHtml(config.labels.dueDate) + '</th>';
+			html += '<th>' + escapeHtml(config.labels.estimate) + '</th>';
+			html += '</tr></thead><tbody>';
+			workItems.forEach((item) => {
+				html += '<tr>';
+				html += '<td><strong>' + escapeHtml(displayValue(item.title)) + '</strong></td>';
+				html += '<td>' + escapeHtml(humanize(item.status)) + '</td>';
+				html += '<td>' + escapeHtml(humanize(item.priority)) + '</td>';
+				html += '<td>' + escapeHtml(displayValue(item.scheduled_on)) + '</td>';
+				html += '<td>' + escapeHtml(displayValue(item.due_on)) + '</td>';
+				html += '<td>' + escapeHtml(item.estimated_minutes || 0) + ' ' + escapeHtml(config.labels.minutes) + '</td>';
+				html += '</tr>';
+			});
+			html += '</tbody></table>';
 		}
 		result.innerHTML = html;
 	};
