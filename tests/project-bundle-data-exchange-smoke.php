@@ -110,9 +110,9 @@ $checks = [
 		&& str_contains( $projectListJs, "addProject.insertAdjacentElement('afterend', action)" )
 		&& ! str_contains( $projectAdmin, 'ProjectDataExchange::import_url()' ),
 	'Project import preview exposes validated review content before apply' =>
-		str_contains( $admin, "'review'      => $review" )
+		str_contains( $admin, "'review'      => \$review" )
 		&& str_contains( $admin, 'private static function envelope_review' )
-		&& str_contains( $admin, "'work_items' => $items" )
+		&& str_contains( $admin, "'work_items' => \$items" )
 		&& str_contains( $projectDataExchangeJs, 'const review = validation.review || {}' )
 		&& str_contains( $projectDataExchangeJs, "config.labels.importReview" )
 		&& str_contains( $projectDataExchangeJs, "workItems.forEach((item)" ),
