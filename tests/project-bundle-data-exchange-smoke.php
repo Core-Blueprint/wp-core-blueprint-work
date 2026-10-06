@@ -65,6 +65,9 @@ $checks = [
 		&& str_contains( $portable, 'wp_generate_uuid4()' )
 		&& str_contains( $portable, 'work_portable_identity_immutable' )
 		&& str_contains( $portable, 'work_portable_identity_collision' ),
+	'Project bundle registry factory is actually constructible' =>
+		str_contains( $integration, "'factory' => static fn() => new ProjectBundleEntity()" )
+		&& ! preg_match( '/function\\s+__construct\\s*\\(/', $entity ),
 	'Project bundle is a JSON-only Base Data Exchange entity' =>
 		str_contains( $integration, "PROJECT_BUNDLE_ENTITY = 'project-bundle'" )
 		&& str_contains( $integration, 'ProjectBundleEntity' )
