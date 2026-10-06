@@ -15,7 +15,7 @@ $events     = file_get_contents( $root . '/src/Governance/Events.php' );
 $docs       = file_get_contents( $root . '/docs/PUBLIC-BILLING-API.md' );
 
 $checks = [
-	'F2 advances only Work schema to 1.9 while plugin remains rc1' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '1.9'" ),
+	'F2 advances only Work schema to 2.0 while plugin remains rc1' => str_contains( $bootstrap, "CB_WORK_VERSION', '1.0.0-rc1'" ) && str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.0'" ),
 	'billing units snapshots and external refs are separate Work-owned tables' => str_contains( $schema, "'cb_work_billing_units'" ) && str_contains( $schema, "'cb_work_billing_snapshots'" ) && str_contains( $schema, "'cb_work_billing_external_refs'" ),
 	'each Work billing source unit has one current readiness identity' => str_contains( $schema, 'UNIQUE KEY source_unit (unit_type,unit_id)' ),
 	'concurrent first prepare converges through database identity upsert and row locking' => str_contains( $repository, 'ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)' ) && str_contains( $repository, 'LIMIT 1 FOR UPDATE' ),
