@@ -197,12 +197,20 @@ namespace {
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace remains registered through the WordPress access-check phase.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import remains registered through the WordPress access-check phase.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Time is mounted under Work for managers.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-types'] ), 'Work Types are mounted under Work.' );
+
+	do_action( 'admin_head' );
+	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace is hidden only after WordPress access and title resolution.' );
+	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import is hidden only after WordPress access and title resolution.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Manager Time navigation remains visible after contextual routes are hidden.' );
+
 	assert_true( str_contains( \CB\Work\Admin\Menu::new_work_item_url( 42 ), 'post-new.php?post_type=cb_work_item&project_id=42' ), 'Work Item creation opens native Gutenberg with optional Project context.' );
 	assert_true( str_contains( \CB\Work\Admin\Menu::edit_work_item_url( 55 ), 'post.php?post=55&action=edit' ), 'Work Item editing opens native Gutenberg.' );
 
