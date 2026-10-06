@@ -46,7 +46,7 @@ if ( version_compare( PHP_VERSION, CB_WORK_MIN_PHP, '<' ) ) {
 			esc_html( 'Core Blueprint requirements not met' ),
 			[
 				'link_url'  => admin_url( 'plugins.php' ),
-				'link_text' => __( 'Plugins' ),
+				'link_text' => __( 'Plugins', 'core-blueprint-work' ),
 			]
 		);
 	} );
