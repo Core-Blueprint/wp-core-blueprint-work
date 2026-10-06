@@ -448,5 +448,4 @@ final class ProjectBundleEntity implements EntityInterface {
 		return 'project:' . $portable_key;
 	}
 
-	private function __construct() {}
 }
