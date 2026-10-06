@@ -138,6 +138,7 @@ final class ProjectDataExchange {
 			self::send_error( $preview );
 		}
 		$summary = self::envelope_summary( $input );
+		$review  = true === ( $preview['valid'] ?? false ) ? self::envelope_review( $input ) : [];
 
 		wp_send_json_success( [
 			'validation' => [
@@ -153,6 +154,7 @@ final class ProjectDataExchange {
 				],
 				'errors'      => isset( $preview['errors'] ) && is_array( $preview['errors'] ) ? $preview['errors'] : [],
 				'warnings'    => isset( $preview['items'][0]['warnings'] ) && is_array( $preview['items'][0]['warnings'] ) ? $preview['items'][0]['warnings'] : [],
+				'review'      => $review,
 				'fingerprint' => is_string( $preview['fingerprint'] ?? null ) ? $preview['fingerprint'] : '',
 			],
 		] );
@@ -235,6 +237,17 @@ final class ProjectDataExchange {
 				'projectsUpdate'=> __( 'Projects to update', 'core-blueprint-work' ),
 				'projectsSkip'  => __( 'Projects skipped', 'core-blueprint-work' ),
 				'workItems'     => __( 'Work Items', 'core-blueprint-work' ),
+				'importReview'  => __( 'Import review', 'core-blueprint-work' ),
+				'project'       => __( 'Project', 'core-blueprint-work' ),
+				'context'       => __( 'Context', 'core-blueprint-work' ),
+				'startDate'     => __( 'Start date', 'core-blueprint-work' ),
+				'dueDate'       => __( 'Due date', 'core-blueprint-work' ),
+				'workItem'      => __( 'Work Item', 'core-blueprint-work' ),
+				'status'        => __( 'Status', 'core-blueprint-work' ),
+				'priority'      => __( 'Priority', 'core-blueprint-work' ),
+				'scheduled'     => __( 'Scheduled', 'core-blueprint-work' ),
+				'estimate'      => __( 'Estimate', 'core-blueprint-work' ),
+				'minutes'       => __( 'min', 'core-blueprint-work' ),
 			],
 		] );
 	}
@@ -283,6 +296,47 @@ final class ProjectDataExchange {
 		$record  = isset( $records[0] ) && is_array( $records[0] ) ? $records[0] : [];
 		$items   = isset( $record['work_items'] ) && is_array( $record['work_items'] ) ? $record['work_items'] : [];
 		return [ 'work_items' => count( $items ) ];
+	}
+
+	/**
+	 * Build a bounded, display-only projection after Base has validated the bundle.
+	 *
+	 * @return array{project:array<string,mixed>,work_items:list<array<string,mixed>>}
+	 */
+	private static function envelope_review( string $input ): array {
+		try {
+			$decoded = json_decode( $input, true, 16, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $exception ) {
+			unset( $exception );
+			return [];
+		}
+
+		$record = is_array( $decoded['records'][0] ?? null ) ? $decoded['records'][0] : [];
+		$raw_items = is_array( $record['work_items'] ?? null ) ? array_slice( $record['work_items'], 0, 500 ) : [];
+		$items = [];
+		foreach ( $raw_items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$items[] = [
+				'title'             => sanitize_text_field( is_string( $item['title'] ?? null ) ? $item['title'] : '' ),
+				'status'            => sanitize_key( is_string( $item['status'] ?? null ) ? $item['status'] : '' ),
+				'priority'          => sanitize_key( is_string( $item['priority'] ?? null ) ? $item['priority'] : '' ),
+				'estimated_minutes' => max( 0, (int) ( $item['estimated_minutes'] ?? 0 ) ),
+				'scheduled_on'      => sanitize_text_field( is_string( $item['scheduled_on'] ?? null ) ? $item['scheduled_on'] : '' ),
+				'due_on'            => sanitize_text_field( is_string( $item['due_on'] ?? null ) ? $item['due_on'] : '' ),
+			];
+		}
+
+		return [
+			'project' => [
+				'title'        => sanitize_text_field( is_string( $record['title'] ?? null ) ? $record['title'] : '' ),
+				'work_context' => sanitize_key( is_string( $record['work_context'] ?? null ) ? $record['work_context'] : '' ),
+				'starts_on'    => sanitize_text_field( is_string( $record['starts_on'] ?? null ) ? $record['starts_on'] : '' ),
+				'due_on'       => sanitize_text_field( is_string( $record['due_on'] ?? null ) ? $record['due_on'] : '' ),
+			],
+			'work_items' => $items,
+		];
 	}
 
 	private static function project_id_from_envelope( string $input ): int {
