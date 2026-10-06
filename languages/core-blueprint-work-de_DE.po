@@ -2348,3 +2348,7 @@ msgstr "Du hast keine Berechtigung, Work-Projekte zu exportieren."
 
 msgid "You do not have permission to import Work Projects."
 msgstr "Du hast keine Berechtigung, Work-Projekte zu importieren."
+
+#: core-blueprint-work.php:49
+msgid "Plugins"
+msgstr "Plugins"
