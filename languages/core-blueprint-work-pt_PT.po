@@ -593,6 +593,9 @@ msgstr "Repor predefinições"
 #: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
+msgid "min"
+msgstr "min"
+
 msgid "Work Item"
 msgstr "Work Item"
 
@@ -2260,6 +2263,9 @@ msgstr "Apenas criar é a opção mais segura para novos planos. Criar ou atuali
 msgid "Create or update"
 msgstr "Criar ou atualizar"
 
+msgid "Estimate"
+msgstr "Estimativa"
+
 msgid "Existing active Work Items that are not present in this bundle are preserved."
 msgstr "Os Work Items ativos existentes que não estejam presentes neste pacote são preservados."
 
@@ -2274,6 +2280,9 @@ msgstr "Modo de importação"
 
 msgid "Import project"
 msgstr "Importar projeto"
+
+msgid "Import review"
+msgstr "Revisão da importação"
 
 msgid "Import Work Project"
 msgstr "Importar projeto Work"
