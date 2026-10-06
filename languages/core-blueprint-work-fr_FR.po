@@ -593,6 +593,9 @@ msgstr "Réinitialiser par défaut"
 #: src/Admin/Projects.php:126 src/Admin/ProjectWorkspace.php:97
 #: src/Admin/Time.php:93 src/Admin/Time.php:127 src/Admin/Time.php:156
 #: src/Content/PostTypes.php:87
+msgid "min"
+msgstr "min"
+
 msgid "Work Item"
 msgstr "Work Item"
 
@@ -2268,6 +2271,9 @@ msgstr "Créer uniquement est le mode le plus sûr pour les nouveaux plans. Cré
 msgid "Create or update"
 msgstr "Créer ou mettre à jour"
 
+msgid "Estimate"
+msgstr "Estimation"
+
 msgid "Existing active Work Items that are not present in this bundle are preserved."
 msgstr "Les Work Items actifs existants qui ne figurent pas dans ce bundle sont conservés."
 
@@ -2282,6 +2288,9 @@ msgstr "Mode d’import"
 
 msgid "Import project"
 msgstr "Importer le projet"
+
+msgid "Import review"
+msgstr "Aperçu de l’import"
 
 msgid "Import Work Project"
 msgstr "Importer un projet Work"
