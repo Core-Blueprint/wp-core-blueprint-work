@@ -2465,3 +2465,6 @@ msgstr "I dati delle preferenze elenco non sono validi."
 
 msgid "Z–A"
 msgstr "Z–A"
+
+msgid "Details for %s"
+msgstr "Dettagli per %s"

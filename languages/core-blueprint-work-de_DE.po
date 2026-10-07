@@ -2476,3 +2476,6 @@ msgstr "Die Daten für die Listeneinstellungen sind ungültig."
 
 msgid "Z–A"
 msgstr "Z–A"
+
+msgid "Details for %s"
+msgstr "Details für %s"

@@ -1333,6 +1333,7 @@ final class Operations {
 	/**
 	 * @param array<string,mixed> $item
 	 * @param array<int,string> $project_map
+	 * @param array<int,string> $service_map
 	 * @param array<int,string> $type_map
 	 * @param array<string,mixed> $state
 	 */

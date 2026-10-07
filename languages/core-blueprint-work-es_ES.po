@@ -2479,3 +2479,6 @@ msgstr "Los datos de las preferencias de lista no son válidos."
 
 msgid "Z–A"
 msgstr "Z–A"
+
+msgid "Details for %s"
+msgstr "Detalles de %s"

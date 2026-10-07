@@ -2462,3 +2462,6 @@ msgstr "De payload voor lijstvoorkeuren is ongeldig."
 
 msgid "Z–A"
 msgstr "Z–A"
+
+msgid "Details for %s"
+msgstr "Details voor %s"
