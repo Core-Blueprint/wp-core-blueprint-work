@@ -23,7 +23,8 @@ $checks = [
 	'Kanban is a renderer over canonical status and the existing result set' => str_contains( $operations, '$lanes = array_fill_keys( WorkItemStatus::all(), [] );' )
 		&& str_contains( $operations, '$lanes[ $status ][] = $item;' )
 		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
-		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
+		&& str_contains( $operations, 'self::render_work_item_board_actions( $item, $state )' )
+		&& str_contains( $operations, 'self::transition_menu_form( $item, $state, $from, $to )' ),
 	'Calendar is a renderer over scheduled and due dates from the existing result set' => str_contains( $operations, "\$scheduled_on = (string) ( \$item['scheduled_on'] ?? '' );" )
 		&& str_contains( $operations, "\$due_on       = (string) ( \$item['due_on'] ?? '' );" )
 		&& str_contains( $operations, '$entries_by_date[ $scheduled_on ][]' )
@@ -63,7 +64,9 @@ $checks = [
 		&& str_contains( $actions, "admin_url( 'admin.php' )" )
 		&& ! str_contains( $actions, 'return_project_id' ),
 	'Project context remains native Work Item create context while transitions receive full canonical state' => str_contains( $operations, 'Menu::new_work_item_url( $project_filter )' )
-		&& str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
+		&& str_contains( $operations, 'self::render_work_item_board_actions( $item, $state )' )
+		&& str_contains( $operations, '$return_args = WorkItemViewState::query_args( $state );' )
+		&& str_contains( $operations, 'self::transition_menu_form( $item, $state, $from, $to )' ),
 ];
 
 foreach ( $checks as $label => $passed ) {
