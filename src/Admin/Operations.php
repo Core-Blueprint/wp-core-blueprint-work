@@ -112,11 +112,9 @@ final class Operations {
 
 			<div class="cb-work-results-header">
 				<div class="cb-work-results-header__copy">
-					<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
-					<p class="description"><?php
-					/* translators: %d: number of Work Items matching the current view. */
-					echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) );
-					?></p>
+					<h2><span class="cb-work-results-header__count"><?php echo esc_html( (string) (int) $result['total'] ); ?></span> <?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h2>
+					<span class="cb-work-results-header__divider" aria-hidden="true"></span>
+					<p class="description"><?php echo esc_html( $project_filter > 0 ? ( $project_map[ $project_filter ] ?? __( 'Unknown Project', 'core-blueprint-work' ) ) : __( 'All Projects', 'core-blueprint-work' ) ); ?></p>
 				</div>
 				<span class="cb-work-keyboard-hint"><?php esc_html_e( 'Shortcut: / search · Alt+N add Work Item', 'core-blueprint-work' ); ?></span>
 			</div>
@@ -763,7 +761,9 @@ final class Operations {
 			<?php if ( 0 === $delta ) : ?>
 				<span class="cb-work-due__relative"><?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></span>
 			<?php elseif ( $delta < 0 ) : ?>
-				<span class="cb-work-due__relative"><?php esc_html_e( 'Overdue', 'core-blueprint-work' ); ?></span>
+				<span class="cb-work-due__relative"><?php esc_html_e( 'Overdue', 'core-blueprint-work' ); ?> · <?php echo esc_html( human_time_diff( $due->getTimestamp(), $today->getTimestamp() ) ); ?></span>
+			<?php else : ?>
+				<span class="cb-work-due__relative"><?php echo esc_html( human_time_diff( $today->getTimestamp(), $due->getTimestamp() ) ); ?></span>
 			<?php endif; ?>
 		</span>
 		<?php
