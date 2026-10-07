@@ -79,7 +79,7 @@ final class Operations {
 			);
 		}
 		?>
-		<div class="wrap cb-work-items-page">
+		<div class="wrap cb-work-items-page cb-work-items-page--refined">
 			<header class="cb-work-page-header">
 				<div class="cb-work-page-header__copy">
 					<h1><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h1>
@@ -107,7 +107,6 @@ final class Operations {
 			<?php endif; ?>
 
 			<?php self::render_work_item_focus_views( $state ); ?>
-			<?php self::render_work_item_views( $state ); ?>
 			<?php self::render_work_item_filters( $state, $projects, $services, $types, $selected_customer ); ?>
 
 			<div class="cb-work-results-header">
@@ -288,9 +287,100 @@ final class Operations {
 	 */
 	private static function render_work_item_filters( array $state, array $projects, array $services, array $types, ?array $selected_customer ): void {
 		$is_calendar = WorkItemViewState::VIEW_CALENDAR === (string) $state['view'];
+		$is_table    = WorkItemViewState::VIEW_TABLE === (string) $state['view'];
 		$clear_state = [ 'view' => (string) $state['view'] ];
 		if ( $is_calendar ) {
 			$clear_state['calendar_month'] = (string) $state['calendar_month'];
+		}
+
+		$advanced_count = 0;
+		$advanced_count += (int) ( (int) $state['service_id'] > 0 );
+		$advanced_count += (int) ( '' !== (string) $state['priority'] );
+		$advanced_count += (int) ( (int) $state['work_type_id'] > 0 );
+		$advanced_count += (int) ( '' !== (string) $state['work_context'] );
+		$advanced_count += (int) ( '' !== (string) $state['billing'] );
+		$advanced_count += (int) ( null !== ( $state['query']['customer'] ?? null ) );
+		$advanced_count += (int) ( (int) $state['assignee_id'] > 0 );
+		if ( ! $is_calendar ) {
+			$advanced_count += (int) ( '' !== (string) $state['scheduled_from'] );
+			$advanced_count += (int) ( '' !== (string) $state['scheduled_to'] );
+		}
+		$advanced_count += (int) ( '' !== (string) $state['due_from'] );
+		$advanced_count += (int) ( '' !== (string) $state['due_to'] );
+		$advanced_count += (int) ( WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'] );
+
+		$has_any_filters = '' !== (string) $state['search']
+			|| '' !== (string) $state['status']
+			|| (int) $state['project_id'] > 0
+			|| $advanced_count > 0;
+
+		$summary = [];
+		if ( '' !== (string) $state['status'] ) {
+			$summary[] = [ __( 'Status', 'core-blueprint-work' ), 'active' === (string) $state['status'] ? __( 'Active', 'core-blueprint-work' ) : self::humanize( (string) $state['status'] ) ];
+		}
+		if ( (int) $state['project_id'] > 0 ) {
+			foreach ( $projects as $project ) {
+				if ( (int) $project['id'] === (int) $state['project_id'] ) {
+					$summary[] = [ __( 'Project', 'core-blueprint-work' ), (string) $project['title'] ];
+					break;
+				}
+			}
+		}
+		if ( '' !== (string) $state['search'] ) {
+			$summary[] = [ __( 'Search', 'core-blueprint-work' ), (string) $state['search'] ];
+		}
+		if ( (int) $state['service_id'] > 0 ) {
+			foreach ( $services as $service ) {
+				if ( (int) $service['id'] === (int) $state['service_id'] ) {
+					$summary[] = [ __( 'Service', 'core-blueprint-work' ), (string) $service['title'] ];
+					break;
+				}
+			}
+		}
+		if ( '' !== (string) $state['priority'] ) {
+			$summary[] = [ __( 'Priority', 'core-blueprint-work' ), self::humanize( (string) $state['priority'] ) ];
+		}
+		if ( (int) $state['work_type_id'] > 0 ) {
+			foreach ( $types as $type ) {
+				if ( (int) $type['id'] === (int) $state['work_type_id'] ) {
+					$summary[] = [ __( 'Work Type', 'core-blueprint-work' ), (string) $type['label'] ];
+					break;
+				}
+			}
+		}
+		if ( '' !== (string) $state['work_context'] ) {
+			$summary[] = [ __( 'Work context', 'core-blueprint-work' ), self::humanize( (string) $state['work_context'] ) ];
+		}
+		if ( '' !== (string) $state['billing'] ) {
+			$summary[] = [ __( 'Billing', 'core-blueprint-work' ), self::humanize( (string) $state['billing'] ) ];
+		}
+		if ( null !== $selected_customer ) {
+			$summary[] = [ __( 'Customer', 'core-blueprint-work' ), (string) $selected_customer['label'] ];
+		}
+		if ( (int) $state['assignee_id'] > 0 ) {
+			$user = get_userdata( (int) $state['assignee_id'] );
+			if ( $user ) {
+				$summary[] = [ __( 'Assignee', 'core-blueprint-work' ), (string) $user->display_name ];
+			}
+		}
+		if ( ! $is_calendar && ( '' !== (string) $state['scheduled_from'] || '' !== (string) $state['scheduled_to'] ) ) {
+			$summary[] = [
+				__( 'Scheduled', 'core-blueprint-work' ),
+				( '' !== (string) $state['scheduled_from'] ? (string) $state['scheduled_from'] : '…' )
+					. ' ' . __( 'to', 'core-blueprint-work' ) . ' '
+					. ( '' !== (string) $state['scheduled_to'] ? (string) $state['scheduled_to'] : '…' ),
+			];
+		}
+		if ( '' !== (string) $state['due_from'] || '' !== (string) $state['due_to'] ) {
+			$summary[] = [
+				__( 'Due', 'core-blueprint-work' ),
+				( '' !== (string) $state['due_from'] ? (string) $state['due_from'] : '…' )
+					. ' ' . __( 'to', 'core-blueprint-work' ) . ' '
+					. ( '' !== (string) $state['due_to'] ? (string) $state['due_to'] : '…' ),
+			];
+		}
+		if ( WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'] ) {
+			$summary[] = [ __( 'Sort', 'core-blueprint-work' ), self::humanize( (string) $state['sort'] ) ];
 		}
 		?>
 		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="cb-work-items-filters">
@@ -299,84 +389,169 @@ final class Operations {
 			<?php if ( $is_calendar ) : ?>
 				<input type="hidden" name="calendar_month" value="<?php echo esc_attr( (string) $state['calendar_month'] ); ?>">
 			<?php endif; ?>
-			<div class="tablenav top">
-				<div class="alignleft actions">
-					<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
-					<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
-					<select name="status" aria-label="<?php esc_attr_e( 'Status', 'core-blueprint-work' ); ?>">
-						<option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option>
-						<option value="active" <?php selected( 'active', (string) $state['status'] ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( WorkItemStatus::all() as $status ) : ?>
-							<option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status, (string) $state['status'] ); ?>><?php echo esc_html( self::humanize( $status ) ); ?></option>
+
+			<div class="cb-work-toolbar">
+				<div class="cb-work-toolbar__head">
+					<?php self::render_work_item_views( $state ); ?>
+				</div>
+
+				<div class="cb-work-toolbar__row">
+					<div class="cb-work-toolbar__primary">
+						<label class="screen-reader-text" for="cb-work-filter-status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></label>
+						<select id="cb-work-filter-status" name="status" aria-label="<?php esc_attr_e( 'Status', 'core-blueprint-work' ); ?>">
+							<option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option>
+							<option value="active" <?php selected( 'active', (string) $state['status'] ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option>
+							<?php foreach ( WorkItemStatus::all() as $status ) : ?>
+								<option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status, (string) $state['status'] ); ?>><?php echo esc_html( self::humanize( $status ) ); ?></option>
+							<?php endforeach; ?>
+						</select>
+
+						<label class="screen-reader-text" for="cb-work-filter-project"><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></label>
+						<select id="cb-work-filter-project" name="project_id" aria-label="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>">
+							<option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option>
+							<?php foreach ( $projects as $project ) : ?>
+								<option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( (int) $state['project_id'], (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option>
+							<?php endforeach; ?>
+						</select>
+
+						<button class="button" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button>
+						<button
+							type="button"
+							class="button cb-work-more-filters-toggle"
+							aria-controls="cb-work-more-filters"
+							aria-expanded="false"
+						>
+							<?php
+							echo esc_html(
+								$advanced_count > 0
+									? sprintf(
+										/* translators: %d: number of active advanced filters. */
+										__( 'Filters (%d)', 'core-blueprint-work' ),
+										$advanced_count
+									)
+									: __( 'Filters', 'core-blueprint-work' )
+							);
+							?>
+						</button>
+						<?php if ( $has_any_filters ) : ?>
+							<a class="cb-work-clear-filters" href="<?php echo esc_url( self::work_items_url( $clear_state ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+						<?php endif; ?>
+					</div>
+
+					<div class="cb-work-toolbar__search">
+						<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
+						<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
+						<button class="button" type="submit"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
+						<?php if ( $is_table ) : ?>
+							<button
+								type="button"
+								class="button cb-work-columns-toggle"
+								data-cb-work-table-columns-toggle
+								aria-controls="cb-work-table-columns-panel"
+								aria-expanded="false"
+							><?php esc_html_e( 'Columns', 'core-blueprint-work' ); ?></button>
+						<?php endif; ?>
+					</div>
+				</div>
+
+				<?php if ( [] !== $summary ) : ?>
+					<div class="cb-work-filter-summary" aria-label="<?php esc_attr_e( 'Active filters', 'core-blueprint-work' ); ?>">
+						<span class="cb-work-filter-summary__label"><?php esc_html_e( 'Active filters', 'core-blueprint-work' ); ?></span>
+						<?php foreach ( $summary as $entry ) : ?>
+							<span class="cb-work-filter-chip"><?php echo esc_html( (string) $entry[0] . ': ' . (string) $entry[1] ); ?></span>
 						<?php endforeach; ?>
-					</select>
-					<select name="priority" aria-label="<?php esc_attr_e( 'Priority', 'core-blueprint-work' ); ?>">
-						<option value=""><?php esc_html_e( 'All priorities', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( WorkItemPriority::all() as $priority ) : ?>
-							<option value="<?php echo esc_attr( $priority ); ?>" <?php selected( $priority, (string) $state['priority'] ); ?>><?php echo esc_html( self::humanize( $priority ) ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<select name="project_id" aria-label="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>">
-						<option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( $projects as $project ) : ?>
-							<option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( (int) $state['project_id'], (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<select name="service_id" aria-label="<?php esc_attr_e( 'Service', 'core-blueprint-work' ); ?>">
-						<option value="0"><?php esc_html_e( 'All Services', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( $services as $service ) : ?>
-							<option value="<?php echo esc_attr( (string) $service['id'] ); ?>" <?php selected( (int) $state['service_id'], (int) $service['id'] ); ?>><?php echo esc_html( (string) $service['title'] ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<select name="work_type_id" aria-label="<?php esc_attr_e( 'Work Type', 'core-blueprint-work' ); ?>">
-						<option value="0"><?php esc_html_e( 'All Work Types', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( $types as $type ) : ?>
-							<option value="<?php echo esc_attr( (string) $type['id'] ); ?>" <?php selected( (int) $state['work_type_id'], (int) $type['id'] ); ?>><?php echo esc_html( (string) $type['label'] ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<select name="work_context" aria-label="<?php esc_attr_e( 'Work context', 'core-blueprint-work' ); ?>">
-						<option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option>
-						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( WorkContext::INTERNAL, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
-						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( WorkContext::CUSTOMER, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
-					</select>
-					<select name="billing" aria-label="<?php esc_attr_e( 'Billing', 'core-blueprint-work' ); ?>">
-						<option value=""><?php esc_html_e( 'All billing classes', 'core-blueprint-work' ); ?></option>
-						<?php foreach ( BillingDisposition::all() as $billing ) : ?>
-							<option value="<?php echo esc_attr( $billing ); ?>" <?php selected( $billing, (string) $state['billing'] ); ?>><?php echo esc_html( self::humanize( $billing ) ); ?></option>
-						<?php endforeach; ?>
-					</select>
+					</div>
+				<?php endif; ?>
+
+				<div id="cb-work-more-filters" class="cb-work-toolbar__advanced" hidden>
+					<div class="cb-work-toolbar__advanced-grid">
+						<div class="cb-work-filter-field cb-work-filter-field--wide">
+							<label class="cb-work-filter-label" for="cb-work-filter-customer"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></label>
+							<?php Pickers::customer( 'customer', 'cb-work-filter-customer', $selected_customer ); ?>
+						</div>
+						<div class="cb-work-filter-field cb-work-filter-field--wide">
+							<label class="cb-work-filter-label" for="cb-work-filter-assignee"><?php esc_html_e( 'Assignee', 'core-blueprint-work' ); ?></label>
+							<?php Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) $state['assignee_id'] ); ?>
+						</div>
+						<div class="cb-work-filter-field cb-work-filter-field--service">
+							<label class="cb-work-filter-label" for="cb-work-filter-service"><?php esc_html_e( 'Service', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-service" name="service_id">
+								<option value="0"><?php esc_html_e( 'All Services', 'core-blueprint-work' ); ?></option>
+								<?php foreach ( $services as $service ) : ?>
+									<option value="<?php echo esc_attr( (string) $service['id'] ); ?>" <?php selected( (int) $state['service_id'], (int) $service['id'] ); ?>><?php echo esc_html( (string) $service['title'] ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+						<div class="cb-work-filter-field">
+							<label class="cb-work-filter-label" for="cb-work-filter-priority"><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-priority" name="priority">
+								<option value=""><?php esc_html_e( 'All priorities', 'core-blueprint-work' ); ?></option>
+								<?php foreach ( WorkItemPriority::all() as $priority ) : ?>
+									<option value="<?php echo esc_attr( $priority ); ?>" <?php selected( $priority, (string) $state['priority'] ); ?>><?php echo esc_html( self::humanize( $priority ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+						<div class="cb-work-filter-field">
+							<label class="cb-work-filter-label" for="cb-work-filter-work-type"><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-work-type" name="work_type_id">
+								<option value="0"><?php esc_html_e( 'All Work Types', 'core-blueprint-work' ); ?></option>
+								<?php foreach ( $types as $type ) : ?>
+									<option value="<?php echo esc_attr( (string) $type['id'] ); ?>" <?php selected( (int) $state['work_type_id'], (int) $type['id'] ); ?>><?php echo esc_html( (string) $type['label'] ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+						<div class="cb-work-filter-field">
+							<label class="cb-work-filter-label" for="cb-work-filter-work-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-work-context" name="work_context">
+								<option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( WorkContext::INTERNAL, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( WorkContext::CUSTOMER, (string) $state['work_context'] ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
+							</select>
+						</div>
+						<div class="cb-work-filter-field">
+							<label class="cb-work-filter-label" for="cb-work-filter-billing"><?php esc_html_e( 'Billing', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-billing" name="billing">
+								<option value=""><?php esc_html_e( 'All billing classes', 'core-blueprint-work' ); ?></option>
+								<?php foreach ( BillingDisposition::all() as $billing ) : ?>
+									<option value="<?php echo esc_attr( $billing ); ?>" <?php selected( $billing, (string) $state['billing'] ); ?>><?php echo esc_html( self::humanize( $billing ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</div>
+						<div class="cb-work-filter-field">
+							<label class="cb-work-filter-label" for="cb-work-filter-sort"><?php esc_html_e( 'Sort', 'core-blueprint-work' ); ?></label>
+							<select id="cb-work-filter-sort" name="sort">
+								<option value="<?php echo esc_attr( WorkItemQuery::SORT_WORKLOAD ); ?>" <?php selected( WorkItemQuery::SORT_WORKLOAD, (string) $state['sort'] ); ?>><?php esc_html_e( 'Workload', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkItemQuery::SORT_DUE ); ?>" <?php selected( WorkItemQuery::SORT_DUE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkItemQuery::SORT_SCHEDULED ); ?>" <?php selected( WorkItemQuery::SORT_SCHEDULED, (string) $state['sort'] ); ?>><?php esc_html_e( 'Scheduled date', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkItemQuery::SORT_UPDATED ); ?>" <?php selected( WorkItemQuery::SORT_UPDATED, (string) $state['sort'] ); ?>><?php esc_html_e( 'Recently updated', 'core-blueprint-work' ); ?></option>
+								<option value="<?php echo esc_attr( WorkItemQuery::SORT_TITLE ); ?>" <?php selected( WorkItemQuery::SORT_TITLE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
+							</select>
+						</div>
+						<?php if ( ! $is_calendar ) : ?>
+							<div class="cb-work-filter-field cb-work-filter-field--range">
+								<span class="cb-work-filter-label"><?php esc_html_e( 'Scheduled', 'core-blueprint-work' ); ?></span>
+								<div class="cb-work-filter-range">
+									<label class="screen-reader-text" for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
+									<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
+									<span class="cb-work-filter-range__separator"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></span>
+									<label class="screen-reader-text" for="cb-work-filter-scheduled-to"><?php esc_html_e( 'Scheduled to', 'core-blueprint-work' ); ?></label>
+									<input id="cb-work-filter-scheduled-to" type="date" name="scheduled_to" value="<?php echo esc_attr( (string) $state['scheduled_to'] ); ?>">
+								</div>
+							</div>
+						<?php endif; ?>
+						<div class="cb-work-filter-field cb-work-filter-field--range">
+							<span class="cb-work-filter-label"><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span>
+							<div class="cb-work-filter-range">
+								<label class="screen-reader-text" for="cb-work-filter-due-from"><?php esc_html_e( 'Due from', 'core-blueprint-work' ); ?></label>
+								<input id="cb-work-filter-due-from" type="date" name="due_from" value="<?php echo esc_attr( (string) $state['due_from'] ); ?>">
+								<span class="cb-work-filter-range__separator"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></span>
+								<label class="screen-reader-text" for="cb-work-filter-due-to"><?php esc_html_e( 'Due to', 'core-blueprint-work' ); ?></label>
+								<input id="cb-work-filter-due-to" type="date" name="due_to" value="<?php echo esc_attr( (string) $state['due_to'] ); ?>">
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-			<p>
-				<label for="cb-work-filter-customer"><strong><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></strong></label><br>
-				<?php Pickers::customer( 'customer', 'cb-work-filter-customer', $selected_customer ); ?>
-			</p>
-			<p>
-				<label for="cb-work-filter-assignee"><strong><?php esc_html_e( 'Assignee', 'core-blueprint-work' ); ?></strong></label><br>
-				<?php Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) $state['assignee_id'] ); ?>
-			</p>
-			<p>
-				<?php if ( ! $is_calendar ) : ?>
-					<label for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
-					<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
-					<label for="cb-work-filter-scheduled-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
-					<input id="cb-work-filter-scheduled-to" type="date" name="scheduled_to" value="<?php echo esc_attr( (string) $state['scheduled_to'] ); ?>">
-				<?php endif; ?>
-				<label for="cb-work-filter-due-from"><?php esc_html_e( 'Due from', 'core-blueprint-work' ); ?></label>
-				<input id="cb-work-filter-due-from" type="date" name="due_from" value="<?php echo esc_attr( (string) $state['due_from'] ); ?>">
-				<label for="cb-work-filter-due-to"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></label>
-				<input id="cb-work-filter-due-to" type="date" name="due_to" value="<?php echo esc_attr( (string) $state['due_to'] ); ?>">
-				<label for="cb-work-filter-sort"><?php esc_html_e( 'Sort', 'core-blueprint-work' ); ?></label>
-				<select id="cb-work-filter-sort" name="sort">
-					<option value="<?php echo esc_attr( WorkItemQuery::SORT_WORKLOAD ); ?>" <?php selected( WorkItemQuery::SORT_WORKLOAD, (string) $state['sort'] ); ?>><?php esc_html_e( 'Workload', 'core-blueprint-work' ); ?></option>
-					<option value="<?php echo esc_attr( WorkItemQuery::SORT_DUE ); ?>" <?php selected( WorkItemQuery::SORT_DUE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></option>
-					<option value="<?php echo esc_attr( WorkItemQuery::SORT_SCHEDULED ); ?>" <?php selected( WorkItemQuery::SORT_SCHEDULED, (string) $state['sort'] ); ?>><?php esc_html_e( 'Scheduled date', 'core-blueprint-work' ); ?></option>
-					<option value="<?php echo esc_attr( WorkItemQuery::SORT_UPDATED ); ?>" <?php selected( WorkItemQuery::SORT_UPDATED, (string) $state['sort'] ); ?>><?php esc_html_e( 'Recently updated', 'core-blueprint-work' ); ?></option>
-					<option value="<?php echo esc_attr( WorkItemQuery::SORT_TITLE ); ?>" <?php selected( WorkItemQuery::SORT_TITLE, (string) $state['sort'] ); ?>><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
-				</select>
-				<button class="button" type="submit"><?php esc_html_e( 'Apply filters', 'core-blueprint-work' ); ?></button>
-				<a class="button" href="<?php echo esc_url( self::work_items_url( $clear_state ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
-			</p>
 		</form>
 		<?php
 	}
@@ -403,16 +578,6 @@ final class Operations {
 			data-saved="<?php echo esc_attr__( 'Saved', 'core-blueprint-work' ); ?>"
 			data-error="<?php echo esc_attr__( 'Column preferences could not be saved.', 'core-blueprint-work' ); ?>"
 		>
-			<div class="cb-work-table-preferences__toolbar">
-				<button
-					type="button"
-					class="button"
-					data-cb-work-table-columns-toggle
-					aria-controls="<?php echo esc_attr( $panel_id ); ?>"
-					aria-expanded="false"
-				><?php esc_html_e( 'Columns', 'core-blueprint-work' ); ?></button>
-			</div>
-
 			<div id="<?php echo esc_attr( $panel_id ); ?>" class="cb-work-table-preferences__panel" data-cb-work-table-columns-panel hidden>
 				<div data-cb-core-reorder>
 					<div
