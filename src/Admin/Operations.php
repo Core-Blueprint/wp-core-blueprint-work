@@ -80,10 +80,15 @@ final class Operations {
 		}
 		?>
 		<div class="wrap cb-work-items-page">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h1>
-			<a class="page-title-action" href="<?php echo esc_url( Menu::new_work_item_url( $project_filter ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
-			<hr class="wp-header-end">
-			<p class="description"><?php esc_html_e( 'Manage actionable work across customers and Projects. Open a Work Item to edit it in Gutenberg.', 'core-blueprint-work' ); ?></p>
+			<header class="cb-work-page-header">
+				<div class="cb-work-page-header__copy">
+					<h1><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h1>
+					<p class="description"><?php esc_html_e( 'Manage actionable work across customers and Projects. Open a Work Item to edit it in Gutenberg.', 'core-blueprint-work' ); ?></p>
+				</div>
+				<div class="cb-work-page-header__actions">
+					<a class="button button-primary cb-work-page-header__primary" href="<?php echo esc_url( Menu::new_work_item_url( $project_filter ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
+				</div>
+			</header>
 			<?php self::render_notice(); ?>
 
 			<?php if ( false === $state['customer_valid'] ) : ?>
@@ -101,14 +106,20 @@ final class Operations {
 				</p></div>
 			<?php endif; ?>
 
+			<?php self::render_work_item_focus_views( $state ); ?>
 			<?php self::render_work_item_views( $state ); ?>
 			<?php self::render_work_item_filters( $state, $projects, $services, $types, $selected_customer ); ?>
 
-			<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
-			<p class="description"><?php
-			/* translators: %d: number of Work Items matching the current view. */
-			echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) );
-			?></p>
+			<div class="cb-work-results-header">
+				<div class="cb-work-results-header__copy">
+					<h2><?php echo esc_html( $project_filter > 0 ? __( 'Project Work Items', 'core-blueprint-work' ) : __( 'All Work Items', 'core-blueprint-work' ) ); ?></h2>
+					<p class="description"><?php
+					/* translators: %d: number of Work Items matching the current view. */
+					echo esc_html( sprintf( _n( '%d Work Item matches the current view.', '%d Work Items match the current view.', (int) $result['total'], 'core-blueprint-work' ), (int) $result['total'] ) );
+					?></p>
+				</div>
+				<span class="cb-work-keyboard-hint"><?php esc_html_e( 'Shortcut: / search · Alt+N add Work Item', 'core-blueprint-work' ); ?></span>
+			</div>
 			<?php if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_calendar( $items, $project_map, $state ); ?>
 			<?php elseif ( [] === $items ) : ?>
@@ -181,15 +192,90 @@ final class Operations {
 		$views = [
 			WorkItemViewState::VIEW_TABLE    => __( 'Table', 'core-blueprint-work' ),
 			WorkItemViewState::VIEW_LIST     => __( 'List', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_KANBAN   => __( 'Kanban', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_KANBAN   => __( 'Board', 'core-blueprint-work' ),
 			WorkItemViewState::VIEW_CALENDAR => __( 'Calendar', 'core-blueprint-work' ),
 		];
 		?>
-		<h2 class="nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+		<nav class="cb-core-segmented-control cb-work-view-switcher" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
 			<?php foreach ( $views as $view => $label ) : ?>
-				<a class="nav-tab <?php echo $current === $view ? 'nav-tab-active' : ''; ?>" href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"><?php echo esc_html( $label ); ?></a>
+				<a
+					class="cb-core-segmented-control__option <?php echo $current === $view ? 'is-active' : ''; ?>"
+					href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"
+					<?php if ( $current === $view ) : ?>aria-current="page"<?php endif; ?>
+				><?php echo esc_html( $label ); ?></a>
 			<?php endforeach; ?>
-		</h2>
+		</nav>
+		<?php
+	}
+
+	/** @param array<string,mixed> $state */
+	private static function render_work_item_focus_views( array $state ): void {
+		$user_id = get_current_user_id();
+		$today   = current_time( 'Y-m-d' );
+		$overdue = wp_date( 'Y-m-d', strtotime( $today . ' -1 day' ) );
+
+		$has_other_filters = '' !== (string) $state['search']
+			|| '' !== (string) $state['priority']
+			|| (int) $state['project_id'] > 0
+			|| (int) $state['service_id'] > 0
+			|| (int) $state['work_type_id'] > 0
+			|| '' !== (string) $state['work_context']
+			|| '' !== (string) $state['billing']
+			|| null !== ( $state['query']['customer'] ?? null )
+			|| '' !== (string) $state['scheduled_from']
+			|| '' !== (string) $state['scheduled_to']
+			|| '' !== (string) $state['due_from']
+			|| WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'];
+
+		$status      = (string) $state['status'];
+		$assignee_id = (int) $state['assignee_id'];
+		$due_to      = (string) $state['due_to'];
+		$base        = [
+			'view' => (string) $state['view'],
+		];
+		if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) {
+			$base['calendar_month'] = (string) $state['calendar_month'];
+		}
+
+		$links = [
+			[
+				'label'   => __( 'All', 'core-blueprint-work' ),
+				'url'     => self::work_items_url( $base ),
+				'current' => ! $has_other_filters && '' === $status && 0 === $assignee_id && '' === $due_to,
+			],
+		];
+		if ( $user_id > 0 ) {
+			$links[] = [
+				'label'   => __( 'My work', 'core-blueprint-work' ),
+				'url'     => self::work_items_url( $base + [ 'status' => 'active', 'assignee_id' => $user_id ] ),
+				'current' => ! $has_other_filters && 'active' === $status && $assignee_id === $user_id,
+			];
+		}
+		$links[] = [
+			'label'   => __( 'Active', 'core-blueprint-work' ),
+			'url'     => self::work_items_url( $base + [ 'status' => 'active' ] ),
+			'current' => ! $has_other_filters && 'active' === $status && 0 === $assignee_id && '' === $due_to,
+		];
+		$links[] = [
+			'label'   => __( 'Blocked', 'core-blueprint-work' ),
+			'url'     => self::work_items_url( $base + [ 'status' => WorkItemStatus::BLOCKED ] ),
+			'current' => ! $has_other_filters && WorkItemStatus::BLOCKED === $status,
+		];
+		$links[] = [
+			'label'   => __( 'Overdue', 'core-blueprint-work' ),
+			'url'     => self::work_items_url( $base + [ 'status' => 'active', 'due_to' => $overdue ] ),
+			'current' => ! $has_other_filters && 'active' === $status && $overdue === $due_to,
+		];
+		?>
+		<nav class="cb-work-fast-paths" aria-label="<?php esc_attr_e( 'Focus views', 'core-blueprint-work' ); ?>">
+			<?php foreach ( $links as $link ) : ?>
+				<a
+					class="cb-work-fast-path <?php echo ! empty( $link['current'] ) ? 'is-current' : ''; ?>"
+					href="<?php echo esc_url( (string) $link['url'] ); ?>"
+					<?php if ( ! empty( $link['current'] ) ) : ?>aria-current="page"<?php endif; ?>
+				><?php echo esc_html( (string) $link['label'] ); ?></a>
+			<?php endforeach; ?>
+		</nav>
 		<?php
 	}
 
