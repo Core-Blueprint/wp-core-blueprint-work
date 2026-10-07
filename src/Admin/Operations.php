@@ -1582,7 +1582,6 @@ final class Operations {
 						data-cb-core-reorder-list-label="<?php echo esc_attr( $lane_label ); ?>"
 					>
 						<div class="cb-work-board__empty" data-cb-work-board-empty <?php if ( [] !== $lane_items ) : ?>hidden<?php endif; ?>>
-							<span class="dashicons dashicons-move cb-work-board__empty-icon" aria-hidden="true"></span>
 							<span class="cb-work-board__empty-title"><?php esc_html_e( 'No Work Items in this status on the current page.', 'core-blueprint-work' ); ?></span>
 							<span class="cb-work-board__empty-hint"><?php esc_html_e( 'Drop Work Items here', 'core-blueprint-work' ); ?></span>
 						</div>
