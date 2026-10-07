@@ -399,7 +399,8 @@ const persistBoardTransition = async (root, card, targetStatus) => {
 	return payload.data || {};
 };
 
-const initBoardReorder = (root) => {
+const enhanceStatusBoard = (root, options = {}) => {
+	const reloadAfterMove = options.reloadAfterMove !== false;
 	const reorder = window.cbCore?.reorder;
 	if (!reorder?.enhance) return;
 
@@ -422,7 +423,15 @@ const initBoardReorder = (root) => {
 				? result.allowed_statuses.join(',')
 				: '';
 			refreshBoardCounts(root);
-			window.location.reload();
+			if (typeof options.onPersistedMove === 'function') {
+				options.onPersistedMove({
+					itemId: move.itemId,
+					fromStatus: move.from.listId,
+					targetStatus: move.to.listId,
+					result,
+				});
+			}
+			if (reloadAfterMove) window.location.reload();
 			return true;
 		},
 	});
@@ -438,54 +447,7 @@ const initBoardReorder = (root) => {
 	refreshBoardCounts(root);
 };
 
-document.querySelectorAll('[data-cb-work-board-reorder]').forEach(initBoardReorder);
+document.querySelectorAll('[data-cb-work-board-reorder]').forEach((root) => enhanceStatusBoard(root));
 
 
-const calendarEntryByReorderId = (root, itemId) => [...root.querySelectorAll('[data-cb-core-reorder-item]')]
-	.find((item) => String(item.dataset.cbCoreReorderItem || '') === itemId) || null;
-
-const persistCalendarMove = async (root, entry, targetDate) => {
-	const body = new FormData();
-	body.set('action', root.dataset.action || '');
-	body.set('nonce', root.dataset.nonce || '');
-	body.set('work_item_id', entry.dataset.cbWorkItemId || '');
-	body.set('kind', entry.dataset.cbWorkCalendarKind || '');
-	body.set('date', targetDate);
-
-	const response = await fetch(root.dataset.ajaxUrl || '', {
-		method: 'POST',
-		credentials: 'same-origin',
-		body,
-	});
-	const payload = await response.json().catch(() => null);
-	if (!response.ok || !payload?.success) {
-		throw new Error(payload?.data?.message || root.dataset.error || 'Work Item date update failed.');
-	}
-	return payload.data || {};
-};
-
-const initCalendarReorder = (root) => {
-	const reorder = window.cbCore?.reorder;
-	if (!reorder?.enhance) return;
-
-	reorder.enhance(root, {
-		crossList: true,
-
-		canMove(move) {
-			if (move.from.listId === move.to.listId) return false;
-			return /^\d{4}-\d{2}-\d{2}$/.test(move.to.listId)
-				&& Boolean(calendarEntryByReorderId(root, move.itemId));
-		},
-
-		async onMove(move) {
-			const entry = calendarEntryByReorderId(root, move.itemId);
-			if (!entry) return false;
-
-			await persistCalendarMove(root, entry, move.to.listId);
-			window.location.reload();
-			return true;
-		},
-	});
-};
-
-document.querySelectorAll('[data-cb-work-calendar-reorder]').forEach(initCalendarReorder);
+export { enhanceStatusBoard };
