@@ -188,19 +188,22 @@ final class Operations {
 	private static function render_work_item_views( array $state ): void {
 		$current = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
 		$views = [
-			WorkItemViewState::VIEW_TABLE    => __( 'Table', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_LIST     => __( 'List', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_KANBAN   => __( 'Board', 'core-blueprint-work' ),
-			WorkItemViewState::VIEW_CALENDAR => __( 'Calendar', 'core-blueprint-work' ),
+			WorkItemViewState::VIEW_TABLE    => [ 'label' => __( 'Table', 'core-blueprint-work' ), 'icon' => 'dashicons-editor-table' ],
+			WorkItemViewState::VIEW_LIST     => [ 'label' => __( 'List', 'core-blueprint-work' ), 'icon' => 'dashicons-list-view' ],
+			WorkItemViewState::VIEW_KANBAN   => [ 'label' => __( 'Board', 'core-blueprint-work' ), 'icon' => 'dashicons-screenoptions' ],
+			WorkItemViewState::VIEW_CALENDAR => [ 'label' => __( 'Calendar', 'core-blueprint-work' ), 'icon' => 'dashicons-calendar-alt' ],
 		];
 		?>
 		<nav class="cb-core-segmented-control cb-work-view-switcher" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
-			<?php foreach ( $views as $view => $label ) : ?>
+			<?php foreach ( $views as $view => $definition ) : ?>
 				<a
-					class="cb-core-segmented-control__option <?php echo $current === $view ? 'is-active' : ''; ?>"
+					class="cb-core-segmented-control__option cb-work-view-switcher__option <?php echo $current === $view ? 'is-active' : ''; ?>"
 					href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"
 					<?php if ( $current === $view ) : ?>aria-current="page"<?php endif; ?>
-				><?php echo esc_html( $label ); ?></a>
+				>
+					<span class="dashicons <?php echo esc_attr( (string) $definition['icon'] ); ?>" aria-hidden="true"></span>
+					<span><?php echo esc_html( (string) $definition['label'] ); ?></span>
+				</a>
 			<?php endforeach; ?>
 		</nav>
 		<?php
@@ -419,6 +422,8 @@ final class Operations {
 							aria-controls="cb-work-more-filters"
 							aria-expanded="false"
 						>
+							<span class="dashicons dashicons-filter" aria-hidden="true"></span>
+							<span>
 							<?php
 							echo esc_html(
 								$advanced_count > 0
@@ -430,6 +435,7 @@ final class Operations {
 									: __( 'More filters', 'core-blueprint-work' )
 							);
 							?>
+							</span>
 						</button>
 						<?php if ( $has_any_filters ) : ?>
 							<a class="cb-work-clear-filters" href="<?php echo esc_url( self::work_items_url( $clear_state ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
@@ -439,7 +445,10 @@ final class Operations {
 					<div class="cb-work-toolbar__search">
 						<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
 						<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
-						<button class="button" type="submit"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
+						<button class="button cb-work-search-submit" type="submit" aria-label="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>" title="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>">
+							<span class="dashicons dashicons-search" aria-hidden="true"></span>
+							<span class="screen-reader-text"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>
+						</button>
 						<?php if ( $is_table ) : ?>
 							<button
 								type="button"
@@ -447,7 +456,10 @@ final class Operations {
 								data-cb-work-table-columns-toggle
 								aria-controls="cb-work-table-columns-panel"
 								aria-expanded="false"
-							><?php esc_html_e( 'Columns', 'core-blueprint-work' ); ?></button>
+							>
+								<span class="dashicons dashicons-screenoptions" aria-hidden="true"></span>
+								<span><?php esc_html_e( 'Columns', 'core-blueprint-work' ); ?></span>
+							</button>
 						<?php endif; ?>
 					</div>
 				</div>
