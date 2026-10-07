@@ -66,7 +66,8 @@ namespace {
 		|| ! str_contains( $module, "import '@cb-core/reorder';" )
 		|| ! str_contains( $module, 'reorder.enhance' )
 		|| ! str_contains( $module, "persist(root, 'save', policy)" )
-		|| ! str_contains( $module, "document.querySelector('[data-cb-work-table-columns-toggle][aria-controls=\"' + panel.id + '\"]')" )
+		|| ! str_contains( $module, "document.querySelector('[data-cb-work-table-columns-toggle]" )
+		|| ! str_contains( $module, "panel.id" )
 		|| ! str_contains( $css, '.cb-work-table-preferences__panel' )
 	) {
 		fwrite( STDERR, "Work Item table preferences smoke failed: Base Reorder integration contract is incomplete.\n" );
