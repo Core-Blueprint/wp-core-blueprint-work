@@ -16,6 +16,7 @@
 		}
 
 		initTableBulkActions( page );
+		initQuickEdit( page );
 
 		const form = page.querySelector( '.cb-work-items-filters' );
 		const toggle = form ? form.querySelector( '.cb-work-more-filters-toggle' ) : null;
@@ -61,6 +62,12 @@
 		const status = form ? form.querySelector( '[data-cb-work-bulk-status]' ) : null;
 		const submit = form ? form.querySelector( '[data-cb-work-bulk-submit]' ) : null;
 		const count = form ? form.querySelector( '[data-cb-work-selected-count]' ) : null;
+		const editToggle = form ? form.querySelector( '[data-cb-work-bulk-edit-toggle]' ) : null;
+		const editForm = page.querySelector( '[data-cb-work-bulk-edit-form]' );
+		const editSubmit = editForm ? editForm.querySelector( '[data-cb-work-bulk-edit-submit]' ) : null;
+		const editCount = editForm ? editForm.querySelector( '[data-cb-work-bulk-edit-count]' ) : null;
+		const editIds = editForm ? [ ...editForm.querySelectorAll( '[data-cb-work-bulk-edit-id]' ) ] : [];
+		const editControls = editForm ? [ ...editForm.querySelectorAll( '[data-cb-work-bulk-edit-control]' ) ] : [];
 
 		if (
 			! ( table instanceof HTMLTableElement )
@@ -91,6 +98,18 @@
 			if ( count ) {
 				count.textContent = String( selected.length );
 			}
+			if ( editCount ) {
+				editCount.textContent = String( selected.length );
+			}
+			const selectedIds = new Set( selected.map( function ( item ) { return item.value; } ) );
+			editIds.forEach( function ( input ) {
+				if ( input instanceof HTMLInputElement ) {
+					input.disabled = ! selectedIds.has( input.value );
+				}
+			} );
+			if ( selected.length === 0 && editForm ) {
+				editForm.hidden = true;
+			}
 			submit.disabled = selected.length === 0 || status.value === '';
 		};
 
@@ -113,7 +132,89 @@
 			}
 		} );
 
+		const syncEditSubmit = function () {
+			if ( ! ( editSubmit instanceof HTMLButtonElement ) || ! editForm ) {
+				return;
+			}
+			const hasChange = editControls.some( function ( control ) {
+				if ( control instanceof HTMLInputElement && control.type === 'checkbox' ) {
+					return control.checked;
+				}
+				if ( control instanceof HTMLSelectElement ) {
+					return control.value !== '__keep';
+				}
+				return false;
+			} );
+			editSubmit.disabled = ! hasChange;
+		};
+
+		editToggle?.addEventListener( 'click', function () {
+			if ( editForm ) {
+				editForm.hidden = false;
+				syncEditSubmit();
+				editForm.querySelector( 'select, input:not([type="hidden"]), button' )?.focus( { preventScroll: true } );
+			}
+		} );
+		editForm?.querySelectorAll( '[data-cb-work-bulk-edit-cancel]' ).forEach( function ( button ) {
+			button.addEventListener( 'click', function () {
+				editForm.hidden = true;
+			} );
+		} );
+		editControls.forEach( function ( control ) {
+			control.addEventListener( 'change', syncEditSubmit );
+		} );
+		editForm?.addEventListener( 'keydown', function ( event ) {
+			if ( event.key === 'Escape' ) {
+				editForm.hidden = true;
+			}
+		} );
+
 		sync();
+		syncEditSubmit();
+	}
+
+
+	function initQuickEdit( page ) {
+		const rows = [ ...page.querySelectorAll( '[data-cb-work-quick-edit-row]' ) ];
+		const closeAll = function ( exceptId = '' ) {
+			rows.forEach( function ( row ) {
+				if ( row.dataset.cbWorkQuickEditRow !== exceptId ) {
+					row.hidden = true;
+				}
+			} );
+		};
+
+		page.querySelectorAll( '[data-cb-work-quick-edit-toggle]' ).forEach( function ( toggle ) {
+			toggle.addEventListener( 'click', function () {
+				const id = String( toggle.dataset.cbWorkQuickEditToggle || '' );
+				const row = rows.find( function ( candidate ) {
+					return candidate.dataset.cbWorkQuickEditRow === id;
+				} );
+				if ( ! row ) {
+					return;
+				}
+				const opening = row.hidden;
+				closeAll( opening ? id : '' );
+				row.hidden = ! opening;
+				toggle.closest( 'details' )?.removeAttribute( 'open' );
+				if ( opening ) {
+					row.querySelector( 'input:not([type="hidden"]), select, button' )?.focus( { preventScroll: true } );
+				}
+			} );
+		} );
+
+		rows.forEach( function ( row ) {
+			row.querySelectorAll( '[data-cb-work-quick-edit-cancel]' ).forEach( function ( button ) {
+				button.addEventListener( 'click', function () {
+					row.hidden = true;
+				} );
+			} );
+			row.addEventListener( 'keydown', function ( event ) {
+				if ( event.key === 'Escape' ) {
+					row.hidden = true;
+				}
+			} );
+		} );
 	}
 
 	ready( initWorkItems );

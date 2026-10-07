@@ -177,6 +177,7 @@ final class Operations {
 							</form>
 						</td>
 					</tr>
+					<?php self::render_work_item_quick_edit_row( $item, $type_map, $state, count( $preferences['order'] ) + 1 ); ?>
 				<?php endforeach; ?>
 				</tbody></table>
 			<?php endif; ?>
@@ -659,7 +660,76 @@ final class Operations {
 					<option value="<?php echo esc_attr( WorkItemStatus::SKIPPED ); ?>"><?php esc_html_e( 'Skip', 'core-blueprint-work' ); ?></option>
 					<option value="<?php echo esc_attr( WorkItemStatus::CANCELLED ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></option>
 				</select>
+				<button class="button" type="button" data-cb-work-bulk-edit-toggle><?php esc_html_e( 'Bulk Edit', 'core-blueprint-work' ); ?></button>
 				<button class="button" type="submit" data-cb-work-bulk-submit disabled><?php esc_html_e( 'Move', 'core-blueprint-work' ); ?></button>
+			</form>
+
+			<form
+				id="cb-work-bulk-edit-form"
+				class="cb-work-inline-editor cb-work-bulk-editor"
+				method="post"
+				action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+				data-cb-work-bulk-edit-form
+				hidden
+			>
+				<input type="hidden" name="action" value="cb_work_bulk_edit_work_items">
+				<?php foreach ( $return_args as $key => $value ) : ?>
+					<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+				<?php endforeach; ?>
+				<?php foreach ( $items as $item ) : ?>
+					<input type="hidden" name="work_item_ids[]" value="<?php echo esc_attr( (string) $item['id'] ); ?>" data-cb-work-bulk-edit-id="<?php echo esc_attr( (string) $item['id'] ); ?>" disabled>
+				<?php endforeach; ?>
+				<?php wp_nonce_field( 'cb_work_bulk_edit_work_items' ); ?>
+				<div class="cb-work-inline-editor__header">
+					<div>
+						<strong><?php esc_html_e( 'Bulk Edit', 'core-blueprint-work' ); ?></strong>
+						<span class="description"><strong data-cb-work-bulk-edit-count>0</strong> <?php esc_html_e( 'Selected', 'core-blueprint-work' ); ?></span>
+					</div>
+					<button class="button-link" type="button" data-cb-work-bulk-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
+				</div>
+				<div class="cb-work-inline-editor__grid">
+					<label class="cb-work-inline-editor__field">
+						<span><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></span>
+						<select name="bulk_priority" data-cb-work-bulk-edit-control>
+							<option value="__keep"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
+							<?php foreach ( WorkItemPriority::all() as $priority ) : ?>
+								<option value="<?php echo esc_attr( $priority ); ?>"><?php echo esc_html( self::humanize( $priority ) ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+					<div class="cb-work-inline-editor__field">
+						<label><input type="checkbox" name="apply_due" value="1" data-cb-work-bulk-edit-control> <span><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span></label>
+						<input type="date" name="bulk_due_on">
+					</div>
+					<label class="cb-work-inline-editor__field">
+						<span><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></span>
+						<select name="bulk_work_type_id" data-cb-work-bulk-edit-control>
+							<option value="__keep"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
+							<option value="0">—</option>
+							<?php foreach ( $type_map as $type_id => $type_label ) : ?>
+								<option value="<?php echo esc_attr( (string) $type_id ); ?>"><?php echo esc_html( $type_label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+					<label class="cb-work-inline-editor__field">
+						<span><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></span>
+						<select name="bulk_billing_disposition" data-cb-work-bulk-edit-control>
+							<option value="__keep"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
+							<option value="__clear"><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option>
+							<?php foreach ( BillingDisposition::all() as $billing ) : ?>
+								<option value="<?php echo esc_attr( $billing ); ?>"><?php echo esc_html( self::humanize( $billing ) ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</label>
+					<div class="cb-work-inline-editor__field cb-work-inline-editor__field--wide">
+						<label><input type="checkbox" name="apply_assignees" value="1" data-cb-work-bulk-edit-control> <span><?php esc_html_e( 'Update assignees', 'core-blueprint-work' ); ?></span></label>
+						<?php Pickers::assignees( 'bulk_assigned_user_ids', 'cb-work-bulk-edit-assignees', [] ); ?>
+					</div>
+				</div>
+				<div class="cb-work-inline-editor__actions">
+					<button class="button button-primary" type="submit" data-cb-work-bulk-edit-submit disabled><?php esc_html_e( 'Update selected', 'core-blueprint-work' ); ?></button>
+					<button class="button" type="button" data-cb-work-bulk-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
+				</div>
 			</form>
 
 			<table class="widefat cb-work-items-table" data-cb-work-items-table>
@@ -707,6 +777,89 @@ final class Operations {
 		<?php
 	}
 
+
+
+	/**
+	 * @param array<string,mixed> $item
+	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
+	 */
+	private static function render_work_item_quick_edit_row( array $item, array $type_map, array $state, int $colspan ): void {
+		$id          = (int) $item['id'];
+		$status      = (string) ( $item['status'] ?? WorkItemStatus::PLANNED );
+		$status_list = array_values( array_unique( [ $status, ...WorkItemStatus::transitions_from( $status ) ] ) );
+		$return_args = WorkItemViewState::query_args( $state );
+		?>
+		<tr class="cb-work-quick-edit-row" data-cb-work-quick-edit-row="<?php echo esc_attr( (string) $id ); ?>" hidden>
+			<td colspan="<?php echo esc_attr( (string) $colspan ); ?>">
+				<form class="cb-work-inline-editor cb-work-quick-editor" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="cb_work_quick_edit_work_item">
+					<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $id ); ?>">
+					<?php foreach ( $return_args as $key => $value ) : ?>
+						<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+					<?php endforeach; ?>
+					<?php wp_nonce_field( 'cb_work_quick_edit_work_item_' . $id ); ?>
+					<div class="cb-work-inline-editor__header">
+						<strong><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></strong>
+						<button class="button-link" type="button" data-cb-work-quick-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
+					</div>
+					<div class="cb-work-inline-editor__grid">
+						<label class="cb-work-inline-editor__field cb-work-inline-editor__field--wide">
+							<span><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></span>
+							<input type="text" name="work_item[title]" value="<?php echo esc_attr( (string) $item['title'] ); ?>" required>
+						</label>
+						<label class="cb-work-inline-editor__field">
+							<span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span>
+							<select name="status">
+								<?php foreach ( $status_list as $candidate_status ) : ?>
+									<option value="<?php echo esc_attr( $candidate_status ); ?>" <?php selected( $status, $candidate_status ); ?>><?php echo esc_html( self::humanize( $candidate_status ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<label class="cb-work-inline-editor__field">
+							<span><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></span>
+							<select name="work_item[priority]">
+								<?php foreach ( WorkItemPriority::all() as $priority ) : ?>
+									<option value="<?php echo esc_attr( $priority ); ?>" <?php selected( (string) $item['priority'], $priority ); ?>><?php echo esc_html( self::humanize( $priority ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<label class="cb-work-inline-editor__field">
+							<span><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span>
+							<input type="date" name="work_item[due_on]" value="<?php echo esc_attr( (string) ( $item['due_on'] ?? '' ) ); ?>">
+						</label>
+						<label class="cb-work-inline-editor__field">
+							<span><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></span>
+							<select name="work_item[work_type_id]">
+								<option value="0">—</option>
+								<?php foreach ( $type_map as $type_id => $type_label ) : ?>
+									<option value="<?php echo esc_attr( (string) $type_id ); ?>" <?php selected( (int) ( $item['work_type_id'] ?? 0 ), (int) $type_id ); ?>><?php echo esc_html( $type_label ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<label class="cb-work-inline-editor__field">
+							<span><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></span>
+							<select name="work_item[billing_disposition]">
+								<option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option>
+								<?php foreach ( BillingDisposition::all() as $billing ) : ?>
+									<option value="<?php echo esc_attr( $billing ); ?>" <?php selected( (string) ( $item['billing_disposition'] ?? '' ), $billing ); ?>><?php echo esc_html( self::humanize( $billing ) ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</label>
+						<div class="cb-work-inline-editor__field cb-work-inline-editor__field--wide">
+							<span><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></span>
+							<?php Pickers::assignees( 'work_item[assigned_user_ids]', 'cb-work-quick-assignees-' . $id, (array) ( $item['assigned_user_ids'] ?? [] ) ); ?>
+						</div>
+					</div>
+					<div class="cb-work-inline-editor__actions">
+						<button class="button button-primary" type="submit"><?php esc_html_e( 'Save changes', 'core-blueprint-work' ); ?></button>
+						<button class="button" type="button" data-cb-work-quick-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
+					</div>
+				</form>
+			</td>
+		</tr>
+		<?php
+	}
 
 	private static function work_item_table_sort_key( string $column_id ): string {
 		return match ( $column_id ) {
@@ -1200,30 +1353,28 @@ final class Operations {
 	private static function transition_icon_buttons( array $item, array $state ): void {
 		$from        = (string) ( $item['status'] ?? '' );
 		$transitions = WorkItemStatus::transitions_from( $from );
-		if ( [] === $transitions ) {
-			echo esc_html( '—' );
-			return;
-		}
-
-		$direct   = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED !== $status ) );
-		$overflow = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED === $status ) );
+		$direct      = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED !== $status ) );
+		$overflow    = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED === $status ) );
 		?>
 		<div class="cb-work-row-actions">
 			<?php foreach ( $direct as $to ) : ?>
 				<?php self::transition_icon_form( $item, $state, $from, $to ); ?>
 			<?php endforeach; ?>
-			<?php if ( [] !== $overflow ) : ?>
-				<details class="cb-work-row-actions__more">
+			<details class="cb-work-row-actions__more">
 					<summary class="button button-small cb-work-row-action cb-work-row-action--overflow" aria-label="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>" data-cb-work-tooltip="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>">
 						<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span>
 					</summary>
 					<div class="cb-work-row-actions__menu">
+						<button
+							type="button"
+							class="button-link cb-work-row-actions__menu-item"
+							data-cb-work-quick-edit-toggle="<?php echo esc_attr( (string) $item['id'] ); ?>"
+						><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></button>
 						<?php foreach ( $overflow as $to ) : ?>
 							<?php self::transition_menu_form( $item, $state, $from, $to ); ?>
 						<?php endforeach; ?>
 					</div>
 				</details>
-			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -1351,6 +1502,8 @@ final class Operations {
 		$messages = [
 			'work-item-transitioned'       => [ 'success', __( 'Work Item status updated.', 'core-blueprint-work' ) ],
 			'work-item-transition-invalid' => [ 'error', __( 'That Work Item status transition is not allowed.', 'core-blueprint-work' ) ],
+			'work-item-updated'            => [ 'success', __( 'Work Item updated', 'core-blueprint-work' ) ],
+			'work-item-update-invalid'     => [ 'error', __( 'Work Item could not be updated.', 'core-blueprint-work' ) ],
 			'work-type-created'            => [ 'success', __( 'Work Type added.', 'core-blueprint-work' ) ],
 			'work-type-invalid'            => [ 'error', __( 'Work Type could not be saved.', 'core-blueprint-work' ) ],
 			'work-type-updated'            => [ 'success', __( 'Work Type status updated.', 'core-blueprint-work' ) ],
