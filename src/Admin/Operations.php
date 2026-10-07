@@ -134,7 +134,7 @@ final class Operations {
 				<span class="cb-work-keyboard-hint"><?php esc_html_e( 'Shortcut: / search · Alt+N add Work Item', 'core-blueprint-work' ); ?></span>
 			</div>
 			<?php if ( WorkItemViewState::VIEW_CALENDAR === (string) $state['view'] ) : ?>
-				<?php self::render_work_item_calendar( $items, $project_map, $state ); ?>
+				<?php self::render_work_item_calendar( $items, $project_map, $type_map, $state ); ?>
 			<?php elseif ( [] === $items ) : ?>
 				<p><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></p>
 			<?php elseif ( WorkItemViewState::VIEW_KANBAN === (string) $state['view'] ) : ?>
@@ -1662,10 +1662,11 @@ final class Operations {
 	/**
 	 * @param array<int,array<string,mixed>> $items
 	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
 	 * @param array<string,mixed> $state
 	 */
-	private static function render_work_item_calendar( array $items, array $project_map, array $state ): void {
-		WorkItemCalendarView::render( $items, $project_map, $state );
+	private static function render_work_item_calendar( array $items, array $project_map, array $type_map, array $state ): void {
+		WorkItemCalendarView::render( $items, $project_map, $type_map, $state );
 	}
 
 	/** @param array<string,mixed> $state @param array<string,mixed> $result */
