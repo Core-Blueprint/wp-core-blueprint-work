@@ -15,6 +15,7 @@ use CB\Work\Query\WorkItemQuery;
 use CB\Work\Repository\Projects;
 use CB\Work\Repository\WorkItems;
 use CB\Work\Repository\WorkTypes;
+use CoreBlueprint\Core\UI\StateBadge;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -398,7 +399,7 @@ final class Operations {
 
 					<div class="cb-work-toolbar__primary">
 						<label class="screen-reader-text" for="cb-work-filter-status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></label>
-						<select id="cb-work-filter-status" name="status" aria-label="<?php esc_attr_e( 'Status', 'core-blueprint-work' ); ?>">
+						<select id="cb-work-filter-status" name="status" data-cb-work-auto-submit aria-label="<?php esc_attr_e( 'Status', 'core-blueprint-work' ); ?>">
 							<option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option>
 							<option value="active" <?php selected( 'active', (string) $state['status'] ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option>
 							<?php foreach ( WorkItemStatus::all() as $status ) : ?>
@@ -407,14 +408,13 @@ final class Operations {
 						</select>
 
 						<label class="screen-reader-text" for="cb-work-filter-project"><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></label>
-						<select id="cb-work-filter-project" name="project_id" aria-label="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>">
+						<select id="cb-work-filter-project" name="project_id" data-cb-work-auto-submit aria-label="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>">
 							<option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option>
 							<?php foreach ( $projects as $project ) : ?>
 								<option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( (int) $state['project_id'], (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option>
 							<?php endforeach; ?>
 						</select>
 
-						<button class="button" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button>
 						<button
 							type="button"
 							class="button cb-work-more-filters-toggle"
@@ -426,10 +426,10 @@ final class Operations {
 								$advanced_count > 0
 									? sprintf(
 										'%1$s (%2$d)',
-										__( 'Filters', 'core-blueprint-work' ),
+										__( 'More filters', 'core-blueprint-work' ),
 										$advanced_count
 									)
-									: __( 'Filters', 'core-blueprint-work' )
+									: __( 'More filters', 'core-blueprint-work' )
 							);
 							?>
 						</button>
@@ -624,7 +624,7 @@ final class Operations {
 				</div>
 			</div>
 
-			<table class="widefat striped cb-work-items-table" data-cb-work-items-table>
+			<table class="widefat cb-work-items-table" data-cb-work-items-table>
 				<thead><tr>
 					<?php foreach ( $preferences['order'] as $column_id ) : ?>
 						<th data-cb-work-column="<?php echo esc_attr( $column_id ); ?>" <?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>><?php echo esc_html( $columns[ $column_id ] ?? $column_id ); ?></th>
@@ -652,7 +652,6 @@ final class Operations {
 			'work_item' => __( 'Work Item', 'core-blueprint-work' ),
 			'status'    => __( 'Status', 'core-blueprint-work' ),
 			'priority'  => __( 'Priority', 'core-blueprint-work' ),
-			'project'   => __( 'Project', 'core-blueprint-work' ),
 			'due'       => __( 'Due', 'core-blueprint-work' ),
 			'assigned'  => __( 'Assigned', 'core-blueprint-work' ),
 			'actions'   => __( 'Actions', 'core-blueprint-work' ),
@@ -671,25 +670,35 @@ final class Operations {
 	private static function render_work_item_table_cell( string $column_id, array $item, array $project_map, array $type_map, array $state ): void {
 		switch ( $column_id ) {
 			case 'work_item':
-				?><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong><?php
+				$project = $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—';
+				?>
+				<div class="cb-work-item-cell">
+					<strong class="cb-work-item-cell__title"><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong>
+					<span class="cb-work-item-cell__context"><?php echo esc_html( $project ); ?></span>
+				</div>
+				<?php
 				return;
 			case 'status':
-				echo esc_html( self::humanize( (string) $item['status'] ) );
+				$status = (string) ( $item['status'] ?? '' );
+				echo StateBadge::render(
+					self::humanize( $status ),
+					[
+						'variant' => self::work_item_status_badge_variant( $status ),
+						'class'   => 'cb-work-status-badge',
+					]
+				);
 				return;
 			case 'priority':
-				echo esc_html( self::humanize( (string) $item['priority'] ) );
-				return;
-			case 'project':
-				echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' );
+				self::render_work_item_priority( (string) ( $item['priority'] ?? '' ) );
 				return;
 			case 'due':
-				echo esc_html( (string) ( $item['due_on'] ?: '—' ) );
+				self::render_work_item_due( (string) ( $item['due_on'] ?? '' ) );
 				return;
 			case 'assigned':
-				echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) );
+				self::render_work_item_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) );
 				return;
 			case 'actions':
-				self::transition_buttons( $item, $state );
+				self::transition_icon_buttons( $item, $state );
 				return;
 			case 'customer':
 				echo esc_html( self::customer_label( $item ) );
@@ -703,6 +712,102 @@ final class Operations {
 		}
 	}
 
+
+	private static function work_item_status_badge_variant( string $status ): string {
+		return match ( $status ) {
+			WorkItemStatus::PLANNED,
+			WorkItemStatus::IN_PROGRESS => StateBadge::INFO,
+			WorkItemStatus::BLOCKED     => StateBadge::WARNING,
+			WorkItemStatus::COMPLETED   => StateBadge::SUCCESS,
+			WorkItemStatus::CANCELLED   => StateBadge::DANGER,
+			default                     => StateBadge::NEUTRAL,
+		};
+	}
+
+	private static function render_work_item_priority( string $priority ): void {
+		$icon = match ( $priority ) {
+			WorkItemPriority::LOW    => 'dashicons-arrow-down-alt2',
+			WorkItemPriority::HIGH,
+			WorkItemPriority::URGENT => 'dashicons-arrow-up-alt2',
+			default                  => 'dashicons-minus',
+		};
+		$priority = WorkItemPriority::is_valid( $priority ) ? $priority : WorkItemPriority::NORMAL;
+		?>
+		<span class="cb-work-priority cb-work-priority--<?php echo esc_attr( $priority ); ?>">
+			<span class="dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span>
+			<span><?php echo esc_html( self::humanize( $priority ) ); ?></span>
+		</span>
+		<?php
+	}
+
+	private static function render_work_item_due( string $due_on ): void {
+		$due_on = trim( $due_on );
+		if ( '' === $due_on ) {
+			echo esc_html( '—' );
+			return;
+		}
+
+		$timezone = wp_timezone();
+		$due      = \DateTimeImmutable::createFromFormat( '!Y-m-d', $due_on, $timezone );
+		$today    = \DateTimeImmutable::createFromFormat( '!Y-m-d', current_time( 'Y-m-d' ), $timezone );
+		if ( false === $due || false === $today ) {
+			echo esc_html( $due_on );
+			return;
+		}
+
+		$delta = (int) $today->diff( $due )->format( '%r%a' );
+		$class = $delta < 0 ? ' is-overdue' : ( 0 === $delta ? ' is-today' : '' );
+		?>
+		<span class="cb-work-due<?php echo esc_attr( $class ); ?>">
+			<span class="cb-work-due__date"><?php echo esc_html( wp_date( 'M j, Y', $due->getTimestamp(), $timezone ) ); ?></span>
+			<?php if ( 0 === $delta ) : ?>
+				<span class="cb-work-due__relative"><?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></span>
+			<?php elseif ( $delta < 0 ) : ?>
+				<span class="cb-work-due__relative"><?php esc_html_e( 'Overdue', 'core-blueprint-work' ); ?></span>
+			<?php endif; ?>
+		</span>
+		<?php
+	}
+
+	/** @param int[] $ids */
+	private static function render_work_item_assignee( array $ids ): void {
+		$users = [];
+		foreach ( $ids as $id ) {
+			$user = get_userdata( (int) $id );
+			if ( $user ) {
+				$users[] = $user;
+			}
+		}
+		if ( [] === $users ) {
+			echo esc_html( '—' );
+			return;
+		}
+
+		$primary = $users[0];
+		$name    = (string) $primary->display_name;
+		?>
+		<span class="cb-work-assignee">
+			<span class="cb-work-assignee__avatar" aria-hidden="true"><?php echo esc_html( self::initials_for_name( $name ) ); ?></span>
+			<span class="cb-work-assignee__name"><?php echo esc_html( $name ); ?></span>
+			<?php if ( count( $users ) > 1 ) : ?>
+				<span class="cb-work-assignee__more">+<?php echo esc_html( (string) ( count( $users ) - 1 ) ); ?></span>
+			<?php endif; ?>
+		</span>
+		<?php
+	}
+
+	private static function initials_for_name( string $name ): string {
+		$parts = preg_split( '/\s+/', trim( $name ) ) ?: [];
+		$parts = array_values( array_filter( $parts, static fn ( string $part ): bool => '' !== $part ) );
+		if ( [] === $parts ) {
+			return '?';
+		}
+		$first = strtoupper( substr( $parts[0], 0, 1 ) );
+		if ( count( $parts ) < 2 ) {
+			return $first;
+		}
+		return $first . strtoupper( substr( $parts[ count( $parts ) - 1 ], 0, 1 ) );
+	}
 
 	/**
 	 * @param array<int,array<string,mixed>> $items
@@ -997,6 +1102,89 @@ final class Operations {
 	/** @param array<string,mixed> $state @param array<string,mixed> $overrides */
 	private static function work_items_url( array $state, array $overrides = [] ): string {
 		return add_query_arg( WorkItemViewState::query_args( $state, $overrides ), admin_url( 'admin.php' ) );
+	}
+
+
+	/** @param array<string,mixed> $item @param array<string,mixed> $state */
+	private static function transition_icon_buttons( array $item, array $state ): void {
+		$from        = (string) ( $item['status'] ?? '' );
+		$transitions = WorkItemStatus::transitions_from( $from );
+		if ( [] === $transitions ) {
+			echo esc_html( '—' );
+			return;
+		}
+
+		$direct   = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED !== $status ) );
+		$overflow = array_values( array_filter( $transitions, static fn ( string $status ): bool => WorkItemStatus::CANCELLED === $status ) );
+		?>
+		<div class="cb-work-row-actions">
+			<?php foreach ( $direct as $to ) : ?>
+				<?php self::transition_icon_form( $item, $state, $from, $to ); ?>
+			<?php endforeach; ?>
+			<?php if ( [] !== $overflow ) : ?>
+				<details class="cb-work-row-actions__more">
+					<summary class="button button-small cb-work-row-action cb-work-row-action--overflow" aria-label="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>" title="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>">
+						<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span>
+					</summary>
+					<div class="cb-work-row-actions__menu">
+						<?php foreach ( $overflow as $to ) : ?>
+							<?php self::transition_menu_form( $item, $state, $from, $to ); ?>
+						<?php endforeach; ?>
+					</div>
+				</details>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/** @param array<string,mixed> $item @param array<string,mixed> $state */
+	private static function transition_icon_form( array $item, array $state, string $from, string $to ): void {
+		$label       = self::transition_label( $to, $from );
+		$return_args = WorkItemViewState::query_args( $state );
+		unset( $return_args['page'] );
+		$icon = match ( $to ) {
+			WorkItemStatus::IN_PROGRESS => 'dashicons-controls-play',
+			WorkItemStatus::BLOCKED     => 'dashicons-no-alt',
+			WorkItemStatus::COMPLETED   => 'dashicons-yes-alt',
+			WorkItemStatus::SKIPPED     => 'dashicons-controls-skipforward',
+			WorkItemStatus::CANCELLED   => 'dashicons-dismiss',
+			WorkItemStatus::PLANNED     => 'dashicons-controls-back',
+			default                     => 'dashicons-admin-generic',
+		};
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="cb-work-transition-form">
+			<input type="hidden" name="action" value="cb_work_transition_work_item">
+			<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
+			<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
+			<?php foreach ( $return_args as $key => $value ) : ?>
+				<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+			<?php endforeach; ?>
+			<?php wp_nonce_field( 'cb_work_transition_work_item_' . (int) $item['id'] ); ?>
+			<button class="button button-small cb-work-row-action cb-work-row-action--<?php echo esc_attr( $to ); ?>" type="submit" aria-label="<?php echo esc_attr( $label ); ?>" title="<?php echo esc_attr( $label ); ?>">
+				<span class="dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span>
+				<span class="screen-reader-text"><?php echo esc_html( $label ); ?></span>
+			</button>
+		</form>
+		<?php
+	}
+
+	/** @param array<string,mixed> $item @param array<string,mixed> $state */
+	private static function transition_menu_form( array $item, array $state, string $from, string $to ): void {
+		$label       = self::transition_label( $to, $from );
+		$return_args = WorkItemViewState::query_args( $state );
+		unset( $return_args['page'] );
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="cb-work-transition-form cb-work-transition-form--menu">
+			<input type="hidden" name="action" value="cb_work_transition_work_item">
+			<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
+			<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
+			<?php foreach ( $return_args as $key => $value ) : ?>
+				<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+			<?php endforeach; ?>
+			<?php wp_nonce_field( 'cb_work_transition_work_item_' . (int) $item['id'] ); ?>
+			<button class="button-link cb-work-row-actions__menu-item" type="submit"><?php echo esc_html( $label ); ?></button>
+		</form>
+		<?php
 	}
 
 	/** @param array<string,mixed> $item @param array<string,mixed> $state */
