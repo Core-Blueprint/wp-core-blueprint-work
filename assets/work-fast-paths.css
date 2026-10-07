@@ -23,11 +23,16 @@
 }
 
 .cb-work-fast-path:hover,
-.cb-work-fast-path:focus-visible,
-.cb-work-fast-path.is-current {
-	border-color: var(--cb-interactive-hover);
+.cb-work-fast-path:focus-visible {
+	border-color: var(--cb-interactive-border-hover);
 	color: var(--cb-text-strong);
 	background: var(--cb-surface-2);
+}
+
+.cb-work-fast-path.is-current {
+	border-color: var(--cb-accent);
+	color: var(--cb-on-accent);
+	background: var(--cb-accent);
 }
 
 .cb-work-keyboard-hint {
