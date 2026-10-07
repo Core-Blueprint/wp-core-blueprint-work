@@ -11,7 +11,8 @@ $emptyStatePos       = strpos( $operations, "<?php elseif ( [] === \$items ) : ?
 $checks = [
 	'Work Items workspace resolves canonical view state' => is_string( $operations )
 		&& str_contains( $operations, 'WorkItemViewState::from_request( $_GET )' ),
-	'Work Items workspace queries only through the canonical operational engine' => 1 === substr_count( $operations, 'WorkItems::search( (array) $state[\'query\'] )' )
+	'Work Items workspace queries only through the canonical operational engine' => 1 === substr_count( $operations, 'WorkItems::search( $query )' )
+		&& str_contains( $operations, "\$query = (array) \$state['query'];" )
 		&& ! str_contains( $operations, 'WorkItems::for_project( $project_filter' )
 		&& ! str_contains( $operations, 'WorkItems::all( 200 )' ),
 	'Table, List, Kanban and Calendar are the enabled D2 renderers' => str_contains( $operations, '[ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN, WorkItemViewState::VIEW_CALENDAR ]' )
@@ -46,7 +47,7 @@ $checks = [
 	'customer and assignee filtering stay on shared Base ObjectPicker paths' => str_contains( $operations, "Pickers::customer( 'customer', 'cb-work-filter-customer'" )
 		&& str_contains( $operations, "Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', (int) \$state['assignee_id'] )" ),
 	'invalid customer state fails closed instead of broadening the dataset' => str_contains( $operations, "false === \$state['customer_valid']" )
-		&& str_contains( $operations, "? WorkItems::search( (array) \$state['query'] )" )
+		&& str_contains( $operations, "? WorkItems::search( \$query )" )
 		&& str_contains( $operations, "'items' => [], 'total' => 0" ),
 	'workspace exposes canonical filter and pagination renderers' => str_contains( $operations, 'render_work_item_filters(' )
 		&& str_contains( $operations, 'render_work_item_pagination(' )
