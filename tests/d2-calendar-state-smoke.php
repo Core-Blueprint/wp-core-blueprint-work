@@ -136,6 +136,11 @@ namespace {
 	$list_from_table = \CB\Work\Admin\WorkItemViewState::query_args( $table_default, [ 'view' => 'list', 'page' => 1 ] );
 	assert_true( ! isset( $list_from_table['sort'] ), 'Switching from default Table to List lets List adopt its own Title default.' );
 
+	$table_title_link = \CB\Work\Admin\WorkItemViewState::query_args( $table_default, [ 'sort' => 'title', 'page' => 1 ] );
+	assert_true( 'title' === ( $table_title_link['sort'] ?? '' ), 'Server-side Table sort links preserve an explicit non-default sort override.' );
+	$list_title_link = \CB\Work\Admin\WorkItemViewState::query_args( $table_default, [ 'view' => 'list', 'sort' => 'title', 'page' => 1 ] );
+	assert_true( ! isset( $list_title_link['sort'] ), 'A target-view default sort is omitted from URLs even when supplied as an override.' );
+
 	$list_due = \CB\Work\Admin\WorkItemViewState::from_request( [
 		'view' => 'list',
 		'sort' => 'due',

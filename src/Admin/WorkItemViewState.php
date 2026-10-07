@@ -152,6 +152,7 @@ final class WorkItemViewState {
 	 * @return array<string,string|int>
 	 */
 	public static function query_args( array $state, array $overrides = [] ): array {
+		$sort_overridden = array_key_exists( 'sort', $overrides );
 		$state = array_merge( $state, $overrides );
 		$view  = (string) ( $state['view'] ?? self::VIEW_TABLE );
 		$args = [
@@ -187,7 +188,8 @@ final class WorkItemViewState {
 					continue;
 				}
 				if ( 'sort' === $state_key ) {
-					if ( empty( $state['sort_explicit'] ) || self::default_sort_for_view( $view ) === $value ) {
+					$sort_explicit = $sort_overridden || ! empty( $state['sort_explicit'] );
+					if ( ! $sort_explicit || self::default_sort_for_view( $view ) === $value ) {
 						continue;
 					}
 				}
