@@ -7,6 +7,10 @@ $actions    = file_get_contents( $root . '/src/Admin/WorkItemBoardActions.php' )
 $module     = file_get_contents( $root . '/assets/work-items-reorder.js' );
 $css        = file_get_contents( $root . '/assets/work-admin.css' );
 
+$board_start  = strpos( $operations, 'private static function render_work_item_kanban(' );
+$board_end    = false === $board_start ? false : strpos( $operations, 'private static function render_work_item_calendar(', $board_start );
+$board_source = false !== $board_start && false !== $board_end ? substr( $operations, $board_start, $board_end - $board_start ) : '';
+
 $checks = [
 	'Board exposes Base Reorder root, lanes, items and handles' =>
 		str_contains( $operations, 'data-cb-work-board-reorder' )
@@ -19,9 +23,13 @@ $checks = [
 		str_contains( $operations, 'WorkItemStatus::transitions_from' )
 		&& str_contains( $operations, 'data-cb-work-allowed-statuses' ),
 
-	'Board keeps canonical non-pointer status controls' =>
-		str_contains( $operations, 'self::transition_buttons( $item, $state )' )
-		&& str_contains( $operations, 'cb-work-board__status-actions' ),
+	'Board keeps canonical non-pointer status controls in a compact overflow menu' =>
+		'' !== $board_source
+		&& str_contains( $board_source, 'self::render_work_item_board_actions( $item, $state )' )
+		&& ! str_contains( $board_source, 'self::transition_buttons( $item, $state )' )
+		&& ! str_contains( $board_source, 'cb-work-board__status-actions' )
+		&& str_contains( $operations, 'cb-work-board__more' )
+		&& str_contains( $operations, 'self::transition_menu_form( $item, $state, $from, $to )' ),
 
 	'Board B1 cards reuse Golden semantic renderers instead of legacy label stacks' =>
 		str_contains( $operations, 'cb-work-board__context' )
@@ -50,7 +58,9 @@ $checks = [
 	'Board drag presentation stays Work-owned while Base owns interaction states' =>
 		str_contains( $css, '.cb-work-board__card-header' )
 		&& str_contains( $css, '.cb-work-board__drag-handle' )
-		&& str_contains( $css, 'data-cb-core-reorder-pending' ),
+		&& str_contains( $css, 'data-cb-core-reorder-pending' )
+		&& str_contains( $css, '.cb-work-board.is-reordering .cb-work-board__lane:has(.cb-core-reorder__drop-marker)' )
+		&& str_contains( $css, '.cb-work-board__empty-hint' ),
 ];
 
 foreach ( $checks as $message => $passed ) {

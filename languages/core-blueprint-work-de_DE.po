@@ -2455,3 +2455,7 @@ msgstr "Z–A"
 
 msgid "Details for %s"
 msgstr "Details für %s"
+
+#: src/Admin/Operations.php
+msgid "Drop Work Items here"
+msgstr "Work Items hierher ziehen"

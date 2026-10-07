@@ -1521,6 +1521,31 @@ final class Operations {
 		<?php
 	}
 
+	/** @param array<string,mixed> $item @param array<string,mixed> $state */
+	private static function render_work_item_board_actions( array $item, array $state ): void {
+		$from        = (string) ( $item['status'] ?? '' );
+		$transitions = WorkItemStatus::transitions_from( $from );
+		if ( [] === $transitions ) {
+			return;
+		}
+		?>
+		<details class="cb-work-row-actions__more cb-work-board__more">
+			<summary
+				class="button-link cb-core-icon-control cb-work-board__more-toggle"
+				aria-label="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>"
+				title="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>"
+			>
+				<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span>
+			</summary>
+			<div class="cb-work-row-actions__menu cb-work-board-actions__menu">
+				<?php foreach ( $transitions as $to ) : ?>
+					<?php self::transition_menu_form( $item, $state, $from, $to ); ?>
+				<?php endforeach; ?>
+			</div>
+		</details>
+		<?php
+	}
+
 	/**
 	 * @param array<int,array<string,mixed>> $items
 	 * @param array<int,string> $project_map
@@ -1556,7 +1581,11 @@ final class Operations {
 						data-cb-core-reorder-list="<?php echo esc_attr( (string) $status ); ?>"
 						data-cb-core-reorder-list-label="<?php echo esc_attr( $lane_label ); ?>"
 					>
-						<p class="description" data-cb-work-board-empty <?php if ( [] !== $lane_items ) : ?>hidden<?php endif; ?>><?php esc_html_e( 'No Work Items in this status on the current page.', 'core-blueprint-work' ); ?></p>
+						<div class="cb-work-board__empty" data-cb-work-board-empty <?php if ( [] !== $lane_items ) : ?>hidden<?php endif; ?>>
+							<span class="dashicons dashicons-move cb-work-board__empty-icon" aria-hidden="true"></span>
+							<span class="cb-work-board__empty-title"><?php esc_html_e( 'No Work Items in this status on the current page.', 'core-blueprint-work' ); ?></span>
+							<span class="cb-work-board__empty-hint"><?php esc_html_e( 'Drop Work Items here', 'core-blueprint-work' ); ?></span>
+						</div>
 						<?php foreach ( $lane_items as $item ) :
 							$allowed = WorkItemStatus::transitions_from( (string) $status );
 							$title   = (string) $item['title'];
@@ -1588,13 +1617,16 @@ final class Operations {
 											<span class="cb-work-board__type"><?php echo esc_html( $type ); ?></span>
 										<?php endif; ?>
 									</div>
-									<button
-										type="button"
-										class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-board__drag-handle"
-										data-cb-core-reorder-handle
-										aria-label="<?php echo esc_attr( $move_label ); ?>"
-										title="<?php esc_attr_e( 'Move to another status', 'core-blueprint-work' ); ?>"
-									><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+									<div class="cb-work-board__card-controls">
+										<button
+											type="button"
+											class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-board__drag-handle"
+											data-cb-core-reorder-handle
+											aria-label="<?php echo esc_attr( $move_label ); ?>"
+											title="<?php esc_attr_e( 'Move to another status', 'core-blueprint-work' ); ?>"
+										><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+										<?php self::render_work_item_board_actions( $item, $state ); ?>
+									</div>
 								</div>
 
 								<div class="cb-work-board__signals">
@@ -1606,9 +1638,6 @@ final class Operations {
 									<span class="cb-work-board__assignee"><?php self::render_work_item_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></span>
 								</div>
 
-								<div class="cb-work-board__status-actions">
-									<?php self::transition_buttons( $item, $state ); ?>
-								</div>
 							</article>
 						<?php endforeach; ?>
 					</div>

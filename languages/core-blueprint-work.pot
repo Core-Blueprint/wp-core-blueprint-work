@@ -2433,3 +2433,7 @@ msgstr ""
 
 msgid "Details for %s"
 msgstr ""
+
+#: src/Admin/Operations.php
+msgid "Drop Work Items here"
+msgstr ""

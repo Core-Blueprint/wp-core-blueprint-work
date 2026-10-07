@@ -217,6 +217,20 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $board_source, 'cb-work-board__card-controls' )
+	&& str_contains( $board_source, 'render_work_item_board_actions' )
+	&& ! str_contains( $board_source, 'cb-work-board__status-actions' )
+	&& ! str_contains( $board_source, 'transition_buttons( $item, $state )' )
+	&& str_contains( $board_source, 'cb-work-board__empty' )
+	&& str_contains( $board_source, "esc_html_e( 'Drop Work Items here', 'core-blueprint-work' )" )
+	&& str_contains( $operations, 'cb-work-board-actions__menu' )
+	&& str_contains( $operations, 'transition_menu_form( $item, $state, $from, $to )' )
+	&& str_contains( $adminCss, '.cb-work-board__more-toggle' )
+	&& str_contains( $adminCss, '.cb-work-board.is-reordering .cb-work-board__lane:has(.cb-core-reorder__drop-marker)' ),
+	'Board Golden B2 keeps drag/drop primary while preserving canonical non-pointer transitions, restrained controls and valid-target feedback.'
+);
+
+refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
 	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
