@@ -18,9 +18,7 @@ $recurrence  = file_get_contents( $root . '/src/Admin/Recurrence.php' );
 $quickAdd    = file_get_contents( $root . '/src/Admin/QuickAdd.php' );
 $workspace   = file_get_contents( $root . '/src/Admin/ProjectWorkspace.php' );
 $billing     = file_get_contents( $root . '/src/Billing/SnapshotBuilder.php' );
-$adminJs     = file_get_contents( $root . '/assets/work-admin.js' );
-$refineJs    = file_get_contents( $root . '/assets/work-items-refinement.js' );
-$fastJs      = file_get_contents( $root . '/assets/work-fast-paths.js' );
+$operations  = file_get_contents( $root . '/src/Admin/Operations.php' );
 $contextJs   = file_get_contents( $root . '/assets/work-context.js' );
 $assets      = file_get_contents( $root . '/src/Admin/Assets.php' );
 $bootstrap   = file_get_contents( $root . '/core-blueprint-work.php' );
@@ -86,11 +84,11 @@ $checks = [
 		str_contains( $projectAdmin, 'cb_work_context' )
 		&& str_contains( $workspace, "'Context', 'core-blueprint-work'" ),
 
-	'Work Items progressive enhancement preserves Work context filtering' =>
-		str_contains( $adminJs, "select[name=\"work_context\"]" )
-		&& str_contains( $adminJs, 'controls.workContext' )
-		&& str_contains( $refineJs, "select[name=\"work_context\"]" )
-		&& str_contains( $fastJs, "'work_context'" ),
+	'Work Items server-rendered workspace preserves Work context filtering' =>
+		str_contains( $operations, 'name="work_context"' )
+		&& str_contains( $operations, "'work_context'" )
+		&& str_contains( $operations, "WorkContext::INTERNAL" )
+		&& str_contains( $operations, "WorkContext::CUSTOMER" ),
 
 	'editor behavior mirrors context invariants instead of leaving conflicting controls visible' =>
 		str_contains( $projectAdmin, 'data-cb-work-context-select' )
