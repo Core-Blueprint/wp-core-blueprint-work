@@ -33,6 +33,18 @@ $checks = [
 		&& str_contains( $view, 'cb-work-day-modal__closed' )
 		&& str_contains( $view, "esc_html_e( 'Show closed', 'core-blueprint-work' )" ),
 
+	'Calendar day cards reuse Board Golden hierarchy without losing date relationship context' =>
+		str_contains( $view, 'cb-work-board__card-heading' )
+		&& str_contains( $view, 'cb-work-board__title' )
+		&& str_contains( $view, 'cb-work-board__context' )
+		&& str_contains( $view, 'cb-work-board__type' )
+		&& str_contains( $view, 'cb-work-board__card-controls' )
+		&& str_contains( $view, 'render_priority' )
+		&& str_contains( $view, 'render_assignee' )
+		&& str_contains( $view, 'cb-work-day-card__relation' )
+		&& str_contains( $css, '.cb-work-day-card__signals' )
+		&& str_contains( $css, '.cb-work-day-card:hover' ),
+
 	'Calendar consumes Base Modal and the shared status reorder implementation' =>
 		str_contains( $calendar, "import '@cb-core/modal';" )
 		&& str_contains( $calendar, "import { enhanceStatusBoard } from '@cb-work/work-items-reorder';" )
