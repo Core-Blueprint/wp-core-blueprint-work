@@ -323,7 +323,7 @@ final class Operations {
 		}
 		$advanced_count += (int) ( '' !== (string) $state['due_from'] );
 		$advanced_count += (int) ( '' !== (string) $state['due_to'] );
-		$advanced_count += (int) ( WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'] );
+		$advanced_count += (int) ! empty( $state['sort_explicit'] );
 
 		$has_any_filters = '' !== (string) $state['search']
 			|| '' !== (string) $state['status']
@@ -395,7 +395,7 @@ final class Operations {
 					. ( '' !== (string) $state['due_to'] ? (string) $state['due_to'] : '…' ),
 			];
 		}
-		if ( WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'] ) {
+		if ( ! empty( $state['sort_explicit'] ) ) {
 			$summary[] = [ __( 'Sort', 'core-blueprint-work' ), self::humanize( (string) $state['sort'] ) ];
 		}
 		?>

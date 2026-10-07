@@ -119,6 +119,31 @@ namespace {
 	assert_true( '' === $default_month['scheduled_from'] && '' === $default_month['scheduled_to'], 'Default Calendar viewport does not create visible scheduled filters.' );
 	assert_true( '2026-09-01' === $default_month['query']['calendar_from'] && '2026-09-30' === $default_month['query']['calendar_to'], 'Default Calendar query stays bounded to the site month through dedicated Calendar criteria.' );
 
+	$list_default = \CB\Work\Admin\WorkItemViewState::from_request( [
+		'view' => 'list',
+	] );
+	assert_true( 'title' === $list_default['sort'], 'List defaults to Title sorting.' );
+	assert_true( false === $list_default['sort_explicit'], 'List default Title sorting is presentation state, not an explicit override.' );
+	assert_true( 'title' === $list_default['query']['sort'], 'List default Title sorting reaches the canonical query.' );
+	$list_default_args = \CB\Work\Admin\WorkItemViewState::query_args( $list_default );
+	assert_true( ! isset( $list_default_args['sort'] ), 'List default Title sorting does not pollute canonical URLs.' );
+
+	$table_default = \CB\Work\Admin\WorkItemViewState::from_request( [
+		'view' => 'table',
+	] );
+	assert_true( 'workload' === $table_default['sort'], 'Table keeps Workload as its default sort.' );
+	assert_true( false === $table_default['sort_explicit'], 'Table default Workload sorting is not an explicit override.' );
+	$list_from_table = \CB\Work\Admin\WorkItemViewState::query_args( $table_default, [ 'view' => 'list', 'page' => 1 ] );
+	assert_true( ! isset( $list_from_table['sort'] ), 'Switching from default Table to List lets List adopt its own Title default.' );
+
+	$list_due = \CB\Work\Admin\WorkItemViewState::from_request( [
+		'view' => 'list',
+		'sort' => 'due',
+	] );
+	assert_true( true === $list_due['sort_explicit'], 'Non-default List sorting is treated as an explicit expert override.' );
+	$table_from_list_due = \CB\Work\Admin\WorkItemViewState::query_args( $list_due, [ 'view' => 'table', 'page' => 1 ] );
+	assert_true( 'due' === ( $table_from_list_due['sort'] ?? '' ), 'Explicit List sorting survives view switching.' );
+
 	$table = \CB\Work\Admin\WorkItemViewState::from_request( [
 		'view'           => 'table',
 		'calendar_month' => '2028-02',

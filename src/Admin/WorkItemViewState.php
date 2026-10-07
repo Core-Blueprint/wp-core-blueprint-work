@@ -68,10 +68,12 @@ final class WorkItemViewState {
 			}
 		}
 
-		$sort = self::key( $request['sort'] ?? WorkItemQuery::SORT_WORKLOAD );
+		$default_sort = self::default_sort_for_view( $view );
+		$sort         = self::key( $request['sort'] ?? $default_sort );
 		if ( ! in_array( $sort, WorkItemQuery::sorts(), true ) ) {
-			$sort = WorkItemQuery::SORT_WORKLOAD;
+			$sort = $default_sort;
 		}
+		$sort_explicit = $sort !== $default_sort;
 
 		$calendar_month          = '';
 		$scheduled_from          = self::date( $request['scheduled_from'] ?? '' );
@@ -114,6 +116,7 @@ final class WorkItemViewState {
 			'due_from'       => self::date( $request['due_from'] ?? '' ),
 			'due_to'         => self::date( $request['due_to'] ?? '' ),
 			'sort'           => $sort,
+			'sort_explicit'  => $sort_explicit,
 			'page'           => max( 1, absint( $request['paged'] ?? 1 ) ),
 			'per_page'       => $per_page,
 		];
@@ -183,13 +186,19 @@ final class WorkItemViewState {
 				if ( 'page' === $state_key && 1 === (int) $value ) {
 					continue;
 				}
-				if ( 'sort' === $state_key && WorkItemQuery::SORT_WORKLOAD === $value ) {
-					continue;
+				if ( 'sort' === $state_key ) {
+					if ( empty( $state['sort_explicit'] ) || self::default_sort_for_view( $view ) === $value ) {
+						continue;
+					}
 				}
 				$args[ $query_key ] = $value;
 			}
 		}
 		return $args;
+	}
+
+	private static function default_sort_for_view( string $view ): string {
+		return self::VIEW_LIST === $view ? WorkItemQuery::SORT_TITLE : WorkItemQuery::SORT_WORKLOAD;
 	}
 
 	private static function key( mixed $raw ): string {

@@ -913,8 +913,9 @@ body.cb-admin-theme .cb-work-bulk-editor [data-cb-work-bulk-edit-submit]:disable
 	align-items: center;
 	gap: var(--cb-space-2);
 	min-height: 28px;
-	padding-inline: 2px;
+	padding-inline: 10px 2px;
 	border-bottom: 1px solid var(--cb-work-border);
+	box-shadow: inset 2px 0 0 color-mix(in srgb, var(--cb-accent) 62%, var(--cb-work-border));
 }
 
 .cb-work-list-group__title {

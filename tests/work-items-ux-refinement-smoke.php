@@ -44,6 +44,9 @@ refinement_assert(
 refinement_assert(
 	str_contains( $state, '$calendar_from' )
 	&& str_contains( $state, '$calendar_to' )
+	&& str_contains( $state, 'default_sort_for_view' )
+	&& str_contains( $state, "self::VIEW_LIST === \$view ? WorkItemQuery::SORT_TITLE : WorkItemQuery::SORT_WORKLOAD" )
+	&& str_contains( $state, "'sort_explicit'  => \$sort_explicit" )
 	&& str_contains( $state, '$query_scheduled_from' )
 	&& str_contains( $state, '$query_scheduled_to' )
 	&& str_contains( $state, "'calendar_from'        => \$calendar_from" )
@@ -115,6 +118,10 @@ refinement_assert(
 	&& str_contains( $css, 'grid-template-columns: 120px 90px 120px 190px' )
 	&& str_contains( $css, '.cb-work-list-item__actions' )
 	&& str_contains( $css, 'width: 70px' )
+	&& str_contains( $css, '.cb-work-items-list.is-grouped' )
+	&& str_contains( $css, 'gap: var(--cb-space-5)' )
+	&& str_contains( $css, '.cb-work-list-group__header' )
+	&& str_contains( $css, 'box-shadow: inset 2px 0 0 color-mix' )
 	&& str_contains( $css, '.cb-work-list-actions__menu' ),
 	'List Golden A1 uses the full workspace, compact semantic items and restrained canonical actions.'
 );
