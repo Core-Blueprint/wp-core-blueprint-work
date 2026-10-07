@@ -2426,3 +2426,21 @@ msgstr ""
 
 msgid "Work Item could not be updated."
 msgstr ""
+
+msgid "Table display"
+msgstr ""
+
+msgid "Density"
+msgstr ""
+
+msgid "Compact"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Spacious"
+msgstr ""
+
+msgid "Alternating rows"
+msgstr ""

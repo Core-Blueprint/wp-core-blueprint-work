@@ -2431,3 +2431,21 @@ msgstr "Salva modifiche"
 
 msgid "Work Item could not be updated."
 msgstr "Impossibile aggiornare il Work Item."
+
+msgid "Table display"
+msgstr "Visualizzazione tabella"
+
+msgid "Density"
+msgstr "Densità"
+
+msgid "Compact"
+msgstr "Compatta"
+
+msgid "Normal"
+msgstr "Normale"
+
+msgid "Spacious"
+msgstr "Spaziosa"
+
+msgid "Alternating rows"
+msgstr "Righe alternate"

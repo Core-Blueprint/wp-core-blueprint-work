@@ -2434,3 +2434,21 @@ msgstr "Guardar alterações"
 
 msgid "Work Item could not be updated."
 msgstr "Não foi possível atualizar o Work Item."
+
+msgid "Table display"
+msgstr "Apresentação da tabela"
+
+msgid "Density"
+msgstr "Densidade"
+
+msgid "Compact"
+msgstr "Compacta"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Spacious"
+msgstr "Espaçosa"
+
+msgid "Alternating rows"
+msgstr "Linhas alternadas"

@@ -2428,3 +2428,21 @@ msgstr "Wijzigingen opslaan"
 
 msgid "Work Item could not be updated."
 msgstr "Work Item kon niet worden bijgewerkt."
+
+msgid "Table display"
+msgstr "Tabelweergave"
+
+msgid "Density"
+msgstr "Dichtheid"
+
+msgid "Compact"
+msgstr "Compact"
+
+msgid "Normal"
+msgstr "Normaal"
+
+msgid "Spacious"
+msgstr "Ruim"
+
+msgid "Alternating rows"
+msgstr "Afwisselende rijen"
