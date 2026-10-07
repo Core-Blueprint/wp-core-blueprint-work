@@ -26,9 +26,10 @@ refinement_assert(
 refinement_assert(
 	str_contains( $assets, "assets/work-items-refinement.css" )
 	&& str_contains( $assets, "assets/work-items-refinement.js" )
+	&& str_contains( $assets, '\\CoreBlueprint\\Core\\UI\\Assets::enqueue_segmented_control();' )
 	&& str_contains( $assets, "'blocked'" )
 	&& str_contains( $assets, "'showClosed'" ),
-	'Refinement assets and Board vocabulary are registered only through Work admin assets.'
+	'Refinement assets, Base Segmented Control and Board vocabulary are registered only through Work admin assets.'
 );
 
 refinement_assert(
@@ -64,10 +65,12 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $script, 'advanced.hidden = true' )
-	&& str_contains( $script, "strings.filters || 'Filters'" )
-	&& str_contains( $script, "cb-work-filter-field--service" ),
-	'Advanced filter power stays available but starts progressively disclosed.'
+	str_contains( $operations, 'cb-work-toolbar__advanced' )
+	&& str_contains( $operations, 'cb-work-filter-field--service' )
+	&& str_contains( $operations, 'cb-work-more-filters-toggle' )
+	&& str_contains( $adminScript, 'advanced.hidden = ! opening' )
+	&& str_contains( $adminScript, "setAttribute( 'aria-expanded'" ),
+	'Advanced filter power is server-rendered and progressively disclosed by interaction-only JavaScript.'
 );
 
 refinement_assert(
@@ -78,10 +81,16 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $script, 'cb-work-empty-state--primary' )
+	str_contains( $operations, 'cb-work-page-header' )
+	&& str_contains( $operations, 'cb-work-fast-paths' )
+	&& str_contains( $operations, 'cb-core-segmented-control' )
+	&& str_contains( $operations, 'cb-work-filter-summary' )
+	&& str_contains( $script, 'cb-work-empty-state--primary' )
 	&& str_contains( $script, 'cb-work-calendar-empty-note' )
-	&& str_contains( $script, 'cb-work-page-header' ),
-	'Header and empty states provide clear next actions without removing canonical functionality.'
+	&& ! str_contains( $script, 'refineHeader(' )
+	&& ! str_contains( $script, 'refineFilters(' )
+	&& ! str_contains( $adminScript, 'createElement(' ),
+	'PHP owns the Work Items workspace structure while JavaScript only enhances interaction and projection-specific states.'
 );
 
 refinement_assert(
