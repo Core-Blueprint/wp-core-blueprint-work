@@ -111,6 +111,10 @@ refinement_assert(
 	&& str_contains( $css, '.cb-work-items-page--refined .cb-work-items-list' )
 	&& str_contains( $css, 'max-width: none' )
 	&& str_contains( $css, '.cb-work-list-item__meta' )
+	&& str_contains( $css, 'grid-template-columns: minmax(320px, 1fr) 574px 70px' )
+	&& str_contains( $css, 'grid-template-columns: 120px 90px 120px 190px' )
+	&& str_contains( $css, '.cb-work-list-item__actions' )
+	&& str_contains( $css, 'width: 70px' )
 	&& str_contains( $css, '.cb-work-list-actions__menu' ),
 	'List Golden A1 uses the full workspace, compact semantic items and restrained canonical actions.'
 );
