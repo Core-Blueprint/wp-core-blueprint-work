@@ -289,7 +289,9 @@ final class Operations {
 	 */
 	private static function render_work_item_filters( array $state, array $projects, array $services, array $types, ?array $selected_customer ): void {
 		$is_calendar       = WorkItemViewState::VIEW_CALENDAR === (string) $state['view'];
+		$is_list           = WorkItemViewState::VIEW_LIST === (string) $state['view'];
 		$is_table          = WorkItemViewState::VIEW_TABLE === (string) $state['view'];
+		$list_preferences  = $is_list ? WorkItemListPreferences::get( get_current_user_id() ) : null;
 		$table_preferences = $is_table ? WorkItemTablePreferences::get( get_current_user_id() ) : null;
 		$clear_state = [ 'view' => (string) $state['view'] ];
 		if ( $is_calendar ) {
@@ -450,6 +452,89 @@ final class Operations {
 							<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
 							<button class="screen-reader-text" type="submit"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
 						</div>
+						<?php if ( $is_list && is_array( $list_preferences ) ) : ?>
+							<div
+								class="cb-work-list-display"
+								data-cb-work-list-display
+								data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+								data-action="<?php echo esc_attr( WorkItemListPreferences::ACTION ); ?>"
+								data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemListPreferences::NONCE_ACTION ) ); ?>"
+								data-error="<?php echo esc_attr__( 'List display preferences could not be saved.', 'core-blueprint-work' ); ?>"
+								data-project-filtered="<?php echo (int) $state['project_id'] > 0 ? '1' : '0'; ?>"
+							>
+								<button
+									type="button"
+									class="button cb-work-list-display__toggle"
+									data-cb-work-list-display-toggle
+									aria-controls="cb-work-list-display-panel"
+									aria-expanded="false"
+									aria-label="<?php esc_attr_e( 'List display', 'core-blueprint-work' ); ?>"
+									title="<?php esc_attr_e( 'List display', 'core-blueprint-work' ); ?>"
+								>
+									<span class="dashicons dashicons-editor-justify" aria-hidden="true"></span>
+									<span class="screen-reader-text"><?php esc_html_e( 'List display', 'core-blueprint-work' ); ?></span>
+								</button>
+								<div
+									id="cb-work-list-display-panel"
+									class="cb-work-list-display__menu"
+									data-cb-work-list-display-panel
+									hidden
+								>
+									<div class="cb-work-list-display__section">
+										<span id="cb-work-list-group-label" class="cb-work-list-display__label"><?php esc_html_e( 'Group by', 'core-blueprint-work' ); ?></span>
+										<div class="cb-work-list-display__options" role="radiogroup" aria-labelledby="cb-work-list-group-label">
+											<?php
+											$group_options = [
+												WorkItemListPreferences::GROUP_PROJECT => __( 'Project', 'core-blueprint-work' ),
+												WorkItemListPreferences::GROUP_NONE    => __( 'None', 'core-blueprint-work' ),
+											];
+											foreach ( $group_options as $group_by => $label ) :
+												$is_group = $group_by === (string) $list_preferences['group_by'];
+												?>
+												<button
+													type="button"
+													class="cb-work-list-display__option"
+													role="radio"
+													aria-checked="<?php echo $is_group ? 'true' : 'false'; ?>"
+													data-cb-work-list-group="<?php echo esc_attr( $group_by ); ?>"
+												>
+													<span><?php echo esc_html( $label ); ?></span>
+													<span class="dashicons dashicons-yes" aria-hidden="true"></span>
+												</button>
+											<?php endforeach; ?>
+										</div>
+									</div>
+									<div
+										class="cb-work-list-display__section cb-work-list-display__section--order"
+										data-cb-work-list-project-order-section
+										<?php if ( WorkItemListPreferences::GROUP_PROJECT !== (string) $list_preferences['group_by'] ) : ?>hidden<?php endif; ?>
+									>
+										<span id="cb-work-list-order-label" class="cb-work-list-display__label"><?php esc_html_e( 'Project order', 'core-blueprint-work' ); ?></span>
+										<div class="cb-work-list-display__options" role="radiogroup" aria-labelledby="cb-work-list-order-label">
+											<?php
+											$order_options = [
+												WorkItemListPreferences::ORDER_ASC  => __( 'A–Z', 'core-blueprint-work' ),
+												WorkItemListPreferences::ORDER_DESC => __( 'Z–A', 'core-blueprint-work' ),
+											];
+											foreach ( $order_options as $project_order => $label ) :
+												$is_order = $project_order === (string) $list_preferences['project_order'];
+												?>
+												<button
+													type="button"
+													class="cb-work-list-display__option"
+													role="radio"
+													aria-checked="<?php echo $is_order ? 'true' : 'false'; ?>"
+													data-cb-work-list-project-order="<?php echo esc_attr( $project_order ); ?>"
+												>
+													<span><?php echo esc_html( $label ); ?></span>
+													<span class="dashicons dashicons-yes" aria-hidden="true"></span>
+												</button>
+											<?php endforeach; ?>
+										</div>
+									</div>
+								</div>
+							</div>
+						<?php endif; ?>
 						<?php if ( $is_table && is_array( $table_preferences ) ) : ?>
 							<div class="cb-work-table-display">
 								<button
@@ -1135,56 +1220,143 @@ final class Operations {
 	 * @param array<string,mixed> $state
 	 */
 	private static function render_work_item_list( array $items, array $project_map, array $type_map, array $state ): void {
+		$preferences     = WorkItemListPreferences::get( get_current_user_id() );
+		$project_filter = (int) ( $state['project_id'] ?? 0 );
+		$grouped        = WorkItemListPreferences::GROUP_PROJECT === (string) $preferences['group_by'] && $project_filter <= 0;
 		?>
-		<div class="cb-work-items-list cb-work-items-list--golden">
-			<?php foreach ( $items as $item ) :
-				$item_id = (int) $item['id'];
-				$title   = (string) $item['title'];
-				$project = $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—';
-				$type    = $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '';
-				$status  = (string) ( $item['status'] ?? '' );
-				$title_id = 'cb-work-list-title-' . $item_id;
-				?>
-				<article
-					class="cb-work-list-item"
-					data-cb-work-list-item
-					data-cb-work-item-id="<?php echo esc_attr( (string) $item_id ); ?>"
-					aria-labelledby="<?php echo esc_attr( $title_id ); ?>"
-				>
-					<div class="cb-work-list-item__main">
-						<h3 id="<?php echo esc_attr( $title_id ); ?>" class="cb-work-list-item__title">
-							<a href="<?php echo esc_url( Menu::edit_work_item_url( $item_id ) ); ?>"><?php echo esc_html( $title ); ?></a>
-						</h3>
-						<div class="cb-work-list-item__context">
-							<span><?php echo esc_html( $project ); ?></span>
-							<?php if ( '' !== $type ) : ?>
-								<span class="cb-work-list-item__context-divider" aria-hidden="true">·</span>
-								<span class="cb-work-list-item__type"><?php echo esc_html( $type ); ?></span>
-							<?php endif; ?>
+		<div
+			class="cb-work-items-list cb-work-items-list--golden <?php echo $grouped ? 'is-grouped' : 'is-ungrouped'; ?>"
+			data-cb-work-items-list
+			data-cb-work-list-grouping="<?php echo esc_attr( $grouped ? WorkItemListPreferences::GROUP_PROJECT : WorkItemListPreferences::GROUP_NONE ); ?>"
+		>
+			<?php if ( $grouped ) : ?>
+				<?php foreach ( self::work_item_project_groups( $items, $project_map, (string) $preferences['project_order'] ) as $group ) : ?>
+					<section class="cb-work-list-group">
+						<div class="cb-work-list-group__header">
+							<h2 class="cb-work-list-group__title"><?php echo esc_html( (string) $group['label'] ); ?></h2>
+							<span class="cb-work-list-group__count">
+								<span class="screen-reader-text"><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?>:</span>
+								<?php echo esc_html( (string) count( $group['items'] ) ); ?>
+							</span>
 						</div>
-					</div>
-
-					<div class="cb-work-list-item__meta">
-						<span class="cb-work-list-item__status">
-							<?php
-							echo StateBadge::render(
-								self::humanize( $status ),
-								[
-									'variant' => self::work_item_status_badge_variant( $status ),
-									'class'   => 'cb-work-status-badge',
-								]
-							);
-							?>
-						</span>
-						<span class="cb-work-list-item__priority"><?php self::render_work_item_priority( (string) ( $item['priority'] ?? '' ) ); ?></span>
-						<span class="cb-work-list-item__due"><?php self::render_work_item_due( (string) ( $item['due_on'] ?? '' ) ); ?></span>
-						<span class="cb-work-list-item__assignee"><?php self::render_work_item_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></span>
-					</div>
-
-					<?php self::render_work_item_list_actions( $item, $state ); ?>
-				</article>
-			<?php endforeach; ?>
+						<div class="cb-work-list-group__items">
+							<?php foreach ( $group['items'] as $item ) : ?>
+								<?php self::render_work_item_list_item( $item, $project_map, $type_map, $state, false ); ?>
+							<?php endforeach; ?>
+						</div>
+					</section>
+				<?php endforeach; ?>
+			<?php else : ?>
+				<?php foreach ( $items as $item ) : ?>
+					<?php self::render_work_item_list_item( $item, $project_map, $type_map, $state, $project_filter <= 0 ); ?>
+				<?php endforeach; ?>
+			<?php endif; ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * @param array<int,array<string,mixed>> $items
+	 * @param array<int,string> $project_map
+	 * @return list<array{id:int,label:string,items:list<array<string,mixed>>}>
+	 */
+	private static function work_item_project_groups( array $items, array $project_map, string $order ): array {
+		$groups = [];
+		foreach ( $items as $item ) {
+			$project_id = (int) ( $item['project_id'] ?? 0 );
+			$has_project = $project_id > 0 && isset( $project_map[ $project_id ] );
+			$key   = $has_project ? 'project-' . $project_id : 'none';
+			$label = $has_project ? (string) $project_map[ $project_id ] : __( 'No project', 'core-blueprint-work' );
+			if ( ! isset( $groups[ $key ] ) ) {
+				$groups[ $key ] = [
+					'id'    => $has_project ? $project_id : 0,
+					'label' => $label,
+					'items' => [],
+				];
+			}
+			$groups[ $key ]['items'][] = $item;
+		}
+
+		$no_project = $groups['none'] ?? null;
+		unset( $groups['none'] );
+
+		$direction = WorkItemListPreferences::ORDER_DESC === $order ? -1 : 1;
+		uasort(
+			$groups,
+			static function ( array $left, array $right ) use ( $direction ): int {
+				$comparison = strnatcasecmp( (string) $left['label'], (string) $right['label'] );
+				if ( 0 === $comparison ) {
+					$comparison = (int) $left['id'] <=> (int) $right['id'];
+				}
+				return $comparison * $direction;
+			}
+		);
+
+		$ordered = array_values( $groups );
+		if ( is_array( $no_project ) ) {
+			$ordered[] = $no_project;
+		}
+		return $ordered;
+	}
+
+	/**
+	 * @param array<string,mixed> $item
+	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
+	 * @param array<string,mixed> $state
+	 */
+	private static function render_work_item_list_item( array $item, array $project_map, array $type_map, array $state, bool $show_project_context ): void {
+		$item_id = (int) $item['id'];
+		$title   = (string) $item['title'];
+		$project = $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '';
+		$type    = $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '';
+		$status  = (string) ( $item['status'] ?? '' );
+		$title_id = 'cb-work-list-title-' . $item_id;
+		?>
+		<article
+			class="cb-work-list-item"
+			data-cb-work-list-item
+			data-cb-work-item-id="<?php echo esc_attr( (string) $item_id ); ?>"
+			aria-labelledby="<?php echo esc_attr( $title_id ); ?>"
+		>
+			<div class="cb-work-list-item__main">
+				<h3 id="<?php echo esc_attr( $title_id ); ?>" class="cb-work-list-item__title">
+					<a href="<?php echo esc_url( Menu::edit_work_item_url( $item_id ) ); ?>"><?php echo esc_html( $title ); ?></a>
+				</h3>
+				<?php if ( ( $show_project_context && '' !== $project ) || '' !== $type ) : ?>
+					<div class="cb-work-list-item__context">
+						<?php if ( $show_project_context && '' !== $project ) : ?>
+							<span><?php echo esc_html( $project ); ?></span>
+						<?php endif; ?>
+						<?php if ( $show_project_context && '' !== $project && '' !== $type ) : ?>
+							<span class="cb-work-list-item__context-divider" aria-hidden="true">·</span>
+						<?php endif; ?>
+						<?php if ( '' !== $type ) : ?>
+							<span class="cb-work-list-item__type"><?php echo esc_html( $type ); ?></span>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
+			</div>
+
+			<div class="cb-work-list-item__meta">
+				<span class="cb-work-list-item__status">
+					<?php
+					echo StateBadge::render(
+						self::humanize( $status ),
+						[
+							'variant' => self::work_item_status_badge_variant( $status ),
+							'class'   => 'cb-work-status-badge',
+						]
+					);
+					?>
+				</span>
+				<span class="cb-work-list-item__priority"><?php self::render_work_item_priority( (string) ( $item['priority'] ?? '' ) ); ?></span>
+				<span class="cb-work-list-item__due"><?php self::render_work_item_due( (string) ( $item['due_on'] ?? '' ) ); ?></span>
+				<span class="cb-work-list-item__assignee"><?php self::render_work_item_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></span>
+			</div>
+
+			<?php self::render_work_item_list_actions( $item, $state ); ?>
+		</article>
 		<?php
 	}
 

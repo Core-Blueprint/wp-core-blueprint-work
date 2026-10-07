@@ -19,6 +19,7 @@ use CB\Work\Admin\Time;
 use CB\Work\Admin\TimeActions;
 use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
+use CB\Work\Admin\WorkItemListPreferences;
 use CB\Work\Admin\WorkItemTablePreferences;
 use CB\Work\Admin\WorkItemBoardActions;
 use CB\Work\Admin\WorkItemCalendarActions;
@@ -65,6 +66,7 @@ final class Plugin {
 			Projects::init();
 			ProjectDataExchange::init();
 			WorkItemsAdmin::init();
+			WorkItemListPreferences::init();
 			WorkItemTablePreferences::init();
 			WorkItemBoardActions::init();
 			WorkItemCalendarActions::init();
