@@ -288,8 +288,9 @@ final class Operations {
 	 * @param array{id:string,label:string,meta:string}|null $selected_customer
 	 */
 	private static function render_work_item_filters( array $state, array $projects, array $services, array $types, ?array $selected_customer ): void {
-		$is_calendar = WorkItemViewState::VIEW_CALENDAR === (string) $state['view'];
-		$is_table    = WorkItemViewState::VIEW_TABLE === (string) $state['view'];
+		$is_calendar       = WorkItemViewState::VIEW_CALENDAR === (string) $state['view'];
+		$is_table          = WorkItemViewState::VIEW_TABLE === (string) $state['view'];
+		$table_preferences = $is_table ? WorkItemTablePreferences::get( get_current_user_id() ) : null;
 		$clear_state = [ 'view' => (string) $state['view'] ];
 		if ( $is_calendar ) {
 			$clear_state['calendar_month'] = (string) $state['calendar_month'];
@@ -449,7 +450,61 @@ final class Operations {
 							<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
 							<button class="screen-reader-text" type="submit"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
 						</div>
-						<?php if ( $is_table ) : ?>
+						<?php if ( $is_table && is_array( $table_preferences ) ) : ?>
+							<div class="cb-work-table-display">
+								<button
+									type="button"
+									class="button cb-work-table-display__toggle"
+									data-cb-work-table-display-toggle
+									aria-controls="cb-work-table-display-panel"
+									aria-expanded="false"
+									aria-label="<?php esc_attr_e( 'Table display', 'core-blueprint-work' ); ?>"
+									title="<?php esc_attr_e( 'Table display', 'core-blueprint-work' ); ?>"
+								>
+									<span class="dashicons dashicons-editor-justify" aria-hidden="true"></span>
+									<span class="screen-reader-text"><?php esc_html_e( 'Table display', 'core-blueprint-work' ); ?></span>
+								</button>
+								<div
+									id="cb-work-table-display-panel"
+									class="cb-work-table-display__menu"
+									data-cb-work-table-display-panel
+									hidden
+								>
+									<div class="cb-work-table-display__section">
+										<span id="cb-work-table-density-label" class="cb-work-table-display__label"><?php esc_html_e( 'Density', 'core-blueprint-work' ); ?></span>
+										<div class="cb-work-table-display__density" role="radiogroup" aria-labelledby="cb-work-table-density-label">
+											<?php
+											$density_options = [
+												WorkItemTablePreferences::DENSITY_COMPACT  => __( 'Compact', 'core-blueprint-work' ),
+												WorkItemTablePreferences::DENSITY_NORMAL   => __( 'Normal', 'core-blueprint-work' ),
+												WorkItemTablePreferences::DENSITY_SPACIOUS => __( 'Spacious', 'core-blueprint-work' ),
+											];
+											foreach ( $density_options as $density => $label ) :
+												$is_density = $density === (string) $table_preferences['density'];
+												?>
+												<button
+													type="button"
+													class="cb-work-table-display__option"
+													role="radio"
+													aria-checked="<?php echo $is_density ? 'true' : 'false'; ?>"
+													data-cb-work-table-density="<?php echo esc_attr( $density ); ?>"
+												>
+													<span><?php echo esc_html( $label ); ?></span>
+													<span class="dashicons dashicons-yes" aria-hidden="true"></span>
+												</button>
+											<?php endforeach; ?>
+										</div>
+									</div>
+									<label class="cb-work-table-display__toggle-row">
+										<input
+											type="checkbox"
+											data-cb-work-table-alternating
+											<?php checked( ! empty( $table_preferences['alternating_rows'] ) ); ?>
+										>
+										<span><?php esc_html_e( 'Alternating rows', 'core-blueprint-work' ); ?></span>
+									</label>
+								</div>
+							</div>
 							<button
 								type="button"
 								class="button cb-work-columns-toggle"
@@ -587,6 +642,7 @@ final class Operations {
 			data-saving="<?php echo esc_attr__( 'Saving…', 'core-blueprint-work' ); ?>"
 			data-saved="<?php echo esc_attr__( 'Saved', 'core-blueprint-work' ); ?>"
 			data-error="<?php echo esc_attr__( 'Column preferences could not be saved.', 'core-blueprint-work' ); ?>"
+			data-display-panel-id="cb-work-table-display-panel"
 		>
 			<div id="<?php echo esc_attr( $panel_id ); ?>" class="cb-work-table-preferences__panel" data-cb-work-table-columns-panel hidden>
 				<div data-cb-core-reorder>
@@ -733,7 +789,12 @@ final class Operations {
 				</div>
 			</form>
 
-			<table class="widefat cb-work-items-table" data-cb-work-items-table>
+			<table
+				class="widefat cb-work-items-table"
+				data-cb-work-items-table
+				data-cb-work-density="<?php echo esc_attr( (string) $preferences['density'] ); ?>"
+				data-cb-work-alternating="<?php echo ! empty( $preferences['alternating_rows'] ) ? '1' : '0'; ?>"
+			>
 				<thead><tr>
 					<th class="cb-work-select-column">
 						<input type="checkbox" data-cb-work-select-all aria-label="<?php esc_attr_e( 'Work Items', 'core-blueprint-work' ); ?>">
@@ -753,8 +814,12 @@ final class Operations {
 					<?php endforeach; ?>
 				</tr></thead>
 				<tbody>
-				<?php foreach ( $items as $item ) : ?>
-					<tr data-cb-work-table-row>
+				<?php $row_index = 0; ?>
+				<?php foreach ( $items as $item ) :
+					$is_alternate = 1 === ( $row_index % 2 );
+					$row_index++;
+					?>
+					<tr data-cb-work-table-row class="<?php echo $is_alternate ? 'is-alternate' : ''; ?>">
 						<td class="cb-work-select-column">
 							<input
 								type="checkbox"

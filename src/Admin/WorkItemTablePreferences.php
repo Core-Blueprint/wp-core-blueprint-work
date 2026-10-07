@@ -20,6 +20,10 @@ final class WorkItemTablePreferences {
 	public const NONCE_ACTION = 'cb_work_table_preferences';
 	private const USER_META = '_cb_work_items_table_columns_v1';
 	private const PROTECTED = [ 'work_item' ];
+	public const DENSITY_COMPACT = 'compact';
+	public const DENSITY_NORMAL = 'normal';
+	public const DENSITY_SPACIOUS = 'spacious';
+	private const DENSITIES = [ self::DENSITY_COMPACT, self::DENSITY_NORMAL, self::DENSITY_SPACIOUS ];
 
 	/** @return list<string> */
 	public static function column_ids(): array {
@@ -36,11 +40,13 @@ final class WorkItemTablePreferences {
 		];
 	}
 
-	/** @return array{order:list<string>,hidden:list<string>} */
+	/** @return array{order:list<string>,hidden:list<string>,density:string,alternating_rows:bool} */
 	public static function defaults(): array {
 		return [
-			'order'  => self::column_ids(),
-			'hidden' => [ 'customer', 'type', 'billing' ],
+			'order'            => self::column_ids(),
+			'hidden'           => [ 'customer', 'type', 'billing' ],
+			'density'          => self::DENSITY_COMPACT,
+			'alternating_rows' => true,
 		];
 	}
 
@@ -48,7 +54,7 @@ final class WorkItemTablePreferences {
 		add_action( 'wp_ajax_' . self::ACTION, [ self::class, 'handle_ajax' ] );
 	}
 
-	/** @return array{order:list<string>,hidden:list<string>} */
+	/** @return array{order:list<string>,hidden:list<string>,density:string,alternating_rows:bool} */
 	public static function get( int $user_id ): array {
 		if ( $user_id <= 0 ) {
 			return self::defaults();
@@ -57,7 +63,7 @@ final class WorkItemTablePreferences {
 		return is_array( $stored ) ? self::normalize( $stored ) : self::defaults();
 	}
 
-	/** @return array{order:list<string>,hidden:list<string>} */
+	/** @return array{order:list<string>,hidden:list<string>,density:string,alternating_rows:bool} */
 	public static function normalize( array $policy ): array {
 		$allowed = array_fill_keys( self::column_ids(), true );
 		$order   = [];
@@ -86,9 +92,19 @@ final class WorkItemTablePreferences {
 			}
 		}
 
+		$density = sanitize_key( is_scalar( $policy['density'] ?? null ) ? (string) $policy['density'] : '' );
+		if ( ! in_array( $density, self::DENSITIES, true ) ) {
+			$density = self::DENSITY_COMPACT;
+		}
+
+		$alternating_rows = ! array_key_exists( 'alternating_rows', $policy )
+			|| in_array( $policy['alternating_rows'], [ true, 1, '1' ], true );
+
 		return [
-			'order'  => $order,
-			'hidden' => $hidden,
+			'order'            => $order,
+			'hidden'           => $hidden,
+			'density'          => $density,
+			'alternating_rows' => $alternating_rows,
 		];
 	}
 

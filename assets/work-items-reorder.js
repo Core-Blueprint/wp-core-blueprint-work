@@ -1,7 +1,15 @@
 import '@cb-core/reorder';
 
+const displayPanelFor = (root) => {
+	const id = String(root.dataset.displayPanelId || '');
+	return id ? document.getElementById(id) : null;
+};
+
 const policyFromPanel = (root) => {
 	const items = [...root.querySelectorAll('[data-cb-core-reorder-item]')];
+	const displayPanel = displayPanelFor(root);
+	const density = displayPanel?.querySelector('[data-cb-work-table-density][aria-checked="true"]');
+	const alternating = displayPanel?.querySelector('[data-cb-work-table-alternating]');
 	return {
 		order: items.map((item) => String(item.dataset.cbCoreReorderItem || '')).filter(Boolean),
 		hidden: items
@@ -11,6 +19,8 @@ const policyFromPanel = (root) => {
 			})
 			.map((item) => String(item.dataset.cbCoreReorderItem || ''))
 			.filter(Boolean),
+		density: density instanceof HTMLElement ? String(density.dataset.cbWorkTableDensity || 'compact') : 'compact',
+		alternating_rows: alternating instanceof HTMLInputElement ? alternating.checked : true,
 	};
 };
 
@@ -21,6 +31,12 @@ const columnCell = (row, columnId) => [...row.children].find(
 const applyTablePolicy = (table, policy) => {
 	if (!(table instanceof HTMLTableElement)) return;
 	const hidden = new Set(policy.hidden || []);
+	const density = ['compact', 'normal', 'spacious'].includes(String(policy.density || ''))
+		? String(policy.density)
+		: 'compact';
+	table.dataset.cbWorkDensity = density;
+	table.dataset.cbWorkAlternating = policy.alternating_rows === false ? '0' : '1';
+
 	const rows = table.querySelectorAll('tr');
 	rows.forEach((row) => {
 		(policy.order || []).forEach((columnId) => {
@@ -30,6 +46,21 @@ const applyTablePolicy = (table, policy) => {
 			row.appendChild(cell);
 		});
 	});
+};
+
+const syncDisplayControls = (root, policy) => {
+	const panel = displayPanelFor(root);
+	if (!panel) return;
+	const density = ['compact', 'normal', 'spacious'].includes(String(policy.density || ''))
+		? String(policy.density)
+		: 'compact';
+	panel.querySelectorAll('[data-cb-work-table-density]').forEach((button) => {
+		button.setAttribute('aria-checked', String(button.dataset.cbWorkTableDensity || '') === density ? 'true' : 'false');
+	});
+	const alternating = panel.querySelector('[data-cb-work-table-alternating]');
+	if (alternating instanceof HTMLInputElement) {
+		alternating.checked = policy.alternating_rows !== false;
+	}
 };
 
 const persist = async (root, operation, policy = null) => {
@@ -65,14 +96,28 @@ const initTablePreferences = (root) => {
 	const reset = root.querySelector('[data-cb-work-table-columns-reset]');
 	const reorderRoot = root.querySelector('[data-cb-core-reorder]');
 	const reorder = window.cbCore?.reorder;
+	const displayPanel = displayPanelFor(root);
+	const displayToggle = displayPanel?.id
+		? document.querySelector('[data-cb-work-table-display-toggle][aria-controls="' + displayPanel.id + '"]')
+		: null;
+	const displayWrapper = displayToggle?.closest('.cb-work-table-display') || null;
 
 	if (!(table instanceof HTMLTableElement) || !panel || !toggle || !reorderRoot || !reorder?.enhance) return;
+
+	let currentPolicy = policyFromPanel(root);
 
 	const controller = reorder.enhance(reorderRoot, {
 		async onMove() {
 			const policy = policyFromPanel(root);
 			applyTablePolicy(table, policy);
-			await persist(root, 'save', policy);
+			try {
+				currentPolicy = await persist(root, 'save', policy);
+				syncDisplayControls(root, currentPolicy);
+			} catch (error) {
+				applyTablePolicy(table, currentPolicy);
+				syncDisplayControls(root, currentPolicy);
+				throw error;
+			}
 		},
 	});
 
@@ -83,14 +128,15 @@ const initTablePreferences = (root) => {
 	root.querySelectorAll('[data-cb-work-column-visible]').forEach((checkbox) => {
 		if (!(checkbox instanceof HTMLInputElement) || checkbox.disabled) return;
 		checkbox.addEventListener('change', async () => {
-			const desired = checkbox.checked;
 			const policy = policyFromPanel(root);
 			applyTablePolicy(table, policy);
 			try {
-				await persist(root, 'save', policy);
+				currentPolicy = await persist(root, 'save', policy);
+				syncDisplayControls(root, currentPolicy);
 			} catch {
-				checkbox.checked = !desired;
-				applyTablePolicy(table, policyFromPanel(root));
+				applyTablePolicy(table, currentPolicy);
+				syncDisplayControls(root, currentPolicy);
+				checkbox.checked = !currentPolicy.hidden?.includes(String(checkbox.value || ''));
 			}
 		});
 	});
@@ -99,6 +145,10 @@ const initTablePreferences = (root) => {
 		const opening = panel.hidden;
 		panel.hidden = !opening;
 		toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+		if (opening && displayPanel && displayToggle) {
+			displayPanel.hidden = true;
+			displayToggle.setAttribute('aria-expanded', 'false');
+		}
 		if (opening) {
 			panel.querySelector('[data-cb-core-reorder-handle]')?.focus({ preventScroll: true });
 		}
@@ -111,6 +161,71 @@ const initTablePreferences = (root) => {
 		toggle.focus();
 	});
 
+	if (displayPanel && displayToggle) {
+		const closeDisplay = (restoreFocus = false) => {
+			if (displayPanel.hidden) return;
+			displayPanel.hidden = true;
+			displayToggle.setAttribute('aria-expanded', 'false');
+			if (restoreFocus) displayToggle.focus({ preventScroll: true });
+		};
+
+		displayToggle.addEventListener('click', () => {
+			const opening = displayPanel.hidden;
+			displayPanel.hidden = !opening;
+			displayToggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+			if (opening) {
+				panel.hidden = true;
+				toggle.setAttribute('aria-expanded', 'false');
+				displayPanel.querySelector('[data-cb-work-table-density][aria-checked="true"]')?.focus({ preventScroll: true });
+			}
+		});
+
+		displayPanel.querySelectorAll('[data-cb-work-table-density]').forEach((button) => {
+			button.addEventListener('click', async () => {
+				displayPanel.querySelectorAll('[data-cb-work-table-density]').forEach((candidate) => {
+					candidate.setAttribute('aria-checked', candidate === button ? 'true' : 'false');
+				});
+				const policy = policyFromPanel(root);
+				applyTablePolicy(table, policy);
+				try {
+					currentPolicy = await persist(root, 'save', policy);
+					syncDisplayControls(root, currentPolicy);
+				} catch {
+					applyTablePolicy(table, currentPolicy);
+					syncDisplayControls(root, currentPolicy);
+				}
+			});
+		});
+
+		const alternating = displayPanel.querySelector('[data-cb-work-table-alternating]');
+		alternating?.addEventListener('change', async () => {
+			const policy = policyFromPanel(root);
+			applyTablePolicy(table, policy);
+			try {
+				currentPolicy = await persist(root, 'save', policy);
+				syncDisplayControls(root, currentPolicy);
+			} catch {
+				applyTablePolicy(table, currentPolicy);
+				syncDisplayControls(root, currentPolicy);
+			}
+		});
+
+		document.addEventListener('click', (event) => {
+			if (
+				displayPanel.hidden
+				|| !(event.target instanceof Node)
+				|| displayWrapper?.contains(event.target)
+			) return;
+			closeDisplay();
+		});
+
+		displayPanel.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape') return;
+			event.preventDefault();
+			closeDisplay(true);
+		});
+	}
+
 	reset?.addEventListener('click', async () => {
 		try {
 			await persist(root, 'reset');
@@ -120,7 +235,9 @@ const initTablePreferences = (root) => {
 		}
 	});
 
-	applyTablePolicy(table, policyFromPanel(root));
+	currentPolicy = policyFromPanel(root);
+	syncDisplayControls(root, currentPolicy);
+	applyTablePolicy(table, currentPolicy);
 	void controller;
 };
 
