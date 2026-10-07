@@ -1394,7 +1394,10 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--cance
 	display: grid;
 	gap: var(--cb-space-3) !important;
 	align-items: start;
+	max-width: 100%;
+	min-width: 0;
 	overflow-x: auto;
+	overscroll-behavior-inline: contain;
 	padding-bottom: var(--cb-space-4) !important;
 }
 
@@ -1403,7 +1406,7 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--cance
 }
 
 .cb-work-items-page--refined .cb-work-board__lane {
-	min-width: 240px !important;
+	min-width: 280px !important;
 	margin: 0 !important;
 }
 

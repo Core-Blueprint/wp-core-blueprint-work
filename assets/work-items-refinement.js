@@ -131,7 +131,7 @@ function statusFromLane( lane, strings ) {
 			const visible = Array.from( board.children ).filter( function ( lane ) {
 				return lane.tagName === 'SECTION' && ! lane.hidden;
 			} ).length;
-			board.style.gridTemplateColumns = 'repeat(' + Math.max( 1, visible ) + ', minmax(240px, 1fr))';
+			board.style.gridTemplateColumns = 'repeat(' + Math.max( 1, visible ) + ', minmax(280px, 1fr))';
 		}
 		refresh();
 

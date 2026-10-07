@@ -262,10 +262,13 @@
 
 .cb-work-items-kanban {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(240px, 1fr));
+	grid-template-columns: repeat(4, minmax(280px, 1fr));
 	gap: var(--cb-space-3);
 	align-items: start;
+	max-width: 100%;
+	min-width: 0;
 	overflow-x: auto;
+	overscroll-behavior-inline: contain;
 	padding: var(--cb-space-1) 0 var(--cb-space-4);
 }
 
@@ -406,6 +409,7 @@
 	font-size: 14px;
 	font-weight: var(--cb-fw-semibold);
 	line-height: 1.35;
+	overflow-wrap: anywhere;
 }
 
 .cb-work-board__title a {
@@ -446,6 +450,7 @@
 .cb-work-board__type {
 	display: inline-flex;
 	width: fit-content;
+	max-width: 100%;
 	min-height: 20px;
 	align-items: center;
 	padding: 2px 7px;
@@ -456,6 +461,9 @@
 	font-size: 11px;
 	font-weight: var(--cb-fw-medium);
 	line-height: 1.2;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .cb-work-board__signals {

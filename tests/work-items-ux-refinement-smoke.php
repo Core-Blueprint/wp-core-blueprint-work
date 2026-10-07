@@ -240,8 +240,13 @@ refinement_assert(
 refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
-	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
-	'Board prioritizes active workflow while preserving access to closed statuses.'
+	&& str_contains( $script, 'cb-work-board-closed-toggle' )
+	&& str_contains( $script, 'minmax(280px, 1fr)' )
+	&& str_contains( $adminCss, 'grid-template-columns: repeat(4, minmax(280px, 1fr))' )
+	&& str_contains( $adminCss, 'overscroll-behavior-inline: contain' )
+	&& str_contains( $adminCss, 'overflow-wrap: anywhere' )
+	&& str_contains( $css, 'min-width: 280px !important' ),
+	'Board Golden B3 preserves readable lane geometry and horizontal overflow across constrained layouts and closed-status expansion.'
 );
 
 refinement_assert(
