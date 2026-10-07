@@ -611,30 +611,6 @@ msgstr "Aktionen"
 msgid "Type"
 msgstr "Typ"
 
-#: src/Admin/Operations.php:722 src/Admin/Operations.php:802
-msgid "Priority:"
-msgstr "Priorität:"
-
-#: src/Admin/Operations.php:723 src/Admin/Operations.php:803
-msgid "Due:"
-msgstr "Fällig:"
-
-#: src/Admin/Operations.php:726 src/Admin/Operations.php:804
-msgid "Customer:"
-msgstr "Kunde:"
-
-#: src/Admin/Operations.php:727 src/Admin/Operations.php:805
-msgid "Project:"
-msgstr "Projekt:"
-
-#: src/Admin/Operations.php:728 src/Admin/Operations.php:806
-msgid "Type:"
-msgstr "Typ:"
-
-#: src/Admin/Operations.php:732 src/Admin/Operations.php:807
-msgid "Assigned:"
-msgstr "Zugewiesen:"
-
 #: src/Admin/Operations.php:765 src/Admin/WorkItemBoardActions.php:40
 msgid "The Work Item status could not be updated."
 msgstr "Der Status des Work Items konnte nicht aktualisiert werden."

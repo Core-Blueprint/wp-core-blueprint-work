@@ -693,36 +693,6 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
-#: src/Admin/Operations.php:722
-#: src/Admin/Operations.php:802
-msgid "Priority:"
-msgstr ""
-
-#: src/Admin/Operations.php:723
-#: src/Admin/Operations.php:803
-msgid "Due:"
-msgstr ""
-
-#: src/Admin/Operations.php:726
-#: src/Admin/Operations.php:804
-msgid "Customer:"
-msgstr ""
-
-#: src/Admin/Operations.php:727
-#: src/Admin/Operations.php:805
-msgid "Project:"
-msgstr ""
-
-#: src/Admin/Operations.php:728
-#: src/Admin/Operations.php:806
-msgid "Type:"
-msgstr ""
-
-#: src/Admin/Operations.php:732
-#: src/Admin/Operations.php:807
-msgid "Assigned:"
-msgstr ""
-
 #: src/Admin/Operations.php:765
 #: src/Admin/WorkItemBoardActions.php:40
 msgid "The Work Item status could not be updated."
