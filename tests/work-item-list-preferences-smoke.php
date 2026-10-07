@@ -55,6 +55,8 @@ namespace {
 		|| ! str_contains( $plugin, 'WorkItemListPreferences::init()' )
 		|| ! str_contains( $operations, 'data-cb-work-list-display' )
 		|| ! str_contains( $operations, 'work_item_project_groups' )
+		|| ! str_contains( $operations, '$list_grouping_active' )
+		|| ! str_contains( $operations, "\$query['per_page'] = 500" )
 		|| ! str_contains( $operations, "WorkItemListPreferences::GROUP_PROJECT" )
 		|| ! str_contains( $operations, "WorkItemListPreferences::ORDER_DESC" )
 		|| ! str_contains( $operations, "'No project', 'core-blueprint-work'" )

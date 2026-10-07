@@ -51,11 +51,22 @@ final class Operations {
 			$state           = WorkItemViewState::from_request( $request );
 		}
 
-		$project_filter = (int) $state['project_id'];
-		$result         = $state['customer_valid']
-			? WorkItems::search( (array) $state['query'] )
-			: [ 'items' => [], 'total' => 0, 'page' => 1, 'per_page' => 50, 'pages' => 0 ];
-		$items          = (array) $result['items'];
+		$project_filter   = (int) $state['project_id'];
+		$list_preferences = WorkItemViewState::VIEW_LIST === (string) $state['view']
+			? WorkItemListPreferences::get( get_current_user_id() )
+			: null;
+		$list_grouping_active = is_array( $list_preferences )
+			&& WorkItemListPreferences::GROUP_PROJECT === (string) $list_preferences['group_by']
+			&& $project_filter <= 0;
+		$query = (array) $state['query'];
+		if ( $list_grouping_active ) {
+			$query['per_page'] = 500;
+		}
+
+		$result = $state['customer_valid']
+			? WorkItems::search( $query )
+			: [ 'items' => [], 'total' => 0, 'page' => 1, 'per_page' => (int) ( $query['per_page'] ?? 50 ), 'pages' => 0 ];
+		$items = (array) $result['items'];
 
 		$projects    = Projects::all( 500 );
 		$project_map = [];
@@ -125,7 +136,7 @@ final class Operations {
 			<?php elseif ( WorkItemViewState::VIEW_KANBAN === (string) $state['view'] ) : ?>
 				<?php self::render_work_item_kanban( $items, $project_map, $type_map, $state ); ?>
 			<?php elseif ( WorkItemViewState::VIEW_LIST === (string) $state['view'] ) : ?>
-				<?php self::render_work_item_list( $items, $project_map, $type_map, $state ); ?>
+				<?php self::render_work_item_list( $items, $project_map, $type_map, $state, is_array( $list_preferences ) ? $list_preferences : WorkItemListPreferences::defaults() ); ?>
 			<?php else : ?>
 				<?php self::render_work_item_table( $items, $project_map, $type_map, $state ); ?>
 			<?php endif; ?>
@@ -1219,8 +1230,8 @@ final class Operations {
 	 * @param array<int,string> $type_map
 	 * @param array<string,mixed> $state
 	 */
-	private static function render_work_item_list( array $items, array $project_map, array $type_map, array $state ): void {
-		$preferences     = WorkItemListPreferences::get( get_current_user_id() );
+	private static function render_work_item_list( array $items, array $project_map, array $type_map, array $state, array $preferences ): void {
+		$preferences     = WorkItemListPreferences::normalize( $preferences );
 		$project_filter = (int) ( $state['project_id'] ?? 0 );
 		$grouped        = WorkItemListPreferences::GROUP_PROJECT === (string) $preferences['group_by'] && $project_filter <= 0;
 		?>
