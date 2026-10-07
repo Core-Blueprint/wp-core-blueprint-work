@@ -57,6 +57,7 @@ final class Assets {
 
 		self::enqueue_style();
 		self::enqueue_script();
+		\CoreBlueprint\Core\UI\Assets::enqueue_segmented_control();
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
 		self::enqueue_reorder_assets();
