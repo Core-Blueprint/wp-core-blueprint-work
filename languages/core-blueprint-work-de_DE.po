@@ -611,10 +611,6 @@ msgstr "Aktionen"
 msgid "Type"
 msgstr "Typ"
 
-#: src/Admin/Operations.php:721
-msgid "Status:"
-msgstr "Status:"
-
 #: src/Admin/Operations.php:722 src/Admin/Operations.php:802
 msgid "Priority:"
 msgstr "Priorität:"
@@ -634,10 +630,6 @@ msgstr "Projekt:"
 #: src/Admin/Operations.php:728 src/Admin/Operations.php:806
 msgid "Type:"
 msgstr "Typ:"
-
-#: src/Admin/Operations.php:731
-msgid "Billing:"
-msgstr "Abrechnung:"
 
 #: src/Admin/Operations.php:732 src/Admin/Operations.php:807
 msgid "Assigned:"
