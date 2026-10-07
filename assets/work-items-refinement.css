@@ -58,10 +58,17 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	color: var(--cb-text-muted);
 }
 
-body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option:hover,
-body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option:focus-visible {
+body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option:hover {
 	background: var(--cb-interactive-hover);
 	color: var(--cb-text-strong);
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option:focus,
+body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option:focus-visible {
+	background: var(--cb-interactive-hover);
+	border-color: var(--cb-interactive-focus);
+	color: var(--cb-text-strong);
+	outline-color: var(--cb-interactive-focus);
 }
 
 body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__option.is-active,
