@@ -600,10 +600,6 @@ msgstr "Réinitialiser par défaut"
 msgid "Work Item"
 msgstr "Work Item"
 
-#: src/Admin/Operations.php:657
-msgid "Assigned"
-msgstr "Assigné"
-
 #: src/Admin/Operations.php:658 src/Admin/Recurrence.php:136
 #: src/Admin/Time.php:156
 msgid "Actions"

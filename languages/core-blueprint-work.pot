@@ -683,10 +683,6 @@ msgstr ""
 msgid "Work Item"
 msgstr ""
 
-#: src/Admin/Operations.php:657
-msgid "Assigned"
-msgstr ""
-
 #: src/Admin/Operations.php:658
 #: src/Admin/Recurrence.php:136
 #: src/Admin/Time.php:156
