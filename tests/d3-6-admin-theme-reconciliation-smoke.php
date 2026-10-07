@@ -21,7 +21,7 @@ $checks = [
 	'Work CSS does not theme native nav tabs' => ! str_contains( $css, '.cb-work-items-page .nav-tab {' ) && ! str_contains( $css, '.nav-tab-active' ),
 	'Work CSS contains no hardcoded presentation colours' => ! preg_match( '/#[0-9a-f]{3,8}\b/i', $css ) && ! preg_match( '/\brgba?\s*\(/i', $css ),
 	'Work keeps domain-specific toolbar Board and Calendar composition' => str_contains( $css, '.cb-work-toolbar' ) && str_contains( $css, '.cb-work-items-kanban' ) && str_contains( $css, '.cb-work-items-calendar' ),
-	'active filter summary is preserved as Work-specific UX' => str_contains( $js, 'cb-work-filter-summary' ) && str_contains( $js, 'appendSummaryChip' ) && str_contains( $css, '.cb-work-filter-chip' ),
+	'active filter summary is server-rendered as Work-specific UX' => str_contains( $operations, 'cb-work-filter-summary' ) && str_contains( $operations, 'cb-work-filter-chip' ) && str_contains( $css, '.cb-work-filter-chip' ) && ! str_contains( $js, 'appendSummaryChip' ),
 	'Calendar Today action is preserved as server-rendered navigation without domain persistence' => str_contains( $operations, "current_time( 'Y-m' )" )
 		&& str_contains( $operations, "'calendar_month' => \$current_month" )
 		&& str_contains( $operations, "'Today', 'core-blueprint-work'" )
