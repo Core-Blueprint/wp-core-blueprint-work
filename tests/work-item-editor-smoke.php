@@ -113,7 +113,10 @@ namespace CB\Work\Domain {
 	}
 	final class WorkItemStatus {
 		public const PLANNED = 'planned';
-		public static function transitions_from( string $status ): array { unset( $status ); return []; }
+		public const IN_PROGRESS = 'in_progress';
+		public static function is_valid( string $status ): bool { return in_array( $status, [ self::PLANNED, self::IN_PROGRESS ], true ); }
+		public static function can_transition( string $from, string $to ): bool { return self::PLANNED === $from && self::IN_PROGRESS === $to; }
+		public static function transitions_from( string $status ): array { return self::PLANNED === $status ? [ self::IN_PROGRESS ] : []; }
 	}
 }
 
@@ -179,14 +182,16 @@ namespace {
 	require dirname( __DIR__ ) . '/src/Admin/Pickers.php';
 	require dirname( __DIR__ ) . '/src/Admin/WorkItems.php';
 
-	$_GET = [];
+	$_GET = [ 'cb_work_status' => 'in_progress' ];
 	\CB\Work\Admin\Pickers::enqueue();
 	assert_true( 1 === $GLOBALS['cb_work_picker_enqueue_count'], 'ObjectPicker assets enqueue on the native Work Item CPT editor.' );
 
 	$post = new WP_Post( 123 );
 	ob_start();
 	\CB\Work\Admin\WorkItems::render_details( $post );
-	ob_end_clean();
+	$rendered = (string) ob_get_clean();
+
+	assert_true( str_contains( $rendered, 'name="cb_work_item_status"' ) && str_contains( $rendered, 'value="in_progress"' ), 'New Work Item editor accepts a valid Board lane status as create context.' );
 
 	$calls = $GLOBALS['cb_work_picker_calls'];
 	assert_true( 2 === count( $calls ), 'New Work Item render initializes both Customer and Assignee pickers without a type error.' );

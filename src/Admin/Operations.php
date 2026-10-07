@@ -1553,7 +1553,8 @@ final class Operations {
 	 * @param array<string,mixed> $state
 	 */
 	private static function render_work_item_kanban( array $items, array $project_map, array $type_map, array $state ): void {
-		$lanes = array_fill_keys( WorkItemStatus::all(), [] );
+		$lanes           = array_fill_keys( WorkItemStatus::all(), [] );
+		$lane_project_id = max( 0, (int) ( $state['project_id'] ?? 0 ) );
 		foreach ( $items as $item ) {
 			$status = (string) ( $item['status'] ?? WorkItemStatus::PLANNED );
 			if ( ! WorkItemStatus::is_valid( $status ) ) {
@@ -1639,6 +1640,15 @@ final class Operations {
 
 							</article>
 						<?php endforeach; ?>
+					</div>
+					<div class="cb-work-board__lane-footer">
+						<a
+							class="cb-work-board__add"
+							href="<?php echo esc_url( Menu::new_work_item_url( $lane_project_id, (string) $status ) ); ?>"
+						>
+							<span class="cb-work-board__add-icon" aria-hidden="true">+</span>
+							<span><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></span>
+						</a>
 					</div>
 				</section>
 			<?php endforeach; ?>

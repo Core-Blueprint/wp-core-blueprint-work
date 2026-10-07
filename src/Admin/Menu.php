@@ -5,6 +5,7 @@ namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
+use CB\Work\Domain\WorkItemStatus;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -120,11 +121,21 @@ final class Menu {
 		return add_query_arg( [ 'page' => $slug, ...$args ], admin_url( 'admin.php' ) );
 	}
 
-	public static function new_work_item_url( int $project_id = 0 ): string {
+	public static function new_work_item_url( int $project_id = 0, string $status = '' ): string {
 		$args = [ 'post_type' => PostTypes::WORK_ITEM ];
 		if ( $project_id > 0 ) {
 			$args['project_id'] = $project_id;
 		}
+
+		$status = sanitize_key( $status );
+		if (
+			'' !== $status
+			&& WorkItemStatus::is_valid( $status )
+			&& ( WorkItemStatus::PLANNED === $status || WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $status ) )
+		) {
+			$args['cb_work_status'] = $status;
+		}
+
 		return add_query_arg( $args, admin_url( 'post-new.php' ) );
 	}
 

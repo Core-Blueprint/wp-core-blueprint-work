@@ -6,6 +6,8 @@ $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $actions    = file_get_contents( $root . '/src/Admin/WorkItemBoardActions.php' );
 $module     = file_get_contents( $root . '/assets/work-items-reorder.js' );
 $css        = file_get_contents( $root . '/assets/work-admin.css' );
+$menu       = file_get_contents( $root . '/src/Admin/Menu.php' );
+$editor     = file_get_contents( $root . '/src/Admin/WorkItems.php' );
 
 $board_start  = strpos( $operations, 'private static function render_work_item_kanban(' );
 $board_end    = false === $board_start ? false : strpos( $operations, 'private static function render_work_item_calendar(', $board_start );
@@ -61,6 +63,13 @@ $checks = [
 		&& str_contains( $css, 'data-cb-core-reorder-pending' )
 		&& str_contains( $css, '.cb-work-board.is-reordering .cb-work-board__lane:has(.cb-core-reorder__drop-marker)' )
 		&& str_contains( $css, '.cb-work-board__empty-hint' ),
+
+	'Board lane add stays outside the reorder list and uses canonical create context' =>
+		str_contains( $board_source, 'cb-work-board__lane-footer' )
+		&& str_contains( $board_source, 'Menu::new_work_item_url( $lane_project_id, (string) $status )' )
+		&& str_contains( $css, '.cb-work-board__add' )
+		&& str_contains( $menu, "'cb_work_status'" )
+		&& str_contains( $editor, "WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $requested_status )" ),
 ];
 
 foreach ( $checks as $message => $passed ) {

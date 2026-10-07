@@ -77,6 +77,15 @@ final class WorkItems {
 		$priority          = is_array( $item ) ? (string) ( $item['priority'] ?? WorkItemPriority::NORMAL ) : WorkItemPriority::NORMAL;
 		$estimated_minutes = is_array( $item ) ? max( 0, (int) ( $item['estimated_minutes'] ?? 0 ) ) : 0;
 		$status            = is_array( $item ) ? (string) ( $item['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
+		if ( ! WorkItemMeta::is_initialized( (int) $post->ID ) ) {
+			$requested_status = isset( $_GET['cb_work_status'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb_work_status'] ) ) : '';
+			if (
+				WorkItemStatus::is_valid( $requested_status )
+				&& ( WorkItemStatus::PLANNED === $requested_status || WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $requested_status ) )
+			) {
+				$status = $requested_status;
+			}
+		}
 		$billing           = is_array( $item ) ? (string) ( $item['billing_disposition'] ?? '' ) : '';
 		$scheduled_on      = is_array( $item ) ? (string) ( $item['scheduled_on'] ?? '' ) : '';
 		$due_on            = is_array( $item ) ? (string) ( $item['due_on'] ?? '' ) : '';

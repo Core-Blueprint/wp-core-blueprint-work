@@ -226,6 +226,9 @@ refinement_assert(
 	&& str_contains( $board_source, "esc_html_e( 'Drop Work Items here', 'core-blueprint-work' )" )
 	&& str_contains( $operations, 'cb-work-board-actions__menu' )
 	&& str_contains( $operations, 'transition_menu_form( $item, $state, $from, $to )' )
+	&& str_contains( $board_source, 'cb-work-board__lane-footer' )
+	&& str_contains( $board_source, "esc_html_e( 'Add Work Item', 'core-blueprint-work' )" )
+	&& str_contains( $adminCss, '.cb-work-board__add' )
 	&& str_contains( $adminCss, '.cb-work-board__card-controls .cb-core-icon-control' )
 	&& str_contains( $adminCss, 'text-decoration: none !important' )
 	&& str_contains( $adminCss, '.cb-work-board.is-reordering .cb-work-board__lane:has(.cb-core-reorder__drop-marker)' ),
