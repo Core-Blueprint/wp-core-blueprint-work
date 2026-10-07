@@ -726,6 +726,19 @@
 	font-weight: var(--cb-fw-semibold);
 }
 
+.cb-work-items-calendar th:not(:last-child),
+.cb-work-items-calendar td:not(:last-child) {
+	border-inline-end: 1px solid var(--cb-work-border);
+}
+
+.cb-work-items-calendar thead th {
+	border-bottom: 1px solid var(--cb-work-border);
+}
+
+.cb-work-items-calendar tbody tr:not(:last-child) td {
+	border-bottom: 1px solid var(--cb-work-border);
+}
+
 .cb-work-calendar-day {
 	height: 112px;
 	vertical-align: top;
