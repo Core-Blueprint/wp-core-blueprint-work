@@ -2407,3 +2407,24 @@ msgstr "geen"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Gereed"
+
+msgid "Quick Edit"
+msgstr "Snel bewerken"
+
+msgid "Bulk Edit"
+msgstr "Bulk bewerken"
+
+msgid "No change"
+msgstr "Geen wijziging"
+
+msgid "Update assignees"
+msgstr "Toegewezen gebruikers bijwerken"
+
+msgid "Update selected"
+msgstr "Geselecteerde bijwerken"
+
+msgid "Save changes"
+msgstr "Wijzigingen opslaan"
+
+msgid "Work Item could not be updated."
+msgstr "Work Item kon niet worden bijgewerkt."

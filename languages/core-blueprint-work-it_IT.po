@@ -2410,3 +2410,24 @@ msgstr "nessuno"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Pronto"
+
+msgid "Quick Edit"
+msgstr "Modifica rapida"
+
+msgid "Bulk Edit"
+msgstr "Modifica multipla"
+
+msgid "No change"
+msgstr "Nessuna modifica"
+
+msgid "Update assignees"
+msgstr "Aggiorna assegnatari"
+
+msgid "Update selected"
+msgstr "Aggiorna selezionati"
+
+msgid "Save changes"
+msgstr "Salva modifiche"
+
+msgid "Work Item could not be updated."
+msgstr "Impossibile aggiornare il Work Item."

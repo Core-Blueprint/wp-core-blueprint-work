@@ -2423,3 +2423,24 @@ msgstr "aucun"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Prêt"
+
+msgid "Quick Edit"
+msgstr "Modification rapide"
+
+msgid "Bulk Edit"
+msgstr "Modification groupée"
+
+msgid "No change"
+msgstr "Aucun changement"
+
+msgid "Update assignees"
+msgstr "Mettre à jour les personnes assignées"
+
+msgid "Update selected"
+msgstr "Mettre à jour la sélection"
+
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+msgid "Work Item could not be updated."
+msgstr "Le Work Item n’a pas pu être mis à jour."

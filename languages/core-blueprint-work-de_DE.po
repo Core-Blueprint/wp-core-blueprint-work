@@ -2421,3 +2421,24 @@ msgstr "keine"
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr "Bereit"
+
+msgid "Quick Edit"
+msgstr "Schnell bearbeiten"
+
+msgid "Bulk Edit"
+msgstr "Mehrfachbearbeitung"
+
+msgid "No change"
+msgstr "Keine Änderung"
+
+msgid "Update assignees"
+msgstr "Zugewiesene Benutzer aktualisieren"
+
+msgid "Update selected"
+msgstr "Ausgewählte aktualisieren"
+
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+msgid "Work Item could not be updated."
+msgstr "Work Item konnte nicht aktualisiert werden."

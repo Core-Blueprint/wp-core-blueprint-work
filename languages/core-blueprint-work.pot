@@ -2405,3 +2405,24 @@ msgstr ""
 #: src/Support/Requirements.php:79
 msgid "Ready"
 msgstr ""
+
+msgid "Quick Edit"
+msgstr ""
+
+msgid "Bulk Edit"
+msgstr ""
+
+msgid "No change"
+msgstr ""
+
+msgid "Update assignees"
+msgstr ""
+
+msgid "Update selected"
+msgstr ""
+
+msgid "Save changes"
+msgstr ""
+
+msgid "Work Item could not be updated."
+msgstr ""
