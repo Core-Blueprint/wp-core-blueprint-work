@@ -57,18 +57,25 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $state )' )
+	str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $type_map, $state )' )
 	&& str_contains( $calendar, 'cb-work-calendar-navigation__controls' )
 	&& str_contains( $calendar, "'Today', 'core-blueprint-work'" )
 	&& str_contains( $calendar, "'Scheduled', 'core-blueprint-work'" )
 	&& str_contains( $calendar, "'Due', 'core-blueprint-work'" )
 	&& str_contains( $calendar, 'cb-work-calendar-day__summary' )
 	&& str_contains( $calendar, 'cb-work-day-card__relation' )
+	&& str_contains( $calendar, 'cb-work-board__card-heading' )
+	&& str_contains( $calendar, 'cb-work-board__context' )
+	&& str_contains( $calendar, 'cb-work-board__type' )
+	&& str_contains( $calendar, 'cb-work-board__card-controls' )
+	&& str_contains( $calendar, 'render_priority' )
+	&& str_contains( $calendar, 'render_assignee' )
 	&& ! str_contains( $adminScript, 'enhanceCalendarNavigation' )
 	&& str_contains( $adminCss, '.cb-work-calendar-navigation__controls' )
 	&& str_contains( $adminCss, '.cb-work-calendar-day__summary' )
-	&& str_contains( $adminCss, '.cb-work-day-card__relation' ),
-	'Calendar renders compact server-side month navigation and opens detailed day status boards.'
+	&& str_contains( $adminCss, '.cb-work-day-card__relation' )
+	&& str_contains( $adminCss, '.cb-work-day-card__signals' ),
+	'Calendar renders compact month navigation and Board-Golden day cards inside the modal workspace.'
 );
 
 refinement_assert(
