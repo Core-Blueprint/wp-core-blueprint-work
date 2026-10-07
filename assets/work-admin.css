@@ -43,11 +43,10 @@
 .cb-work-toolbar__head {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: var(--cb-space-3);
-	margin-bottom: var(--cb-space-3);
-	padding-bottom: var(--cb-space-3);
-	border-bottom: 1px solid var(--cb-work-border);
+	align-self: stretch;
+	min-width: 0;
+	padding-inline-end: var(--cb-space-3);
+	border-inline-end: 1px solid var(--cb-work-border);
 }
 
 .cb-work-view-switcher {
@@ -55,22 +54,23 @@
 }
 
 .cb-work-toolbar__row {
-	display: flex;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
 	align-items: center;
-	justify-content: space-between;
-	gap: var(--cb-space-4);
+	gap: var(--cb-space-3);
 }
 
 .cb-work-toolbar__primary,
 .cb-work-toolbar__search {
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	gap: var(--cb-space-2);
+	min-width: 0;
 }
 
 .cb-work-toolbar__primary {
-	flex: 1 1 auto;
+	justify-content: flex-start;
 }
 
 .cb-work-toolbar__primary select,
@@ -89,12 +89,12 @@
 }
 
 .cb-work-toolbar__search {
-	flex: 0 1 410px;
 	justify-content: flex-end;
+	white-space: nowrap;
 }
 
 .cb-work-toolbar__search input[type="search"] {
-	width: min(300px, 100%);
+	width: clamp(220px, 18vw, 300px);
 }
 
 .cb-work-clear-filters {
@@ -547,13 +547,14 @@
 
 @media screen and (max-width: 1280px) {
 	.cb-work-toolbar__row {
-		align-items: stretch;
-		flex-direction: column;
+		grid-template-columns: auto minmax(0, 1fr);
 	}
 
 	.cb-work-toolbar__search {
-		flex: 1 1 auto;
-		justify-content: flex-start;
+		grid-column: 1 / -1;
+		justify-content: flex-end;
+		padding-top: var(--cb-space-3);
+		border-top: 1px solid var(--cb-work-border);
 	}
 
 	.cb-work-toolbar__advanced-grid {
@@ -568,6 +569,22 @@
 
 	.cb-work-toolbar {
 		padding: var(--cb-space-3);
+	}
+
+	.cb-work-toolbar__row {
+		grid-template-columns: 1fr;
+	}
+
+	.cb-work-toolbar__head {
+		padding: 0 0 var(--cb-space-3);
+		border-inline-end: 0;
+		border-bottom: 1px solid var(--cb-work-border);
+	}
+
+	.cb-work-toolbar__search {
+		grid-column: auto;
+		padding-top: 0;
+		border-top: 0;
 	}
 
 	.cb-work-toolbar__primary,
