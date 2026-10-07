@@ -777,6 +777,116 @@ body.cb-admin-theme .cb-work-bulk-editor [data-cb-work-bulk-edit-submit]:disable
 	white-space: nowrap;
 }
 
+/* List Golden --------------------------------------------------------- */
+
+.cb-work-items-page--refined .cb-work-items-list {
+	display: grid;
+	width: 100%;
+	max-width: none;
+	gap: 6px;
+}
+
+.cb-work-items-page--refined .cb-work-list-item {
+	display: grid;
+	grid-template-columns: minmax(280px, 1fr) minmax(0, auto) auto;
+	align-items: center;
+	gap: 18px;
+	box-sizing: border-box;
+	min-width: 0;
+	padding: 10px 12px;
+	background: var(--cb-work-surface);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-md);
+	box-shadow: none;
+	transition: background var(--cb-work-transition), border-color var(--cb-work-transition), box-shadow var(--cb-work-transition);
+}
+
+.cb-work-items-page--refined .cb-work-list-item:hover {
+	background: color-mix(in srgb, var(--cb-work-surface-raised) 44%, var(--cb-work-surface));
+	border-color: var(--cb-interactive-border-hover);
+	box-shadow: var(--cb-shadow-sm);
+}
+
+.cb-work-list-item__main {
+	min-width: 0;
+}
+
+.cb-work-list-item__title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: var(--cb-fw-semibold);
+	line-height: 1.35;
+}
+
+.cb-work-list-item__title a {
+	text-decoration: none;
+}
+
+.cb-work-list-item__title a:hover,
+.cb-work-list-item__title a:focus-visible {
+	text-decoration: underline;
+}
+
+.cb-work-list-item__context {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 5px;
+	min-width: 0;
+	margin-top: 2px;
+	color: var(--cb-work-text-muted);
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.cb-work-list-item__context > span:first-child {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cb-work-list-item__context-divider {
+	opacity: .65;
+}
+
+.cb-work-list-item__type {
+	padding: 1px 6px;
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-pill);
+	color: var(--cb-work-text);
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.cb-work-list-item__meta {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	min-width: 0;
+}
+
+.cb-work-list-item__status,
+.cb-work-list-item__priority,
+.cb-work-list-item__due,
+.cb-work-list-item__assignee {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.cb-work-list-item__actions {
+	justify-self: end;
+}
+
+.cb-work-list-actions__menu .cb-work-transition-form--menu {
+	margin: 0;
+	padding: 0;
+	border-top: 0;
+}
+
 .cb-work-row-actions {
 	display: flex;
 	align-items: center;
@@ -949,8 +1059,8 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__menu-item
 	outline: none;
 }
 
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--menu .cb-work-row-actions__menu-item:hover,
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--menu .cb-work-row-actions__menu-item:focus-visible {
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--cancelled .cb-work-row-actions__menu-item:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--cancelled .cb-work-row-actions__menu-item:focus-visible {
 	background: var(--cb-tint-danger);
 	color: var(--cb-danger);
 }
@@ -999,9 +1109,32 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--menu 
 	.cb-work-items-page--refined .cb-work-toolbar__advanced-grid {
 		grid-template-columns: repeat(2, minmax(180px, 1fr));
 	}
+
+	.cb-work-items-page--refined .cb-work-list-item {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.cb-work-items-page--refined .cb-work-list-item__meta {
+		grid-column: 1 / -1;
+		justify-content: flex-start;
+	}
 }
 
 @media screen and (max-width: 782px) {
+	.cb-work-items-page--refined .cb-work-list-item {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
+	.cb-work-items-page--refined .cb-work-list-item__meta {
+		grid-column: auto;
+		justify-content: flex-start;
+	}
+
+	.cb-work-items-page--refined .cb-work-list-item__actions {
+		justify-self: start;
+	}
+
 	.cb-work-items-page--refined .cb-work-page-header {
 		flex-direction: column;
 		gap: var(--cb-space-3);

@@ -93,6 +93,28 @@ refinement_assert(
 	'Primary filters auto-apply and compact icon controls preserve a functional command bar.'
 );
 
+$list_start = strpos( $operations, 'private static function render_work_item_list(' );
+$list_end   = false === $list_start ? false : strpos( $operations, 'private static function render_work_item_kanban(', $list_start );
+$list_source = false !== $list_start && false !== $list_end ? substr( $operations, $list_start, $list_end - $list_start ) : '';
+
+refinement_assert(
+	'' !== $list_source
+	&& str_contains( $list_source, 'cb-work-items-list--golden' )
+	&& str_contains( $list_source, 'data-cb-work-list-item' )
+	&& str_contains( $list_source, 'StateBadge::render' )
+	&& str_contains( $list_source, 'render_work_item_priority' )
+	&& str_contains( $list_source, 'render_work_item_due' )
+	&& str_contains( $list_source, 'render_work_item_assignee' )
+	&& str_contains( $list_source, 'render_work_item_list_actions' )
+	&& ! str_contains( $list_source, 'class="postbox"' )
+	&& ! str_contains( $list_source, 'transition_buttons( $item, $state )' )
+	&& str_contains( $css, '.cb-work-items-page--refined .cb-work-items-list' )
+	&& str_contains( $css, 'max-width: none' )
+	&& str_contains( $css, '.cb-work-list-item__meta' )
+	&& str_contains( $css, '.cb-work-list-actions__menu' ),
+	'List Golden A1 uses the full workspace, compact semantic items and restrained canonical actions.'
+);
+
 refinement_assert(
 	str_contains( $operations, 'data-cb-work-tooltip' )
 	&& str_contains( $operations, "WorkItemStatus::BLOCKED     => 'dashicons-no'" )
