@@ -785,10 +785,18 @@ final class Operations {
 	 * @param array<string,mixed> $state
 	 */
 	private static function render_work_item_quick_edit_row( array $item, array $type_map, array $state, int $colspan ): void {
-		$id          = (int) $item['id'];
-		$status      = (string) ( $item['status'] ?? WorkItemStatus::PLANNED );
-		$status_list = array_values( array_unique( [ $status, ...WorkItemStatus::transitions_from( $status ) ] ) );
-		$return_args = WorkItemViewState::query_args( $state );
+		$id              = (int) $item['id'];
+		$status          = (string) ( $item['status'] ?? WorkItemStatus::PLANNED );
+		$status_list     = array_values( array_unique( [ $status, ...WorkItemStatus::transitions_from( $status ) ] ) );
+		$return_args     = WorkItemViewState::query_args( $state );
+		$current_type_id = (int) ( $item['work_type_id'] ?? 0 );
+		$quick_type_map  = $type_map;
+		if ( $current_type_id > 0 && ! isset( $quick_type_map[ $current_type_id ] ) ) {
+			$current_type = WorkTypes::get( $current_type_id );
+			if ( is_array( $current_type ) ) {
+				$quick_type_map[ $current_type_id ] = (string) ( $current_type['label'] ?? $current_type_id );
+			}
+		}
 		?>
 		<tr class="cb-work-quick-edit-row" data-cb-work-quick-edit-row="<?php echo esc_attr( (string) $id ); ?>" hidden>
 			<td colspan="<?php echo esc_attr( (string) $colspan ); ?>">
@@ -832,8 +840,8 @@ final class Operations {
 							<span><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></span>
 							<select name="work_item[work_type_id]">
 								<option value="0">—</option>
-								<?php foreach ( $type_map as $type_id => $type_label ) : ?>
-									<option value="<?php echo esc_attr( (string) $type_id ); ?>" <?php selected( (int) ( $item['work_type_id'] ?? 0 ), (int) $type_id ); ?>><?php echo esc_html( $type_label ); ?></option>
+								<?php foreach ( $quick_type_map as $type_id => $type_label ) : ?>
+									<option value="<?php echo esc_attr( (string) $type_id ); ?>" <?php selected( $current_type_id, (int) $type_id ); ?>><?php echo esc_html( $type_label ); ?></option>
 								<?php endforeach; ?>
 							</select>
 						</label>
