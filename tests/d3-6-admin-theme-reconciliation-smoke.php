@@ -7,6 +7,7 @@ $assets = file_get_contents( $root . '/src/Admin/Assets.php' );
 $css    = file_get_contents( $root . '/assets/work-admin.css' );
 $js         = file_get_contents( $root . '/assets/work-admin.js' );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$calendar   = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 $plugin     = file_get_contents( $root . '/core-blueprint-work.php' );
 
 $checks = [
@@ -22,10 +23,11 @@ $checks = [
 	'Work CSS contains no hardcoded presentation colours' => ! preg_match( '/#[0-9a-f]{3,8}\b/i', $css ) && ! preg_match( '/\brgba?\s*\(/i', $css ),
 	'Work keeps domain-specific toolbar Board and Calendar composition' => str_contains( $css, '.cb-work-toolbar' ) && str_contains( $css, '.cb-work-items-kanban' ) && str_contains( $css, '.cb-work-items-calendar' ),
 	'active filter summary is server-rendered as Work-specific UX' => str_contains( $operations, 'cb-work-filter-summary' ) && str_contains( $operations, 'cb-work-filter-chip' ) && str_contains( $css, '.cb-work-filter-chip' ) && ! str_contains( $js, 'appendSummaryChip' ),
-	'Calendar Today action is preserved as server-rendered navigation without domain persistence' => str_contains( $operations, "current_time( 'Y-m' )" )
-		&& str_contains( $operations, "'calendar_month' => \$current_month" )
-		&& str_contains( $operations, "'Today', 'core-blueprint-work'" )
-		&& str_contains( $operations, 'self::work_items_url( $state' )
+	'Calendar Today action is preserved as server-rendered navigation without domain persistence' => is_string( $calendar )
+		&& str_contains( $calendar, "current_time( 'Y-m' )" )
+		&& str_contains( $calendar, "'calendar_month' => \$current_month" )
+		&& str_contains( $calendar, "'Today', 'core-blueprint-work'" )
+		&& str_contains( $calendar, 'self::work_items_url( $state' )
 		&& ! str_contains( $js, 'enhanceCalendarNavigation' ),
 	'presentation JS does not own Admin Theme state' => ! str_contains( $js, 'cbAdminTheme' ) && ! str_contains( $js, 'data-cb-theme' ) && ! str_contains( $js, 'data-cb-mode' ) && ! str_contains( $js, 'matchMedia' ),
 	'presentation JS remains transport and storage free' => ! str_contains( $js, 'fetch(' ) && ! str_contains( $js, 'XMLHttpRequest' ) && ! str_contains( $js, 'localStorage' ) && ! str_contains( $js, 'sessionStorage' ),
