@@ -195,6 +195,27 @@ refinement_assert(
 	'Quick Edit and Bulk Edit stay server-rendered, multi-assignee aware and progressively enhanced.'
 );
 
+$board_start = strpos( $operations, 'private static function render_work_item_kanban(' );
+$board_end   = false === $board_start ? false : strpos( $operations, 'private static function render_work_item_calendar(', $board_start );
+$board_source = false !== $board_start && false !== $board_end ? substr( $operations, $board_start, $board_end - $board_start ) : '';
+
+refinement_assert(
+	'' !== $board_source
+	&& str_contains( $board_source, 'cb-work-board__title' )
+	&& str_contains( $board_source, 'cb-work-board__context' )
+	&& str_contains( $board_source, 'cb-work-board__type' )
+	&& str_contains( $board_source, 'render_work_item_priority' )
+	&& str_contains( $board_source, 'render_work_item_due' )
+	&& str_contains( $board_source, 'render_work_item_assignee' )
+	&& ! str_contains( $board_source, "esc_html_e( 'Priority:', 'core-blueprint-work' )" )
+	&& ! str_contains( $board_source, "esc_html_e( 'Customer:', 'core-blueprint-work' )" )
+	&& str_contains( $css, '.cb-work-board__title a' )
+	&& str_contains( $css, 'text-decoration: none' )
+	&& str_contains( $css, '.cb-work-board__signals' )
+	&& str_contains( $css, '.cb-work-board__lane[data-cb-work-status-lane="blocked"]' ),
+	'Board Golden B1 uses compact semantic cards, calm title links and status-aware lane composition.'
+);
+
 refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )

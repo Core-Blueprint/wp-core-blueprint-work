@@ -1563,6 +1563,10 @@ final class Operations {
 							/* translators: %s: Work Item title. */
 							$move_label = sprintf( __( 'Move %s to another status', 'core-blueprint-work' ), $title );
 							?>
+							<?php
+							$project = $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? __( 'No project', 'core-blueprint-work' );
+							$type    = $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '';
+							?>
 							<article
 								class="card cb-work-board__card"
 								data-cb-core-reorder-item="work-item:<?php echo esc_attr( (string) $item['id'] ); ?>"
@@ -1572,7 +1576,18 @@ final class Operations {
 								data-cb-work-allowed-statuses="<?php echo esc_attr( implode( ',', $allowed ) ); ?>"
 							>
 								<div class="cb-work-board__card-header">
-									<h3><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( $title ); ?></a></h3>
+									<div class="cb-work-board__card-heading">
+										<h3 class="cb-work-board__title">
+											<a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( $title ); ?></a>
+										</h3>
+										<div class="cb-work-board__context">
+											<span class="dashicons dashicons-portfolio" aria-hidden="true"></span>
+											<span class="cb-work-board__project"><?php echo esc_html( $project ); ?></span>
+										</div>
+										<?php if ( '' !== $type ) : ?>
+											<span class="cb-work-board__type"><?php echo esc_html( $type ); ?></span>
+										<?php endif; ?>
+									</div>
 									<button
 										type="button"
 										class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-board__drag-handle"
@@ -1581,13 +1596,19 @@ final class Operations {
 										title="<?php esc_attr_e( 'Move to another status', 'core-blueprint-work' ); ?>"
 									><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
 								</div>
-								<p><strong><?php esc_html_e( 'Priority:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?><br>
-								<strong><?php esc_html_e( 'Due:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( (string) ( $item['due_on'] ?: '—' ) ); ?></p>
-								<p><strong><?php esc_html_e( 'Customer:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::customer_label( $item ) ); ?><br>
-								<strong><?php esc_html_e( 'Project:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?><br>
-								<strong><?php esc_html_e( 'Type:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '—' ); ?><br>
-								<strong><?php esc_html_e( 'Assigned:', 'core-blueprint-work' ); ?></strong> <?php echo esc_html( self::assignment_label( $item['assigned_user_ids'] ?? [] ) ); ?></p>
-								<?php self::transition_buttons( $item, $state ); ?>
+
+								<div class="cb-work-board__signals">
+									<span class="cb-work-board__priority"><?php self::render_work_item_priority( (string) ( $item['priority'] ?? '' ) ); ?></span>
+									<span class="cb-work-board__due"><?php self::render_work_item_due( (string) ( $item['due_on'] ?? '' ) ); ?></span>
+								</div>
+
+								<div class="cb-work-board__footer">
+									<span class="cb-work-board__assignee"><?php self::render_work_item_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></span>
+								</div>
+
+								<div class="cb-work-board__status-actions">
+									<?php self::transition_buttons( $item, $state ); ?>
+								</div>
 							</article>
 						<?php endforeach; ?>
 					</div>

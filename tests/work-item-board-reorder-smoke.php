@@ -20,7 +20,15 @@ $checks = [
 		&& str_contains( $operations, 'data-cb-work-allowed-statuses' ),
 
 	'Board keeps canonical non-pointer status controls' =>
-		str_contains( $operations, 'self::transition_buttons( $item, $state )' ),
+		str_contains( $operations, 'self::transition_buttons( $item, $state )' )
+		&& str_contains( $operations, 'cb-work-board__status-actions' ),
+
+	'Board B1 cards reuse Golden semantic renderers instead of legacy label stacks' =>
+		str_contains( $operations, 'cb-work-board__context' )
+		&& str_contains( $operations, 'self::render_work_item_priority' )
+		&& str_contains( $operations, 'self::render_work_item_due' )
+		&& str_contains( $operations, 'self::render_work_item_assignee' )
+		&& ! str_contains( $operations, "<strong><?php esc_html_e( 'Priority:', 'core-blueprint-work' ); ?></strong>" ),
 
 	'Board AJAX validates domain transition and uses canonical repository lifecycle' =>
 		str_contains( $actions, 'WorkItemStatus::can_transition' )
