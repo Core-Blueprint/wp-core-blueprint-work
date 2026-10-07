@@ -27,7 +27,6 @@ final class WorkItemTablePreferences {
 			'work_item',
 			'status',
 			'priority',
-			'project',
 			'due',
 			'assigned',
 			'actions',
