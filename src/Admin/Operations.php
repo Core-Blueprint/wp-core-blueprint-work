@@ -425,8 +425,8 @@ final class Operations {
 							echo esc_html(
 								$advanced_count > 0
 									? sprintf(
-										/* translators: %d: number of active advanced filters. */
-										__( 'Filters (%d)', 'core-blueprint-work' ),
+										'%1$s (%2$d)',
+										__( 'Filters', 'core-blueprint-work' ),
 										$advanced_count
 									)
 									: __( 'Filters', 'core-blueprint-work' )
@@ -534,7 +534,7 @@ final class Operations {
 									<label class="screen-reader-text" for="cb-work-filter-scheduled-from"><?php esc_html_e( 'Scheduled from', 'core-blueprint-work' ); ?></label>
 									<input id="cb-work-filter-scheduled-from" type="date" name="scheduled_from" value="<?php echo esc_attr( (string) $state['scheduled_from'] ); ?>">
 									<span class="cb-work-filter-range__separator"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></span>
-									<label class="screen-reader-text" for="cb-work-filter-scheduled-to"><?php esc_html_e( 'Scheduled to', 'core-blueprint-work' ); ?></label>
+									<label class="screen-reader-text" for="cb-work-filter-scheduled-to"><?php echo esc_html( __( 'Scheduled', 'core-blueprint-work' ) . ' ' . __( 'to', 'core-blueprint-work' ) ); ?></label>
 									<input id="cb-work-filter-scheduled-to" type="date" name="scheduled_to" value="<?php echo esc_attr( (string) $state['scheduled_to'] ); ?>">
 								</div>
 							</div>
@@ -545,7 +545,7 @@ final class Operations {
 								<label class="screen-reader-text" for="cb-work-filter-due-from"><?php esc_html_e( 'Due from', 'core-blueprint-work' ); ?></label>
 								<input id="cb-work-filter-due-from" type="date" name="due_from" value="<?php echo esc_attr( (string) $state['due_from'] ); ?>">
 								<span class="cb-work-filter-range__separator"><?php esc_html_e( 'to', 'core-blueprint-work' ); ?></span>
-								<label class="screen-reader-text" for="cb-work-filter-due-to"><?php esc_html_e( 'Due to', 'core-blueprint-work' ); ?></label>
+								<label class="screen-reader-text" for="cb-work-filter-due-to"><?php echo esc_html( __( 'Due', 'core-blueprint-work' ) . ' ' . __( 'to', 'core-blueprint-work' ) ); ?></label>
 								<input id="cb-work-filter-due-to" type="date" name="due_to" value="<?php echo esc_attr( (string) $state['due_to'] ); ?>">
 							</div>
 						</div>
