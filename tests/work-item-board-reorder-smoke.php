@@ -69,7 +69,7 @@ $checks = [
 		&& str_contains( $board_source, 'Menu::new_work_item_url( $lane_project_id, (string) $status )' )
 		&& str_contains( $css, '.cb-work-board__add' )
 		&& str_contains( $menu, "'cb_work_status'" )
-		&& str_contains( $editor, "WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $requested_status )" ),
+		&& str_contains( $editor, 'WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $requested_status )' ),
 ];
 
 foreach ( $checks as $message => $passed ) {
