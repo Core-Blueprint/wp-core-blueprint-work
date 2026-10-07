@@ -783,21 +783,33 @@
 	color: var(--cb-work-text-muted);
 }
 
+.cb-work-day-board__viewport {
+	width: 100%;
+	overflow-x: auto;
+	overscroll-behavior-inline: contain;
+	padding-bottom: var(--cb-space-1);
+}
+
 .cb-work-day-board {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(320px, 1fr));
 	gap: var(--cb-space-3);
 	align-items: start;
+	min-width: 1000px;
 }
 
 .cb-work-day-board .cb-work-board__lane {
-	min-width: 0;
+	min-width: 320px;
 	margin: 0;
 }
 
 .cb-work-day-board .cb-work-board__lane > .hndle {
+	position: sticky;
+	top: 0;
+	z-index: 2;
 	padding: var(--cb-space-2) var(--cb-space-3);
 	font-size: var(--cb-fs-md);
+	background: var(--cb-work-surface-raised);
 }
 
 .cb-work-day-board .cb-work-board__lane > .inside {
@@ -859,12 +871,6 @@
 
 .cb-work-day-modal__closed ul {
 	margin-bottom: 0;
-}
-
-@media screen and (max-width: 900px) {
-	.cb-work-day-board {
-		grid-template-columns: 1fr;
-	}
 }
 
 /* Non-JS fallback keeps the original server-rendered form usable. */
