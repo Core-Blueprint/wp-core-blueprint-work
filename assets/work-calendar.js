@@ -47,7 +47,8 @@ const openDayModal = (trigger) => {
 		body,
 		dismissOnly: true,
 		confirmLabel: String(calendar?.dataset.closeLabel || 'Close'),
-		size: 'wide',
+		size: 'workspace',
+		expandable: true,
 	});
 
 	const board = body.querySelector('[data-cb-work-board-reorder]');
