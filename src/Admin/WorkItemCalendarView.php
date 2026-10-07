@@ -171,18 +171,20 @@ final class WorkItemCalendarView {
 			<div class="cb-work-day-modal">
 				<p class="cb-work-day-modal__summary"><?php echo esc_html( (string) count( $day_entries ) ); ?> <?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></p>
 
-				<div
-					class="cb-work-day-board cb-work-board"
-					data-cb-work-board-reorder
-					data-cb-core-reorder
-					data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
-					data-action="<?php echo esc_attr( WorkItemBoardActions::ACTION ); ?>"
-					data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemBoardActions::NONCE_ACTION ) ); ?>"
-					data-error="<?php echo esc_attr__( 'The Work Item status could not be updated.', 'core-blueprint-work' ); ?>"
-				>
+				<div class="cb-work-day-board__viewport cb-scrollbar">
+					<div
+						class="cb-work-day-board cb-work-board"
+						data-cb-work-board-reorder
+						data-cb-core-reorder
+						data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+						data-action="<?php echo esc_attr( WorkItemBoardActions::ACTION ); ?>"
+						data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemBoardActions::NONCE_ACTION ) ); ?>"
+						data-error="<?php echo esc_attr__( 'The Work Item status could not be updated.', 'core-blueprint-work' ); ?>"
+					>
 					<?php foreach ( $active_lanes as $status => $lane_entries ) : ?>
 						<?php self::render_active_lane( (string) $status, $lane_entries, $project_map ); ?>
 					<?php endforeach; ?>
+					</div>
 				</div>
 
 				<?php if ( [] !== $closed_entries ) : ?>
