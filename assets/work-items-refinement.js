@@ -31,12 +31,7 @@
 		return input ? String( input.value || '' ).trim() : '';
 	}
 
-	function picker( form, id ) {
-		const input = form.querySelector( '#' + id );
-		return input ? input.closest( '.cb-core-object-picker' ) : null;
-	}
-
-	function statusFromLane( lane, strings ) {
+function statusFromLane( lane, strings ) {
 		const heading = lane.querySelector( '.hndle' );
 		if ( ! heading ) {
 			return '';
