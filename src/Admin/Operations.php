@@ -177,7 +177,6 @@ final class Operations {
 							</form>
 						</td>
 					</tr>
-					<?php self::render_work_item_quick_edit_row( $item, $type_map, $state, count( $preferences['order'] ) + 1 ); ?>
 				<?php endforeach; ?>
 				</tbody></table>
 			<?php endif; ?>
@@ -770,6 +769,7 @@ final class Operations {
 							</td>
 						<?php endforeach; ?>
 					</tr>
+					<?php self::render_work_item_quick_edit_row( $item, $type_map, $state, count( $preferences['order'] ) + 1 ); ?>
 				<?php endforeach; ?>
 				</tbody>
 			</table>
