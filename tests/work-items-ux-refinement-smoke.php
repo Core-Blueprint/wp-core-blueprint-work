@@ -8,6 +8,7 @@ $state     = file_get_contents( $root . '/src/Admin/WorkItemViewState.php' );
 $script      = file_get_contents( $root . '/assets/work-items-refinement.js' );
 $css         = file_get_contents( $root . '/assets/work-items-refinement.css' );
 $operations  = file_get_contents( $root . '/src/Admin/Operations.php' );
+$calendar    = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 $adminScript = file_get_contents( $root . '/assets/work-admin.js' );
 $adminCss    = file_get_contents( $root . '/assets/work-admin.css' );
 
@@ -19,7 +20,7 @@ function refinement_assert( bool $condition, string $message ): void {
 }
 
 refinement_assert(
-	false !== $assets && false !== $workspace && false !== $state && false !== $script && false !== $css && false !== $operations && false !== $adminScript && false !== $adminCss,
+	false !== $assets && false !== $workspace && false !== $state && false !== $script && false !== $css && false !== $operations && false !== $calendar && false !== $adminScript && false !== $adminCss,
 	'Refinement source files are readable.'
 );
 
@@ -56,15 +57,18 @@ refinement_assert(
 );
 
 refinement_assert(
-	str_contains( $operations, 'cb-work-calendar-navigation__controls' )
-	&& str_contains( $operations, "'Today', 'core-blueprint-work'" )
-	&& str_contains( $operations, "'Scheduled', 'core-blueprint-work'" )
-	&& str_contains( $operations, "'Due', 'core-blueprint-work'" )
-	&& str_contains( $operations, 'cb-work-calendar-entry--' )
+	str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $state )' )
+	&& str_contains( $calendar, 'cb-work-calendar-navigation__controls' )
+	&& str_contains( $calendar, "'Today', 'core-blueprint-work'" )
+	&& str_contains( $calendar, "'Scheduled', 'core-blueprint-work'" )
+	&& str_contains( $calendar, "'Due', 'core-blueprint-work'" )
+	&& str_contains( $calendar, 'cb-work-calendar-day__summary' )
+	&& str_contains( $calendar, 'cb-work-day-card__relation' )
 	&& ! str_contains( $adminScript, 'enhanceCalendarNavigation' )
 	&& str_contains( $adminCss, '.cb-work-calendar-navigation__controls' )
-	&& str_contains( $adminCss, '.cb-work-calendar-entry--due' ),
-	'Calendar renders aligned server-side navigation and distinguishes scheduled work from deadlines.'
+	&& str_contains( $adminCss, '.cb-work-calendar-day__summary' )
+	&& str_contains( $adminCss, '.cb-work-day-card__relation' ),
+	'Calendar renders compact server-side month navigation and opens detailed day status boards.'
 );
 
 refinement_assert(
