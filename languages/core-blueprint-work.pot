@@ -2436,3 +2436,27 @@ msgstr ""
 
 msgid "Alternating rows"
 msgstr ""
+
+msgid "A–Z"
+msgstr ""
+
+msgid "Group by"
+msgstr ""
+
+msgid "List display"
+msgstr ""
+
+msgid "List display preferences could not be saved."
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Project order"
+msgstr ""
+
+msgid "The list preference payload is invalid."
+msgstr ""
+
+msgid "Z–A"
+msgstr ""

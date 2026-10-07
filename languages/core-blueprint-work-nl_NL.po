@@ -2438,3 +2438,27 @@ msgstr "Ruim"
 
 msgid "Alternating rows"
 msgstr "Afwisselende rijen"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Group by"
+msgstr "Groeperen op"
+
+msgid "List display"
+msgstr "Lijstweergave"
+
+msgid "List display preferences could not be saved."
+msgstr "Voorkeuren voor lijstweergave konden niet worden opgeslagen."
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Project order"
+msgstr "Projectvolgorde"
+
+msgid "The list preference payload is invalid."
+msgstr "De payload voor lijstvoorkeuren is ongeldig."
+
+msgid "Z–A"
+msgstr "Z–A"

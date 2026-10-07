@@ -2452,3 +2452,27 @@ msgstr "Großzügig"
 
 msgid "Alternating rows"
 msgstr "Abwechselnde Zeilen"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Group by"
+msgstr "Gruppieren nach"
+
+msgid "List display"
+msgstr "Listenansicht"
+
+msgid "List display preferences could not be saved."
+msgstr "Die Einstellungen der Listenansicht konnten nicht gespeichert werden."
+
+msgid "None"
+msgstr "Keine"
+
+msgid "Project order"
+msgstr "Projektreihenfolge"
+
+msgid "The list preference payload is invalid."
+msgstr "Die Daten für die Listeneinstellungen sind ungültig."
+
+msgid "Z–A"
+msgstr "Z–A"

@@ -2455,3 +2455,27 @@ msgstr "Espaciosa"
 
 msgid "Alternating rows"
 msgstr "Filas alternas"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Group by"
+msgstr "Agrupar por"
+
+msgid "List display"
+msgstr "Vista de lista"
+
+msgid "List display preferences could not be saved."
+msgstr "No se pudieron guardar las preferencias de visualización de la lista."
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "Project order"
+msgstr "Orden de proyectos"
+
+msgid "The list preference payload is invalid."
+msgstr "Los datos de las preferencias de lista no son válidos."
+
+msgid "Z–A"
+msgstr "Z–A"

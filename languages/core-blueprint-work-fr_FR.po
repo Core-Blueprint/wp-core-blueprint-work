@@ -2454,3 +2454,27 @@ msgstr "Aérée"
 
 msgid "Alternating rows"
 msgstr "Lignes alternées"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Group by"
+msgstr "Grouper par"
+
+msgid "List display"
+msgstr "Affichage de la liste"
+
+msgid "List display preferences could not be saved."
+msgstr "Les préférences d’affichage de la liste n’ont pas pu être enregistrées."
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "Project order"
+msgstr "Ordre des projets"
+
+msgid "The list preference payload is invalid."
+msgstr "Les données des préférences de liste ne sont pas valides."
+
+msgid "Z–A"
+msgstr "Z–A"

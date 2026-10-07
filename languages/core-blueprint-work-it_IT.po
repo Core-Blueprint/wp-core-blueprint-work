@@ -2441,3 +2441,27 @@ msgstr "Spaziosa"
 
 msgid "Alternating rows"
 msgstr "Righe alternate"
+
+msgid "A–Z"
+msgstr "A–Z"
+
+msgid "Group by"
+msgstr "Raggruppa per"
+
+msgid "List display"
+msgstr "Visualizzazione elenco"
+
+msgid "List display preferences could not be saved."
+msgstr "Impossibile salvare le preferenze di visualizzazione elenco."
+
+msgid "None"
+msgstr "Nessuno"
+
+msgid "Project order"
+msgstr "Ordine progetti"
+
+msgid "The list preference payload is invalid."
+msgstr "I dati delle preferenze elenco non sono validi."
+
+msgid "Z–A"
+msgstr "Z–A"
