@@ -14,7 +14,7 @@ $checks = [
 		&& str_contains( $actions, 'WorkItems::transition_status( $id, $status, $actor )' )
 		&& str_contains( $actions, "Events::WORK_ITEM_STATUS_CHANGED" )
 		&& str_contains( $actions, "'bulk' => true" ),
-	'bulk transition returns through canonical Work Item view state' => str_contains( $actions, "self::redirect_work_items( $updated > 0 ? 'work-item-transitioned' : 'work-item-transition-invalid' )" )
+	'bulk transition returns through canonical Work Item view state' => str_contains( $actions, 'self::redirect_work_items( $updated > 0 ? \'work-item-transitioned\' : \'work-item-transition-invalid\' )' )
 		&& str_contains( $actions, 'WorkItemViewState::from_request( $return_state )' )
 		&& str_contains( $actions, 'WorkItemViewState::query_args( $state )' ),
 	'table selection is associated with the external bulk form without nesting action forms' => is_string( $operations )
