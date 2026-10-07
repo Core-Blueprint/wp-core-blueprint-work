@@ -83,6 +83,30 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $operations, 'data-cb-work-auto-submit' )
+	&& str_contains( $operations, 'dashicons-filter' )
+	&& str_contains( $operations, 'cb-work-search-submit' )
+	&& str_contains( $operations, 'cb-work-view-switcher__option' )
+	&& str_contains( $adminScript, 'form.requestSubmit()' )
+	&& str_contains( $css, '.cb-work-search-submit' )
+	&& str_contains( $css, '.cb-work-view-switcher__option' ),
+	'Primary filters auto-apply and compact icon controls preserve a functional command bar.'
+);
+
+refinement_assert(
+	str_contains( $operations, 'cb-work-item-cell__context' )
+	&& str_contains( $operations, 'StateBadge::render' )
+	&& str_contains( $operations, 'human_time_diff' )
+	&& str_contains( $operations, 'transition_icon_buttons' )
+	&& str_contains( $css, '.cb-work-status-badge' )
+	&& str_contains( $css, '.cb-work-priority' )
+	&& str_contains( $css, '.cb-work-due' )
+	&& str_contains( $css, '.cb-work-assignee' )
+	&& str_contains( $css, '.cb-work-row-actions' ),
+	'Table Golden renders semantic Work Item context, status, priority, due, assignee and compact transitions.'
+);
+
+refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
 	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
