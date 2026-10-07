@@ -20,7 +20,7 @@ $checks = [
 		&& str_contains( $operations, 'render_work_item_list(' )
 		&& str_contains( $operations, 'render_work_item_kanban(' )
 		&& str_contains( $operations, 'render_work_item_calendar(' ),
-	'Kanban is a renderer over canonical status and the existing result set' => str_contains( $operations, '$lanes = array_fill_keys( WorkItemStatus::all(), [] );' )
+	'Kanban is a renderer over canonical status and the existing result set' => str_contains( $operations, 'array_fill_keys( WorkItemStatus::all(), [] )' )
 		&& str_contains( $operations, '$lanes[ $status ][] = $item;' )
 		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
 		&& str_contains( $operations, 'self::render_work_item_board_actions( $item, $state )' )
