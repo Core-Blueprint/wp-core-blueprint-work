@@ -26,6 +26,7 @@ final class Assets {
 	private const QUICK_ADD_SCRIPT_HANDLE  = 'cb-work-quick-add';
 	private const FAST_PATH_SCRIPT_HANDLE  = 'cb-work-fast-paths';
 	private const REFINEMENT_SCRIPT_HANDLE = 'cb-work-items-refinement';
+	private const CALENDAR_SCRIPT_HANDLE   = '@cb-work/work-calendar';
 
 	public static function init(): void {
 		add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
@@ -61,6 +62,9 @@ final class Assets {
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
 		self::enqueue_reorder_assets();
+		if ( WorkItemViewState::VIEW_CALENDAR === ( isset( $_GET['view'] ) ? sanitize_key( (string) wp_unslash( $_GET['view'] ) ) : '' ) ) {
+			self::enqueue_calendar_assets();
+		}
 	}
 
 	public static function enqueue_project_list_action(): void {
@@ -234,6 +238,24 @@ final class Assets {
 			'@cb-work/work-items-reorder',
 			CB_WORK_URL . 'assets/work-items-reorder.js',
 			[ '@cb-core/reorder' ],
+			$version
+		);
+	}
+
+
+	private static function enqueue_calendar_assets(): void {
+		\CoreBlueprint\Core\UI\Assets::enqueue_modals( \CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_CORE );
+
+		$file = CB_WORK_DIR . 'assets/work-calendar.js';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_script_module(
+			self::CALENDAR_SCRIPT_HANDLE,
+			CB_WORK_URL . 'assets/work-calendar.js',
+			[ '@cb-core/modal', '@cb-work/work-items-reorder' ],
 			$version
 		);
 	}
