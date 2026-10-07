@@ -2435,3 +2435,19 @@ msgstr "Dettagli per %s"
 #: src/Admin/Operations.php
 msgid "Drop Work Items here"
 msgstr "Rilascia qui i Work Item"
+
+#: src/Admin/Operations.php
+msgid "Default"
+msgstr "Predefinito"
+
+#: src/Admin/Operations.php
+msgid "Reset to defaults"
+msgstr "Ripristina impostazioni predefinite"
+
+#: src/Admin/WorkItemViewPreferences.php
+msgid "The Work Item view preference payload is invalid."
+msgstr "Il payload delle preferenze di visualizzazione dei Work Item non è valido."
+
+#: src/Admin/Operations.php
+msgid "The Work Item view preferences could not be saved."
+msgstr "Impossibile salvare le preferenze di visualizzazione dei Work Item."
