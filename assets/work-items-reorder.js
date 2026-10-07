@@ -244,6 +244,121 @@ const initTablePreferences = (root) => {
 document.querySelectorAll('[data-cb-work-table-preferences]').forEach(initTablePreferences);
 
 
+const listDisplayPolicy = (root) => {
+	const group = root.querySelector('[data-cb-work-list-group][aria-checked="true"]');
+	const order = root.querySelector('[data-cb-work-list-project-order][aria-checked="true"]');
+	return {
+		group_by: group instanceof HTMLElement ? String(group.dataset.cbWorkListGroup || 'project') : 'project',
+		project_order: order instanceof HTMLElement ? String(order.dataset.cbWorkListProjectOrder || 'asc') : 'asc',
+	};
+};
+
+const syncListDisplay = (root, policy) => {
+	root.querySelectorAll('[data-cb-work-list-group]').forEach((button) => {
+		button.setAttribute(
+			'aria-checked',
+			String(button.dataset.cbWorkListGroup || '') === String(policy.group_by || 'project') ? 'true' : 'false'
+		);
+	});
+	root.querySelectorAll('[data-cb-work-list-project-order]').forEach((button) => {
+		button.setAttribute(
+			'aria-checked',
+			String(button.dataset.cbWorkListProjectOrder || '') === String(policy.project_order || 'asc') ? 'true' : 'false'
+		);
+	});
+	const orderSection = root.querySelector('[data-cb-work-list-project-order-section]');
+	if (orderSection instanceof HTMLElement) {
+		orderSection.hidden = String(policy.group_by || 'project') !== 'project';
+	}
+};
+
+const persistListDisplay = async (root, policy) => {
+	const body = new FormData();
+	body.set('action', root.dataset.action || '');
+	body.set('nonce', root.dataset.nonce || '');
+	body.set('policy', JSON.stringify(policy));
+
+	const response = await fetch(root.dataset.ajaxUrl || '', {
+		method: 'POST',
+		credentials: 'same-origin',
+		body,
+	});
+	const payload = await response.json().catch(() => null);
+	if (!response.ok || !payload?.success || !payload?.data?.policy) {
+		throw new Error(payload?.data?.message || root.dataset.error || 'List display preferences could not be saved.');
+	}
+	return payload.data.policy;
+};
+
+const initListDisplay = (root) => {
+	const toggle = root.querySelector('[data-cb-work-list-display-toggle]');
+	const panel = root.querySelector('[data-cb-work-list-display-panel]');
+	const groupButtons = [...root.querySelectorAll('[data-cb-work-list-group]')];
+	const orderButtons = [...root.querySelectorAll('[data-cb-work-list-project-order]')];
+
+	if (!(toggle instanceof HTMLButtonElement) || !(panel instanceof HTMLElement)) return;
+
+	let currentPolicy = listDisplayPolicy(root);
+
+	const saveSelection = async (buttons, selected) => {
+		buttons.forEach((button) => {
+			button.setAttribute('aria-checked', button === selected ? 'true' : 'false');
+		});
+		syncListDisplay(root, listDisplayPolicy(root));
+		try {
+			currentPolicy = await persistListDisplay(root, listDisplayPolicy(root));
+			syncListDisplay(root, currentPolicy);
+			window.location.reload();
+		} catch (error) {
+			syncListDisplay(root, currentPolicy);
+			window.alert(error instanceof Error ? error.message : root.dataset.error || '');
+		}
+	};
+
+	groupButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			void saveSelection(groupButtons, button);
+		});
+	});
+	orderButtons.forEach((button) => {
+		button.addEventListener('click', () => {
+			void saveSelection(orderButtons, button);
+		});
+	});
+
+	const close = (restoreFocus = false) => {
+		if (panel.hidden) return;
+		panel.hidden = true;
+		toggle.setAttribute('aria-expanded', 'false');
+		if (restoreFocus) toggle.focus({ preventScroll: true });
+	};
+
+	toggle.addEventListener('click', () => {
+		const opening = panel.hidden;
+		panel.hidden = !opening;
+		toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+		if (opening) {
+			panel.querySelector('[aria-checked="true"]')?.focus({ preventScroll: true });
+		}
+	});
+
+	document.addEventListener('click', (event) => {
+		if (panel.hidden || !(event.target instanceof Node) || root.contains(event.target)) return;
+		close();
+	});
+
+	panel.addEventListener('keydown', (event) => {
+		if (event.key !== 'Escape') return;
+		event.preventDefault();
+		close(true);
+	});
+
+	syncListDisplay(root, currentPolicy);
+};
+
+document.querySelectorAll('[data-cb-work-list-display]').forEach(initListDisplay);
+
+
 const boardCardByReorderId = (root, itemId) => [...root.querySelectorAll('[data-cb-core-reorder-item]')]
 	.find((item) => String(item.dataset.cbCoreReorderItem || '') === itemId) || null;
 

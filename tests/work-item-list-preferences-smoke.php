@@ -44,13 +44,15 @@ namespace {
 
 	$plugin     = file_get_contents( dirname( __DIR__ ) . '/src/Plugin.php' );
 	$operations = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Operations.php' );
-	$script     = file_get_contents( dirname( __DIR__ ) . '/assets/work-admin.js' );
-	$css        = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-refinement.css' );
+	$presentation = file_get_contents( dirname( __DIR__ ) . '/assets/work-admin.js' );
+	$operations_js = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-reorder.js' );
+	$css          = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-refinement.css' );
 
 	if (
 		! is_string( $plugin )
 		|| ! is_string( $operations )
-		|| ! is_string( $script )
+		|| ! is_string( $presentation )
+		|| ! is_string( $operations_js )
 		|| ! is_string( $css )
 		|| ! str_contains( $plugin, 'WorkItemListPreferences::init()' )
 		|| ! str_contains( $operations, 'data-cb-work-list-display' )
@@ -60,9 +62,12 @@ namespace {
 		|| ! str_contains( $operations, "WorkItemListPreferences::GROUP_PROJECT" )
 		|| ! str_contains( $operations, "WorkItemListPreferences::ORDER_DESC" )
 		|| ! str_contains( $operations, "'No project', 'core-blueprint-work'" )
-		|| ! str_contains( $script, 'initListDisplay' )
-		|| ! str_contains( $script, "window.location.reload()" )
-		|| ! str_contains( $script, "event.key !== 'Escape'" )
+		|| str_contains( $presentation, 'fetch(' )
+		|| str_contains( $presentation, 'initListDisplay' )
+		|| ! str_contains( $operations_js, 'initListDisplay' )
+		|| ! str_contains( $operations_js, 'persistListDisplay' )
+		|| ! str_contains( $operations_js, "window.location.reload()" )
+		|| ! str_contains( $operations_js, "event.key !== 'Escape'" )
 		|| ! str_contains( $css, '.cb-work-list-group__header' )
 		|| ! str_contains( $css, '.cb-work-list-display__menu' )
 	) {
