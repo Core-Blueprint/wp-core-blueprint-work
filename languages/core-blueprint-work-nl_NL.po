@@ -2432,3 +2432,19 @@ msgstr "Details voor %s"
 #: src/Admin/Operations.php
 msgid "Drop Work Items here"
 msgstr "Sleep Work Items hierheen"
+
+#: src/Admin/Operations.php
+msgid "Default"
+msgstr "Standaard"
+
+#: src/Admin/Operations.php
+msgid "Reset to defaults"
+msgstr "Standaardinstellingen herstellen"
+
+#: src/Admin/WorkItemViewPreferences.php
+msgid "The Work Item view preference payload is invalid."
+msgstr "De payload voor de Work Item-weergavevoorkeur is ongeldig."
+
+#: src/Admin/Operations.php
+msgid "The Work Item view preferences could not be saved."
+msgstr "De voorkeuren voor de Work Item-weergave konden niet worden opgeslagen."
