@@ -2446,3 +2446,19 @@ msgstr "Details für %s"
 #: src/Admin/Operations.php
 msgid "Drop Work Items here"
 msgstr "Work Items hierher ziehen"
+
+#: src/Admin/Operations.php
+msgid "Default"
+msgstr "Standard"
+
+#: src/Admin/Operations.php
+msgid "Reset to defaults"
+msgstr "Auf Standardwerte zurücksetzen"
+
+#: src/Admin/WorkItemViewPreferences.php
+msgid "The Work Item view preference payload is invalid."
+msgstr "Die Nutzlast für die Work-Item-Ansichtseinstellung ist ungültig."
+
+#: src/Admin/Operations.php
+msgid "The Work Item view preferences could not be saved."
+msgstr "Die Einstellungen für die Work-Item-Ansicht konnten nicht gespeichert werden."
