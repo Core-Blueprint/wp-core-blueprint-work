@@ -170,6 +170,92 @@ function statusFromLane( lane, strings ) {
 		navigation.insertAdjacentElement( 'afterend', note );
 	}
 
+	function initListProgressiveDisclosure( page ) {
+		const itemToggles = [ ...page.querySelectorAll( '[data-cb-work-list-item-toggle]' ) ];
+
+		const closeItem = function ( toggle, restoreFocus = false ) {
+			if ( ! ( toggle instanceof HTMLButtonElement ) ) {
+				return;
+			}
+			const panelId = toggle.getAttribute( 'aria-controls' ) || '';
+			const panel = panelId ? document.getElementById( panelId ) : null;
+			const item = toggle.closest( '[data-cb-work-list-item]' );
+			toggle.setAttribute( 'aria-expanded', 'false' );
+			if ( panel instanceof HTMLElement ) {
+				panel.hidden = true;
+			}
+			item?.classList.remove( 'is-expanded' );
+			if ( restoreFocus ) {
+				toggle.focus( { preventScroll: true } );
+			}
+		};
+
+		const openItem = function ( toggle ) {
+			if ( ! ( toggle instanceof HTMLButtonElement ) ) {
+				return;
+			}
+			itemToggles.forEach( function ( candidate ) {
+				if ( candidate !== toggle && candidate.getAttribute( 'aria-expanded' ) === 'true' ) {
+					closeItem( candidate );
+				}
+			} );
+			const panelId = toggle.getAttribute( 'aria-controls' ) || '';
+			const panel = panelId ? document.getElementById( panelId ) : null;
+			const item = toggle.closest( '[data-cb-work-list-item]' );
+			toggle.setAttribute( 'aria-expanded', 'true' );
+			if ( panel instanceof HTMLElement ) {
+				panel.hidden = false;
+			}
+			item?.classList.add( 'is-expanded' );
+		};
+
+		itemToggles.forEach( function ( toggle ) {
+			if ( ! ( toggle instanceof HTMLButtonElement ) ) {
+				return;
+			}
+			toggle.addEventListener( 'click', function () {
+				if ( toggle.getAttribute( 'aria-expanded' ) === 'true' ) {
+					closeItem( toggle );
+					return;
+				}
+				openItem( toggle );
+			} );
+
+			const panelId = toggle.getAttribute( 'aria-controls' ) || '';
+			const panel = panelId ? document.getElementById( panelId ) : null;
+			panel?.addEventListener( 'keydown', function ( event ) {
+				if ( event.key !== 'Escape' ) {
+					return;
+				}
+				event.preventDefault();
+				closeItem( toggle, true );
+			} );
+		} );
+
+		page.querySelectorAll( '[data-cb-work-list-group-toggle]' ).forEach( function ( toggle ) {
+			if ( ! ( toggle instanceof HTMLButtonElement ) ) {
+				return;
+			}
+			const panelId = toggle.getAttribute( 'aria-controls' ) || '';
+			const panel = panelId ? document.getElementById( panelId ) : null;
+			const group = toggle.closest( '[data-cb-work-list-group]' );
+			if ( ! ( panel instanceof HTMLElement ) ) {
+				return;
+			}
+			toggle.addEventListener( 'click', function () {
+				const opening = toggle.getAttribute( 'aria-expanded' ) !== 'true';
+				toggle.setAttribute( 'aria-expanded', opening ? 'true' : 'false' );
+				panel.hidden = ! opening;
+				group?.classList.toggle( 'is-collapsed', ! opening );
+				if ( ! opening ) {
+					panel.querySelectorAll( '[data-cb-work-list-item-toggle][aria-expanded="true"]' ).forEach( function ( itemToggle ) {
+						closeItem( itemToggle );
+					} );
+				}
+			} );
+		} );
+	}
+
 	function init() {
 		const page = document.querySelector( '.cb-work-items-page' );
 		const form = page ? page.querySelector( '.cb-work-items-filters' ) : null;
@@ -179,6 +265,7 @@ function statusFromLane( lane, strings ) {
 		const strings = window.cbWorkAdminUx || {};
 		refineBoard( page, form, strings );
 		refineCalendar( page, form, strings );
+		initListProgressiveDisclosure( page );
 	}
 
 	ready( init );

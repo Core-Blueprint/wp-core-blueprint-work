@@ -109,6 +109,13 @@ refinement_assert(
 	&& str_contains( $list_source, 'render_work_item_due' )
 	&& str_contains( $list_source, 'render_work_item_assignee' )
 	&& str_contains( $list_source, 'render_work_item_list_actions' )
+	&& str_contains( $list_source, 'render_work_item_list_details' )
+	&& str_contains( $list_source, 'data-cb-work-list-item-toggle' )
+	&& str_contains( $list_source, 'data-cb-work-list-item-details' )
+	&& str_contains( $list_source, 'data-cb-work-list-group-toggle' )
+	&& str_contains( $list_source, 'data-cb-work-list-group-items' )
+	&& str_contains( $list_source, "esc_html_e( 'Description', 'core-blueprint-work' )" )
+	&& str_contains( $list_source, "esc_html_e( 'Edit Work Item', 'core-blueprint-work' )" )
 	&& ! str_contains( $list_source, 'class="postbox"' )
 	&& ! str_contains( $list_source, 'transition_buttons( $item, $state )' )
 	&& str_contains( $css, '.cb-work-items-page--refined .cb-work-items-list' )
@@ -122,8 +129,14 @@ refinement_assert(
 	&& str_contains( $css, 'gap: var(--cb-space-5)' )
 	&& str_contains( $css, '.cb-work-list-group__header' )
 	&& str_contains( $css, 'box-shadow: inset 2px 0 0 color-mix' )
-	&& str_contains( $css, '.cb-work-list-actions__menu' ),
-	'List Golden A1 uses the full workspace, compact semantic items and restrained canonical actions.'
+	&& str_contains( $css, '.cb-work-list-item__details' )
+	&& str_contains( $css, 'grid-template-columns: repeat(4, minmax(130px, 1fr))' )
+	&& str_contains( $css, '.cb-work-list-group__toggle[aria-expanded="true"]' )
+	&& str_contains( $css, '.cb-work-list-actions__menu' )
+	&& str_contains( $script, 'initListProgressiveDisclosure' )
+	&& str_contains( $script, "itemToggles.forEach" )
+	&& str_contains( $script, "event.key !== 'Escape'" ),
+	'List Golden completion keeps the collapsed stream calm while adding accessible progressive detail and project disclosure.'
 );
 
 refinement_assert(
