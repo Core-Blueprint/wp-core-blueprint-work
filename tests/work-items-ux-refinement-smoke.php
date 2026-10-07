@@ -115,6 +115,12 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $css, '.cb-work-select-column input[type="checkbox"]' )
+	&& str_contains( $css, 'margin-inline: auto !important' ),
+	'Table selection checkboxes share one horizontal centerline across header and item rows.'
+);
+
+refinement_assert(
 	str_contains( $operations, 'data-cb-work-select-all' )
 	&& str_contains( $operations, 'data-cb-work-select-item' )
 	&& str_contains( $operations, 'data-cb-work-bulk-form' )

@@ -475,6 +475,12 @@ body.cb-admin-theme .cb-work-bulk-editor [data-cb-work-bulk-edit-submit]:disable
 	text-align: center;
 }
 
+.cb-work-items-page--refined .cb-work-select-column input[type="checkbox"] {
+	display: block;
+	margin-block: 0 !important;
+	margin-inline: auto !important;
+}
+
 .cb-work-items-page--refined .cb-work-table-sort {
 	display: inline-flex;
 	align-items: center;
