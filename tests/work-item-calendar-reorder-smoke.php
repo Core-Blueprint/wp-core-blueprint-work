@@ -1,50 +1,76 @@
 <?php
 declare(strict_types=1);
 
-$root       = dirname( __DIR__ );
-$operations = file_get_contents( $root . '/src/Admin/Operations.php' );
-$actions    = file_get_contents( $root . '/src/Admin/WorkItemCalendarActions.php' );
-$module     = file_get_contents( $root . '/assets/work-items-reorder.js' );
-$css        = file_get_contents( $root . '/assets/work-admin.css' );
+$root     = dirname( __DIR__ );
+$view     = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
+$assets   = file_get_contents( $root . '/src/Admin/Assets.php' );
+$calendar = file_get_contents( $root . '/assets/work-calendar.js' );
+$reorder  = file_get_contents( $root . '/assets/work-items-reorder.js' );
+$css      = file_get_contents( $root . '/assets/work-admin.css' );
 
 $checks = [
-	'Calendar exposes Base Reorder root, date lists, items and handles' =>
-		str_contains( $operations, 'data-cb-work-calendar-reorder' )
-		&& str_contains( $operations, 'data-cb-core-reorder' )
-		&& str_contains( $operations, 'data-cb-core-reorder-list=' )
-		&& str_contains( $operations, 'data-cb-core-reorder-item="calendar:' )
-		&& str_contains( $operations, 'data-cb-core-reorder-handle' ),
+	'Month Calendar is a compact day projection rather than a date reorder surface' =>
+		str_contains( $view, 'data-cb-work-calendar-day-open' )
+		&& str_contains( $view, 'data-template-id=' )
+		&& str_contains( $view, 'cb-work-calendar-day__count' )
+		&& ! str_contains( $view, 'data-cb-work-calendar-reorder' )
+		&& ! str_contains( $view, 'data-cb-work-calendar-kind' ),
 
-	'Calendar entries retain canonical editor access as a non-drag date editing path' =>
-		str_contains( $operations, 'Menu::edit_work_item_url( $item_id )' ),
+	'Day detail uses the canonical active Work statuses as modal board lanes' =>
+		str_contains( $view, 'array_fill_keys( WorkItemStatus::active(), [] )' )
+		&& str_contains( $view, 'data-cb-work-board-reorder' )
+		&& str_contains( $view, 'WorkItemBoardActions::ACTION' )
+		&& str_contains( $view, 'WorkItemStatus::transitions_from( $status )' ),
 
-	'Calendar move action accepts only scheduled or due dates and uses canonical repository update' =>
-		str_contains( $actions, "[ 'scheduled', 'due' ]" )
-		&& str_contains( $actions, "'scheduled_on' : 'due_on'" )
-		&& str_contains( $actions, 'WorkItems::update( $work_item_id, [ $field => $date ] )' )
-		&& ! str_contains( $actions, 'update_post_meta' )
-		&& ! str_contains( $actions, 'WorkItemMeta::' ),
+	'Calendar relationship remains distinct from workflow status' =>
+		str_contains( $view, "'kind'      => 'scheduled'" )
+		&& str_contains( $view, "'kind'      => 'due'" )
+		&& str_contains( $view, "__( 'Scheduled', 'core-blueprint-work' ) . ' · ' . __( 'Due', 'core-blueprint-work' )" )
+		&& str_contains( $view, "__( 'Due', 'core-blueprint-work' )" ),
 
-	'Calendar client uses Base cross-list Reorder and rejects same-day ordering' =>
-		str_contains( $module, 'const initCalendarReorder' )
-		&& str_contains( $module, 'crossList: true' )
-		&& str_contains( $module, 'move.from.listId === move.to.listId' )
-		&& str_contains( $module, 'persistCalendarMove' ),
+	'Terminal Work Items stay outside active drag lanes' =>
+		str_contains( $view, '$closed_entries = []' )
+		&& str_contains( $view, 'cb-work-day-modal__closed' )
+		&& str_contains( $view, "esc_html_e( 'Show closed', 'core-blueprint-work' )" ),
 
-	'Calendar refreshes server-authoritative projection after a persisted date move' =>
-		str_contains( $module, 'await persistCalendarMove(root, entry, move.to.listId);' )
-		&& str_contains( $module, 'window.location.reload()' ),
+	'Calendar consumes Base Modal and the shared status reorder implementation' =>
+		str_contains( $calendar, "import '@cb-core/modal';" )
+		&& str_contains( $calendar, "import { enhanceStatusBoard } from '@cb-work/work-items-reorder';" )
+		&& str_contains( $calendar, 'modal.show({' )
+		&& str_contains( $calendar, "size: 'wide'" )
+		&& str_contains( $calendar, 'reloadAfterMove: false' ),
 
-	'Calendar empty dates remain physical drop targets' =>
-		str_contains( $css, '.cb-work-calendar-day__list' )
-		&& str_contains( $css, 'min-height: 84px' ),
+	'Calendar persists modal status moves into the backing day template before reopen' =>
+		str_contains( $calendar, 'syncTemplateMove' )
+		&& str_contains( $calendar, 'onPersistedMove: (move) => syncTemplateMove(template, move)' )
+		&& str_contains( $calendar, 'target.append(card)' )
+		&& str_contains( $calendar, 'refreshTemplateCounts(template)' ),
+
+	'Work status reorder is reusable without forcing a Calendar modal reload' =>
+		str_contains( $reorder, 'const enhanceStatusBoard = (root, options = {}) =>' )
+		&& str_contains( $reorder, 'const reloadAfterMove = options.reloadAfterMove !== false;' )
+		&& str_contains( $reorder, "typeof options.onPersistedMove === 'function'" )
+		&& str_contains( $reorder, 'if (reloadAfterMove) window.location.reload();' )
+		&& str_contains( $reorder, 'export { enhanceStatusBoard };' )
+		&& ! str_contains( $reorder, 'persistCalendarMove' ),
+
+	'Calendar assets load the Base Modal foundation only for Calendar view' =>
+		str_contains( $assets, 'WorkItemViewState::VIEW_CALENDAR' )
+		&& str_contains( $assets, 'enqueue_calendar_assets()' )
+		&& str_contains( $assets, 'Assets::enqueue_modals' )
+		&& str_contains( $assets, "'@cb-core/modal', '@cb-work/work-items-reorder'" ),
+
+	'Month cells and modal status lanes have bounded compact presentation' =>
+		str_contains( $css, '.cb-work-calendar-day__trigger' )
+		&& str_contains( $css, '.cb-work-day-board' )
+		&& str_contains( $css, 'grid-template-columns: repeat(3, minmax(0, 1fr));' ),
 ];
 
 foreach ( $checks as $message => $passed ) {
 	if ( ! $passed ) {
-		fwrite( STDERR, "Work Item Calendar reorder smoke failed: {$message}\n" );
+		fwrite( STDERR, "Work Item Calendar day modal smoke failed: {$message}\n" );
 		exit( 1 );
 	}
 }
 
-echo "Work Item Calendar reorder smoke passed.\n";
+echo "Work Item Calendar day modal smoke passed.\n";
