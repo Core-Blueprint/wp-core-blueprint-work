@@ -36,130 +36,6 @@
 		return input ? input.closest( '.cb-core-object-picker' ) : null;
 	}
 
-	function directChild( parent, predicate ) {
-		return Array.from( parent.children ).find( predicate ) || null;
-	}
-
-	function refineHeader( page ) {
-		if ( page.querySelector( '.cb-work-page-header' ) ) {
-			return;
-		}
-
-		const heading = directChild( page, function ( node ) {
-			return node.tagName === 'H1';
-		} );
-		const action = directChild( page, function ( node ) {
-			return node.classList.contains( 'page-title-action' );
-		} );
-		const divider = directChild( page, function ( node ) {
-			return node.tagName === 'HR' && node.classList.contains( 'wp-header-end' );
-		} );
-		const description = directChild( page, function ( node ) {
-			return node.tagName === 'P' && node.classList.contains( 'description' );
-		} );
-		if ( ! heading ) {
-			return;
-		}
-
-		const header = element( 'header', 'cb-work-page-header' );
-		const copy = element( 'div', 'cb-work-page-header__copy' );
-		const actions = element( 'div', 'cb-work-page-header__actions' );
-		heading.parentNode.insertBefore( header, heading );
-		copy.appendChild( heading );
-		if ( description ) {
-			copy.appendChild( description );
-		}
-		header.appendChild( copy );
-		if ( action ) {
-			action.className = 'button button-primary cb-work-page-header__primary';
-			actions.appendChild( action );
-			header.appendChild( actions );
-		}
-		if ( divider ) {
-			divider.remove();
-		}
-	}
-
-	function wrapField( labelText, control, modifier ) {
-		if ( ! control ) {
-			return null;
-		}
-		const wrapper = element( 'div', 'cb-work-filter-field' + ( modifier ? ' ' + modifier : '' ) );
-		const label = element( 'label', 'cb-work-filter-label', labelText );
-		if ( control.id ) {
-			label.htmlFor = control.id;
-		}
-		wrapper.appendChild( label );
-		wrapper.appendChild( control );
-		return wrapper;
-	}
-
-	function advancedFilterCount( form, currentView ) {
-		const controls = [
-			form.querySelector( 'select[name="service_id"]' ),
-			form.querySelector( 'select[name="priority"]' ),
-			form.querySelector( 'select[name="work_type_id"]' ),
-			form.querySelector( 'select[name="work_context"]' ),
-			form.querySelector( 'select[name="billing"]' ),
-			picker( form, 'cb-work-filter-customer' ),
-			picker( form, 'cb-work-filter-assignee' ),
-			form.querySelector( '#cb-work-filter-due-from' ),
-			form.querySelector( '#cb-work-filter-due-to' ),
-		];
-		if ( currentView !== 'calendar' ) {
-			controls.push( form.querySelector( '#cb-work-filter-scheduled-from' ) );
-			controls.push( form.querySelector( '#cb-work-filter-scheduled-to' ) );
-		}
-
-		let count = controls.filter( function ( control ) {
-			const current = value( control );
-			return current !== '' && current !== '0';
-		} ).length;
-		const sort = form.querySelector( '#cb-work-filter-sort' );
-		if ( sort && value( sort ) !== '' && value( sort ) !== 'workload' ) {
-			count++;
-		}
-		return count;
-	}
-
-	function refineFilters( page, form, strings ) {
-		const toolbar = form.querySelector( '.cb-work-toolbar' );
-		const primary = toolbar ? toolbar.querySelector( '.cb-work-toolbar__primary' ) : null;
-		const advanced = toolbar ? toolbar.querySelector( '.cb-work-toolbar__advanced' ) : null;
-		const grid = advanced ? advanced.querySelector( '.cb-work-toolbar__advanced-grid' ) : null;
-		const toggle = toolbar ? toolbar.querySelector( '.cb-work-more-filters-toggle' ) : null;
-		if ( ! toolbar || ! primary || ! advanced || ! grid || ! toggle ) {
-			return;
-		}
-
-		const currentView = form.querySelector( 'input[name="view"]' )?.value || 'table';
-		const service = form.querySelector( 'select[name="service_id"]' );
-		if ( service && service.parentElement === primary ) {
-			if ( ! service.id ) {
-				service.id = 'cb-work-filter-service';
-			}
-			const serviceField = wrapField( strings.service || 'Service', service, 'cb-work-filter-field--service' );
-			if ( serviceField ) {
-				grid.appendChild( serviceField );
-			}
-		}
-
-		const count = advancedFilterCount( form, currentView );
-		advanced.hidden = true;
-		toggle.setAttribute( 'aria-expanded', 'false' );
-		toggle.textContent = ( strings.filters || 'Filters' ) + ( count ? ' (' + count + ')' : '' );
-
-		toggle.addEventListener( 'click', function () {
-			window.setTimeout( function () {
-				toggle.textContent = advanced.hidden
-					? ( strings.filters || 'Filters' ) + ( count ? ' (' + count + ')' : '' )
-					: ( strings.lessFilters || 'Hide filters' );
-			}, 0 );
-		} );
-
-		page.classList.add( 'cb-work-items-page--refined' );
-	}
-
 	function statusFromLane( lane, strings ) {
 		const heading = lane.querySelector( '.hndle' );
 		if ( ! heading ) {
@@ -306,8 +182,6 @@
 			return;
 		}
 		const strings = window.cbWorkAdminUx || {};
-		refineHeader( page );
-		refineFilters( page, form, strings );
 		refineBoard( page, form, strings );
 		refineCalendar( page, form, strings );
 	}
