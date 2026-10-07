@@ -233,6 +233,8 @@ final class Operations {
 				data-cb-work-view-preferences-open
 				data-template-id="<?php echo esc_attr( $template_id ); ?>"
 				data-modal-title="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
+				data-save-label="<?php esc_attr_e( 'Save changes', 'core-blueprint-work' ); ?>"
+				data-cancel-label="<?php esc_attr_e( 'Cancel', 'core-blueprint-work' ); ?>"
 				aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
 				title="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
 			>
@@ -248,6 +250,8 @@ final class Operations {
 				data-action="<?php echo esc_attr( WorkItemViewPreferences::ACTION ); ?>"
 				data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewPreferences::NONCE_ACTION ) ); ?>"
 				data-error="<?php echo esc_attr__( 'The Work Item view preferences could not be saved.', 'core-blueprint-work' ); ?>"
+				data-saving="<?php esc_attr_e( 'Saving…', 'core-blueprint-work' ); ?>"
+				data-saved="<?php esc_attr_e( 'Saved', 'core-blueprint-work' ); ?>"
 				data-default-view="<?php echo esc_attr( WorkItemViewState::VIEW_TABLE ); ?>"
 				data-default-order="<?php echo esc_attr( implode( ',', WorkItemViewPreferences::canonical_order() ) ); ?>"
 			>
