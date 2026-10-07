@@ -17,6 +17,7 @@
 
 		initTableBulkActions( page );
 		initQuickEdit( page );
+		initRowActionMenus( page );
 
 		const form = page.querySelector( '.cb-work-items-filters' );
 		const toggle = form ? form.querySelector( '.cb-work-more-filters-toggle' ) : null;
@@ -231,6 +232,61 @@
 					row.hidden = true;
 				}
 			} );
+		} );
+	}
+
+
+	function initRowActionMenus( page ) {
+		const menus = [ ...page.querySelectorAll( '.cb-work-row-actions__more' ) ];
+		if ( menus.length === 0 ) {
+			return;
+		}
+
+		const closeMenu = function ( menu, restoreFocus = false ) {
+			if ( ! ( menu instanceof HTMLDetailsElement ) || ! menu.open ) {
+				return;
+			}
+			menu.removeAttribute( 'open' );
+			if ( restoreFocus ) {
+				menu.querySelector( 'summary' )?.focus( { preventScroll: true } );
+			}
+		};
+
+		menus.forEach( function ( menu ) {
+			menu.addEventListener( 'toggle', function () {
+				if ( ! menu.open ) {
+					return;
+				}
+				menus.forEach( function ( candidate ) {
+					if ( candidate !== menu ) {
+						closeMenu( candidate );
+					}
+				} );
+			} );
+		} );
+
+		document.addEventListener( 'click', function ( event ) {
+			if ( ! ( event.target instanceof Node ) ) {
+				return;
+			}
+			menus.forEach( function ( menu ) {
+				if ( menu.open && ! menu.contains( event.target ) ) {
+					closeMenu( menu );
+				}
+			} );
+		} );
+
+		document.addEventListener( 'keydown', function ( event ) {
+			if ( event.key !== 'Escape' ) {
+				return;
+			}
+			const openMenu = menus.find( function ( menu ) {
+				return menu.open;
+			} );
+			if ( openMenu ) {
+				event.preventDefault();
+				closeMenu( openMenu, true );
+			}
 		} );
 	}
 

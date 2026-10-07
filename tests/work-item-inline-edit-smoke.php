@@ -34,6 +34,16 @@ $checks = [
 	'Quick Edit is available through overflow independent of status transition availability' => str_contains( $operations, 'data-cb-work-quick-edit-toggle' )
 		&& str_contains( $operations, '<details class="cb-work-row-actions__more">' )
 		&& ! str_contains( $operations, "if ( [] === \$transitions ) {\n\t\t\techo esc_html( '—' );" ),
+	'More Actions behaves like a dismissible operator popover' => str_contains( $script, 'initRowActionMenus' )
+		&& str_contains( $script, "document.addEventListener( 'click'" )
+		&& str_contains( $script, "! menu.contains( event.target )" )
+		&& str_contains( $script, "event.key !== 'Escape'" )
+		&& str_contains( $script, "closeMenu( openMenu, true )" )
+		&& is_string( $css )
+		&& str_contains( $css, 'min-width: 210px' )
+		&& str_contains( $css, 'min-height: 38px' )
+		&& str_contains( $css, '.cb-work-transition-form--menu')
+		&& str_contains( $css, 'var(--cb-tint-danger)' ),
 	'client interaction only reveals server-rendered editors and never creates persistence UI dynamically' => is_string( $script )
 		&& str_contains( $script, 'initQuickEdit' )
 		&& str_contains( $script, 'row.hidden = ! opening' )

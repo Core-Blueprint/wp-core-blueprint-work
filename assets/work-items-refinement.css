@@ -762,36 +762,56 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action--completed.
 
 .cb-work-row-actions__menu {
 	position: absolute;
-	z-index: 30;
-	inset-block-start: calc(100% + 6px);
+	z-index: 80;
+	inset-block-start: calc(100% + 8px);
 	inset-inline-end: 0;
-	min-width: 140px;
-	padding: 4px;
+	min-width: 210px;
+	box-sizing: border-box;
+	padding: 6px;
 	background: var(--cb-work-surface-raised);
 	border: 1px solid var(--cb-work-border);
-	border-radius: var(--cb-radius-sm);
-	box-shadow: var(--cb-work-shadow);
+	border-radius: var(--cb-radius-md);
+	box-shadow: var(--cb-shadow-md, var(--cb-work-shadow));
 }
 
 .cb-work-transition-form--menu {
 	display: block;
+	margin: 5px 0 0;
+	padding: 5px 0 0;
+	border-top: 1px solid var(--cb-work-border);
 }
 
-.cb-work-row-actions__menu-item {
-	display: block;
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__menu-item {
+	display: flex;
+	align-items: center;
 	width: 100%;
+	min-height: 38px;
 	box-sizing: border-box;
-	padding: 7px 9px;
+	margin: 0;
+	padding: 8px 11px;
+	background: transparent;
+	border: 0;
 	border-radius: var(--cb-radius-sm);
 	color: var(--cb-work-text);
+	font-size: 13px;
+	font-weight: var(--cb-fw-medium);
+	line-height: 1.3;
 	text-align: start;
 	text-decoration: none;
+	cursor: pointer;
 }
 
-.cb-work-row-actions__menu-item:hover,
-.cb-work-row-actions__menu-item:focus {
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__menu-item:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__menu-item:focus-visible {
 	background: var(--cb-interactive-hover);
 	color: var(--cb-work-text-strong);
+	outline: none;
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--menu .cb-work-row-actions__menu-item:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-transition-form--menu .cb-work-row-actions__menu-item:focus-visible {
+	background: var(--cb-tint-danger);
+	color: var(--cb-danger);
 }
 
 .cb-work-items-page--refined .cb-work-board-closed-toggle {
