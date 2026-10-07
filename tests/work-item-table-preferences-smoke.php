@@ -19,7 +19,7 @@ namespace {
 	require dirname( __DIR__ ) . '/src/Admin/WorkItemTablePreferences.php';
 
 	$defaults = \CB\Work\Admin\WorkItemTablePreferences::defaults();
-	$expected = [ 'work_item', 'status', 'priority', 'project', 'due', 'assigned', 'actions', 'customer', 'type', 'billing' ];
+	$expected = [ 'work_item', 'status', 'priority', 'due', 'assigned', 'actions', 'customer', 'type', 'billing' ];
 
 	if ( $expected !== $defaults['order'] ) {
 		fwrite( STDERR, "Work Item table preferences smoke failed: Golden default order drifted.\n" );
@@ -61,6 +61,9 @@ namespace {
 		|| ! str_contains( $operations, 'data-cb-work-column-visible' )
 		|| ! str_contains( $operations, 'data-cb-work-table-columns-toggle' )
 		|| ! str_contains( $operations, 'cb-work-toolbar__search' )
+		|| ! str_contains( $operations, 'cb-work-item-cell__context' )
+		|| ! str_contains( $operations, 'StateBadge::render' )
+		|| ! str_contains( $operations, 'transition_icon_buttons' )
 		|| ! str_contains( $assets, '\\CoreBlueprint\\Core\\UI\\Assets::enqueue_reorder()' )
 		|| ! str_contains( $assets, "'@cb-core/reorder'" )
 		|| ! str_contains( $module, "import '@cb-core/reorder';" )
@@ -69,6 +72,7 @@ namespace {
 		|| ! str_contains( $module, "document.querySelector('[data-cb-work-table-columns-toggle]" )
 		|| ! str_contains( $module, "panel.id" )
 		|| ! str_contains( $css, '.cb-work-table-preferences__panel' )
+		|| ! str_contains( $css, '.cb-work-items-table [data-cb-work-column="actions"]' )
 	) {
 		fwrite( STDERR, "Work Item table preferences smoke failed: Base Reorder integration contract is incomplete.\n" );
 		exit( 1 );
