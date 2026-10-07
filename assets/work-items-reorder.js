@@ -59,7 +59,9 @@ const persist = async (root, operation, policy = null) => {
 const initTablePreferences = (root) => {
 	const table = root.querySelector('[data-cb-work-items-table]');
 	const panel = root.querySelector('[data-cb-work-table-columns-panel]');
-	const toggle = root.querySelector('[data-cb-work-table-columns-toggle]');
+	const toggle = panel?.id
+		? document.querySelector('[data-cb-work-table-columns-toggle][aria-controls="' + panel.id + '"]')
+		: null;
 	const reset = root.querySelector('[data-cb-work-table-columns-reset]');
 	const reorderRoot = root.querySelector('[data-cb-core-reorder]');
 	const reorder = window.cbCore?.reorder;
