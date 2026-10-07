@@ -209,10 +209,10 @@ refinement_assert(
 	&& str_contains( $board_source, 'render_work_item_assignee' )
 	&& ! str_contains( $board_source, "esc_html_e( 'Priority:', 'core-blueprint-work' )" )
 	&& ! str_contains( $board_source, "esc_html_e( 'Customer:', 'core-blueprint-work' )" )
-	&& str_contains( $css, '.cb-work-board__title a' )
-	&& str_contains( $css, 'text-decoration: none' )
-	&& str_contains( $css, '.cb-work-board__signals' )
-	&& str_contains( $css, '.cb-work-board__lane[data-cb-work-status-lane="blocked"]' ),
+	&& str_contains( $adminCss, '.cb-work-board__title a' )
+	&& str_contains( $adminCss, 'text-decoration: none' )
+	&& str_contains( $adminCss, '.cb-work-board__signals' )
+	&& str_contains( $adminCss, '.cb-work-board__lane[data-cb-work-status-lane="blocked"]' ),
 	'Board Golden B1 uses compact semantic cards, calm title links and status-aware lane composition.'
 );
 
