@@ -27,16 +27,16 @@ $checks = [
 		&& str_contains( $operations, 'self::render_work_item_board_actions( $item, $state )' )
 		&& str_contains( $operations, 'self::transition_menu_form( $item, $state, $from, $to )' ),
 	'Calendar is a renderer over scheduled and due dates from the existing result set' => is_string( $calendar )
-		&& str_contains( $calendar, "$scheduled_on       = (string) ( $item['scheduled_on'] ?? '' );" )
-		&& str_contains( $calendar, "$due_on             = (string) ( $item['due_on'] ?? '' );" )
+		&& str_contains( $calendar, "\$scheduled_on       = (string) ( \$item['scheduled_on'] ?? '' );" )
+		&& str_contains( $calendar, "\$due_on             = (string) ( \$item['due_on'] ?? '' );" )
 		&& str_contains( $calendar, '$entries[ $scheduled_on ][]' )
 		&& str_contains( $calendar, '$entries[ $due_on ][]' )
 		&& str_contains( $calendar, "'kind'      => 'scheduled'" )
 		&& str_contains( $calendar, "'kind'      => 'due'" )
 		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' )
 		&& str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $state )' ),
-	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $calendar, "[ 'calendar_month' => $previous_month, 'page' => 1 ]" )
-		&& str_contains( $calendar, "[ 'calendar_month' => $next_month, 'page' => 1 ]" )
+	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $calendar, "[ 'calendar_month' => \$previous_month, 'page' => 1 ]" )
+		&& str_contains( $calendar, "[ 'calendar_month' => \$next_month, 'page' => 1 ]" )
 		&& str_contains( $calendar, 'Previous month' )
 		&& str_contains( $calendar, 'Next month' ),
 	'Calendar remains rendered and navigable when a month has no Work Items' => false !== $calendarDispatchPos
