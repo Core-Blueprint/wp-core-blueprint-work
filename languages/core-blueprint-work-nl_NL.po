@@ -665,15 +665,6 @@ msgstr "Volgende maand"
 msgid "The Work Item date could not be updated."
 msgstr "De datum van het Work Item kon niet worden bijgewerkt."
 
-#: src/Admin/Operations.php:918
-#, php-format
-msgid "Move %1$s %2$s date"
-msgstr "Datum %2$s van %1$s verplaatsen"
-
-#: src/Admin/Operations.php:942
-msgid "Move to another date"
-msgstr "Naar een andere datum verplaatsen"
-
 #. translators: %d: total number of Work Items in the current result set.
 #: src/Admin/Operations.php:981
 #, php-format
