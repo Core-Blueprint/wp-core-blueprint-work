@@ -196,6 +196,7 @@ namespace {
 	assert_true( 'cb_work_item[assigned_user_ids]' === ( $calls[1]['name'] ?? '' ), 'Assignee picker posts into the Work Item form payload.' );
 	assert_true( 'cb-work-item-assignees' === ( $calls[1]['id'] ?? '' ), 'Assignee picker receives a stable DOM id.' );
 	assert_true( true === ( $calls[1]['multiple'] ?? false ), 'Assignee picker stays multi-select.' );
+	assert_true( true === ( $calls[1]['show_hint'] ?? false ), 'Native Work Item assignee picker keeps the Base helper hint by default.' );
 
 	ob_start();
 	\CB\Work\Admin\Pickers::assignee( 'assignee_id', 'cb-work-filter-assignee', 7 );

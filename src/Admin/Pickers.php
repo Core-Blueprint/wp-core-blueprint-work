@@ -58,8 +58,8 @@ final class Pickers {
 	}
 
 	/** @param int[] $user_ids */
-	public static function assignees( string $name, string $id, array $user_ids = [] ): void {
-		self::render_user_picker( $name, $id, $user_ids, true );
+	public static function assignees( string $name, string $id, array $user_ids = [], bool $show_hint = true ): void {
+		self::render_user_picker( $name, $id, $user_ids, true, $show_hint );
 	}
 
 	public static function search_customers(): never {
@@ -94,7 +94,7 @@ final class Pickers {
 	}
 
 	/** @param int[] $user_ids */
-	private static function render_user_picker( string $name, string $id, array $user_ids, bool $multiple ): void {
+	private static function render_user_picker( string $name, string $id, array $user_ids, bool $multiple, bool $show_hint = true ): void {
 		$selected = [];
 		foreach ( $user_ids as $user_id ) {
 			$user = get_userdata( (int) $user_id );
@@ -116,6 +116,7 @@ final class Pickers {
 			'selected'      => $selected,
 			'placeholder'   => __( 'Search WordPress users…', 'core-blueprint-work' ),
 			'empty_message' => __( 'No matching users found.', 'core-blueprint-work' ),
+			'show_hint'     => $show_hint,
 		] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base ObjectPicker returns escaped markup.
 	}
 

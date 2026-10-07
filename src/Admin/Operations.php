@@ -684,7 +684,7 @@ final class Operations {
 						<strong><?php esc_html_e( 'Bulk Edit', 'core-blueprint-work' ); ?></strong>
 						<span class="description"><strong data-cb-work-bulk-edit-count>0</strong> <?php esc_html_e( 'Selected', 'core-blueprint-work' ); ?></span>
 					</div>
-					<button class="button-link" type="button" data-cb-work-bulk-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
+					<button class="button button-small" type="button" data-cb-work-bulk-edit-cancel><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></button>
 				</div>
 				<div class="cb-work-inline-editor__grid">
 					<label class="cb-work-inline-editor__field">
@@ -698,7 +698,7 @@ final class Operations {
 					</label>
 					<div class="cb-work-inline-editor__field">
 						<label><input type="checkbox" name="apply_due" value="1" data-cb-work-bulk-edit-control> <span><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></span></label>
-						<input type="date" name="bulk_due_on">
+						<input type="date" name="bulk_due_on" data-cb-work-bulk-due disabled>
 					</div>
 					<label class="cb-work-inline-editor__field">
 						<span><?php esc_html_e( 'Work Type', 'core-blueprint-work' ); ?></span>
@@ -721,8 +721,10 @@ final class Operations {
 						</select>
 					</label>
 					<div class="cb-work-inline-editor__field cb-work-inline-editor__field--wide">
-						<label><input type="checkbox" name="apply_assignees" value="1" data-cb-work-bulk-edit-control> <span><?php esc_html_e( 'Update assignees', 'core-blueprint-work' ); ?></span></label>
-						<?php Pickers::assignees( 'bulk_assigned_user_ids', 'cb-work-bulk-edit-assignees', [] ); ?>
+						<label><input type="checkbox" name="apply_assignees" value="1" data-cb-work-bulk-edit-control data-cb-work-bulk-assignees-toggle> <span><?php esc_html_e( 'Update assignees', 'core-blueprint-work' ); ?></span></label>
+						<div class="cb-work-bulk-assignees is-disabled" data-cb-work-bulk-assignees-state aria-disabled="true" inert>
+							<?php Pickers::assignees( 'bulk_assigned_user_ids', 'cb-work-bulk-edit-assignees', [], false ); ?>
+						</div>
 					</div>
 				</div>
 				<div class="cb-work-inline-editor__actions">
@@ -856,7 +858,7 @@ final class Operations {
 						</label>
 						<div class="cb-work-inline-editor__field cb-work-inline-editor__field--wide">
 							<span><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></span>
-							<?php Pickers::assignees( 'work_item[assigned_user_ids]', 'cb-work-quick-assignees-' . $id, (array) ( $item['assigned_user_ids'] ?? [] ) ); ?>
+							<?php Pickers::assignees( 'work_item[assigned_user_ids]', 'cb-work-quick-assignees-' . $id, (array) ( $item['assigned_user_ids'] ?? [] ), false ); ?>
 						</div>
 					</div>
 					<div class="cb-work-inline-editor__actions">

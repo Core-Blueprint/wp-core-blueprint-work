@@ -234,7 +234,7 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 
 .cb-work-inline-editor {
 	box-sizing: border-box;
-	padding: var(--cb-space-4);
+	padding: var(--cb-space-3);
 	background: var(--cb-work-surface-raised);
 	border: 1px solid var(--cb-work-border);
 	border-radius: var(--cb-radius-sm);
@@ -258,7 +258,7 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 }
 
 .cb-work-inline-editor__header {
-	margin-bottom: var(--cb-space-3);
+	margin-bottom: var(--cb-space-2);
 }
 
 .cb-work-inline-editor__header > div {
@@ -270,7 +270,7 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 .cb-work-inline-editor__grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(150px, 1fr));
-	gap: var(--cb-space-3);
+	gap: var(--cb-space-2);
 }
 
 .cb-work-inline-editor__field {
@@ -300,7 +300,43 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 
 .cb-work-inline-editor__actions {
 	justify-content: flex-start;
-	margin-top: var(--cb-space-3);
+	margin-top: var(--cb-space-2);
+}
+
+.cb-work-bulk-editor .cb-work-inline-editor__field--wide {
+	grid-column: 1 / -1;
+	grid-template-columns: auto minmax(280px, 1fr);
+	align-items: start;
+	column-gap: var(--cb-space-3);
+}
+
+.cb-work-bulk-editor .cb-work-inline-editor__field--wide > label {
+	padding-top: 8px;
+	white-space: nowrap;
+}
+
+.cb-work-bulk-assignees {
+	min-width: 0;
+	transition: opacity var(--cb-work-transition);
+}
+
+.cb-work-bulk-assignees.is-disabled {
+	opacity: .5;
+	pointer-events: none;
+}
+
+.cb-work-bulk-editor [data-cb-work-bulk-due]:disabled {
+	opacity: .5;
+	cursor: not-allowed;
+}
+
+body.cb-admin-theme .cb-work-bulk-editor [data-cb-work-bulk-edit-submit]:disabled {
+	background: var(--cb-work-surface);
+	border-color: var(--cb-work-border);
+	color: var(--cb-work-text-muted);
+	box-shadow: none;
+	opacity: .65;
+	cursor: not-allowed;
 }
 
 .cb-work-quick-edit-row > td {
@@ -862,6 +898,14 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action--completed.
 
 	.cb-work-inline-editor__field--wide {
 		grid-column: auto;
+	}
+
+	.cb-work-bulk-editor .cb-work-inline-editor__field--wide {
+		grid-template-columns: 1fr;
+	}
+
+	.cb-work-bulk-editor .cb-work-inline-editor__field--wide > label {
+		padding-top: 0;
 	}
 
 	.cb-work-inline-editor__header,

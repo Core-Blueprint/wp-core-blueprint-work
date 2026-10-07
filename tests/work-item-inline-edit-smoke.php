@@ -29,6 +29,7 @@ $checks = [
 		&& str_contains( $operations, 'WorkItemViewState::query_args( $state )' )
 		&& str_contains( $operations, "Pickers::assignees( 'work_item[assigned_user_ids]'" )
 		&& str_contains( $operations, "Pickers::assignees( 'bulk_assigned_user_ids'" )
+		&& str_contains( $operations, "[], false" )
 		&& str_contains( $operations, 'WorkTypes::get( $current_type_id )' ),
 	'Quick Edit is available through overflow independent of status transition availability' => str_contains( $operations, 'data-cb-work-quick-edit-toggle' )
 		&& str_contains( $operations, '<details class="cb-work-row-actions__more">' )
@@ -37,9 +38,13 @@ $checks = [
 		&& str_contains( $script, 'initQuickEdit' )
 		&& str_contains( $script, 'row.hidden = ! opening' )
 		&& str_contains( $script, 'data-cb-work-bulk-edit-id' )
+		&& str_contains( $script, "dueInput.disabled = ! dueToggle.checked" )
+		&& str_contains( $script, "toggleAttribute( 'inert', ! enabled )" )
 		&& ! str_contains( $script, 'createElement(' )
 		&& is_string( $css )
-		&& str_contains( $css, '.cb-work-inline-editor' ),
+		&& str_contains( $css, '.cb-work-inline-editor' )
+		&& str_contains( $css, '.cb-work-bulk-assignees.is-disabled' )
+		&& str_contains( $css, '[data-cb-work-bulk-edit-submit]:disabled' ),
 ];
 
 foreach ( $checks as $label => $passed ) {

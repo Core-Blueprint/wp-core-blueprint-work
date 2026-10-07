@@ -68,6 +68,10 @@
 		const editCount = editForm ? editForm.querySelector( '[data-cb-work-bulk-edit-count]' ) : null;
 		const editIds = editForm ? [ ...editForm.querySelectorAll( '[data-cb-work-bulk-edit-id]' ) ] : [];
 		const editControls = editForm ? [ ...editForm.querySelectorAll( '[data-cb-work-bulk-edit-control]' ) ] : [];
+		const dueToggle = editForm ? editForm.querySelector( 'input[name="apply_due"]' ) : null;
+		const dueInput = editForm ? editForm.querySelector( '[data-cb-work-bulk-due]' ) : null;
+		const assigneesToggle = editForm ? editForm.querySelector( '[data-cb-work-bulk-assignees-toggle]' ) : null;
+		const assigneesState = editForm ? editForm.querySelector( '[data-cb-work-bulk-assignees-state]' ) : null;
 
 		if (
 			! ( table instanceof HTMLTableElement )
@@ -132,10 +136,23 @@
 			}
 		} );
 
+		const syncOptionalBulkFields = function () {
+			if ( dueToggle instanceof HTMLInputElement && dueInput instanceof HTMLInputElement ) {
+				dueInput.disabled = ! dueToggle.checked;
+			}
+			if ( assigneesToggle instanceof HTMLInputElement && assigneesState instanceof HTMLElement ) {
+				const enabled = assigneesToggle.checked;
+				assigneesState.toggleAttribute( 'inert', ! enabled );
+				assigneesState.setAttribute( 'aria-disabled', enabled ? 'false' : 'true' );
+				assigneesState.classList.toggle( 'is-disabled', ! enabled );
+			}
+		};
+
 		const syncEditSubmit = function () {
 			if ( ! ( editSubmit instanceof HTMLButtonElement ) || ! editForm ) {
 				return;
 			}
+			syncOptionalBulkFields();
 			const hasChange = editControls.some( function ( control ) {
 				if ( control instanceof HTMLInputElement && control.type === 'checkbox' ) {
 					return control.checked;
