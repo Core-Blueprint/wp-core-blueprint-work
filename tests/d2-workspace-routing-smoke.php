@@ -10,8 +10,10 @@ $calendarDispatchPos = strpos( $operations, 'self::render_work_item_calendar( $i
 $emptyStatePos       = strpos( $operations, "<?php elseif ( [] === \$items ) : ?>" );
 
 $checks = [
-	'Work Items workspace resolves canonical view state' => is_string( $operations )
-		&& str_contains( $operations, 'WorkItemViewState::from_request( $_GET )' ),
+	'Work Items workspace resolves personal view preference before canonical view state' => is_string( $operations )
+		&& str_contains( $operations, 'WorkItemViewPreferences::apply_default_to_request( $_GET, get_current_user_id() )' )
+		&& str_contains( $operations, 'WorkItemViewState::from_request( $request )' )
+		&& ! str_contains( $operations, 'WorkItemViewState::from_request( $_GET )' ),
 	'Work Items workspace queries only through the canonical operational engine' => 1 === substr_count( $operations, 'WorkItems::search( $query )' )
 		&& str_contains( $operations, "\$query = (array) \$state['query'];" )
 		&& ! str_contains( $operations, 'WorkItems::for_project( $project_filter' )
