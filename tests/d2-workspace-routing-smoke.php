@@ -33,7 +33,7 @@ $checks = [
 		&& str_contains( $calendar, '$entries[ $due_on ][]' )
 		&& str_contains( $calendar, "'kind'      => 'scheduled'" )
 		&& str_contains( $calendar, "'kind'      => 'due'" )
-		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' )
+		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $type_map, $state )' )
 		&& str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $type_map, $state )' ),
 	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $calendar, "[ 'calendar_month' => \$previous_month, 'page' => 1 ]" )
 		&& str_contains( $calendar, "[ 'calendar_month' => \$next_month, 'page' => 1 ]" )
