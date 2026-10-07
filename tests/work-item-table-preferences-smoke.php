@@ -92,7 +92,7 @@ namespace {
 		|| ! str_contains( $operations, 'data-cb-work-table-display-panel' )
 		|| ! str_contains( $operations, 'data-cb-work-density' )
 		|| ! str_contains( $operations, 'data-cb-work-alternating' )
-		|| ! str_contains( $operations, "class=\"<?php echo \$is_alternate ? 'is-alternate' : ''; \"" )
+		|| ! str_contains( $operations, "\$is_alternate ? 'is-alternate' : ''" )
 		|| ! str_contains( $module, 'alternating_rows' )
 		|| ! str_contains( $module, 'syncDisplayControls' )
 		|| ! str_contains( $module, "displayPanel.hidden" )
