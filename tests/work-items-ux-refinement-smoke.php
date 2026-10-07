@@ -74,6 +74,15 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $operations, 'cb-work-toolbar__row' )
+	&& str_contains( $operations, 'cb-work-toolbar__head' )
+	&& str_contains( $adminCss, 'grid-template-columns: auto minmax(0, 1fr) auto;' )
+	&& str_contains( $css, 'body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control' )
+	&& str_contains( $css, 'var(--cb-interactive-focus)' ),
+	'Work Items command bar stays unified and reconciles the public Segmented Control with Admin Theme tokens.'
+);
+
+refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
 	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
