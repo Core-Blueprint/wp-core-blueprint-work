@@ -684,8 +684,8 @@
 }
 
 /* Calendar -------------------------------------------------------------
- * Semantic month grid with server-rendered navigation and explicit planning
- * versus deadline projection.
+ * Month view stays intentionally compact. Day detail and status movement live
+ * in the Base modal day board instead of expanding individual month cells.
  */
 
 .cb-work-calendar-navigation {
@@ -741,67 +741,130 @@
 	margin-bottom: var(--cb-space-2);
 }
 
-.cb-work-calendar-day__list {
-	min-height: 84px;
-}
-
-.cb-work-calendar-entry__header {
+.cb-work-calendar-day__trigger {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-items: start;
-	gap: var(--cb-space-1);
-}
-
-.cb-work-calendar-entry__drag-handle {
-	margin-top: -2px;
-}
-
-.cb-work-calendar-reorder[data-cb-core-reorder-pending="true"] .cb-work-calendar-entry__drag-handle {
-	pointer-events: none;
-}
-
-.cb-work-calendar-entry {
-	margin-top: var(--cb-space-2);
+	width: 100%;
+	gap: 2px;
 	padding: var(--cb-space-2);
+	text-align: start;
+	text-decoration: none;
 	background: var(--cb-work-surface-raised);
 	border: 1px solid var(--cb-work-border);
 	border-radius: var(--cb-radius-sm);
+	transition: border-color var(--cb-work-transition), background var(--cb-work-transition);
 }
 
-.cb-work-calendar-entry--due {
-	border-inline-start-width: 3px;
+.cb-work-calendar-day__trigger:hover,
+.cb-work-calendar-day__trigger:focus-visible {
+	background: var(--cb-interactive-hover);
+	border-color: var(--cb-interactive-border-hover);
+	text-decoration: none;
 }
 
-.cb-work-calendar-entry__meta {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: var(--cb-space-1);
+.cb-work-calendar-day__count {
+	color: var(--cb-work-text-strong);
+	font-weight: var(--cb-fw-semibold);
+	line-height: 1.3;
+}
+
+.cb-work-calendar-day__summary {
+	color: var(--cb-work-text-muted);
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.cb-work-calendar-empty,
+.cb-work-items-calendar .cb-work-calendar-empty:hover {
+	background: var(--cb-work-canvas);
+}
+
+.cb-work-day-modal__summary {
+	margin: 0 0 var(--cb-space-3);
+	color: var(--cb-work-text-muted);
+}
+
+.cb-work-day-board {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: var(--cb-space-3);
+	align-items: start;
+}
+
+.cb-work-day-board .cb-work-board__lane {
+	min-width: 0;
+	margin: 0;
+}
+
+.cb-work-day-board .cb-work-board__lane > .hndle {
+	padding: var(--cb-space-2) var(--cb-space-3);
+	font-size: var(--cb-fs-md);
+}
+
+.cb-work-day-board .cb-work-board__lane > .inside {
+	min-height: 112px;
+	padding: var(--cb-space-2);
+}
+
+.cb-work-day-board .cb-work-board__list {
+	min-height: 96px;
+}
+
+.cb-work-day-card {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0 0 var(--cb-space-2) !important;
+	padding: var(--cb-space-2) !important;
+	background: var(--cb-work-surface-raised);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-sm);
+	box-shadow: none;
+}
+
+.cb-work-day-card .cb-work-board__card-header {
 	margin-bottom: var(--cb-space-1);
+}
+
+.cb-work-day-card h4 {
+	margin: var(--cb-space-1) 0 0;
+	font-size: var(--cb-fs-md);
+	line-height: 1.35;
+}
+
+.cb-work-day-card__relation {
+	display: block;
+	color: var(--cb-work-text-muted);
 	font-size: 11px;
 	font-weight: var(--cb-fw-semibold);
 	text-transform: uppercase;
 	letter-spacing: .04em;
 }
 
-.cb-work-calendar-entry__due {
-	opacity: .72;
-}
-
-.cb-work-calendar-entry__title {
-	display: block;
-	line-height: 1.35;
-}
-
-.cb-work-calendar-entry__details {
-	margin: var(--cb-space-1) 0 0;
+.cb-work-day-card__meta {
+	margin: 0;
+	color: var(--cb-work-text-muted);
 	font-size: 12px;
-	line-height: 1.45;
+	line-height: 1.4;
 }
 
-.cb-work-calendar-empty,
-.cb-work-items-calendar .cb-work-calendar-empty:hover {
-	background: var(--cb-work-canvas);
+.cb-work-day-modal__closed {
+	margin-top: var(--cb-space-4);
+	padding-top: var(--cb-space-3);
+	border-top: 1px solid var(--cb-work-border);
+}
+
+.cb-work-day-modal__closed summary {
+	cursor: pointer;
+	font-weight: var(--cb-fw-semibold);
+}
+
+.cb-work-day-modal__closed ul {
+	margin-bottom: 0;
+}
+
+@media screen and (max-width: 900px) {
+	.cb-work-day-board {
+		grid-template-columns: 1fr;
+	}
 }
 
 /* Non-JS fallback keeps the original server-rendered form usable. */
