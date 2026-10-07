@@ -131,6 +131,19 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $operations, 'data-cb-work-quick-edit-toggle' )
+	&& str_contains( $operations, 'data-cb-work-quick-edit-row' )
+	&& str_contains( $operations, 'data-cb-work-bulk-edit-form' )
+	&& str_contains( $operations, "Pickers::assignees( 'work_item[assigned_user_ids]'" )
+	&& str_contains( $operations, "Pickers::assignees( 'bulk_assigned_user_ids'" )
+	&& str_contains( $adminScript, 'initQuickEdit' )
+	&& str_contains( $adminScript, 'data-cb-work-bulk-edit-toggle' )
+	&& str_contains( $css, '.cb-work-inline-editor' )
+	&& str_contains( $css, '.cb-work-quick-edit-row' ),
+	'Quick Edit and Bulk Edit stay server-rendered, multi-assignee aware and progressively enhanced.'
+);
+
+refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
 	&& str_contains( $script, 'cb-work-board-closed-toggle' ),
