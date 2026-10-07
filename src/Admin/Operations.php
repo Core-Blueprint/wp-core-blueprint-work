@@ -391,11 +391,11 @@ final class Operations {
 			<?php endif; ?>
 
 			<div class="cb-work-toolbar">
-				<div class="cb-work-toolbar__head">
-					<?php self::render_work_item_views( $state ); ?>
-				</div>
-
 				<div class="cb-work-toolbar__row">
+					<div class="cb-work-toolbar__head">
+						<?php self::render_work_item_views( $state ); ?>
+					</div>
+
 					<div class="cb-work-toolbar__primary">
 						<label class="screen-reader-text" for="cb-work-filter-status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></label>
 						<select id="cb-work-filter-status" name="status" aria-label="<?php esc_attr_e( 'Status', 'core-blueprint-work' ); ?>">
