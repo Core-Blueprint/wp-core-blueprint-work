@@ -9,6 +9,7 @@ $daily     = file_get_contents( $root . '/src/Admin/DailyOverview.php' );
 $quick     = file_get_contents( $root . '/src/Admin/QuickAdd.php' );
 $plugin    = file_get_contents( $root . '/src/Plugin.php' );
 $assets    = file_get_contents( $root . '/src/Admin/Assets.php' );
+$operations= file_get_contents( $root . '/src/Admin/Operations.php' );
 $quick_js  = file_get_contents( $root . '/assets/work-quick-add.js' );
 $fast_js   = file_get_contents( $root . '/assets/work-fast-paths.js' );
 $overview_css = file_get_contents( $root . '/assets/work-overview.css' );
@@ -22,8 +23,8 @@ function daily_ux_assert( bool $condition, string $message ): void {
 
 daily_ux_assert(
 	false !== $menu && false !== $workspace && false !== $overview && false !== $daily
-	&& false !== $quick && false !== $plugin && false !== $assets && false !== $quick_js
-	&& false !== $fast_js && false !== $overview_css,
+	&& false !== $quick && false !== $plugin && false !== $assets && false !== $operations
+	&& false !== $quick_js && false !== $fast_js && false !== $overview_css,
 	'Daily UX source files are readable.'
 );
 
@@ -72,11 +73,13 @@ daily_ux_assert(
 
 daily_ux_assert(
 	str_contains( $assets, "assets/work-fast-paths.js" )
-	&& str_contains( $fast_js, "data.myWork || 'My work'" )
-	&& str_contains( $fast_js, "data.blocked || 'Blocked'" )
-	&& str_contains( $fast_js, "data.overdue || 'Overdue'" )
-	&& str_contains( $fast_js, "event.key === '/'" ),
-	'Work Items exposes low-cognitive-load focus presets and a keyboard search fast path.'
+	&& str_contains( $operations, "__( 'My work', 'core-blueprint-work' )" )
+	&& str_contains( $operations, "__( 'Blocked', 'core-blueprint-work' )" )
+	&& str_contains( $operations, "__( 'Overdue', 'core-blueprint-work' )" )
+	&& str_contains( $operations, 'cb-work-fast-paths' )
+	&& str_contains( $fast_js, "event.key === '/'" )
+	&& str_contains( $fast_js, "cb-work-filter-search" ),
+	'Work Items exposes server-rendered low-cognitive-load focus presets and a keyboard search fast path.'
 );
 
 daily_ux_assert(
