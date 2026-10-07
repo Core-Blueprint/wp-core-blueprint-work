@@ -17,6 +17,9 @@
 
 		const title = panel.querySelector( '#cb-work-quick-title' );
 		const project = panel.querySelector( '#cb-work-quick-project' );
+		const status = panel.querySelector( '[data-cb-work-quick-status]' );
+		const statusContext = panel.querySelector( '[data-cb-work-quick-status-context]' );
+		const statusLabel = panel.querySelector( '[data-cb-work-quick-status-label]' );
 		const fullEditor = panel.querySelector( '[data-cb-work-quick-add-full]' );
 		const defaultFullEditorUrl = fullEditor ? fullEditor.href : '';
 		let trigger = null;
@@ -44,6 +47,20 @@
 			try {
 				const url = new URL( sourceUrl, window.location.href );
 				const projectId = url.searchParams.get( 'project_id' ) || '0';
+				const requestedStatus = url.searchParams.get( 'cb_work_status' ) || '';
+				const allowedStatuses = [ 'planned', 'in_progress', 'blocked' ];
+				const laneStatus = allowedStatuses.includes( requestedStatus ) ? requestedStatus : '';
+				if ( status ) {
+					status.value = laneStatus;
+				}
+				if ( statusContext ) {
+					statusContext.hidden = laneStatus === '';
+				}
+				if ( statusLabel ) {
+					statusLabel.textContent = laneStatus && source
+						? String( source.dataset.cbWorkQuickStatusLabel || laneStatus.replace( /_/g, ' ' ) )
+						: '';
+				}
 				if ( project && Array.from( project.options ).some( function ( option ) { return option.value === projectId; } ) ) {
 					project.value = projectId;
 				} else if ( project ) {
@@ -52,6 +69,15 @@
 			} catch ( error ) {
 				if ( project ) {
 					project.value = '0';
+				}
+				if ( status ) {
+					status.value = '';
+				}
+				if ( statusContext ) {
+					statusContext.hidden = true;
+				}
+				if ( statusLabel ) {
+					statusLabel.textContent = '';
 				}
 			}
 			if ( fullEditor ) {

@@ -1583,7 +1583,7 @@ final class Operations {
 						data-cb-core-reorder-list-label="<?php echo esc_attr( $lane_label ); ?>"
 					>
 						<div class="cb-work-board__empty" data-cb-work-board-empty <?php if ( [] !== $lane_items ) : ?>hidden<?php endif; ?>>
-							<span class="cb-work-board__empty-title"><?php esc_html_e( 'No Work Items in this status on the current page.', 'core-blueprint-work' ); ?></span>
+							<span class="cb-work-board__empty-title"><?php esc_html_e( 'No Work Items found.', 'core-blueprint-work' ); ?></span>
 							<span class="cb-work-board__empty-hint"><?php esc_html_e( 'Drop Work Items here', 'core-blueprint-work' ); ?></span>
 						</div>
 						<?php foreach ( $lane_items as $item ) :
@@ -1641,15 +1641,18 @@ final class Operations {
 							</article>
 						<?php endforeach; ?>
 					</div>
-					<div class="cb-work-board__lane-footer">
-						<a
-							class="cb-work-board__add"
-							href="<?php echo esc_url( Menu::new_work_item_url( $lane_project_id, (string) $status ) ); ?>"
-						>
-							<span class="cb-work-board__add-icon" aria-hidden="true">+</span>
-							<span><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></span>
-						</a>
-					</div>
+					<?php if ( in_array( (string) $status, WorkItemStatus::active(), true ) ) : ?>
+						<div class="cb-work-board__lane-footer">
+							<a
+								class="cb-work-board__add"
+								href="<?php echo esc_url( Menu::new_work_item_url( $lane_project_id, (string) $status ) ); ?>"
+								data-cb-work-quick-status-label="<?php echo esc_attr( $lane_label ); ?>"
+							>
+								<span class="cb-work-board__add-icon" aria-hidden="true">+</span>
+								<span><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></span>
+							</a>
+						</div>
+					<?php endif; ?>
 				</section>
 			<?php endforeach; ?>
 		</div>

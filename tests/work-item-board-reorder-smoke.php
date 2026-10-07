@@ -67,6 +67,8 @@ $checks = [
 	'Board lane add stays outside the reorder list and uses canonical create context' =>
 		str_contains( $board_source, 'cb-work-board__lane-footer' )
 		&& str_contains( $board_source, 'Menu::new_work_item_url( $lane_project_id, (string) $status )' )
+		&& str_contains( $board_source, 'WorkItemStatus::active()' )
+		&& str_contains( $board_source, 'data-cb-work-quick-status-label' )
 		&& str_contains( $css, '.cb-work-board__add' )
 		&& str_contains( $menu, "'cb_work_status'" )
 		&& str_contains( $editor, 'WorkItemStatus::can_transition( WorkItemStatus::PLANNED, $requested_status )' ),

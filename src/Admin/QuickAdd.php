@@ -5,6 +5,7 @@ namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
 use CB\Work\Domain\WorkContext;
+use CB\Work\Domain\WorkItemStatus;
 use CB\Work\PublicApi\WorkItemActions;
 use CB\Work\Repository\Projects;
 
@@ -30,11 +31,19 @@ final class QuickAdd {
 			<div class="cb-work-quick-add__backdrop" data-cb-work-quick-add-close></div>
 			<section class="cb-work-quick-add__panel" role="dialog" aria-modal="true" aria-labelledby="cb-work-quick-add-title">
 				<header class="cb-work-quick-add__header">
-					<div><p class="cb-work-quick-add__eyebrow"><?php esc_html_e( 'Quick capture', 'core-blueprint-work' ); ?></p><h2 id="cb-work-quick-add-title"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></h2></div>
+					<div>
+						<p class="cb-work-quick-add__eyebrow"><?php esc_html_e( 'Quick capture', 'core-blueprint-work' ); ?></p>
+						<h2 id="cb-work-quick-add-title"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></h2>
+						<p class="cb-work-quick-add__context" hidden data-cb-work-quick-status-context>
+							<span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?>:</span>
+							<strong data-cb-work-quick-status-label></strong>
+						</p>
+					</div>
 					<button type="button" class="button-link cb-work-quick-add__close" data-cb-work-quick-add-close aria-label="<?php esc_attr_e( 'Close', 'core-blueprint-work' ); ?>">×</button>
 				</header>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION ); ?>">
+					<input type="hidden" name="work_item[status]" value="" data-cb-work-quick-status>
 					<?php wp_nonce_field( self::ACTION ); ?>
 					<p><label for="cb-work-quick-title"><strong><?php esc_html_e( 'What needs to be done?', 'core-blueprint-work' ); ?></strong></label><br><input id="cb-work-quick-title" class="large-text" type="text" name="work_item[title]" maxlength="200" required autocomplete="off"></p>
 					<div class="cb-work-quick-add__fields">
@@ -61,13 +70,31 @@ final class QuickAdd {
 		$title = isset( $input['title'] ) && is_scalar( $input['title'] ) ? sanitize_text_field( (string) $input['title'] ) : '';
 		$project_id = isset( $input['project_id'] ) ? absint( $input['project_id'] ) : 0;
 		$due_on = isset( $input['due_on'] ) && is_scalar( $input['due_on'] ) ? sanitize_text_field( (string) $input['due_on'] ) : '';
+		$status = isset( $input['status'] ) && is_scalar( $input['status'] ) ? sanitize_key( (string) $input['status'] ) : '';
 
-		$result = '' === $title ? new \WP_Error( 'work_quick_add_title_required' ) : WorkItemActions::create( [
-			'title'        => $title,
-			'work_context' => WorkContext::INTERNAL,
-			'project_id' => $project_id,
-			'due_on'     => $due_on,
-		] );
+		if ( '' !== $status && ! in_array( $status, WorkItemStatus::active(), true ) ) {
+			$result = new \WP_Error( 'work_quick_add_status_invalid' );
+		} else {
+			$result = '' === $title ? new \WP_Error( 'work_quick_add_title_required' ) : WorkItemActions::create( [
+				'title'        => $title,
+				'work_context' => WorkContext::INTERNAL,
+				'project_id'   => $project_id,
+				'due_on'       => $due_on,
+			] );
+		}
+
+		if ( ! is_wp_error( $result ) && '' !== $status && WorkItemStatus::PLANNED !== $status ) {
+			$created_id = (int) ( $result['id'] ?? 0 );
+			$transition = $created_id > 0 ? WorkItemActions::transition_status( $created_id, $status ) : new \WP_Error( 'work_quick_add_status_invalid' );
+			if ( is_wp_error( $transition ) ) {
+				if ( $created_id > 0 ) {
+					wp_delete_post( $created_id, true );
+				}
+				$result = $transition;
+			} else {
+				$result = $transition;
+			}
+		}
 
 		$referer = wp_get_referer();
 		$target  = is_string( $referer ) && '' !== $referer

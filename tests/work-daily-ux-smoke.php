@@ -58,6 +58,8 @@ daily_ux_assert(
 	&& str_contains( $quick, 'check_admin_referer( self::ACTION )' )
 	&& str_contains( $quick, 'current_user_can( Capabilities::MANAGE )' )
 	&& str_contains( $quick, 'WorkItemActions::create' )
+	&& str_contains( $quick, 'WorkItemActions::transition_status' )
+	&& str_contains( $quick, 'wp_delete_post( $created_id, true )' )
 	&& ! preg_match( '/\b(?:update_post_meta|add_post_meta|delete_post_meta|wp_insert_post|wp_update_post|wpdb->)\b/', $quick ),
 	'Quick Add uses nonce/capability protection and the governed WorkItemActions seam.'
 );
@@ -67,7 +69,9 @@ daily_ux_assert(
 	&& str_contains( $assets, "assets/work-quick-add.js" )
 	&& str_contains( $quick_js, 'post-new.php' )
 	&& str_contains( $quick_js, 'post_type=cb_work_item' )
-	&& str_contains( $quick_js, 'data-cb-work-quick-add-full' ),
+	&& str_contains( $quick_js, 'data-cb-work-quick-add-full' )
+	&& str_contains( $quick_js, "url.searchParams.get( 'cb_work_status' )" )
+	&& str_contains( $quick_js, "allowedStatuses = [ 'planned', 'in_progress', 'blocked' ]" ),
 	'Quick Add progressively enhances canonical Gutenberg links without removing fallback.'
 );
 

@@ -52,6 +52,25 @@
 	letter-spacing: .04em;
 }
 
+.cb-work-quick-add__context {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin: var(--cb-space-2) 0 0;
+	color: var(--cb-text-muted);
+	font-size: var(--cb-fs-sm);
+	line-height: 1.3;
+}
+
+.cb-work-quick-add__context[hidden] {
+	display: none !important;
+}
+
+.cb-work-quick-add__context strong {
+	color: var(--cb-text-strong);
+	font-weight: var(--cb-fw-medium);
+}
+
 .cb-work-quick-add__close {
 	font-size: 28px;
 	line-height: 1;
