@@ -78,6 +78,39 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	color: var(--cb-text-strong);
 }
 
+.cb-work-items-page--refined .cb-work-view-switcher__option {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.cb-work-items-page--refined .cb-work-view-switcher__option .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+	line-height: 16px;
+}
+
+.cb-work-items-page--refined .cb-work-toolbar .button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+}
+
+.cb-work-items-page--refined .cb-work-toolbar .button .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+	line-height: 16px;
+}
+
+.cb-work-items-page--refined .cb-work-search-submit {
+	width: 34px;
+	min-width: 34px;
+	padding-inline: 0;
+}
+
 .cb-work-items-page--refined .cb-work-toolbar__primary {
 	gap: var(--cb-space-2);
 }
