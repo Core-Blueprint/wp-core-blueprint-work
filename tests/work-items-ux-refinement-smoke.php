@@ -85,12 +85,20 @@ refinement_assert(
 refinement_assert(
 	str_contains( $operations, 'data-cb-work-auto-submit' )
 	&& str_contains( $operations, 'dashicons-filter' )
-	&& str_contains( $operations, 'cb-work-search-submit' )
+	&& str_contains( $operations, 'cb-work-search-field' )
 	&& str_contains( $operations, 'cb-work-view-switcher__option' )
 	&& str_contains( $adminScript, 'form.requestSubmit()' )
-	&& str_contains( $css, '.cb-work-search-submit' )
+	&& str_contains( $css, '.cb-work-search-field__icon' )
 	&& str_contains( $css, '.cb-work-view-switcher__option' ),
 	'Primary filters auto-apply and compact icon controls preserve a functional command bar.'
+);
+
+refinement_assert(
+	str_contains( $operations, 'data-cb-work-tooltip' )
+	&& str_contains( $operations, "WorkItemStatus::BLOCKED     => 'dashicons-no'" )
+	&& str_contains( $css, '.cb-work-row-action[data-cb-work-tooltip]::after' )
+	&& str_contains( $css, '.cb-work-status-badge.cb-core-state-badge--info' ),
+	'Table Golden action controls and semantic badges retain the refined product UI contract.'
 );
 
 refinement_assert(

@@ -10,8 +10,8 @@
 .cb-work-fast-path {
 	display: inline-flex;
 	align-items: center;
-	min-height: 30px;
-	padding: 0 var(--cb-space-3);
+	min-height: 34px;
+	padding: 0 14px;
 	box-sizing: border-box;
 	background: var(--cb-surface-1);
 	border: 1px solid var(--cb-border);
@@ -29,7 +29,10 @@
 	background: var(--cb-surface-2);
 }
 
-.cb-work-fast-path.is-current {
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:visited,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:focus-visible {
 	border-color: var(--cb-accent);
 	color: var(--cb-on-accent);
 	background: var(--cb-accent);

@@ -34,15 +34,16 @@
 }
 
 .cb-work-items-page--refined .cb-work-toolbar {
-	padding: var(--cb-space-2) var(--cb-space-3);
+	padding: var(--cb-space-3) var(--cb-space-4);
 }
 
 .cb-work-items-page--refined .cb-work-toolbar__row {
-	gap: var(--cb-space-3);
+	gap: var(--cb-space-4);
 }
 
 .cb-work-items-page--refined .cb-work-toolbar__head {
-	padding-inline-end: var(--cb-space-3);
+	padding-inline-end: var(--cb-space-4);
+	border-inline-end: 1px solid var(--cb-work-border);
 }
 
 body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control {
@@ -105,10 +106,29 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	line-height: 16px;
 }
 
-.cb-work-items-page--refined .cb-work-search-submit {
-	width: 34px;
-	min-width: 34px;
-	padding-inline: 0;
+.cb-work-items-page--refined .cb-work-search-field {
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 280px;
+}
+
+.cb-work-items-page--refined .cb-work-search-field__icon {
+	position: absolute;
+	z-index: 1;
+	inset-inline-start: 12px;
+	width: 16px;
+	height: 16px;
+	color: var(--cb-work-text-muted);
+	font-size: 16px;
+	line-height: 16px;
+	pointer-events: none;
+}
+
+.cb-work-items-page--refined .cb-work-search-field input[type="search"] {
+	width: 100%;
+	min-width: 280px;
+	padding-inline-start: 36px;
 }
 
 .cb-work-items-page--refined .cb-work-toolbar__primary {
@@ -216,7 +236,7 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 }
 
 .cb-work-items-page--refined .cb-work-items-table tbody td {
-	padding: 10px 12px;
+	padding: 12px 12px;
 	background: var(--cb-work-surface);
 	border: 0;
 	border-bottom: 1px solid var(--cb-work-border);
@@ -291,12 +311,12 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	min-height: 24px;
+	min-height: 26px;
 	box-sizing: border-box;
-	padding: 2px 8px;
+	padding: 3px 9px;
 	background: var(--cb-work-surface-raised);
 	border: 1px solid var(--cb-work-border);
-	border-radius: var(--cb-radius-pill);
+	border-radius: var(--cb-radius-sm);
 	color: var(--cb-work-text);
 	font-size: 12px;
 	font-weight: var(--cb-fw-medium);
@@ -328,6 +348,27 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 .cb-work-status-badge.cb-core-state-badge--danger::before,
 .cb-work-status-badge.cb-core-state-badge--error::before {
 	background: var(--cb-danger);
+}
+
+.cb-work-status-badge.cb-core-state-badge--info {
+	background: var(--cb-tint-accent);
+	border-color: color-mix(in srgb, var(--cb-accent) 28%, var(--cb-work-border));
+}
+
+.cb-work-status-badge.cb-core-state-badge--success {
+	background: var(--cb-tint-success);
+	border-color: color-mix(in srgb, var(--cb-success) 28%, var(--cb-work-border));
+}
+
+.cb-work-status-badge.cb-core-state-badge--warning {
+	background: var(--cb-tint-warning);
+	border-color: color-mix(in srgb, var(--cb-warning) 28%, var(--cb-work-border));
+}
+
+.cb-work-status-badge.cb-core-state-badge--danger,
+.cb-work-status-badge.cb-core-state-badge--error {
+	background: var(--cb-tint-danger);
+	border-color: color-mix(in srgb, var(--cb-danger) 28%, var(--cb-work-border));
 }
 
 .cb-work-priority {
@@ -433,6 +474,68 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action.button,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__more > summary.cb-work-row-action {
+	background: transparent;
+	border-color: var(--cb-work-border);
+	color: var(--cb-work-text-muted);
+	box-shadow: none;
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action.button:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action.button:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__more > summary.cb-work-row-action:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-actions__more > summary.cb-work-row-action:focus-visible {
+	background: var(--cb-interactive-hover);
+	border-color: var(--cb-interactive-border-hover);
+	color: var(--cb-work-text-strong);
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action--in_progress.button {
+	background: var(--cb-tint-accent);
+	border-color: color-mix(in srgb, var(--cb-accent) 42%, var(--cb-work-border));
+	color: var(--cb-accent);
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action--completed.button:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-row-action--completed.button:focus-visible {
+	background: var(--cb-tint-success);
+	border-color: color-mix(in srgb, var(--cb-success) 42%, var(--cb-work-border));
+	color: var(--cb-success);
+}
+
+.cb-work-row-action[data-cb-work-tooltip] {
+	position: relative;
+}
+
+.cb-work-row-action[data-cb-work-tooltip]::after {
+	content: attr(data-cb-work-tooltip);
+	position: absolute;
+	z-index: 60;
+	inset-inline-start: 50%;
+	inset-block-end: calc(100% + 7px);
+	transform: translateX(-50%) translateY(2px);
+	padding: 5px 7px;
+	background: var(--cb-surface-3);
+	border: 1px solid var(--cb-work-border);
+	border-radius: var(--cb-radius-sm);
+	box-shadow: var(--cb-shadow-sm);
+	color: var(--cb-text-strong);
+	font-size: 11px;
+	font-weight: var(--cb-fw-medium);
+	line-height: 1.2;
+	white-space: nowrap;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity var(--cb-work-transition), transform var(--cb-work-transition);
+}
+
+.cb-work-row-action[data-cb-work-tooltip]:hover::after,
+.cb-work-row-action[data-cb-work-tooltip]:focus-visible::after {
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
 }
 
 .cb-work-row-action .dashicons,
@@ -562,6 +665,13 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 
 	.cb-work-items-page--refined .cb-work-toolbar__head {
 		padding-inline-end: 0;
+		border-inline-end: 0;
+	}
+
+	.cb-work-items-page--refined .cb-work-search-field,
+	.cb-work-items-page--refined .cb-work-search-field input[type="search"] {
+		width: 100%;
+		min-width: 0;
 	}
 
 	.cb-work-items-page--refined .cb-work-toolbar__advanced-grid {

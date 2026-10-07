@@ -444,11 +444,11 @@ final class Operations {
 
 					<div class="cb-work-toolbar__search">
 						<label class="screen-reader-text" for="cb-work-filter-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
-						<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
-						<button class="button cb-work-search-submit" type="submit" aria-label="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>" title="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>">
-							<span class="dashicons dashicons-search" aria-hidden="true"></span>
-							<span class="screen-reader-text"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>
-						</button>
+						<div class="cb-work-search-field">
+							<span class="dashicons dashicons-search cb-work-search-field__icon" aria-hidden="true"></span>
+							<input id="cb-work-filter-search" type="search" name="s" value="<?php echo esc_attr( (string) $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Search Work Items…', 'core-blueprint-work' ); ?>">
+							<button class="screen-reader-text" type="submit"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
+						</div>
 						<?php if ( $is_table ) : ?>
 							<button
 								type="button"
@@ -1135,7 +1135,7 @@ final class Operations {
 			<?php endforeach; ?>
 			<?php if ( [] !== $overflow ) : ?>
 				<details class="cb-work-row-actions__more">
-					<summary class="button button-small cb-work-row-action cb-work-row-action--overflow" aria-label="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>" title="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>">
+					<summary class="button button-small cb-work-row-action cb-work-row-action--overflow" aria-label="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>" data-cb-work-tooltip="<?php esc_attr_e( 'Actions', 'core-blueprint-work' ); ?>">
 						<span class="dashicons dashicons-ellipsis" aria-hidden="true"></span>
 					</summary>
 					<div class="cb-work-row-actions__menu">
@@ -1156,7 +1156,7 @@ final class Operations {
 		unset( $return_args['page'] );
 		$icon = match ( $to ) {
 			WorkItemStatus::IN_PROGRESS => 'dashicons-controls-play',
-			WorkItemStatus::BLOCKED     => 'dashicons-no-alt',
+			WorkItemStatus::BLOCKED     => 'dashicons-no',
 			WorkItemStatus::COMPLETED   => 'dashicons-yes-alt',
 			WorkItemStatus::SKIPPED     => 'dashicons-controls-skipforward',
 			WorkItemStatus::CANCELLED   => 'dashicons-dismiss',
@@ -1172,7 +1172,7 @@ final class Operations {
 				<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 			<?php endforeach; ?>
 			<?php wp_nonce_field( 'cb_work_transition_work_item_' . (int) $item['id'] ); ?>
-			<button class="button button-small cb-work-row-action cb-work-row-action--<?php echo esc_attr( $to ); ?>" type="submit" aria-label="<?php echo esc_attr( $label ); ?>" title="<?php echo esc_attr( $label ); ?>">
+			<button class="button button-small cb-work-row-action cb-work-row-action--<?php echo esc_attr( $to ); ?>" type="submit" aria-label="<?php echo esc_attr( $label ); ?>" data-cb-work-tooltip="<?php echo esc_attr( $label ); ?>">
 				<span class="dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span>
 				<span class="screen-reader-text"><?php echo esc_html( $label ); ?></span>
 			</button>
