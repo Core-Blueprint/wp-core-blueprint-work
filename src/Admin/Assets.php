@@ -253,18 +253,5 @@ final class Assets {
 		$modified = filemtime( $script );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
 		wp_enqueue_script( self::FAST_PATH_SCRIPT_HANDLE, CB_WORK_URL . 'assets/work-fast-paths.js', [ self::REFINEMENT_SCRIPT_HANDLE ], $version, true );
-		$today = current_time( 'Y-m-d' );
-		wp_localize_script( self::FAST_PATH_SCRIPT_HANDLE, 'cbWorkFastPaths', [
-			'userId'       => get_current_user_id(),
-			'today'        => $today,
-			'yesterday'    => wp_date( 'Y-m-d', strtotime( $today . ' -1 day' ) ),
-			'focusViews'   => __( 'Focus views', 'core-blueprint-work' ),
-			'all'          => __( 'All', 'core-blueprint-work' ),
-			'myWork'       => __( 'My work', 'core-blueprint-work' ),
-			'active'       => __( 'Active', 'core-blueprint-work' ),
-			'blocked'      => __( 'Blocked', 'core-blueprint-work' ),
-			'overdue'      => __( 'Overdue', 'core-blueprint-work' ),
-			'keyboardHint' => __( 'Shortcut: / search · Alt+N add Work Item', 'core-blueprint-work' ),
-		] );
 	}
 }
