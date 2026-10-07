@@ -25,9 +25,9 @@ const applyDefaults = (root) => {
 			if (item instanceof HTMLElement) list.appendChild(item);
 		});
 	}
-	const radio = root.querySelector(
-		'input[name="cb-work-default-view"][value="' + CSS.escape(String(root.dataset.defaultView || 'table')) + '"]'
-	);
+	const defaultView = String(root.dataset.defaultView || 'table');
+	const radio = [...root.querySelectorAll('input[name="cb-work-default-view"]')]
+		.find((candidate) => candidate instanceof HTMLInputElement && String(candidate.value || '') === defaultView);
 	if (radio instanceof HTMLInputElement) radio.checked = true;
 };
 
