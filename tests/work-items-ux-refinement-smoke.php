@@ -73,6 +73,10 @@ refinement_assert(
 	&& ! str_contains( $adminScript, 'enhanceCalendarNavigation' )
 	&& str_contains( $adminCss, '.cb-work-calendar-navigation__controls' )
 	&& str_contains( $adminCss, '.cb-work-calendar-day__summary' )
+	&& str_contains( $adminCss, '.cb-work-items-calendar th:not(:last-child)' )
+	&& str_contains( $adminCss, 'border-inline-end: 1px solid var(--cb-work-border);' )
+	&& str_contains( $adminCss, '.cb-work-items-calendar tbody tr:not(:last-child) td' )
+	&& str_contains( $adminCss, 'border-bottom: 1px solid var(--cb-work-border);' )
 	&& str_contains( $adminCss, '.cb-work-day-card__relation' )
 	&& str_contains( $adminCss, '.cb-work-day-card__signals' ),
 	'Calendar renders compact month navigation and Board-Golden day cards inside the modal workspace.'
