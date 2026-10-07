@@ -2424,3 +2424,19 @@ msgstr ""
 #: src/Admin/Operations.php
 msgid "Drop Work Items here"
 msgstr ""
+
+#: src/Admin/Operations.php
+msgid "Default"
+msgstr ""
+
+#: src/Admin/Operations.php
+msgid "Reset to defaults"
+msgstr ""
+
+#: src/Admin/WorkItemViewPreferences.php
+msgid "The Work Item view preference payload is invalid."
+msgstr ""
+
+#: src/Admin/Operations.php
+msgid "The Work Item view preferences could not be saved."
+msgstr ""
