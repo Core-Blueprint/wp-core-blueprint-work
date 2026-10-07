@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 $root = dirname( __DIR__ );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$calendar   = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 $actions    = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 
 $calendarDispatchPos = strpos( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' );
@@ -25,17 +26,19 @@ $checks = [
 		&& str_contains( $operations, 'self::render_work_item_kanban( $items, $project_map, $type_map, $state )' )
 		&& str_contains( $operations, 'self::render_work_item_board_actions( $item, $state )' )
 		&& str_contains( $operations, 'self::transition_menu_form( $item, $state, $from, $to )' ),
-	'Calendar is a renderer over scheduled and due dates from the existing result set' => str_contains( $operations, "\$scheduled_on = (string) ( \$item['scheduled_on'] ?? '' );" )
-		&& str_contains( $operations, "\$due_on       = (string) ( \$item['due_on'] ?? '' );" )
-		&& str_contains( $operations, '$entries_by_date[ $scheduled_on ][]' )
-		&& str_contains( $operations, '$entries_by_date[ $due_on ][]' )
-		&& str_contains( $operations, "'kind'      => 'scheduled'" )
-		&& str_contains( $operations, "'kind'      => 'due'" )
-		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' ),
-	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $operations, "[ 'calendar_month' => \$previous_month, 'page' => 1 ]" )
-		&& str_contains( $operations, "[ 'calendar_month' => \$next_month, 'page' => 1 ]" )
-		&& str_contains( $operations, 'Previous month' )
-		&& str_contains( $operations, 'Next month' ),
+	'Calendar is a renderer over scheduled and due dates from the existing result set' => is_string( $calendar )
+		&& str_contains( $calendar, "$scheduled_on       = (string) ( $item['scheduled_on'] ?? '' );" )
+		&& str_contains( $calendar, "$due_on             = (string) ( $item['due_on'] ?? '' );" )
+		&& str_contains( $calendar, '$entries[ $scheduled_on ][]' )
+		&& str_contains( $calendar, '$entries[ $due_on ][]' )
+		&& str_contains( $calendar, "'kind'      => 'scheduled'" )
+		&& str_contains( $calendar, "'kind'      => 'due'" )
+		&& str_contains( $operations, 'self::render_work_item_calendar( $items, $project_map, $state )' )
+		&& str_contains( $operations, 'WorkItemCalendarView::render( $items, $project_map, $state )' ),
+	'Calendar month navigation preserves canonical state and resets pagination' => str_contains( $calendar, "[ 'calendar_month' => $previous_month, 'page' => 1 ]" )
+		&& str_contains( $calendar, "[ 'calendar_month' => $next_month, 'page' => 1 ]" )
+		&& str_contains( $calendar, 'Previous month' )
+		&& str_contains( $calendar, 'Next month' ),
 	'Calendar remains rendered and navigable when a month has no Work Items' => false !== $calendarDispatchPos
 		&& false !== $emptyStatePos
 		&& $calendarDispatchPos < $emptyStatePos,
