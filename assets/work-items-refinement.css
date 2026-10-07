@@ -132,6 +132,22 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 	margin-top: 0;
 }
 
+.cb-work-items-page--refined .cb-work-results-header h2 {
+	font-size: var(--cb-fs-lg);
+	font-weight: var(--cb-fw-semibold);
+}
+
+.cb-work-items-page--refined .cb-work-results-header__divider {
+	width: 1px;
+	height: 24px;
+	background: var(--cb-work-border);
+}
+
+.cb-work-items-page--refined .cb-work-keyboard-hint {
+	color: var(--cb-work-text-muted);
+	font-size: 12px;
+}
+
 /* Table Golden -------------------------------------------------------- */
 
 .cb-work-items-page--refined .cb-work-table-preferences {
@@ -521,6 +537,10 @@ body.cb-admin-theme .cb-work-items-page--refined .cb-core-segmented-control__opt
 
 	.cb-work-items-page--refined .cb-work-results-header__copy {
 		display: block;
+	}
+
+	.cb-work-items-page--refined .cb-work-results-header__divider {
+		display: none;
 	}
 
 	.cb-work-items-page--refined .cb-work-results-header .description {
