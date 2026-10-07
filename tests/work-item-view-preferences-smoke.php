@@ -7,6 +7,17 @@ namespace {
 	function sanitize_key( string $value ): string {
 		return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $value ) ?? '' );
 	}
+
+	function get_user_meta( int $user_id, string $key, bool $single = false ): mixed {
+		unset( $key, $single );
+		if ( 7 === $user_id ) {
+			return [
+				'default_view' => 'calendar',
+				'order'        => [ 'calendar', 'board', 'table', 'list' ],
+			];
+		}
+		return '';
+	}
 }
 
 namespace CB\Work {
@@ -72,6 +83,17 @@ namespace {
 	$explicit = WorkItemViewPreferences::apply_default_to_request( [ 'view' => 'calendar' ], 0 );
 	if ( 'calendar' !== ( $explicit['view'] ?? '' ) ) {
 		fwrite( STDERR, "Work Item view preferences smoke failed: explicit URL view was overridden.\n" );
+		exit( 1 );
+	}
+
+	$personal = WorkItemViewPreferences::apply_default_to_request( [], 7 );
+	if ( 'calendar' !== ( $personal['view'] ?? '' ) ) {
+		fwrite( STDERR, "Work Item view preferences smoke failed: stored personal default was not applied.\n" );
+		exit( 1 );
+	}
+	$personal_explicit = WorkItemViewPreferences::apply_default_to_request( [ 'view' => 'table' ], 7 );
+	if ( 'table' !== ( $personal_explicit['view'] ?? '' ) ) {
+		fwrite( STDERR, "Work Item view preferences smoke failed: explicit URL did not win over stored personal default.\n" );
 		exit( 1 );
 	}
 
