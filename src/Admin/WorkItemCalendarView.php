@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
+use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
 
 defined( 'ABSPATH' ) || exit;
@@ -11,9 +12,10 @@ final class WorkItemCalendarView {
 	/**
 	 * @param array<int,array<string,mixed>> $items
 	 * @param array<int,string> $project_map
+	 * @param array<int,string> $type_map
 	 * @param array<string,mixed> $state
 	 */
-	public static function render( array $items, array $project_map, array $state ): void {
+	public static function render( array $items, array $project_map, array $type_map, array $state ): void {
 		$month = (string) ( $state['calendar_month'] ?? '' );
 		$first = \DateTimeImmutable::createFromFormat( '!Y-m-d', $month . '-01' );
 		if ( ! $first ) {
@@ -102,7 +104,7 @@ final class WorkItemCalendarView {
 			</table>
 
 			<?php foreach ( $entries_by_date as $date => $day_entries ) : ?>
-				<?php self::render_day_template( (string) $date, $day_entries, $project_map ); ?>
+				<?php self::render_day_template( (string) $date, $day_entries, $project_map, $type_map ); ?>
 			<?php endforeach; ?>
 		</div>
 		<?php
@@ -150,8 +152,8 @@ final class WorkItemCalendarView {
 		return [ 'scheduled' => $scheduled, 'due' => $due ];
 	}
 
-	/** @param array<int,array<string,mixed>> $day_entries @param array<int,string> $project_map */
-	private static function render_day_template( string $date, array $day_entries, array $project_map ): void {
+	/** @param array<int,array<string,mixed>> $day_entries @param array<int,string> $project_map @param array<int,string> $type_map */
+	private static function render_day_template( string $date, array $day_entries, array $project_map, array $type_map ): void {
 		$active_lanes   = array_fill_keys( WorkItemStatus::active(), [] );
 		$closed_entries = [];
 
@@ -182,7 +184,7 @@ final class WorkItemCalendarView {
 						data-error="<?php echo esc_attr__( 'The Work Item status could not be updated.', 'core-blueprint-work' ); ?>"
 					>
 					<?php foreach ( $active_lanes as $status => $lane_entries ) : ?>
-						<?php self::render_active_lane( (string) $status, $lane_entries, $project_map ); ?>
+						<?php self::render_active_lane( (string) $status, $lane_entries, $project_map, $type_map ); ?>
 					<?php endforeach; ?>
 					</div>
 				</div>
@@ -204,8 +206,8 @@ final class WorkItemCalendarView {
 		<?php
 	}
 
-	/** @param array<int,array<string,mixed>> $lane_entries @param array<int,string> $project_map */
-	private static function render_active_lane( string $status, array $lane_entries, array $project_map ): void {
+	/** @param array<int,array<string,mixed>> $lane_entries @param array<int,string> $project_map @param array<int,string> $type_map */
+	private static function render_active_lane( string $status, array $lane_entries, array $project_map, array $type_map ): void {
 		$lane_label = self::humanize( $status );
 		?>
 		<section class="postbox cb-work-board__lane" data-cb-work-status-lane="<?php echo esc_attr( $status ); ?>">
@@ -224,8 +226,12 @@ final class WorkItemCalendarView {
 					/* translators: %s: Work Item title. */
 					$move_label = sprintf( __( 'Move %s to another status', 'core-blueprint-work' ), $title );
 					?>
+					<?php
+					$project = $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? __( 'No project', 'core-blueprint-work' );
+					$type    = $type_map[ (int) ( $item['work_type_id'] ?? 0 ) ] ?? '';
+					?>
 					<article
-						class="card cb-work-day-card"
+						class="card cb-work-board__card cb-work-day-card"
 						data-cb-core-reorder-item="work-item:<?php echo esc_attr( (string) $item['id'] ); ?>"
 						data-cb-core-reorder-label="<?php echo esc_attr( $title ); ?>"
 						data-cb-work-item-id="<?php echo esc_attr( (string) $item['id'] ); ?>"
@@ -233,24 +239,95 @@ final class WorkItemCalendarView {
 						data-cb-work-allowed-statuses="<?php echo esc_attr( implode( ',', $allowed ) ); ?>"
 					>
 						<div class="cb-work-board__card-header">
-							<div>
+							<div class="cb-work-board__card-heading">
 								<span class="cb-work-day-card__relation"><?php echo esc_html( $relation ); ?></span>
-								<h4><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( $title ); ?></a></h4>
+								<h4 class="cb-work-board__title">
+									<a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( $title ); ?></a>
+								</h4>
+								<div class="cb-work-board__context">
+									<span class="dashicons dashicons-portfolio" aria-hidden="true"></span>
+									<span class="cb-work-board__project"><?php echo esc_html( $project ); ?></span>
+								</div>
+								<?php if ( '' !== $type ) : ?>
+									<span class="cb-work-board__type"><?php echo esc_html( $type ); ?></span>
+								<?php endif; ?>
 							</div>
-							<button
-								type="button"
-								class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-board__drag-handle"
-								data-cb-core-reorder-handle
-								aria-label="<?php echo esc_attr( $move_label ); ?>"
-								title="<?php esc_attr_e( 'Move to another status', 'core-blueprint-work' ); ?>"
-							><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+							<div class="cb-work-board__card-controls">
+								<button
+									type="button"
+									class="button-link cb-core-icon-control cb-core-reorder-handle cb-work-board__drag-handle"
+									data-cb-core-reorder-handle
+									aria-label="<?php echo esc_attr( $move_label ); ?>"
+									title="<?php esc_attr_e( 'Move to another status', 'core-blueprint-work' ); ?>"
+								><span class="dashicons dashicons-move" aria-hidden="true"></span></button>
+							</div>
 						</div>
-						<p class="cb-work-day-card__meta"><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?> · <?php echo esc_html( $project_map[ (int) ( $item['project_id'] ?? 0 ) ] ?? '—' ); ?></p>
+						<div class="cb-work-day-card__signals">
+							<span><?php self::render_priority( (string) ( $item['priority'] ?? '' ) ); ?></span>
+							<span><?php self::render_assignee( (array) ( $item['assigned_user_ids'] ?? [] ) ); ?></span>
+						</div>
 					</article>
 				<?php endforeach; ?>
 			</div>
 		</section>
 		<?php
+	}
+
+	/** Render the same semantic priority signal used by Board cards. */
+	private static function render_priority( string $priority ): void {
+		$icon = match ( $priority ) {
+			WorkItemPriority::LOW    => 'dashicons-arrow-down-alt2',
+			WorkItemPriority::HIGH,
+			WorkItemPriority::URGENT => 'dashicons-arrow-up-alt2',
+			default                  => 'dashicons-minus',
+		};
+		$priority = WorkItemPriority::is_valid( $priority ) ? $priority : WorkItemPriority::NORMAL;
+		?>
+		<span class="cb-work-priority cb-work-priority--<?php echo esc_attr( $priority ); ?>">
+			<span class="dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span>
+			<span><?php echo esc_html( self::humanize( $priority ) ); ?></span>
+		</span>
+		<?php
+	}
+
+	/** @param int[] $ids */
+	private static function render_assignee( array $ids ): void {
+		$users = [];
+		foreach ( $ids as $id ) {
+			$user = get_userdata( (int) $id );
+			if ( $user ) {
+				$users[] = $user;
+			}
+		}
+		if ( [] === $users ) {
+			echo esc_html( '—' );
+			return;
+		}
+
+		$primary = $users[0];
+		$name    = (string) $primary->display_name;
+		?>
+		<span class="cb-work-assignee">
+			<span class="cb-work-assignee__avatar" aria-hidden="true"><?php echo esc_html( self::initials_for_name( $name ) ); ?></span>
+			<span class="cb-work-assignee__name"><?php echo esc_html( $name ); ?></span>
+			<?php if ( count( $users ) > 1 ) : ?>
+				<span class="cb-work-assignee__more">+<?php echo esc_html( (string) ( count( $users ) - 1 ) ); ?></span>
+			<?php endif; ?>
+		</span>
+		<?php
+	}
+
+	private static function initials_for_name( string $name ): string {
+		$parts = preg_split( '/\s+/', trim( $name ) ) ?: [];
+		$parts = array_values( array_filter( $parts, static fn ( string $part ): bool => '' !== $part ) );
+		if ( [] === $parts ) {
+			return '?';
+		}
+		$first = strtoupper( substr( $parts[0], 0, 1 ) );
+		if ( count( $parts ) < 2 ) {
+			return $first;
+		}
+		return $first . strtoupper( substr( $parts[ count( $parts ) - 1 ], 0, 1 ) );
 	}
 
 	/** @param array<string,mixed> $entry */
