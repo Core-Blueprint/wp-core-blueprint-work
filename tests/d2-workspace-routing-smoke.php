@@ -39,7 +39,7 @@ $checks = [
 		&& $calendarDispatchPos < $emptyStatePos,
 	'view switcher and filter form preserve canonical view state' => str_contains( $operations, 'render_work_item_views( $state )' )
 		&& str_contains( $operations, "name=\"view\" value=\"<?php echo esc_attr( (string) \$state['view'] ); ?>\"" )
-		&& str_contains( $operations, "WorkItemViewState::VIEW_CALENDAR => __( 'Calendar'" ),
+		&& str_contains( $operations, "WorkItemViewState::VIEW_CALENDAR => [ 'label' => __( 'Calendar'" ),
 	'Calendar filters preserve month state instead of exposing derived scheduled bounds' => str_contains( $operations, "name=\"calendar_month\" value=\"<?php echo esc_attr( (string) \$state['calendar_month'] ); ?>\"" )
 		&& str_contains( $operations, 'if ( ! $is_calendar )' )
 		&& str_contains( $operations, "\$clear_state['calendar_month'] = (string) \$state['calendar_month'];" ),
