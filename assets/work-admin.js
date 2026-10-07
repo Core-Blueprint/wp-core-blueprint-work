@@ -19,6 +19,12 @@
 			return;
 		}
 
+		form.querySelectorAll( '[data-cb-work-auto-submit]' ).forEach( function ( control ) {
+			control.addEventListener( 'change', function () {
+				form.requestSubmit();
+			} );
+		} );
+
 		toggle.addEventListener( 'click', function () {
 			const opening = advanced.hidden;
 			advanced.hidden = ! opening;
