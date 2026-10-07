@@ -634,15 +634,66 @@ final class Operations {
 				</div>
 			</div>
 
+			<?php $return_args = WorkItemViewState::query_args( $state ); ?>
+			<form
+				id="cb-work-bulk-form"
+				class="cb-work-table-bulk"
+				method="post"
+				action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+				data-cb-work-bulk-form
+				hidden
+			>
+				<input type="hidden" name="action" value="cb_work_bulk_transition_work_items">
+				<?php foreach ( $return_args as $key => $value ) : ?>
+					<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+				<?php endforeach; ?>
+				<?php wp_nonce_field( 'cb_work_bulk_transition_work_items' ); ?>
+				<span class="cb-work-table-bulk__count"><strong data-cb-work-selected-count>0</strong> <?php esc_html_e( 'Selected', 'core-blueprint-work' ); ?></span>
+				<label class="screen-reader-text" for="cb-work-bulk-status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></label>
+				<select id="cb-work-bulk-status" name="status" data-cb-work-bulk-status>
+					<option value=""><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::PLANNED ); ?>"><?php esc_html_e( 'Planned', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::IN_PROGRESS ); ?>"><?php esc_html_e( 'Start', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::BLOCKED ); ?>"><?php esc_html_e( 'Blocked', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::COMPLETED ); ?>"><?php esc_html_e( 'Complete', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::SKIPPED ); ?>"><?php esc_html_e( 'Skip', 'core-blueprint-work' ); ?></option>
+					<option value="<?php echo esc_attr( WorkItemStatus::CANCELLED ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></option>
+				</select>
+				<button class="button" type="submit" data-cb-work-bulk-submit disabled><?php esc_html_e( 'Move', 'core-blueprint-work' ); ?></button>
+			</form>
+
 			<table class="widefat cb-work-items-table" data-cb-work-items-table>
 				<thead><tr>
-					<?php foreach ( $preferences['order'] as $column_id ) : ?>
-						<th data-cb-work-column="<?php echo esc_attr( $column_id ); ?>" <?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>><?php echo esc_html( $columns[ $column_id ] ?? $column_id ); ?></th>
+					<th class="cb-work-select-column">
+						<input type="checkbox" data-cb-work-select-all aria-label="<?php esc_attr_e( 'Work Items', 'core-blueprint-work' ); ?>">
+					</th>
+					<?php foreach ( $preferences['order'] as $column_id ) :
+						$label       = $columns[ $column_id ] ?? $column_id;
+						$sort_key    = self::work_item_table_sort_key( $column_id );
+						$sort_active = '' !== $sort_key && $sort_key === (string) $state['sort'];
+						?>
+						<th
+							data-cb-work-column="<?php echo esc_attr( $column_id ); ?>"
+							<?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>
+							<?php if ( '' !== $sort_key ) : ?>aria-sort="<?php echo esc_attr( $sort_active ? 'ascending' : 'none' ); ?>"<?php endif; ?>
+						>
+							<?php self::render_work_item_table_header( $column_id, $label, $state ); ?>
+						</th>
 					<?php endforeach; ?>
 				</tr></thead>
 				<tbody>
 				<?php foreach ( $items as $item ) : ?>
-					<tr>
+					<tr data-cb-work-table-row>
+						<td class="cb-work-select-column">
+							<input
+								type="checkbox"
+								name="work_item_ids[]"
+								value="<?php echo esc_attr( (string) $item['id'] ); ?>"
+								form="cb-work-bulk-form"
+								data-cb-work-select-item
+								aria-label="<?php echo esc_attr( (string) $item['title'] ); ?>"
+							>
+						</td>
 						<?php foreach ( $preferences['order'] as $column_id ) : ?>
 							<td data-cb-work-column="<?php echo esc_attr( $column_id ); ?>" <?php if ( isset( $hidden[ $column_id ] ) ) : ?>hidden<?php endif; ?>>
 								<?php self::render_work_item_table_cell( $column_id, $item, $project_map, $type_map, $state ); ?>
@@ -656,6 +707,34 @@ final class Operations {
 		<?php
 	}
 
+
+	private static function work_item_table_sort_key( string $column_id ): string {
+		return match ( $column_id ) {
+			'work_item' => WorkItemQuery::SORT_TITLE,
+			'due'       => WorkItemQuery::SORT_DUE,
+			default     => '',
+		};
+	}
+
+	/** @param array<string,mixed> $state */
+	private static function render_work_item_table_header( string $column_id, string $label, array $state ): void {
+		$sort_key = self::work_item_table_sort_key( $column_id );
+		if ( '' === $sort_key ) {
+			echo esc_html( $label );
+			return;
+		}
+		$active = $sort_key === (string) $state['sort'];
+		?>
+		<a
+			class="cb-work-table-sort<?php echo $active ? ' is-active' : ''; ?>"
+			href="<?php echo esc_url( self::work_items_url( $state, [ 'sort' => $sort_key, 'page' => 1 ] ) ); ?>"
+		>
+			<span><?php echo esc_html( $label ); ?></span>
+			<span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span>
+		</a>
+		<?php
+	}
+
 	/** @return array<string,string> */
 	private static function work_item_table_columns(): array {
 		return [
@@ -663,7 +742,7 @@ final class Operations {
 			'status'    => __( 'Status', 'core-blueprint-work' ),
 			'priority'  => __( 'Priority', 'core-blueprint-work' ),
 			'due'       => __( 'Due', 'core-blueprint-work' ),
-			'assigned'  => __( 'Assigned', 'core-blueprint-work' ),
+			'assigned'  => __( 'Assignee', 'core-blueprint-work' ),
 			'actions'   => __( 'Actions', 'core-blueprint-work' ),
 			'customer'  => __( 'Customer', 'core-blueprint-work' ),
 			'type'      => __( 'Type', 'core-blueprint-work' ),
@@ -725,7 +804,7 @@ final class Operations {
 
 	private static function work_item_status_badge_variant( string $status ): string {
 		return match ( $status ) {
-			WorkItemStatus::PLANNED,
+			WorkItemStatus::PLANNED     => StateBadge::NEUTRAL,
 			WorkItemStatus::IN_PROGRESS => StateBadge::INFO,
 			WorkItemStatus::BLOCKED     => StateBadge::WARNING,
 			WorkItemStatus::COMPLETED   => StateBadge::SUCCESS,

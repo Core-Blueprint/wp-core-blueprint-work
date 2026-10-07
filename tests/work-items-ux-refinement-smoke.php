@@ -115,6 +115,22 @@ refinement_assert(
 );
 
 refinement_assert(
+	str_contains( $operations, 'data-cb-work-select-all' )
+	&& str_contains( $operations, 'data-cb-work-select-item' )
+	&& str_contains( $operations, 'data-cb-work-bulk-form' )
+	&& str_contains( $operations, 'render_work_item_table_header' )
+	&& str_contains( $operations, "WorkItemQuery::SORT_TITLE" )
+	&& str_contains( $operations, "WorkItemQuery::SORT_DUE" )
+	&& str_contains( $operations, 'WorkItemStatus::PLANNED     => StateBadge::NEUTRAL' )
+	&& str_contains( $adminScript, 'initTableBulkActions' )
+	&& str_contains( $adminScript, 'selectAll.indeterminate' )
+	&& str_contains( $css, '.cb-work-table-bulk' )
+	&& str_contains( $css, '.cb-work-table-sort' )
+	&& str_contains( $css, 'tr.is-selected td' ),
+	'Table Golden completion keeps sorting, real row selection, bulk interaction and neutral Planned hierarchy functional.'
+);
+
+refinement_assert(
 	str_contains( $script, "[ 'planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled' ]" )
 	&& str_contains( $script, "const closed = [ byStatus.skipped, byStatus.cancelled ].filter( Boolean )" )
 	&& str_contains( $script, 'cb-work-board-closed-toggle' ),

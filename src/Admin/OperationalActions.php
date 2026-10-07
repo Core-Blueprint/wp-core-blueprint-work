@@ -14,6 +14,7 @@ defined( 'ABSPATH' ) || exit;
 final class OperationalActions {
 	public static function init(): void {
 		add_action( 'admin_post_cb_work_transition_work_item', [ self::class, 'transition_work_item' ] );
+		add_action( 'admin_post_cb_work_bulk_transition_work_items', [ self::class, 'bulk_transition_work_items' ] );
 		add_action( 'admin_post_cb_work_create_work_type', [ self::class, 'create_work_type' ] );
 		add_action( 'admin_post_cb_work_toggle_work_type', [ self::class, 'toggle_work_type' ] );
 	}
@@ -29,6 +30,44 @@ final class OperationalActions {
 			self::redirect_work_items( 'work-item-transitioned' );
 		}
 		self::redirect_work_items( 'work-item-transition-invalid' );
+	}
+
+
+	public static function bulk_transition_work_items(): never {
+		self::guard( 'cb_work_bulk_transition_work_items' );
+
+		$raw_ids = isset( $_POST['work_item_ids'] ) && is_array( $_POST['work_item_ids'] )
+			? wp_unslash( $_POST['work_item_ids'] )
+			: [];
+		$ids = [];
+		foreach ( $raw_ids as $raw_id ) {
+			if ( ! is_scalar( $raw_id ) ) {
+				continue;
+			}
+			$id = absint( $raw_id );
+			if ( $id > 0 && ! in_array( $id, $ids, true ) ) {
+				$ids[] = $id;
+			}
+		}
+		$ids    = array_slice( $ids, 0, 100 );
+		$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( (string) $_POST['status'] ) ) : '';
+		$actor  = get_current_user_id();
+		$updated = 0;
+
+		foreach ( $ids as $id ) {
+			$item = WorkItems::get( $id );
+			$from = is_array( $item ) ? (string) ( $item['status'] ?? '' ) : '';
+			if ( WorkItems::transition_status( $id, $status, $actor ) ) {
+				Audit::record(
+					Events::WORK_ITEM_STATUS_CHANGED,
+					'notice',
+					[ 'work_item_id' => $id, 'from' => $from, 'to' => $status, 'bulk' => true ]
+				);
+				$updated++;
+			}
+		}
+
+		self::redirect_work_items( $updated > 0 ? 'work-item-transitioned' : 'work-item-transition-invalid' );
 	}
 
 	public static function create_work_type(): never {
