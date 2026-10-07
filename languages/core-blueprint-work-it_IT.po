@@ -385,22 +385,6 @@ msgstr "Work Item mostrati per il progetto: %s"
 msgid "View all Work Items"
 msgstr "Visualizza tutti i Work Item"
 
-#: src/Admin/Operations.php:114
-msgid "Project Work Items"
-msgstr "Work Item del progetto"
-
-#: src/Admin/Operations.php:114
-msgid "All Work Items"
-msgstr "Tutti i Work Item"
-
-#. translators: %d: number of Work Items matching the current view.
-#: src/Admin/Operations.php:117
-#, php-format
-msgid "%d Work Item matches the current view."
-msgid_plural "%d Work Items match the current view."
-msgstr[0] "%d Work Item corrisponde alla vista corrente."
-msgstr[1] "%d Work Item corrispondono alla vista corrente."
-
 #: src/Admin/Operations.php:120
 msgid "Shortcut: / search · Alt+N add Work Item"
 msgstr "Scorciatoia: / cerca · Alt+N aggiungi Work Item"
