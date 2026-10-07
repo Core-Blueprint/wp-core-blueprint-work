@@ -37,7 +37,8 @@ $checks = [
 		str_contains( $calendar, "import '@cb-core/modal';" )
 		&& str_contains( $calendar, "import { enhanceStatusBoard } from '@cb-work/work-items-reorder';" )
 		&& str_contains( $calendar, 'modal.show({' )
-		&& str_contains( $calendar, "size: 'wide'" )
+		&& str_contains( $calendar, "size: 'workspace'" )
+		&& str_contains( $calendar, 'expandable: true' )
 		&& str_contains( $calendar, 'reloadAfterMove: false' ),
 
 	'Calendar persists modal status moves into the backing day template before reopen' =>
@@ -61,9 +62,13 @@ $checks = [
 		&& str_contains( $assets, "'@cb-core/modal', '@cb-work/work-items-reorder'" ),
 
 	'Month cells and modal status lanes have bounded compact presentation' =>
-		str_contains( $css, '.cb-work-calendar-day__trigger' )
-		&& str_contains( $css, '.cb-work-day-board' )
-		&& str_contains( $css, 'grid-template-columns: repeat(3, minmax(0, 1fr));' ),
+		str_contains( $view, 'cb-work-day-board__viewport' )
+		&& str_contains( $css, '.cb-work-calendar-day__trigger' )
+		&& str_contains( $css, '.cb-work-day-board__viewport' )
+		&& str_contains( $css, 'overflow-x: auto;' )
+		&& str_contains( $css, 'grid-template-columns: repeat(3, minmax(320px, 1fr));' )
+		&& str_contains( $css, 'min-width: 320px;' )
+		&& ! str_contains( $css, '.cb-work-day-board {\n\t\tgrid-template-columns: 1fr;' ),
 ];
 
 foreach ( $checks as $message => $passed ) {
