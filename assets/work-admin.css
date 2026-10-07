@@ -825,21 +825,22 @@
 	box-sizing: border-box;
 	width: 100%;
 	margin: 0 0 var(--cb-space-2) !important;
-	padding: var(--cb-space-2) !important;
+	padding: var(--cb-space-3) !important;
 	background: var(--cb-work-surface-raised);
 	border: 1px solid var(--cb-work-border);
-	border-radius: var(--cb-radius-sm);
+	border-radius: var(--cb-work-radius);
 	box-shadow: none;
+	transition: border-color var(--cb-work-transition), box-shadow var(--cb-work-transition), transform var(--cb-work-transition);
+}
+
+.cb-work-day-card:hover {
+	border-color: var(--cb-interactive-border-hover);
+	box-shadow: var(--cb-work-shadow);
+	transform: translateY(-1px);
 }
 
 .cb-work-day-card .cb-work-board__card-header {
-	margin-bottom: var(--cb-space-1);
-}
-
-.cb-work-day-card h4 {
-	margin: var(--cb-space-1) 0 0;
-	font-size: var(--cb-fs-md);
-	line-height: 1.35;
+	margin-bottom: var(--cb-space-2);
 }
 
 .cb-work-day-card__relation {
@@ -847,15 +848,34 @@
 	color: var(--cb-work-text-muted);
 	font-size: 11px;
 	font-weight: var(--cb-fw-semibold);
+	line-height: 1.2;
 	text-transform: uppercase;
 	letter-spacing: .04em;
 }
 
-.cb-work-day-card__meta {
-	margin: 0;
-	color: var(--cb-work-text-muted);
-	font-size: 12px;
-	line-height: 1.4;
+.cb-work-day-card__signals {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--cb-space-2);
+	min-width: 0;
+	padding-top: var(--cb-space-2);
+	border-top: 1px solid var(--cb-work-border);
+}
+
+.cb-work-day-card__signals > span {
+	min-width: 0;
+}
+
+.cb-work-day-card__signals .cb-work-assignee {
+	justify-content: flex-end;
+	max-width: 52%;
+}
+
+.cb-work-day-card__signals .cb-work-assignee__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .cb-work-day-modal__closed {
