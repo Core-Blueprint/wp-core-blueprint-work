@@ -59,11 +59,14 @@ namespace {
 		|| ! str_contains( $operations, 'data-cb-work-table-preferences' )
 		|| ! str_contains( $operations, 'data-cb-core-reorder-list="columns"' )
 		|| ! str_contains( $operations, 'data-cb-work-column-visible' )
+		|| ! str_contains( $operations, 'data-cb-work-table-columns-toggle' )
+		|| ! str_contains( $operations, 'cb-work-toolbar__search' )
 		|| ! str_contains( $assets, '\\CoreBlueprint\\Core\\UI\\Assets::enqueue_reorder()' )
 		|| ! str_contains( $assets, "'@cb-core/reorder'" )
 		|| ! str_contains( $module, "import '@cb-core/reorder';" )
 		|| ! str_contains( $module, 'reorder.enhance' )
 		|| ! str_contains( $module, "persist(root, 'save', policy)" )
+		|| ! str_contains( $module, "document.querySelector('[data-cb-work-table-columns-toggle][aria-controls=\"' + panel.id + '\"]')" )
 		|| ! str_contains( $css, '.cb-work-table-preferences__panel' )
 	) {
 		fwrite( STDERR, "Work Item table preferences smoke failed: Base Reorder integration contract is incomplete.\n" );
