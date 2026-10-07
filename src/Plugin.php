@@ -21,6 +21,7 @@ use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
 use CB\Work\Admin\WorkItemListPreferences;
 use CB\Work\Admin\WorkItemTablePreferences;
+use CB\Work\Admin\WorkItemViewPreferences;
 use CB\Work\Admin\WorkItemBoardActions;
 use CB\Work\Admin\WorkItemCalendarActions;
 use CB\Work\Content\PostTypes;
@@ -68,6 +69,7 @@ final class Plugin {
 			WorkItemsAdmin::init();
 			WorkItemListPreferences::init();
 			WorkItemTablePreferences::init();
+			WorkItemViewPreferences::init();
 			WorkItemBoardActions::init();
 			WorkItemCalendarActions::init();
 			RecurrenceActions::init();
