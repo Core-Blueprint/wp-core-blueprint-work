@@ -698,10 +698,6 @@ msgstr ""
 msgid "The Work Item status could not be updated."
 msgstr ""
 
-#: src/Admin/Operations.php:777
-msgid "No Work Items in this status on the current page."
-msgstr ""
-
 #. translators: %s: Work Item title.
 #: src/Admin/Operations.php:782
 #, php-format

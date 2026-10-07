@@ -613,10 +613,6 @@ msgstr "Type"
 msgid "The Work Item status could not be updated."
 msgstr "Le statut de l’élément de travail n’a pas pu être mis à jour."
 
-#: src/Admin/Operations.php:777
-msgid "No Work Items in this status on the current page."
-msgstr "Aucun Work Item avec ce statut sur la page actuelle."
-
 #. translators: %s: Work Item title.
 #: src/Admin/Operations.php:782
 #, php-format
