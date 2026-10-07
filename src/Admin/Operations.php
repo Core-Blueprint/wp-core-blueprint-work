@@ -44,7 +44,8 @@ final class Operations {
 			return;
 		}
 
-		$state = WorkItemViewState::from_request( $_GET );
+		$request = WorkItemViewPreferences::apply_default_to_request( $_GET, get_current_user_id() );
+		$state   = WorkItemViewState::from_request( $request );
 		if ( ! in_array( (string) $state['view'], [ WorkItemViewState::VIEW_TABLE, WorkItemViewState::VIEW_LIST, WorkItemViewState::VIEW_KANBAN, WorkItemViewState::VIEW_CALENDAR ], true ) ) {
 			$request         = $_GET;
 			$request['view'] = WorkItemViewState::VIEW_TABLE;
@@ -201,26 +202,84 @@ final class Operations {
 
 	/** @param array<string,mixed> $state */
 	private static function render_work_item_views( array $state ): void {
-		$current = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
-		$views = [
+		$current     = (string) ( $state['view'] ?? WorkItemViewState::VIEW_TABLE );
+		$preferences = WorkItemViewPreferences::get( get_current_user_id() );
+		$views       = [
 			WorkItemViewState::VIEW_TABLE    => [ 'label' => __( 'Table', 'core-blueprint-work' ), 'icon' => 'dashicons-editor-table' ],
 			WorkItemViewState::VIEW_LIST     => [ 'label' => __( 'List', 'core-blueprint-work' ), 'icon' => 'dashicons-list-view' ],
 			WorkItemViewState::VIEW_KANBAN   => [ 'label' => __( 'Board', 'core-blueprint-work' ), 'icon' => 'dashicons-screenoptions' ],
 			WorkItemViewState::VIEW_CALENDAR => [ 'label' => __( 'Calendar', 'core-blueprint-work' ), 'icon' => 'dashicons-calendar-alt' ],
 		];
+		$template_id = 'cb-work-view-preferences-template';
 		?>
-		<nav class="cb-core-segmented-control cb-work-view-switcher" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
-			<?php foreach ( $views as $view => $definition ) : ?>
-				<a
-					class="cb-core-segmented-control__option cb-work-view-switcher__option <?php echo $current === $view ? 'is-active' : ''; ?>"
-					href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"
-					<?php if ( $current === $view ) : ?>aria-current="page"<?php endif; ?>
-				>
-					<span class="dashicons <?php echo esc_attr( (string) $definition['icon'] ); ?>" aria-hidden="true"></span>
-					<span><?php echo esc_html( (string) $definition['label'] ); ?></span>
-				</a>
-			<?php endforeach; ?>
-		</nav>
+		<div class="cb-work-view-switcher-shell">
+			<nav class="cb-core-segmented-control cb-work-view-switcher" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+				<?php foreach ( (array) $preferences['order'] as $view ) : ?>
+					<?php if ( ! isset( $views[ $view ] ) ) { continue; } ?>
+					<?php $definition = $views[ $view ]; ?>
+					<a
+						class="cb-core-segmented-control__option cb-work-view-switcher__option <?php echo $current === $view ? 'is-active' : ''; ?>"
+						href="<?php echo esc_url( self::work_items_url( $state, [ 'view' => $view, 'page' => 1 ] ) ); ?>"
+						<?php if ( $current === $view ) : ?>aria-current="page"<?php endif; ?>
+					>
+						<span class="dashicons <?php echo esc_attr( (string) $definition['icon'] ); ?>" aria-hidden="true"></span>
+						<span><?php echo esc_html( (string) $definition['label'] ); ?></span>
+					</a>
+				<?php endforeach; ?>
+			</nav>
+			<button
+				type="button"
+				class="button cb-work-view-preferences__trigger"
+				data-cb-work-view-preferences-open
+				data-template-id="<?php echo esc_attr( $template_id ); ?>"
+				data-modal-title="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
+				aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
+				title="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>"
+			>
+				<span class="dashicons dashicons-admin-settings" aria-hidden="true"></span>
+			</button>
+		</div>
+
+		<template id="<?php echo esc_attr( $template_id ); ?>">
+			<div
+				class="cb-work-view-preferences"
+				data-cb-work-view-preferences
+				data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+				data-action="<?php echo esc_attr( WorkItemViewPreferences::ACTION ); ?>"
+				data-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewPreferences::NONCE_ACTION ) ); ?>"
+				data-error="<?php echo esc_attr__( 'The Work Item view preferences could not be saved.', 'core-blueprint-work' ); ?>"
+				data-default-view="<?php echo esc_attr( WorkItemViewState::VIEW_TABLE ); ?>"
+				data-default-order="<?php echo esc_attr( implode( ',', WorkItemViewPreferences::canonical_order() ) ); ?>"
+			>
+				<div data-cb-core-reorder>
+					<div class="cb-work-view-preferences__list" data-cb-core-reorder-list="views" data-cb-core-reorder-list-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+						<?php foreach ( (array) $preferences['order'] as $view ) : ?>
+							<?php if ( ! isset( $views[ $view ] ) ) { continue; } ?>
+							<?php $definition = $views[ $view ]; ?>
+							<div
+								class="cb-work-view-preferences__item"
+								data-cb-core-reorder-item="<?php echo esc_attr( (string) $view ); ?>"
+								data-cb-core-reorder-label="<?php echo esc_attr( (string) $definition['label'] ); ?>"
+							>
+								<button type="button" class="button-link cb-core-icon-control cb-core-reorder-handle" data-cb-core-reorder-handle aria-label="<?php esc_attr_e( 'Move', 'core-blueprint-work' ); ?>" title="<?php esc_attr_e( 'Move', 'core-blueprint-work' ); ?>">
+									<span class="dashicons dashicons-move" aria-hidden="true"></span>
+								</button>
+								<span class="dashicons <?php echo esc_attr( (string) $definition['icon'] ); ?> cb-work-view-preferences__icon" aria-hidden="true"></span>
+								<span class="cb-work-view-preferences__label"><?php echo esc_html( (string) $definition['label'] ); ?></span>
+								<label class="cb-work-view-preferences__default">
+									<input type="radio" name="cb-work-default-view" value="<?php echo esc_attr( (string) $view ); ?>" <?php checked( (string) $preferences['default_view'], (string) $view ); ?>>
+									<span><?php esc_html_e( 'Default', 'core-blueprint-work' ); ?></span>
+								</label>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
+				<div class="cb-work-view-preferences__footer">
+					<button type="button" class="button" data-cb-work-view-preferences-reset><?php esc_html_e( 'Reset to defaults', 'core-blueprint-work' ); ?></button>
+					<span class="description" data-cb-work-view-preferences-status aria-live="polite"></span>
+				</div>
+			</div>
+		</template>
 		<?php
 	}
 
