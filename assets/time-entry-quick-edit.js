@@ -26,7 +26,7 @@
         const seconds = Math.floor((end.getTime() - start.getTime()) / 1000);
 
         // Advisory only: WordPress validates the site timezone and saves the final duration.
-        output.textContent = Number.isFinite(seconds) && seconds > 0
+        output.textContent = Number.isFinite(seconds) && seconds >= 0
             ? '~' + formatDuration(seconds)
             : '—';
     }
