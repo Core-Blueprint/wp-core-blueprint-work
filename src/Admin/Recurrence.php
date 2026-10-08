@@ -40,6 +40,7 @@ final class Recurrence {
 				'previewNonce' => wp_create_nonce( 'cb_work_recurrence_preview' ),
 				'error' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ),
 				'loading' => __( 'Building server preview…', 'core-blueprint-work' ),
+				'saveFirst' => __( 'Save changes', 'core-blueprint-work' ),
 			] );
 		}
 
@@ -189,7 +190,7 @@ final class Recurrence {
 					<strong><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></strong>
 					<span class="cb-work-recurrence-status <?php echo $active ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo $active ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span>
 					<?php if ( $editing ) : ?>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form data-cb-editor-toggle method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="cb_work_toggle_recurrence_rule">
 						<input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $edit_id ); ?>">
 						<input type="hidden" name="active" value="<?php echo $active ? '0' : '1'; ?>">
