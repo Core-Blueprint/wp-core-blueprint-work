@@ -1801,14 +1801,6 @@ msgstr "Einde"
 msgid "Save Correction"
 msgstr "Correctie opslaan"
 
-#: src/Admin/Time.php:151
-msgid "Recent Time Entries"
-msgstr "Recente Time-entries"
-
-#: src/Admin/Time.php:153
-msgid "No completed Time entries yet."
-msgstr "Nog geen voltooide Time-entries."
-
 #: src/Admin/Time.php:156
 msgid "When"
 msgstr "Wanneer"
