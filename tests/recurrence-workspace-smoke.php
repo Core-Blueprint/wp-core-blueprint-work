@@ -36,6 +36,13 @@ $checks = [
 		&& str_contains( $recurrence, 'cb-work-recurrence-section--schedule' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-field--wide' )
 		&& str_contains( $styles, 'grid-template-columns: repeat(4, minmax(0, 1fr));' ),
+	'G2 project-first layout keeps dependent context fields grouped' => strpos( $recurrence, 'cb-work-recurrence-project' ) < strpos( $recurrence, 'data-cb-work-context-row' )
+		&& strpos( $recurrence, 'data-cb-work-context-row' ) < strpos( $recurrence, 'data-cb-work-customer-row' )
+		&& str_contains( $styles, '.cb-work-recurrence-fields [data-cb-work-customer-row] {' ),
+	'G2 billing, assignees, frequency and dates use balanced field widths' => str_contains( $recurrence, 'class="cb-work-recurrence-field--wide"><th scope="row"><label for="cb-work-recurrence-billing"' )
+		&& str_contains( $recurrence, "Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', \$assignees, false )" )
+		&& str_contains( $styles, '.cb-work-recurrence-field--frequency td select {' )
+		&& str_contains( $styles, '.cb-work-recurrence-section--schedule input[type="date"] {' ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
