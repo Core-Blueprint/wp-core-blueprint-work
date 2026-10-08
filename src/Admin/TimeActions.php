@@ -121,7 +121,7 @@ final class TimeActions {
 		if ( ! Access::can_edit_entry( $entry, $work_item_id ) ) {
 			self::redirect( 'time-not-authorized' );
 		}
-		$range = self::range_from_input( $input );
+		$range = self::range_from_input( $input, $entry );
 		if ( null === $range ) {
 			self::redirect( 'time-invalid', [ 'entry_id' => $entry_id ] );
 		}
@@ -161,13 +161,13 @@ final class TimeActions {
 	}
 
 	/** @param array<string,mixed> $input @return array{started_at:string,ended_at:string}|null */
-	private static function range_from_input( array $input ): ?array {
+	private static function range_from_input( array $input, ?array $original_entry = null ): ?array {
 		$start_date = is_scalar( $input['start_date'] ?? '' ) ? sanitize_text_field( (string) $input['start_date'] ) : '';
 		$start_time = is_scalar( $input['start_time'] ?? '' ) ? sanitize_text_field( (string) $input['start_time'] ) : '';
 		$end_date   = is_scalar( $input['end_date'] ?? '' ) ? sanitize_text_field( (string) $input['end_date'] ) : '';
 		$end_time   = is_scalar( $input['end_time'] ?? '' ) ? sanitize_text_field( (string) $input['end_time'] ) : '';
-		$started_at = TimeRange::local_to_utc( $start_date, $start_time );
-		$ended_at   = TimeRange::local_to_utc( $end_date, $end_time );
+		$started_at = TimeRange::local_to_utc( $start_date, $start_time, $original_entry['started_at'] ?? null );
+		$ended_at   = TimeRange::local_to_utc( $end_date, $end_time, $original_entry['ended_at'] ?? null );
 		if ( null === $started_at || null === $ended_at ) {
 			return null;
 		}
