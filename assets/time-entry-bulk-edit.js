@@ -102,7 +102,10 @@
         busy = true;
         controls();
         try {
-            const response = await fetch(bulk.action, {
+            // WordPress's hidden name="action" input can shadow form.action.
+            const actionUrl = bulk.getAttribute('action');
+            if (!actionUrl) throw new Error('Time Bulk Edit action URL missing');
+            const response = await fetch(actionUrl, {
                 method: 'POST',
                 credentials: 'same-origin',
                 redirect: 'follow',
