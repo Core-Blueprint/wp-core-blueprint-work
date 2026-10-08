@@ -325,7 +325,7 @@
 
 .cb-work-recurrence-preview {
 	position: sticky;
-	top: 48px;
+	top: 118px;
 	min-width: 0;
 	padding: 24px;
 	box-sizing: border-box;
@@ -384,17 +384,69 @@
 }
 
 .cb-work-recurrence-activation {
+	position: sticky;
+	top: var(--wp-admin--admin-bar--height, 32px);
+	z-index: 20;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+	padding: 14px 20px;
+	margin: 0 0 22px;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+	border-radius: 8px;
+	background: color-mix(in srgb, Canvas 97%, currentColor 3%);
+	box-shadow: 0 4px 16px color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.cb-work-recurrence-activation-info,
+.cb-work-recurrence-activation-actions {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 12px;
-	padding: 16px 20px;
-	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-	border-radius: 8px;
+	gap: 10px;
+}
+
+.cb-work-recurrence-activation-actions {
+	margin-inline-start: auto;
 }
 
 .cb-work-recurrence-activation form {
-	margin-inline-start: auto;
+	margin: 0;
+}
+
+.cb-work-recurrence-unsaved:not([hidden]) {
+	font-size: 12px;
+	font-weight: 600;
+	opacity: .85;
+}
+
+.cb-work-recurrence-activation [hidden] {
+	display: none;
+}
+
+.cb-work-recurrence-preview-status-note {
+	margin: -5px 0 12px;
+	font-size: 12px;
+	opacity: .7;
+}
+
+.cb-work-recurrence-section--defaults .cb-work-recurrence-field--assignees {
+	grid-column: 1 / -1;
+}
+
+.cb-work-recurrence-field--assignees td {
+	max-width: 760px;
+	width: 100%;
+}
+
+.cb-work-recurrence-section--rule .cb-work-recurrence-field--rule:first-child {
+	grid-column: span 2;
+}
+
+.cb-work-recurrence-section--rule .cb-work-recurrence-field--rule textarea {
+	min-height: 76px;
 }
 
 .cb-work-recurrence-filterbar {
@@ -499,6 +551,16 @@
 }
 
 @media (max-width: 680px) {
+	/* Avoid a toolbar obscuring the form on a narrow mobile viewport. */
+	.cb-work-recurrence-activation {
+		position: static;
+		padding: 12px;
+	}
+
+	.cb-work-recurrence-activation-actions {
+		margin-inline-start: 0;
+	}
+
 	.cb-work-recurrence-filterbar {
 		grid-template-columns: minmax(0, 1fr);
 	}
