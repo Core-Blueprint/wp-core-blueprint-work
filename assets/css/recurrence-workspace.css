@@ -319,8 +319,17 @@
 	margin: -8px 0 18px !important;
 }
 
-.cb-work-recurrence-advanced-toggle span {
+.cb-work-recurrence-advanced-toggle span[aria-hidden] {
 	margin-inline-start: 8px;
+}
+.cb-work-recurrence-advanced-summary {
+	font-size: 12px;
+	opacity: .82;
+	line-height: 1.55;
+	margin: -7px 0 20px;
+}
+.cb-work-recurrence-advanced-summary[hidden] {
+	display: none;
 }
 
 .cb-work-recurrence-preview {
@@ -371,6 +380,17 @@
 	border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
 	margin: 14px 0;
 }
+.cb-work-recurrence-preview-group-heading {
+	margin: 18px 0 10px !important;
+	font-size: 13px;
+	font-weight: 650;
+}
+.cb-work-recurrence-preview-top + .cb-work-recurrence-preview-group-heading {
+	margin-top: 4px !important;
+}
+.cb-work-recurrence-preview-status-note[hidden] {
+	display: none;
+}
 
 .cb-work-recurrence-preview h4 {
 	margin: 0 0 12px;
@@ -406,6 +426,17 @@
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 10px;
+}
+.cb-work-recurrence-activation-description {
+	font-size: 12px;
+	opacity: .75;
+}
+.cb-work-recurrence-activation-description::before {
+	content: "·";
+	margin-inline-end: 9px;
+}
+.cb-work-recurrence-header [data-cb-recurrence-back] {
+	white-space: nowrap;
 }
 
 .cb-work-recurrence-activation-actions {
