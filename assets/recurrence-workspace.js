@@ -105,6 +105,57 @@
         });
     });
 
+    const editorToggle = document.querySelector('[data-cb-editor-toggle]');
+    const editForm = document.querySelector('[data-cb-recurrence-editor]');
+    if (editorToggle && editForm) {
+        const button = editorToggle.querySelector('[type="submit"]');
+        const activeInput = editorToggle.querySelector('input[name="active"]');
+        const feedback = document.createElement('span');
+        feedback.setAttribute('role', 'status');
+        editorToggle.appendChild(feedback);
+        let dirty = false;
+        const markDirty = () => {
+            dirty = true;
+            if (button) {
+                button.disabled = true;
+                button.title = config.saveFirst;
+            }
+        };
+        editForm.addEventListener('input', markDirty);
+        editForm.addEventListener('change', markDirty);
+        editorToggle.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (dirty || !button || !activeInput) return;
+            if (activeInput.value === '1' && !window.confirm(button.textContent.trim() + '?')) return;
+            const body = new FormData(editorToggle);
+            body.set('action', 'cb_work_toggle_recurrence_rule_inline');
+            button.disabled = true;
+            feedback.textContent = '';
+            try {
+                const response = await fetch(config.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.data?.message || config.error);
+                document.querySelectorAll('.cb-work-recurrence-editor .cb-work-recurrence-status').forEach((badge) => {
+                    badge.textContent = result.data.status;
+                    badge.classList.toggle('cb-work-recurrence-status--active', result.data.active);
+                    badge.classList.toggle('cb-work-recurrence-status--inactive', !result.data.active);
+                });
+                button.textContent = result.data.action;
+                activeInput.value = result.data.active ? '0' : '1';
+                if (result.data.active) button.removeAttribute('data-cb-work-confirm');
+                else button.setAttribute('data-cb-work-confirm', '');
+            } catch (error) {
+                feedback.textContent = error.message || config.error;
+            } finally {
+                button.disabled = false;
+            }
+        });
+    }
+
     const editor = document.querySelector('[data-cb-recurrence-editor]');
     const preview = document.querySelector('[data-cb-recurrence-preview]');
     if (!editor || !preview) return;
