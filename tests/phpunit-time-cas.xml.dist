@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="phpunit-time-bootstrap.php"
+    colors="true"
+    beStrictAboutTestsThatDoNotTestAnything="true"
+    failOnRisky="true"
+    failOnWarning="false"
+>
+    <testsuites>
+        <testsuite name="work-time-cas">
+            <directory suffix="Test.php">integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
