@@ -2488,3 +2488,15 @@ msgstr ""
 #: src/Admin/Recurrence.php
 msgid "All changes saved"
 msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Automation"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Running the generator manually may create Work Items from eligible active rules."
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Run the generator now? Eligible active rules may create Work Items."
+msgstr ""
