@@ -58,6 +58,9 @@
         state = next;
         root.hidden = !state.active;
         if (!state.active) {
+            // The page-level Time banner was server-rendered and must not remain
+            // stale after another tab (or this HUD) completes the timer.
+            document.querySelector('.cb-work-time-running-status')?.remove();
             panel.hidden = true;
             toggle.setAttribute('aria-expanded', 'false');
             noteDirty = false;
@@ -117,6 +120,13 @@
             if (action === 'note') {
                 announce(config.strings.noteSaved);
             } else {
+                // Timer-only view renders a server-side Stop form; refresh it
+                // after a successful HUD Stop. Do not reload Manual Entry drafts.
+                const timerStopForm = document.querySelector('.cb-work-time-view--timer input[name="action"][value="cb_work_stop_timer"]');
+                if (timerStopForm) {
+                    window.location.reload();
+                    return true;
+                }
                 const toast = document.querySelector('[data-cb-time-hud-toast]');
                 if (toast) {
                     toast.textContent = config.strings.stopped;
