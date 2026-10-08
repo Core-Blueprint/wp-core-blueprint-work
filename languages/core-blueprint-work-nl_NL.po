@@ -1392,14 +1392,6 @@ msgstr "Geen Work Type"
 msgid "Estimated time (minutes)"
 msgstr "Geschatte tijd (minuten)"
 
-#: src/Admin/Recurrence.php:94
-msgid ""
-"Planning estimate inherited by future generated Work Items. Registered time "
-"remains separate."
-msgstr ""
-"Planningsschatting die wordt overgenomen door toekomstige gegenereerde Work "
-"Items. Geregistreerde tijd blijft afzonderlijk."
-
 #: src/Admin/Recurrence.php:95 src/Admin/WorkItems.php:182
 msgid "Billing classification"
 msgstr "Facturatieclassificatie"
@@ -1462,10 +1454,6 @@ msgstr "Vervaldatumverschuiving"
 #: src/Admin/Recurrence.php:115
 msgid "days after scheduled date"
 msgstr "dagen na de geplande datum"
-
-#: src/Admin/Recurrence.php:118
-msgid "Save Recurring Work Rule"
-msgstr "Regel voor terugkerend werk opslaan"
 
 #: src/Admin/Recurrence.php:122
 msgid "Recurring Work Rules"
@@ -2444,3 +2432,11 @@ msgstr "De payload voor de Work Item-weergavevoorkeur is ongeldig."
 #: src/Admin/Operations.php
 msgid "The Work Item view preferences could not be saved."
 msgstr "De voorkeuren voor de Work Item-weergave konden niet worden opgeslagen."
+
+#: src/Admin/Recurrence.php:158
+msgid "Advanced settings"
+msgstr "Geavanceerde instellingen"
+
+#: src/Admin/Recurrence.php:205
+msgid "Rule Preview"
+msgstr "Regelvoorbeeld"
