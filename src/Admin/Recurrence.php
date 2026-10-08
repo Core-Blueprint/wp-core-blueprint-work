@@ -424,7 +424,7 @@ final class Recurrence {
 			/* translators: 1: generated count, 2: recovered count, 3: failed count. */
 			$message .= ' ' . sprintf( __( 'Generated: %1$d · recovered: %2$d · failed: %3$d.', 'core-blueprint-work' ), $generated, $recovered, $failed );
 		}
-		printf( '<div class="notice notice-%1$s inline"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );
+		printf( '<div class="notice notice-%1$s inline" data-cb-work-toast="%1$s"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );
 	}
 
 	private static function guard(): void {
