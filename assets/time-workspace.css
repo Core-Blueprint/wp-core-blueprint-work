@@ -602,6 +602,21 @@
     min-height: 70px;
     resize: vertical;
 }
+/* Keep the disabled state distinct from an editable note in both admin themes.
+   The textarea's native disabled property remains the behavioral authority. */
+.cb-work-time-bulk-field textarea[data-cb-work-time-bulk-note]:disabled {
+    background: var(--cb-surface-2, rgba(125, 125, 125, .09));
+    border-color: var(--cb-border, #dcdcde);
+    border-style: dashed;
+    color: var(--cb-text-muted, #646970);
+    opacity: .65;
+    box-shadow: none;
+    cursor: not-allowed;
+    resize: none;
+}
+.cb-work-time-bulk-field--note:has(textarea[data-cb-work-time-bulk-note]:disabled) > label {
+    color: var(--cb-text-muted, inherit);
+}
 .cb-work-time-bulk-actions {
     display: flex;
     justify-content: flex-end;
