@@ -1433,10 +1433,6 @@ msgstr ""
 msgid "Estimated time (minutes)"
 msgstr ""
 
-#: src/Admin/Recurrence.php:94
-msgid "Planning estimate inherited by future generated Work Items. Registered time remains separate."
-msgstr ""
-
 #: src/Admin/Recurrence.php:95
 #: src/Admin/WorkItems.php:182
 msgid "Billing classification"
@@ -1499,10 +1495,6 @@ msgstr ""
 
 #: src/Admin/Recurrence.php:115
 msgid "days after scheduled date"
-msgstr ""
-
-#: src/Admin/Recurrence.php:118
-msgid "Save Recurring Work Rule"
 msgstr ""
 
 #: src/Admin/Recurrence.php:122
@@ -2435,4 +2427,12 @@ msgstr ""
 
 #: src/Admin/Operations.php
 msgid "The Work Item view preferences could not be saved."
+msgstr ""
+
+#: src/Admin/Recurrence.php:158
+msgid "Advanced settings"
+msgstr ""
+
+#: src/Admin/Recurrence.php:205
+msgid "Rule Preview"
 msgstr ""
