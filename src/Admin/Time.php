@@ -88,31 +88,20 @@ final class Time {
 			<?php
 			switch ( $view ) {
 				case self::VIEW_MANUAL:
-					$items = self::available_work_items( $manager, $user_id );
 					$edit_id = self::requested_entry_id();
 					$editing = $edit_id > 0 ? TimeEntries::get( $edit_id ) : null;
 					if ( is_array( $editing ) ) {
 						if ( ! Access::can_view_entry( $editing ) ) {
 							wp_die( esc_html__( 'You do not have permission to view this Time entry.', 'core-blueprint-work' ) );
 						}
-						// The first page of Work Items is capped at 500. Always
-						// include this entry's original item to avoid accidentally
-						// selecting a different item when correcting older work.
-						$selected_id = (int) $editing['work_item_id'];
-						if ( ! in_array( $selected_id, array_column( $items, 'id' ), true ) ) {
-							$original_item = WorkItems::get( $selected_id );
-							if ( is_array( $original_item ) ) {
-								$items[] = $original_item;
-							}
-						}
 					}
-					self::render_entry_form( $items, $editing, $manager, $user_id );
+					self::render_entry_form( $editing, $manager, $user_id );
 					break;
 				case self::VIEW_ENTRIES:
 					TimeEntryList::render( $manager );
 					break;
 				default:
-					self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );
+					self::render_timer( $active, $user_id );
 					break;
 			}
 			?>
@@ -180,8 +169,8 @@ final class Time {
 		<?php
 	}
 
-	/** @param array<int,array<string,mixed>> $items @param array<string,mixed>|null $active */
-	private static function render_timer( array $items, ?array $active, int $user_id ): void {
+	/** @param array<string,mixed>|null $active */
+	private static function render_timer( ?array $active, int $user_id ): void {
 		?>
 		<div class="card">
 			<h2><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></h2>
@@ -205,13 +194,11 @@ final class Time {
 					<?php wp_nonce_field( 'cb_work_stop_timer_' . $user_id ); ?>
 					<?php submit_button( __( 'Stop Timer', 'core-blueprint-work' ), 'primary', 'submit', false ); ?>
 				</form>
-			<?php elseif ( [] === $items ) : ?>
-				<p><?php esc_html_e( 'No Work Items are available for time tracking.', 'core-blueprint-work' ); ?></p>
 			<?php else : ?>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="cb_work_start_timer">
 					<?php wp_nonce_field( 'cb_work_start_timer' ); ?>
-					<p><label for="cb-work-timer-item"><strong><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></strong></label><br><?php self::work_item_select( $items, 0, 'time[work_item_id]', 'cb-work-timer-item' ); ?></p>
+					<p><label for="cb-work-timer-item"><strong><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></strong></label><br><?php Pickers::time_work_item( 'time[work_item_id]', 'cb-work-timer-item' ); ?></p>
 					<p><label for="cb-work-timer-note"><strong><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></strong></label><br><textarea id="cb-work-timer-note" class="large-text" rows="2" name="time[note]"></textarea></p>
 					<?php submit_button( __( 'Start Timer', 'core-blueprint-work' ), 'primary', 'submit', false ); ?>
 				</form>
@@ -220,8 +207,8 @@ final class Time {
 		<?php
 	}
 
-	/** @param array<int,array<string,mixed>> $items @param array<string,mixed>|null $entry */
-	private static function render_entry_form( array $items, ?array $entry, bool $manager, int $current_user_id ): void {
+	/** @param array<string,mixed>|null $entry */
+	private static function render_entry_form( ?array $entry, bool $manager, int $current_user_id ): void {
 		$editing = is_array( $entry );
 		$selected_item = $editing ? (int) $entry['work_item_id'] : 0;
 		$selected_user = $editing ? (int) $entry['user_id'] : $current_user_id;
@@ -232,9 +219,7 @@ final class Time {
 		<div class="card">
 			<h2><?php echo esc_html( $editing ? __( 'Correct Time Entry', 'core-blueprint-work' ) : __( 'Add Time Entry', 'core-blueprint-work' ) ); ?></h2>
 			<?php if ( $editing ) : ?><p class="description"><?php esc_html_e( 'Corrections use revision checks. If someone saved this entry first, your stale form will not overwrite their change.', 'core-blueprint-work' ); ?></p><?php endif; ?>
-			<?php if ( [] === $items ) : ?>
-				<p><?php esc_html_e( 'No Work Items are available for this entry.', 'core-blueprint-work' ); ?></p>
-			<?php else : ?>
+
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="<?php echo $editing ? 'cb_work_update_time_entry' : 'cb_work_create_time_entry'; ?>">
 				<?php if ( $editing ) : ?>
@@ -245,7 +230,7 @@ final class Time {
 					<?php wp_nonce_field( 'cb_work_create_time_entry' ); ?>
 				<?php endif; ?>
 				<table class="form-table" role="presentation"><tbody>
-				<tr><th scope="row"><label for="cb-work-time-item"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></label></th><td><?php self::work_item_select( $items, $selected_item, 'time[work_item_id]', 'cb-work-time-item' ); ?></td></tr>
+				<tr><th scope="row"><label for="cb-work-time-item"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></label></th><td><?php Pickers::time_work_item( 'time[work_item_id]', 'cb-work-time-item', $selected_item ); ?></td></tr>
 				<tr><th scope="row"><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></th><td>
 					<?php if ( $manager ) : ?>
 						<?php Pickers::assignee( 'time[user_id]', 'cb-work-time-user', $selected_user ); ?>
@@ -269,32 +254,8 @@ final class Time {
 				<?php submit_button( $editing ? __( 'Save Correction', 'core-blueprint-work' ) : __( 'Add Time Entry', 'core-blueprint-work' ) ); ?>
 				<?php if ( $editing ) : ?><a class="button" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_ENTRIES ] ) ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a><?php endif; ?>
 			</form>
-			<?php endif; ?>
 		</div>
 		<?php
-	}
-
-
-	/** @return array<int,array<string,mixed>> */
-	private static function available_work_items( bool $manager, int $user_id ): array {
-		$items = WorkItems::all( 500 );
-		if ( $manager ) {
-			return $items;
-		}
-		return array_values( array_filter(
-			$items,
-			static fn( array $item ): bool => in_array( $user_id, (array) ( $item['assigned_user_ids'] ?? [] ), true )
-		) );
-	}
-
-	/** @param array<int,array<string,mixed>> $items */
-	private static function work_item_select( array $items, int $selected, string $name, string $id ): void {
-		echo '<select id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" required>';
-		echo '<option value="">' . esc_html__( 'Select a Work Item', 'core-blueprint-work' ) . '</option>';
-		foreach ( $items as $item ) {
-			printf( '<option value="%1$d" %2$s>%3$s</option>', (int) $item['id'], selected( $selected, (int) $item['id'], false ), esc_html( (string) $item['title'] ) );
-		}
-		echo '</select>';
 	}
 
 	private static function time_picker( string $name, string $id, string $value ): void {
