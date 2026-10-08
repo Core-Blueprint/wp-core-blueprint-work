@@ -51,6 +51,7 @@ final class Recurrence {
 				'billingLabel' => __( 'Billing classification', 'core-blueprint-work' ),
 				'activeDescription' => __( 'Automatic generation active', 'core-blueprint-work' ),
 				'inactiveDescription' => __( 'Automatic generation paused', 'core-blueprint-work' ),
+                'minuteUnit' => __( 'min', 'core-blueprint-work' ),
 			] );
 		}
 
