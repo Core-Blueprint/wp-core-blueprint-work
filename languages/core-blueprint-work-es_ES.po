@@ -2575,8 +2575,8 @@ msgstr "Ordenar por"
 
 #: src/Admin/TimeEntryList.php
 #, php-format
-msgid "%1$d–%2$d of %3$d Time entries"
-msgstr "%1$d–%2$d de %3$d registros de tiempo"
+msgid "Entries: %1$d–%2$d of %3$d"
+msgstr "Registros: %1$d–%2$d de %3$d"
 
 #: src/Admin/TimeEntryList.php
 #, php-format
