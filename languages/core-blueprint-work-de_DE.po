@@ -1739,14 +1739,6 @@ msgstr "Die CSV-Datei konnte nicht sicher gelesen werden."
 msgid "VAT Data Exchange"
 msgstr "Mehrwertsteuer Data Exchange"
 
-#: src/Admin/Time.php:39
-msgid ""
-"Register actual Work time. Work Item estimates and billing classification "
-"remain separate planning and commercial facts."
-msgstr ""
-"Erfassen Sie tatsächliche Work-Zeit. Work-Item-Schätzungen und "
-"Abrechnungsklassifizierung bleiben getrennte Planungs- und Geschäftsdaten."
-
 #: src/Admin/Time.php:42
 msgid ""
 "Work Time storage is not ready yet. Complete the Work schema upgrade first."
@@ -2498,3 +2490,23 @@ msgstr "Zuweisung"
 #: src/Admin/Recurrence.php
 msgid "All changes saved"
 msgstr "Alle Änderungen gespeichert"
+
+#: src/Admin/Time.php
+msgid "Track time, add entries and review recorded work."
+msgstr "Zeiten erfassen, Einträge hinzufügen und erfasste Arbeit prüfen."
+
+#: src/Admin/Time.php
+msgid "Manual Entry"
+msgstr "Manueller Eintrag"
+
+#: src/Admin/Time.php
+msgid "Time Entries"
+msgstr "Zeiteinträge"
+
+#: src/Admin/Time.php
+msgid "Time views"
+msgstr "Zeitansichten"
+
+#: src/Admin/Time.php
+msgid "Active timer"
+msgstr "Aktiver Timer"
