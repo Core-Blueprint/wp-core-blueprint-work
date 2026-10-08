@@ -2544,3 +2544,73 @@ msgstr ""
 #: src/Admin/TimerHud.php
 msgid "Open Time workspace"
 msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Review and correct recorded work time."
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Work Item title…"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "From"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "To"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "All sources"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Manual"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Sort by"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+#, php-format
+msgid "%1$d–%2$d of %3$d Time entries"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+#, php-format
+msgid "Total: %s"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "No matching Time entries"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Try adjusting your filters."
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Start a timer or add your first Time entry."
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Time Entries pagination"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Newest first"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Oldest first"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Longest first"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Shortest first"
+msgstr ""
