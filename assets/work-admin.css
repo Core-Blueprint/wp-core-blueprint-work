@@ -900,7 +900,19 @@
 	color: var(--cb-work-text-muted);
 }
 
+/* Base appends the dialog outside .cb-work-items-page: restore Work's
+ * token aliases inside the transplanted day template for both admin themes. */
 .cb-work-day-modal {
+	--cb-work-surface: var(--cb-surface-1);
+	--cb-work-surface-raised: var(--cb-surface-2);
+	--cb-work-canvas: var(--cb-surface-0);
+	--cb-work-border: var(--cb-border);
+	--cb-work-text: var(--cb-text);
+	--cb-work-text-strong: var(--cb-text-strong);
+	--cb-work-text-muted: var(--cb-text-muted);
+	--cb-work-shadow: var(--cb-shadow-sm);
+	--cb-work-radius: var(--cb-radius-md);
+	--cb-work-transition: var(--cb-interactive-transition);
 	min-width: 0;
 	max-width: 100%;
 }
