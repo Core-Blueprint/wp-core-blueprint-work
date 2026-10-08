@@ -127,7 +127,7 @@ final class QuickAdd {
 			return;
 		}
 		if ( 'error' === $notice ) {
-			echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'The Work Item could not be added. Open the full editor to review all required details.', 'core-blueprint-work' ) . '</p></div>';
+			echo '<div class="notice notice-error is-dismissible" data-cb-work-toast="error"><p>' . esc_html__( 'The Work Item could not be added. Open the full editor to review all required details.', 'core-blueprint-work' ) . '</p></div>';
 		}
 	}
 }
