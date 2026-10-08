@@ -2606,3 +2606,19 @@ msgstr ""
 #: src/Admin/TimeEntryList.php
 msgid "Shortest first"
 msgstr ""
+
+#: src/Admin/Time.php
+msgid "Selected Time entries updated."
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Some selected Time entries could not be updated. Review the list."
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "The bulk edit could not be saved. Review the selected entries and changes."
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "At least one selected Time entry changed. Reload the list and try again."
+msgstr ""
