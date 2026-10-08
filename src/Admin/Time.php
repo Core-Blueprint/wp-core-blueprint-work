@@ -339,7 +339,7 @@ final class Time {
 		];
 		if ( isset( $messages[ $notice ] ) && self::notice_matches_timer_state( $notice, $active ) ) {
 			[ $type, $message ] = $messages[ $notice ];
-			printf( '<div class="notice notice-%1$s inline"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );
+			printf( '<div class="notice notice-%1$s inline" data-cb-work-toast="%1$s"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );
 		}
 	}
 
