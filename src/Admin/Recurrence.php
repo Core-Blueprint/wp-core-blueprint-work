@@ -28,7 +28,8 @@ final class Recurrence {
 		}
 
 		$stylesheet = CB_WORK_DIR . 'assets/css/recurrence-workspace.css';
-		$version    = is_file( $stylesheet ) ? (string) filemtime( $stylesheet ) : CB_WORK_VERSION;
+		$hash       = is_readable( $stylesheet ) ? hash_file( 'sha256', $stylesheet ) : false;
+		$version    = false !== $hash ? substr( $hash, 0, 12 ) : CB_WORK_VERSION;
 		wp_enqueue_style( 'cb-work-recurrence-workspace', CB_WORK_URL . 'assets/css/recurrence-workspace.css', [], $version );
 	}
 
