@@ -61,6 +61,7 @@ final class Page {
 				'title'   => __( 'Work storage unavailable', 'core-blueprint-work' ),
 				'message' => __( 'The Work database schema is not ready. Work settings remain read-only until Base reconciles the registered schema.', 'core-blueprint-work' ),
 			] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML.
+		echo '</div>';
 			return;
 		}
 
@@ -145,6 +146,7 @@ final class Page {
 			return;
 		}
 		[ $variant, $message ] = $messages[ $notice ];
+		echo '<div data-cb-work-toast="' . esc_attr( $variant ) . '">';
 		echo Notice::render( [
 			'variant' => $variant,
 			'title'   => __( 'VAT Rates', 'core-blueprint-work' ),
