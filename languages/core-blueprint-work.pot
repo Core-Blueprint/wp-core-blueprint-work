@@ -2622,3 +2622,15 @@ msgstr ""
 #: src/Admin/Time.php
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Append to note"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Replace note"
+msgstr ""
+
+#: src/Admin/TimeEntryList.php
+msgid "Clear note"
+msgstr ""
