@@ -1765,10 +1765,6 @@ msgstr ""
 msgid "VAT Data Exchange"
 msgstr ""
 
-#: src/Admin/Time.php:39
-msgid "Register actual Work time. Work Item estimates and billing classification remain separate planning and commercial facts."
-msgstr ""
-
 #: src/Admin/Time.php:42
 msgid "Work Time storage is not ready yet. Complete the Work schema upgrade first."
 msgstr ""
@@ -2487,4 +2483,24 @@ msgstr ""
 
 #: src/Admin/Recurrence.php
 msgid "All changes saved"
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Track time, add entries and review recorded work."
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Manual Entry"
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Time Entries"
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Time views"
+msgstr ""
+
+#: src/Admin/Time.php
+msgid "Active timer"
 msgstr ""
