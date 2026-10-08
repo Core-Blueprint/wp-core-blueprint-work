@@ -205,8 +205,8 @@ final class Time {
 		$editing = is_array( $entry );
 		$selected_item = $editing ? (int) $entry['work_item_id'] : 0;
 		$selected_user = $editing ? (int) $entry['user_id'] : $current_user_id;
-		$start = $editing ? TimeRange::utc_to_local_parts( (string) $entry['started_at'] ) : null;
-		$end   = $editing && null !== $entry['ended_at'] ? TimeRange::utc_to_local_parts( (string) $entry['ended_at'] ) : null;
+		$start = $editing ? TimeRange::utc_to_local_parts( (string) $entry['started_at'], true ) : null;
+		$end   = $editing && null !== $entry['ended_at'] ? TimeRange::utc_to_local_parts( (string) $entry['ended_at'], true ) : null;
 		$date  = current_time( 'Y-m-d' );
 		?>
 		<div class="card">
@@ -234,8 +234,16 @@ final class Time {
 						<?php $user = get_userdata( $current_user_id ); echo esc_html( $user ? (string) $user->display_name : (string) $current_user_id ); ?>
 					<?php endif; ?>
 				</td></tr>
-				<tr><th scope="row"><?php esc_html_e( 'Start', 'core-blueprint-work' ); ?></th><td><input type="date" name="time[start_date]" value="<?php echo esc_attr( (string) ( $start['date'] ?? $date ) ); ?>" required> <?php self::time_picker( 'time[start_time]', 'cb-work-time-start', (string) ( $start['time'] ?? '' ) ); ?></td></tr>
-				<tr><th scope="row"><?php esc_html_e( 'End', 'core-blueprint-work' ); ?></th><td><input type="date" name="time[end_date]" value="<?php echo esc_attr( (string) ( $end['date'] ?? $date ) ); ?>" required> <?php self::time_picker( 'time[end_time]', 'cb-work-time-end', (string) ( $end['time'] ?? '' ) ); ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'Start', 'core-blueprint-work' ); ?></th><td><input type="date" name="time[start_date]" value="<?php echo esc_attr( (string) ( $start['date'] ?? $date ) ); ?>" required> <?php if ( $editing ) : ?>
+					<input type="time" id="cb-work-time-start" name="time[start_time]" step="1" value="<?php echo esc_attr( (string) ( $start['time'] ?? '' ) ); ?>" required>
+				<?php else : ?>
+					<?php self::time_picker( 'time[start_time]', 'cb-work-time-start', (string) ( $start['time'] ?? '' ) ); ?>
+				<?php endif; ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( 'End', 'core-blueprint-work' ); ?></th><td><input type="date" name="time[end_date]" value="<?php echo esc_attr( (string) ( $end['date'] ?? $date ) ); ?>" required> <?php if ( $editing ) : ?>
+					<input type="time" id="cb-work-time-end" name="time[end_time]" step="1" value="<?php echo esc_attr( (string) ( $end['time'] ?? '' ) ); ?>" required>
+				<?php else : ?>
+					<?php self::time_picker( 'time[end_time]', 'cb-work-time-end', (string) ( $end['time'] ?? '' ) ); ?>
+				<?php endif; ?></td></tr>
 				<tr><th scope="row"><label for="cb-work-time-note"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label></th><td><textarea id="cb-work-time-note" class="large-text" rows="3" name="time[note]"><?php echo esc_textarea( $editing ? (string) $entry['note'] : '' ); ?></textarea></td></tr>
 				</tbody></table>
 				<?php submit_button( $editing ? __( 'Save Correction', 'core-blueprint-work' ) : __( 'Add Time Entry', 'core-blueprint-work' ) ); ?>
