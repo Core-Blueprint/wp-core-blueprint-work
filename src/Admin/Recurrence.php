@@ -49,6 +49,8 @@ final class Recurrence {
 				'priorityLabel' => __( 'Priority', 'core-blueprint-work' ),
 				'estimateLabel' => __( 'Estimated time (minutes)', 'core-blueprint-work' ),
 				'billingLabel' => __( 'Billing classification', 'core-blueprint-work' ),
+				'activeDescription' => __( 'Automatic generation active', 'core-blueprint-work' ),
+				'inactiveDescription' => __( 'Automatic generation paused', 'core-blueprint-work' ),
 			] );
 		}
 
