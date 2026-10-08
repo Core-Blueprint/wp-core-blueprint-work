@@ -15,9 +15,9 @@ $checks = [
         str_contains( $view, 'cb-work-calendar-navigation__controls' )
         && str_contains( $view, 'cb-work-calendar-navigation__actions' )
         && str_contains( $view, 'cb-work-calendar-navigation__month' )
-        && str_contains( $view, "'calendar_month' => $previous_month" )
-        && str_contains( $view, "'calendar_month' => $current_month" )
-        && str_contains( $view, "'calendar_month' => $next_month" )
+        && str_contains( $view, "'calendar_month' => \$previous_month" )
+        && str_contains( $view, "'calendar_month' => \$current_month" )
+        && str_contains( $view, "'calendar_month' => \$next_month" )
         && str_contains( $view, "'Today', 'core-blueprint-work'" )
         && str_contains( $style, 'justify-content: space-between;' ),
     'Calendar viewport scroll is keyboard-operable and contains the seven-column table' =>
@@ -30,14 +30,14 @@ $checks = [
         && str_contains( $style, 'min-width: 840px;' )
         && str_contains( $style, '@media screen and (max-width: 782px)' ),
     'Calendar marks WordPress-local today without hardcoded text or browser timezone dependence' =>
-        str_contains( $view, "$today_date     = current_time( 'Y-m-d' );" )
+        str_contains( $view, "\$today_date     = current_time( 'Y-m-d' );" )
         && str_contains( $view, 'cb-work-calendar-day--today' )
         && str_contains( $view, 'datetime="<?php echo esc_attr( $date ); ?>"' )
         && str_contains( $view, 'aria-current="date"' )
         && str_contains( $style, '.cb-work-calendar-day--today' ),
     'Month and day titles use timezone-robust midday localization' =>
-        str_contains( $view, "$first->setTime( 12, 0 )->getTimestamp()" )
-        && str_contains( $view, "$value->setTime( 12, 0 )->getTimestamp()" ),
+        str_contains( $view, "\$first->setTime( 12, 0 )->getTimestamp()" )
+        && str_contains( $view, "\$value->setTime( 12, 0 )->getTimestamp()" ),
     'Base workspace dialog stays the one modal; board can scroll independently' =>
         str_contains( $calendar, "import '@cb-core/modal';" )
         && str_contains( $calendar, "size: 'workspace'" )
