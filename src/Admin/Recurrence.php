@@ -31,6 +31,18 @@ final class Recurrence {
 		$hash       = is_readable( $stylesheet ) ? hash_file( 'sha256', $stylesheet ) : false;
 		$version    = false !== $hash ? substr( $hash, 0, 12 ) : CB_WORK_VERSION;
 		wp_enqueue_style( 'cb-work-recurrence-workspace', CB_WORK_URL . 'assets/css/recurrence-workspace.css', [], $version );
+		$script = CB_WORK_DIR . 'assets/recurrence-workspace.js';
+		if ( is_readable( $script ) ) {
+			$script_hash = hash_file( 'sha256', $script );
+			wp_enqueue_script( 'cb-work-recurrence-ui', CB_WORK_URL . 'assets/recurrence-workspace.js', [], false !== $script_hash ? substr( $script_hash, 0, 12 ) : CB_WORK_VERSION, true );
+			wp_localize_script( 'cb-work-recurrence-ui', 'cbWorkRecurrenceUi', [
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'previewNonce' => wp_create_nonce( 'cb_work_recurrence_preview' ),
+				'error' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ),
+				'loading' => __( 'Building server preview…', 'core-blueprint-work' ),
+			] );
+		}
+
 	}
 
 	public static function render(): void {
@@ -44,7 +56,27 @@ final class Recurrence {
 		$projects = Projects::all( 500 );
 		$services = Services::all( 250 );
 		$types    = WorkTypes::all();
-		$rules    = RecurrenceRules::all( false, 500 );
+		$filter_search = isset( $_GET['cb_search'] ) && is_scalar( $_GET['cb_search'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['cb_search'] ) ) : '';
+		$filter_status = isset( $_GET['cb_status'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb_status'] ) ) : '';
+		$filter_context = isset( $_GET['cb_context'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb_context'] ) ) : '';
+		$filter_project = isset( $_GET['cb_project'] ) ? absint( $_GET['cb_project'] ) : 0;
+		$filter_sort = isset( $_GET['cb_sort'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb_sort'] ) ) : 'next_occurrence';
+		$filter_direction = isset( $_GET['cb_dir'] ) && 'desc' === sanitize_key( (string) wp_unslash( $_GET['cb_dir'] ) ) ? 'desc' : 'asc';
+		$filter_page = isset( $_GET['cb_page'] ) ? max( 1, absint( $_GET['cb_page'] ) ) : 1;
+		$list_args = array_filter( [
+			'cb_search' => $filter_search,
+			'cb_status' => $filter_status,
+			'cb_context' => $filter_context,
+			'cb_project' => $filter_project,
+			'cb_sort' => $filter_sort,
+			'cb_dir' => $filter_direction,
+		], static fn( mixed $value ): bool => '' !== $value && 0 !== $value );
+		$listing = $show_editor ? [ 'rows' => [], 'total' => 0, 'page' => 1, 'pages' => 1, 'per_page' => 25 ] : RecurrenceRules::search_page( [
+			'search' => $filter_search, 'status' => $filter_status, 'context' => $filter_context,
+			'project_id' => $filter_project, 'sort' => $filter_sort,
+			'direction' => $filter_direction, 'page' => $filter_page,
+		] );
+		$rules = $listing['rows'];
 		$project_titles = [];
 		foreach ( $projects as $project ) {
 			$project_titles[ (int) $project['id'] ] = (string) $project['title'];
@@ -74,7 +106,7 @@ final class Recurrence {
 		$end_on            = $editing && null !== $rule['end_on'] ? (string) $rule['end_on'] : '';
 		$create_ahead      = $editing ? (int) $rule['create_ahead_days'] : 14;
 		$due_offset        = $editing ? (int) $rule['due_offset_days'] : 0;
-		$active            = ! $editing || ! empty( $rule['is_active'] );
+		$active            = $editing && ! empty( $rule['is_active'] );
 		$assignees         = $editing ? (array) $rule['assigned_user_ids'] : [];
 		?>
 		<div class="wrap cb-work-recurrence-page">
@@ -93,7 +125,8 @@ final class Recurrence {
 				<?php if ( $locked ) : ?>
 					<div class="notice notice-info inline"><p><?php esc_html_e( 'This rule already has occurrence history. Frequency, interval, start date and end date are locked so generated history cannot be rewound. Template fields and planning offsets remain editable.', 'core-blueprint-work' ); ?></p></div>
 				<?php endif; ?>
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<div class="cb-work-recurrence-builder">
+				<form class="cb-work-recurrence-builder-form" data-cb-recurrence-editor data-rule-id="<?php echo esc_attr( (string) $edit_id ); ?>" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="<?php echo $editing ? 'cb_work_update_recurrence_rule' : 'cb_work_create_recurrence_rule'; ?>">
 					<?php if ( $editing ) : ?><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $edit_id ); ?>"><?php endif; ?>
 					<?php wp_nonce_field( $editing ? 'cb_work_update_recurrence_rule_' . $edit_id : 'cb_work_create_recurrence_rule' ); ?>
@@ -130,10 +163,41 @@ final class Recurrence {
 					<?php endif; ?>
 					<tr class="cb-work-recurrence-field--wide"><th scope="row"><label for="cb-work-recurrence-ahead"><?php esc_html_e( 'Create ahead', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-ahead" class="small-text" type="number" min="0" max="3650" name="recurrence[create_ahead_days]" value="<?php echo esc_attr( (string) $create_ahead ); ?>"> <?php esc_html_e( 'days', 'core-blueprint-work' ); ?><p class="description"><?php esc_html_e( 'Work Items are generated when an occurrence enters this planning horizon.', 'core-blueprint-work' ); ?></p></td></tr>
 					<tr class="cb-work-recurrence-field--wide"><th scope="row"><label for="cb-work-recurrence-due"><?php esc_html_e( 'Due offset', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-due" class="small-text" type="number" min="0" max="3650" name="recurrence[due_offset_days]" value="<?php echo esc_attr( (string) $due_offset ); ?>"> <?php esc_html_e( 'days after scheduled date', 'core-blueprint-work' ); ?></td></tr>
-					<tr class="cb-work-recurrence-field--status"><th scope="row"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th><td><label><input type="checkbox" name="recurrence[is_active]" value="1" <?php checked( $active ); ?>> <?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></label></td></tr>
+					
 					</tbody></table></section>
 					<div class="cb-work-recurrence-actions"><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a><?php submit_button( $editing ? __( 'Save Recurring Work Rule', 'core-blueprint-work' ) : __( 'Add Recurring Work Rule', 'core-blueprint-work' ), 'primary', 'submit', false ); ?></div>
 				</form>
+				<aside class="cb-work-recurrence-preview" aria-labelledby="cb-work-recurrence-preview-heading" data-cb-recurrence-preview>
+					<div class="cb-work-recurrence-preview-top">
+						<h3 id="cb-work-recurrence-preview-heading"><?php esc_html_e( 'Work Item Details', 'core-blueprint-work' ); ?></h3>
+						<span class="cb-work-recurrence-status <?php echo $active ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo $active ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span>
+					</div>
+					<div class="cb-work-recurrence-preview-fact"><span><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></span><strong data-cb-preview-title><?php echo esc_html( $title ); ?></strong></div>
+					<div class="cb-work-recurrence-preview-fact"><span><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></span><strong data-cb-preview-project><?php echo esc_html( $project_titles[ $project_id ] ?? __( 'No Project', 'core-blueprint-work' ) ); ?></strong></div>
+					<div class="cb-work-recurrence-preview-fact"><span><?php esc_html_e( 'Estimated time (minutes)', 'core-blueprint-work' ); ?></span><strong data-cb-preview-estimate><?php echo esc_html( (string) $estimated_minutes ); ?></strong></div>
+					<hr>
+					<h4><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></h4>
+					<ol data-cb-preview-dates aria-live="polite" aria-atomic="true">
+					<?php $forecast = self::preview_dates( $frequency, $interval, $start_on, $end_on, $locked ? $rule['next_occurrence_on'] : null, $locked ); ?>
+					<?php foreach ( $forecast ?? [] as $forecast_date ) : ?>
+					<li><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $forecast_date . ' 12:00:00' ) ) ); ?></li>
+					<?php endforeach; ?>
+					</ol>
+				</aside>
+				</div>
+				<div class="cb-work-recurrence-activation">
+					<strong><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></strong>
+					<span class="cb-work-recurrence-status <?php echo $active ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo $active ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span>
+					<?php if ( $editing ) : ?>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="cb_work_toggle_recurrence_rule">
+						<input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $edit_id ); ?>">
+						<input type="hidden" name="active" value="<?php echo $active ? '0' : '1'; ?>">
+						<?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $edit_id ); ?>
+						<button class="button button-secondary" type="submit" <?php if ( ! $active ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo $active ? esc_html__( 'Deactivate', 'core-blueprint-work' ) : esc_html__( 'Activate', 'core-blueprint-work' ); ?></button>
+					</form>
+					<?php endif; ?>
+				</div>
 			</div>
 			<?php else : ?>
 			<div class="cb-work-recurrence-list">
@@ -175,6 +239,29 @@ final class Recurrence {
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Read-only occurrence projection using the canonical recurrence math.
+	 * Locked rules use the persisted next-occurrence cursor, never rewind history.
+	 *
+	 * @return string[]|null
+	 */
+	public static function preview_dates( string $frequency, int $interval, string $start_on, ?string $end_on, ?string $cursor = null, bool $locked = false ): ?array {
+		$schedule = RecurrenceSchedule::normalize( $frequency, $interval, $start_on, $end_on );
+		if ( null === $schedule ) {
+			return null;
+		}
+		$date = $locked ? $cursor : $schedule['start_on'];
+		$dates = [];
+		for ( $i = 0; $i < 3 && null !== $date; $i++ ) {
+			if ( null !== $schedule['end_on'] && $date > $schedule['end_on'] ) {
+				break;
+			}
+			$dates[] = $date;
+			$date = RecurrenceSchedule::next_after( $schedule['start_on'], $date, $schedule['frequency'], $schedule['interval_count'], $schedule['end_on'] );
+		}
+		return $dates;
 	}
 
 	/** @param array<string,mixed> $rule */
