@@ -18,6 +18,7 @@ final class TimeActions {
 		add_action( 'admin_post_cb_work_stop_timer', [ self::class, 'stop_timer' ] );
 		add_action( 'admin_post_cb_work_create_time_entry', [ self::class, 'create_entry' ] );
 		add_action( 'admin_post_cb_work_update_time_entry', [ self::class, 'update_entry' ] );
+		TimeEntryBulkEdit::init();
 	}
 
 	public static function start_timer(): never {
