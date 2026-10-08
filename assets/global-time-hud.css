@@ -2,9 +2,10 @@
 .cb-work-global-time-hud {
     position: fixed;
     z-index: 99998;
-    inset-inline-end: clamp(14px, 2vw, 32px);
-    inset-block-end: 88px; /* dock above the existing bottom-right floating utility */
-    width: min(340px, calc(100vw - 32px));
+    /* Match the default Core Blueprint Base HUD dock (assets/css/components/hud.css). */
+    inset-inline-end: var(--cb-hud-safe, 18px);
+    inset-block-end: 88px; /* preserve the accepted vertical gap above Base HUD */
+    width: min(340px, calc(100vw - 2 * var(--cb-hud-safe, 18px)));
     color: var(--cb-text-strong, CanvasText);
     font-size: 13px;
     line-height: 1.5;
@@ -171,7 +172,7 @@
 
 .cb-work-time-hud-toast {
     position: fixed;
-    inset-inline-end: clamp(14px, 2vw, 32px);
+    inset-inline-end: var(--cb-hud-safe, 18px);
     inset-block-end: 150px;
     z-index: 99999;
     padding: 11px 14px;
@@ -189,9 +190,9 @@
 
 @media (max-width: 782px) {
     .cb-work-global-time-hud {
-        inset-inline-end: 12px;
+        inset-inline-end: var(--cb-hud-safe, 18px);
         inset-block-end: 94px;
-        width: min(310px, calc(100vw - 24px));
+        width: min(310px, calc(100vw - 2 * var(--cb-hud-safe, 18px)));
     }
     .cb-work-time-hud-panel {
         max-height: calc(100dvh - 175px);
