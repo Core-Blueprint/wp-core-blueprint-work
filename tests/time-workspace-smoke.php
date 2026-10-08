@@ -30,6 +30,9 @@ $view_cases = [
     [ [ 'view' => [ 'entries' ] ], Time::VIEW_TIMER ],
     [ [ 'view' => 'entries', 'entry_id' => '12' ], Time::VIEW_MANUAL ],
     [ [ 'entry_id' => '9' ], Time::VIEW_MANUAL ],
+    [ [ 'entry_id' => [ '9' ] ], Time::VIEW_TIMER ],
+    [ [ 'entry_id' => '-9' ], Time::VIEW_TIMER ],
+    [ [ 'entry_id' => '9x' ], Time::VIEW_TIMER ],
 ];
 $view_cases_pass = true;
 foreach ( $view_cases as [ $request, $expected ] ) {
@@ -67,6 +70,11 @@ $checks = [
         && strpos( $admin, 'self::render_notice( $active );' ) > strpos( $admin, '$active = Timers::active_for_user( $user_id );' )
         && str_contains( $admin, 'self::notice_matches_timer_state( $notice, $active )' ),
     'view routing recognizes only three canonical views and forces correction context' => $view_cases_pass,
+    'entry correction preserves original Work Item beyond the first 500' =>
+        str_contains( $admin, "array_column( \$items, 'id' )" )
+        && str_contains( $admin, 'WorkItems::get( $selected_id )' )
+        && str_contains( $admin, '$items[] = $original_item;' )
+        && str_contains( $admin, 'self::requested_entry_id()' ),
     'Time tabs are links with distinct URLs and an accessible active state' => str_contains( $admin, 'cb-work-time-navigation' )
         && str_contains( $admin, 'aria-label="<?php esc_attr_e( \'Time views\'' )
         && str_contains( $admin, 'aria-current="page"' )
