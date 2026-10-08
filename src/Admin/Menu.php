@@ -29,6 +29,7 @@ final class Menu {
 		add_action( 'admin_menu', [ self::class, 'register' ], 5 );
 		add_action( 'admin_head', [ self::class, 'hide_contextual_submenu_pages' ] );
 		add_action( 'current_screen', [ self::class, 'register_admin_theme_screen' ] );
+		add_action( 'admin_enqueue_scripts', [ Recurrence::class, 'enqueue_assets' ] );
 		add_filter( 'parent_file', [ self::class, 'parent_file' ] );
 		add_filter( 'submenu_file', [ self::class, 'submenu_file' ], 10, 2 );
 	}
