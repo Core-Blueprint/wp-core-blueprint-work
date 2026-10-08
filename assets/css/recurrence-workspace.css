@@ -83,6 +83,11 @@
 	gap: 7px;
 }
 
+/* Keep JS-controlled form rows hidden despite the grid's explicit flex layout. */
+.cb-work-recurrence-fields tr[hidden] {
+	display: none;
+}
+
 .cb-work-recurrence-fields th,
 .cb-work-recurrence-fields td {
 	display: block;
