@@ -18,7 +18,7 @@
         const selected = boxes.filter(box => box.checked);
         const selectAll = list().querySelector('[data-cb-work-time-bulk-select-all]');
         const mode = bulk.querySelector('[data-cb-work-time-bulk-mode]');
-        const target = bulk.querySelector('[data-cb-work-time-bulk-target]');
+        const target = bulk.querySelector('input[name="bulk_work_item_id"]');
         const note = bulk.querySelector('[data-cb-work-time-bulk-note]');
         const submit = bulk.querySelector('[data-cb-work-time-bulk-submit]');
         const counter = bulk.querySelector('[data-cb-work-time-bulk-count]');
@@ -44,7 +44,7 @@
             note.disabled = !needsNoteText;
             note.required = needsNoteText;
         }
-        const hasTargetChange = target && target.value !== '0';
+        const hasTargetChange = target && target.value !== '' && target.value !== '0';
         if (submit) {
             submit.disabled = busy || selected.length < 2
                 || (!hasTargetChange && !hasNoteChange)
@@ -84,7 +84,7 @@
         if (target.matches('[data-cb-work-time-bulk-select-all]')) {
             rowBoxes().forEach(box => { box.checked = target.checked; });
         }
-        if (target.matches('[data-cb-work-time-bulk-select], [data-cb-work-time-bulk-select-all], [data-cb-work-time-bulk-mode], [data-cb-work-time-bulk-target]')) {
+        if (target.matches('[data-cb-work-time-bulk-select], [data-cb-work-time-bulk-select-all], [data-cb-work-time-bulk-mode], input[name="bulk_work_item_id"]')) {
             controls();
         }
     });
@@ -129,6 +129,9 @@
                 const current = list();
                 if (!current) throw new Error('Time Entries list missing');
                 current.replaceWith(document.importNode(updatedList, true));
+                // The Base picker module runs at page load, so initialise
+                // pickers again after asynchronous list replacement.
+                window.cbCore?.objectPicker?.init(list());
                 controls();
                 notice(serverNotice);
                 url.searchParams.delete('cb-work-notice');
