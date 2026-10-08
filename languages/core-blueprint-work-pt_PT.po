@@ -1336,15 +1336,6 @@ msgstr ""
 "Não foi possível adicionar o Work Item. Abra o editor completo para rever "
 "todos os detalhes obrigatórios."
 
-#: src/Admin/Recurrence.php:68
-msgid ""
-"Create real Work Items from reusable schedules. Commercial recurring service "
-"pricing is separate from Work Item recurrence."
-msgstr ""
-"Crie Work Items reais a partir de agendamentos reutilizáveis. Os preços "
-"comerciais de serviços recorrentes são separados da recorrência de Work "
-"Items."
-
 #: src/Admin/Recurrence.php:71
 msgid ""
 "Work storage is not ready yet. Recurring Work becomes available after the "
@@ -1443,13 +1434,6 @@ msgstr "Criar antecipadamente"
 #: src/Admin/Recurrence.php:114 src/Admin/Recurrence.php:159
 msgid "days"
 msgstr "dias"
-
-#: src/Admin/Recurrence.php:114
-msgid ""
-"Work Items are generated when an occurrence enters this planning horizon."
-msgstr ""
-"Os Work Items são gerados quando uma ocorrência entra neste horizonte de "
-"planeamento."
 
 #: src/Admin/Recurrence.php:115
 msgid "Due offset"
@@ -2439,10 +2423,50 @@ msgstr "O payload das preferências de visualização dos Work Items é inválid
 msgid "The Work Item view preferences could not be saved."
 msgstr "Não foi possível guardar as preferências de visualização dos Work Items."
 
-#: src/Admin/Recurrence.php:158
-msgid "Advanced settings"
-msgstr "Definições avançadas"
-
 #: src/Admin/Recurrence.php:205
 msgid "Rule Preview"
 msgstr "Pré-visualização da regra"
+
+#: src/Admin/Recurrence.php
+msgid "Leave without saving?"
+msgstr "Sair sem guardar?"
+
+#: src/Admin/Recurrence.php
+msgid "Show advanced settings"
+msgstr "Mostrar definições avançadas"
+
+#: src/Admin/Recurrence.php
+msgid "Hide advanced settings"
+msgstr "Ocultar definições avançadas"
+
+#: src/Admin/Recurrence.php
+msgid "Automatic generation active"
+msgstr "Geração automática ativa"
+
+#: src/Admin/Recurrence.php
+msgid "Automatic generation paused"
+msgstr "Geração automática em pausa"
+
+#: src/Admin/Recurrence.php
+msgid "Configure recurring Work Items and preview their schedule before activating a rule."
+msgstr "Configure Work Items recorrentes e pré-visualize a sua programação antes de ativar uma regra."
+
+#: src/Admin/Recurrence.php
+msgid "Back to Rules"
+msgstr "Voltar às regras"
+
+#: src/Admin/Recurrence.php
+msgid "Unsaved changes"
+msgstr "Alterações por guardar"
+
+#: src/Admin/Recurrence.php
+msgid "Work Items can be created this many days before their scheduled date."
+msgstr "Os Work Items podem ser criados este número de dias antes da data prevista."
+
+#: src/Admin/Recurrence.php
+msgid "Upcoming occurrences (preview)"
+msgstr "Próximas ocorrências (pré-visualização)"
+
+#: src/Admin/Recurrence.php
+msgid "Dates are a preview only while this rule is inactive."
+msgstr "Enquanto esta regra estiver inativa, as datas são apenas uma pré-visualização."
