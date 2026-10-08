@@ -5,6 +5,7 @@ namespace CB\Work\Repository;
 
 use CB\Work\Database\Schema;
 use CB\Work\Domain\TimeRange;
+use CB\Work\Domain\TimeNote;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -47,7 +48,7 @@ final class Timers {
 
 		global $wpdb;
 		$now  = current_time( 'mysql', true );
-		$note = self::note( $note );
+		$note = TimeNote::normalize( $note );
 		$wpdb->query( 'START TRANSACTION' );
 
 		$entry_ok = $wpdb->insert(
@@ -167,7 +168,7 @@ final class Timers {
 			return false;
 		}
 		global $wpdb;
-		$note = self::note( $note );
+		$note = TimeNote::normalize( $note );
 		$wpdb->query( 'START TRANSACTION' );
 		$timer = $wpdb->get_row(
 			$wpdb->prepare( 'SELECT time_entry_id FROM ' . Schema::active_timers_table() . ' WHERE user_id = %d LIMIT 1 FOR UPDATE', $user_id ),
@@ -207,11 +208,6 @@ final class Timers {
 		}
 		$wpdb->query( 'COMMIT' );
 		return true;
-	}
-
-	private static function note( string $note ): string {
-		$note = sanitize_textarea_field( $note );
-		return function_exists( 'mb_substr' ) ? mb_substr( $note, 0, 4000 ) : substr( $note, 0, 4000 );
 	}
 
 	private static function schema_ready(): bool {
