@@ -89,10 +89,22 @@ final class Time {
 			switch ( $view ) {
 				case self::VIEW_MANUAL:
 					$items = self::available_work_items( $manager, $user_id );
-					$edit_id = isset( $_GET['entry_id'] ) ? absint( $_GET['entry_id'] ) : 0;
+					$edit_id = self::requested_entry_id();
 					$editing = $edit_id > 0 ? TimeEntries::get( $edit_id ) : null;
-					if ( is_array( $editing ) && ! Access::can_view_entry( $editing ) ) {
-						wp_die( esc_html__( 'You do not have permission to view this Time entry.', 'core-blueprint-work' ) );
+					if ( is_array( $editing ) ) {
+						if ( ! Access::can_view_entry( $editing ) ) {
+							wp_die( esc_html__( 'You do not have permission to view this Time entry.', 'core-blueprint-work' ) );
+						}
+						// The first page of Work Items is capped at 500. Always
+						// include this entry's original item to avoid accidentally
+						// selecting a different item when correcting older work.
+						$selected_id = (int) $editing['work_item_id'];
+						if ( ! in_array( $selected_id, array_column( $items, 'id' ), true ) ) {
+							$original_item = WorkItems::get( $selected_id );
+							if ( is_array( $original_item ) ) {
+								$items[] = $original_item;
+							}
+						}
 					}
 					self::render_entry_form( $items, $editing, $manager, $user_id );
 					break;
@@ -111,13 +123,21 @@ final class Time {
 
 	private static function requested_view(): string {
 		// Correction links must always open the editable entry, regardless of view.
-		if ( isset( $_GET['entry_id'] ) && absint( $_GET['entry_id'] ) > 0 ) {
+		if ( self::requested_entry_id() > 0 ) {
 			return self::VIEW_MANUAL;
 		}
 		$raw_view = isset( $_GET['view'] ) && is_string( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '';
 		return in_array( $raw_view, [ self::VIEW_TIMER, self::VIEW_MANUAL, self::VIEW_ENTRIES ], true )
 			? $raw_view
 			: self::VIEW_TIMER;
+	}
+
+	/** Only positive decimal identifiers can select the correction route. */
+	private static function requested_entry_id(): int {
+		$raw = $_GET['entry_id'] ?? null;
+		return is_scalar( $raw ) && ctype_digit( (string) $raw )
+			? max( 0, (int) $raw )
+			: 0;
 	}
 
 	private static function view_label( string $view ): string {
