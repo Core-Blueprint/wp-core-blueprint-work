@@ -54,6 +54,8 @@
 
     function notice(source = null) {
         host.querySelectorAll('.cb-work-time-bulk-request-notice').forEach(node => node.remove());
+        if (source && window.cbWorkToast?.showNotice(source)) return;
+        if (!source && window.cbWorkToast?.showMessage(feedback(), 'error', { persistent: true })) return;
         const bulk = form();
         // After a successful save, the replacement list has no selection and
         // hides the bulk form. Keep the success/partial notice visible above it.
