@@ -229,3 +229,15 @@
         min-height: 42px;
     }
 }
+
+/* T1-B: visible timer shared with the global admin HUD. */
+.cb-work-time-live-clock {
+    display: block;
+    margin: 0 0 22px;
+    padding-block: 10px;
+    font-size: clamp(34px, 4vw, 52px);
+    line-height: 1.2;
+    letter-spacing: -.03em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
