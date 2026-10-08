@@ -68,7 +68,7 @@ async function scenario(outcome, status = 200, hasAction = true, useToast = fals
         const editor = { removeAttribute() {} };
         const map = {
             '[data-cb-work-time-bulk-mode]': mode,
-            '[data-cb-work-time-bulk-target]': target,
+            'input[name="bulk_work_item_id"]': target,
             '[data-cb-work-time-bulk-note]': note,
             '[data-cb-work-time-bulk-submit]': button,
             '[data-cb-work-time-bulk-count]': count,
