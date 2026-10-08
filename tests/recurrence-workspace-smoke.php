@@ -175,9 +175,38 @@ $checks = [
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
 		&& str_contains( $recurrence, 'self::schedule_label( $configured )' ),
-	'Generator remains an explicit governed action in diagnostics' => str_contains( $recurrence, 'cb-work-recurrence-diagnostics' )
+	'Generator is secured inside header Automation, not beneath the table' => str_contains( $recurrence, 'cb-work-recurrence-automation' )
+		&& str_contains( $recurrence, 'data-cb-run-generator-form' )
+		&& strpos( $recurrence, 'class="cb-work-recurrence-automation"' ) < strpos( $recurrence, 'class="cb-work-recurrence-list"' )
+		&& ! str_contains( $recurrence, 'class="cb-work-recurrence-diagnostics"' )
 		&& str_contains( $recurrence, 'cb_work_run_recurrence_generator' )
-		&& str_contains( $recurrence, "wp_nonce_field( 'cb_work_run_recurrence_generator' )" ),
+		&& str_contains( $recurrence, "wp_nonce_field( 'cb_work_run_recurrence_generator' )" )
+		&& str_contains( $script, 'window.confirm(config.generatorConfirm)' )
+		&& str_contains( $actions, "Scheduler::run( get_current_user_id(), 'manual' )" ),
+	'G3-A active filter chips retain remaining filters and have a single clear-all action' => str_contains( $recurrence, '$active_filters = [];' )
+		&& str_contains( $recurrence, 'unset( $without_filter[ $filter_key ] );' )
+		&& str_contains( $recurrence, 'role="group" aria-label=' )
+		&& str_contains( $recurrence, 'cb-work-recurrence-filter-chip' )
+		&& str_contains( $recurrence, 'cb-work-recurrence-clear-all' )
+		&& str_contains( $styles, '.cb-work-recurrence-active-filters {' ),
+	'G3-A row titles open the editor; compact actions support Escape and focus return' => str_contains( $recurrence, 'data-cb-rule-title class="cb-work-recurrence-title-link"' )
+		&& str_contains( $recurrence, 'class="cb-work-recurrence-row-actions"' )
+		&& str_contains( $recurrence, 'data-cb-rule-action-notice' )
+		&& str_contains( $script, "event.key !== 'Escape'" )
+		&& str_contains( $script, 'if (restoreFocus) trigger.focus();' )
+		&& str_contains( $script, 'notice.textContent = config.updated;' ),
+	'G3-A semantic sort and attached pagination use current filter state' => 3 === substr_count( $recurrence, 'aria-sort=' )
+		&& str_contains( $recurrence, "cb_sort' => 'title'" )
+		&& str_contains( $recurrence, "cb_sort' => 'status'" )
+		&& str_contains( $recurrence, "cb_sort' => 'next_occurrence'" )
+		&& str_contains( $recurrence, 'class="cb-work-recurrence-pagination"' )
+		&& strpos( $recurrence, 'class="cb-work-recurrence-pagination"' ) > strpos( $recurrence, '</tbody></table></div>' )
+		&& str_contains( $styles, '.cb-work-recurrence-list .cb-work-recurrence-pagination {' ),
+	'G3-A layout adapts to admin themes and narrow viewports' => str_contains( $styles, '.cb-work-recurrence-automation-content {' )
+		&& str_contains( $styles, 'background: var(--cb-surface-1, Canvas);' )
+		&& str_contains( $styles, '.cb-work-recurrence-row-actions {' )
+		&& str_contains( $styles, '.cb-work-recurrence-filter-chip:focus-visible' )
+		&& str_contains( $styles, '@media (max-width: 680px)' ),
 	'Styling adapts to light and dark mode without a hardcoded dark fallback' => str_contains( $styles, 'color-mix(in srgb, currentColor' )
 		&& ! str_contains( $styles, '#11161e' )
 		&& ! str_contains( $styles, ':has(' )
