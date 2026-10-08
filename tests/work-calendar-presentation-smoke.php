@@ -35,9 +35,19 @@ $checks = [
         && str_contains( $view, 'datetime="<?php echo esc_attr( $date ); ?>"' )
         && str_contains( $view, 'aria-current="date"' )
         && str_contains( $style, '.cb-work-calendar-day--today' ),
-    'Month and day titles use timezone-robust midday localization' =>
-        str_contains( $view, "\$first->setTime( 12, 0 )->getTimestamp()" )
-        && str_contains( $view, "\$value->setTime( 12, 0 )->getTimestamp()" ),
+    'Month and day titles originate in exact WordPress site timezone' =>
+        str_contains( $view, "\\DateTimeImmutable::createFromFormat( '!Y-m-d', \$month . '-01', wp_timezone() )" )
+        && str_contains( $view, "\\DateTimeImmutable::createFromFormat( '!Y-m-d', \$date, wp_timezone() )" )
+        && str_contains( $view, "\$first->getTimestamp()" )
+        && str_contains( $view, "\$value->getTimestamp()" )
+        && ! str_contains( $view, 'setTime( 12, 0 )' ),
+    'Day trigger announces its date and count and opens a dialog' =>
+        str_contains( $view, 'aria-haspopup="dialog"' )
+        && str_contains( $view, "self::day_label( \$date ) . ': ' . count( \$day_entries )" ),
+    'Work aliases are available in modal transplanted outside page wrapper' =>
+        str_contains( $style, '.cb-work-day-modal {' )
+        && str_contains( $style, '--cb-work-surface-raised: var(--cb-surface-2);' )
+        && str_contains( $style, '--cb-work-border: var(--cb-border);' ),
     'Base workspace dialog stays the one modal; board can scroll independently' =>
         str_contains( $calendar, "import '@cb-core/modal';" )
         && str_contains( $calendar, "size: 'workspace'" )
