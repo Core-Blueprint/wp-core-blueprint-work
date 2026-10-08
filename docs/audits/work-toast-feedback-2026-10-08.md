@@ -16,6 +16,13 @@ Based on: Time Golden audit `3c33659cf0b369b2d9fccf0c6576850fcc7aa7e4`
   so content survives JavaScript or module failure.
 - Success and info are temporary. Errors and warnings are persistent until dismissed.
   No toast is produced from arbitrary or unknown WordPress notices.
+- Pre-paint handoff: a Work-only stylesheet hides transient notices while
+  `cb-work-toast-pending` is set by an admin-head bootstrap. The Base Toast
+  adapter clears the marker after consuming the PHP notices. A 3-second timeout
+  clears it if the module fails, revealing the original notice. With JavaScript
+  disabled, no marker is ever set. Hiding with display:none avoids the brief
+  WordPress-notice flash and a reserved blank-space layout shift.
+- The Work Settings Toast wrapper is explicitly closed to preserve valid DOM.
 - The adapter removes one-time query feedback only after successfully showing a toast;
   other URL filter and routing parameters are preserved.
 - Use Base's Core presentation on Work-owned admin screens, including
@@ -46,6 +53,7 @@ Based on: Time Golden audit `3c33659cf0b369b2d9fccf0c6576850fcc7aa7e4`
 
 ```bash
 node tests/work-toast-runtime.js
+node tests/work-toast-handoff-runtime.js
 php tests/work-toast-contract-smoke.php
 node tests/time-quick-edit-submit-runtime.js
 node tests/time-bulk-submit-runtime.js
@@ -72,6 +80,9 @@ sha256sum dist/core-blueprint-work.zip
 6. Light/Dark, keyboard dismissal, responsive position, screen-reader announcement,
    reduced-motion and no-JS notice fallback.
 7. Quick Add success still retains its inline `Open it` action.
+8. Work Items redirected success: no brief WordPress notice or blank-space shift
+   before the Base Toast appears. Block the Toast module or disable JavaScript to
+   verify the original server notice remains available.
 
 No merge, deployment, publishing or CI/CD is authorized by this candidate.
 The Time Golden audit branch and its validated artifact remain unchanged.
