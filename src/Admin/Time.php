@@ -145,6 +145,7 @@ final class Time {
 		?>
 		<div class="card">
 			<h2><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></h2>
+			<time class="cb-work-time-live-clock" data-cb-work-time-live aria-label="<?php esc_attr_e( 'Elapsed time', 'core-blueprint-work' ); ?>">00:00:00</time>
 			<?php if ( is_array( $active ) ) : ?>
 				<?php
 				$item = WorkItems::get( (int) $active['work_item_id'] );
