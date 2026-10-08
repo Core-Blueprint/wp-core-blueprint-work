@@ -108,10 +108,15 @@ final class TimeActions {
 		}
 
 		$input = self::input();
-		$work_item_id = absint( $input['work_item_id'] ?? 0 );
-		$user_id = Access::can_manage()
-			? absint( $input['user_id'] ?? (int) $entry['user_id'] )
-			: (int) $entry['user_id'];
+		$quick_edit = self::quick_edit_request();
+		// Quick Edit changes only actual timestamps and notes. Work Item and
+		// owner stay authoritative from the stored entry, not from POST data.
+		$work_item_id = $quick_edit ? (int) $entry['work_item_id'] : absint( $input['work_item_id'] ?? 0 );
+		$user_id = $quick_edit
+			? (int) $entry['user_id']
+			: ( Access::can_manage()
+				? absint( $input['user_id'] ?? (int) $entry['user_id'] )
+				: (int) $entry['user_id'] );
 		if ( ! Access::can_edit_entry( $entry, $work_item_id ) ) {
 			self::redirect( 'time-not-authorized' );
 		}
@@ -178,6 +183,12 @@ final class TimeActions {
 		check_admin_referer( $nonce_action );
 	}
 
+	private static function quick_edit_request(): bool {
+		return isset( $_POST['cb_work_quick_edit'] )
+			&& is_scalar( $_POST['cb_work_quick_edit'] )
+			&& '1' === (string) $_POST['cb_work_quick_edit'];
+	}
+
 	/** @param array<string,int|string> $extra */
 	private static function redirect( string $notice, array $extra = [] ): never {
 		// Redirect into the view associated with the completed action, preserving
@@ -185,6 +196,19 @@ final class TimeActions {
 		$action = isset( $_POST['action'] ) && is_string( $_POST['action'] )
 			? sanitize_key( wp_unslash( $_POST['action'] ) )
 			: '';
+		if ( 'cb_work_update_time_entry' === $action && self::quick_edit_request() ) {
+			$raw_state = isset( $_POST['time_list'] ) && is_array( $_POST['time_list'] )
+				? wp_unslash( $_POST['time_list'] )
+				: [];
+			$state = TimeEntryListState::from_request( $raw_state, Access::can_manage() );
+			$args = TimeEntryListState::url_args( $state );
+			$args['cb-work-notice'] = sanitize_key( $notice );
+			if ( 'time-updated' !== $notice && ! empty( $extra['entry_id'] ) ) {
+				$args['te_edit'] = (int) $extra['entry_id'];
+			}
+			wp_safe_redirect( Menu::time_url( $args ) );
+			exit;
+		}
 		$view = in_array( $action, [ 'cb_work_start_timer', 'cb_work_stop_timer' ], true )
 			? Time::VIEW_TIMER
 			: ( in_array( $notice, [ 'time-created', 'time-updated' ], true ) ? Time::VIEW_ENTRIES : Time::VIEW_MANUAL );
