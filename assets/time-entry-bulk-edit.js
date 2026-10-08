@@ -32,15 +32,16 @@
         boxes.forEach(box => box.closest('tr')?.classList.toggle('is-selected', box.checked));
 
         const hasNoteChange = mode?.value !== 'keep';
+        const needsNoteText = mode?.value === 'append' || mode?.value === 'replace';
         if (note) {
-            note.disabled = !hasNoteChange;
-            note.required = mode?.value === 'append';
+            note.disabled = !needsNoteText;
+            note.required = needsNoteText;
         }
         const hasTargetChange = target && target.value !== '0';
         if (submit) {
             submit.disabled = busy || selected.length === 0
                 || (!hasTargetChange && !hasNoteChange)
-                || (mode?.value === 'append' && !note?.value.trim());
+                || (needsNoteText && !note?.value.trim());
         }
     }
 
