@@ -18,6 +18,8 @@ final class RecurrenceActions {
 		add_action( 'admin_post_cb_work_update_recurrence_rule', [ self::class, 'update' ] );
 		add_action( 'admin_post_cb_work_toggle_recurrence_rule', [ self::class, 'toggle' ] );
 		add_action( 'admin_post_cb_work_run_recurrence_generator', [ self::class, 'run_generator' ] );
+		add_action( 'wp_ajax_cb_work_quick_edit_recurrence_rule', [ self::class, 'quick_edit' ] );
+		add_action( 'wp_ajax_cb_work_preview_recurrence_rule', [ self::class, 'preview' ] );
 	}
 
 	public static function create(): never {
@@ -76,6 +78,54 @@ final class RecurrenceActions {
 		] );
 	}
 
+	/** Quick Edit changes the template title and priority, never the schedule. */
+	public static function quick_edit(): void {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		if ( ! current_user_can( Capabilities::MANAGE ) || $rule_id <= 0 ) {
+			wp_send_json_error( [ 'message' => __( 'You do not have permission to manage Work.', 'core-blueprint-work' ) ], 403 );
+		}
+		check_ajax_referer( 'cb_work_quick_edit_recurrence_rule_' . $rule_id );
+		$rule = RecurrenceRules::get( $rule_id );
+		$title = isset( $_POST['title'] ) && is_scalar( $_POST['title'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['title'] ) ) : '';
+		$priority = isset( $_POST['priority'] ) && is_scalar( $_POST['priority'] ) ? sanitize_key( wp_unslash( (string) $_POST['priority'] ) ) : '';
+		if ( null === $rule || '' === $title || ! \CB\Work\Domain\WorkItemPriority::is_valid( $priority ) ) {
+			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 400 );
+		}
+		if ( ! RecurrenceRules::update( $rule_id, [ 'title' => $title, 'priority' => $priority, 'updated_by' => get_current_user_id() ] ) ) {
+			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 409 );
+		}
+		Audit::record( Events::RECURRENCE_RULE_UPDATED, 'notice', [ 'rule_id' => $rule_id, 'source' => 'quick-edit' ] );
+		wp_send_json_success( [ 'title' => $title, 'priority' => $priority ] );
+	}
+
+	/** Read-only forecast using the same recurrence domain as the scheduler. */
+	public static function preview(): void {
+		if ( ! current_user_can( Capabilities::MANAGE ) ) {
+			wp_send_json_error( [ 'message' => __( 'You do not have permission to manage Work.', 'core-blueprint-work' ) ], 403 );
+		}
+		check_ajax_referer( 'cb_work_recurrence_preview' );
+		$input = isset( $_POST['recurrence'] ) && is_array( $_POST['recurrence'] ) ? wp_unslash( $_POST['recurrence'] ) : [];
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		$current = $rule_id > 0 ? RecurrenceRules::get( $rule_id ) : null;
+		if ( $rule_id > 0 && null === $current ) {
+			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 404 );
+		}
+		$locked = null !== $current && \CB\Work\Repository\RecurrenceOccurrences::count_for_rule( $rule_id ) > 0;
+		$frequency = $locked ? (string) $current['frequency'] : sanitize_key( (string) ( $input['frequency'] ?? '' ) );
+		$interval = $locked ? (int) $current['interval_count'] : (int) ( $input['interval_count'] ?? 0 );
+		$start = $locked ? (string) $current['start_on'] : sanitize_text_field( (string) ( $input['start_on'] ?? '' ) );
+		$end = $locked ? $current['end_on'] : sanitize_text_field( (string) ( $input['end_on'] ?? '' ) );
+		$next = $locked ? $current['next_occurrence_on'] : null;
+		$dates = Recurrence::preview_dates( $frequency, $interval, $start, $end, $next, $locked );
+		if ( null === $dates ) {
+			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 400 );
+		}
+		wp_send_json_success( [ 'dates' => array_map( static fn( string $date ): array => [
+			'iso' => $date,
+			'label' => wp_date( get_option( 'date_format' ), strtotime( $date . ' 12:00:00' ) ),
+		], $dates ) ] );
+	}
+
 	/**
 	 * @param array<string,mixed>|null $current
 	 * @return array<string,mixed>|null
@@ -84,7 +134,8 @@ final class RecurrenceActions {
 		$input = isset( $_POST['recurrence'] ) && is_array( $_POST['recurrence'] )
 			? wp_unslash( $_POST['recurrence'] )
 			: [];
-		$input['is_active'] = isset( $input['is_active'] ) && '1' === sanitize_text_field( (string) $input['is_active'] );
+		// Saving a rule never changes its activation state. Use the dedicated governed toggle.
+		$input['is_active'] = null === $current ? false : ! empty( $current['is_active'] );
 
 		if ( array_key_exists( 'customer_object_id', $input ) ) {
 			$identifier = is_scalar( $input['customer_object_id'] )
