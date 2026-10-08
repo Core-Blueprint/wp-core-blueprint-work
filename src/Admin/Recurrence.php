@@ -421,6 +421,9 @@ final class Recurrence {
 			$generated = isset( $_GET['generated'] ) ? absint( $_GET['generated'] ) : 0;
 			$recovered = isset( $_GET['recovered'] ) ? absint( $_GET['recovered'] ) : 0;
 			$failed    = isset( $_GET['failed'] ) ? absint( $_GET['failed'] ) : 0;
+			if ( $failed > 0 ) {
+				$type = 'warning'; // Partial generator outcome is not full success.
+			}
 			/* translators: 1: generated count, 2: recovered count, 3: failed count. */
 			$message .= ' ' . sprintf( __( 'Generated: %1$d · recovered: %2$d · failed: %3$d.', 'core-blueprint-work' ), $generated, $recovered, $failed );
 		}
