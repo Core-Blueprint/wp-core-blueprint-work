@@ -1,0 +1,206 @@
+/* Work-only global timer utility; Base owns wp-admin theme and shared UI. */
+.cb-work-global-time-hud {
+    position: fixed;
+    z-index: 99998;
+    inset-inline-end: clamp(14px, 2vw, 32px);
+    inset-block-end: 88px; /* dock above the existing bottom-right floating utility */
+    width: min(340px, calc(100vw - 32px));
+    color: var(--cb-text-strong, CanvasText);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.cb-work-global-time-hud[hidden],
+.cb-work-time-hud-panel[hidden] {
+    display: none !important;
+}
+
+.cb-work-time-hud-chip {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 46px;
+    gap: 10px;
+    padding: 9px 14px;
+    border: 1px solid var(--cb-border, color-mix(in srgb, currentColor 22%, transparent));
+    border-radius: 11px;
+    background: var(--cb-surface-1, Canvas);
+    color: inherit;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .23);
+    font: inherit;
+    cursor: pointer;
+    text-align: start;
+}
+
+.cb-work-time-hud-chip:hover {
+    background: var(--cb-surface-2, color-mix(in srgb, CanvasText 6%, Canvas));
+}
+
+.cb-work-time-hud-dot {
+    flex: 0 0 9px;
+    width: 9px;
+    height: 9px;
+    background: #318662;
+    border-radius: 100%;
+}
+
+.cb-work-time-hud-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-weight: 600;
+}
+
+.cb-work-time-hud-clock {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.cb-work-time-hud-panel {
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-end: calc(100% + 10px);
+    box-sizing: border-box;
+    width: 100%;
+    max-height: min(560px, calc(100vh - 170px));
+    overflow-y: auto;
+    padding: 20px;
+    border: 1px solid var(--cb-border, color-mix(in srgb, currentColor 22%, transparent));
+    border-radius: 12px;
+    background: var(--cb-surface-1, Canvas);
+    color: inherit;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, .29);
+}
+
+.cb-work-time-hud-heading,
+.cb-work-time-hud-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.cb-work-time-hud-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.cb-work-time-hud-close:hover {
+    background: var(--cb-surface-2, color-mix(in srgb, CanvasText 6%, Canvas));
+}
+
+.cb-work-time-hud-project {
+    margin: 8px 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.cb-work-time-hud-elapsed {
+    display: block;
+    margin: 0 0 18px;
+    font-size: clamp(25px, 3vw, 32px);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -.025em;
+}
+
+.cb-work-time-hud-panel label {
+    display: block;
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+
+.cb-work-time-hud-panel textarea {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 68px;
+    margin: 0 0 10px;
+    resize: vertical;
+    background: var(--cb-surface-1, Canvas);
+    color: inherit;
+}
+
+.cb-work-time-hud-panel form {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--cb-border, color-mix(in srgb, currentColor 15%, transparent));
+}
+
+.cb-work-time-hud-actions {
+    flex-wrap: wrap;
+}
+
+.cb-work-time-hud-actions .button {
+    min-height: 36px;
+}
+
+.cb-work-time-hud-feedback {
+    margin: 10px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.cb-work-time-hud-feedback:empty {
+    display: none;
+}
+
+.cb-work-global-time-hud :is(button, a, textarea):focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 3px;
+}
+
+.cb-work-time-hud-chip:disabled,
+.cb-work-time-hud-panel button:disabled {
+    opacity: .55;
+    cursor: wait;
+}
+
+.cb-work-time-hud-toast {
+    position: fixed;
+    inset-inline-end: clamp(14px, 2vw, 32px);
+    inset-block-end: 150px;
+    z-index: 99999;
+    padding: 11px 14px;
+    max-width: min(340px, calc(100vw - 32px));
+    border-radius: 9px;
+    background: var(--cb-surface-1, Canvas);
+    color: var(--cb-text-strong, CanvasText);
+    border: 1px solid var(--cb-border, color-mix(in srgb, currentColor 22%, transparent));
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .25);
+}
+
+.cb-work-time-hud-toast[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 782px) {
+    .cb-work-global-time-hud {
+        inset-inline-end: 12px;
+        inset-block-end: 94px;
+        width: min(310px, calc(100vw - 24px));
+    }
+    .cb-work-time-hud-panel {
+        max-height: calc(100dvh - 175px);
+        padding: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cb-work-global-time-hud * {
+        scroll-behavior: auto;
+    }
+}
