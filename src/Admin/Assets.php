@@ -32,6 +32,7 @@ final class Assets {
 	public static function init(): void {
 		add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_project_list_action' ] );
+		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_toast_feedback' ] );
 	}
 
 	public static function enqueue( string $hook_suffix = '', string $theme = '', string $mode = '', bool $registered = false ): void {
@@ -67,6 +68,27 @@ final class Assets {
 		if ( WorkItemViewState::VIEW_CALENDAR === WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() ) ) {
 			self::enqueue_calendar_assets();
 		}
+	}
+
+	/** Shared Base Toast Foundation on Work-owned admin screens only. */
+	public static function enqueue_toast_feedback(): void {
+		if ( '' === Menu::screen_context() ) {
+			return;
+		}
+		$file = CB_WORK_DIR . 'assets/work-toast.js';
+		if ( ! is_file( $file ) ) {
+			return; // The original server notice remains available.
+		}
+		\CoreBlueprint\Core\UI\Assets::enqueue_toasts(
+			\CoreBlueprint\Core\UI\Assets::TOAST_PRESENTATION_CORE
+		);
+		$modified = filemtime( $file );
+		wp_enqueue_script_module(
+			'@cb-work/toast',
+			CB_WORK_URL . 'assets/work-toast.js',
+			[ '@cb-core/toast' ],
+			false === $modified ? CB_WORK_VERSION : (string) $modified
+		);
 	}
 
 	public static function enqueue_project_list_action(): void {
