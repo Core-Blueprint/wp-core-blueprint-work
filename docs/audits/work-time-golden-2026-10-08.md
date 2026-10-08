@@ -26,6 +26,9 @@ No release or merge is authorized by this audit.
 | WT-G-007 | Review | Manual create and Bulk Edit Work Item dropdowns use the canonical `WorkItems::all(500)` limit; underlying Work Item search loads a complete ID set | Measure at realistic Work Item scale before deciding whether an indexed/autocomplete picker is warranted | Deferred until profiling |
 | WT-G-008 | Review | `time-workspace.css` contains shared Time workspace layout and editor styling; it is larger than a single view stylesheet but still presentation-only | Do not split it without an independent maintainability/performance benefit; no monolithic mixed PHP/JS controller should be introduced | No patch required |
 | WT-G-009 | High | Quick Edit POST used `form.action`, which resolves to WordPress's hidden `name="action"` input instead of the form URL in affected browsers; the request goes to `/wp-admin/[object HTMLInputElement]` and returns 404 | Read `form.getAttribute('action')` explicitly. Add named-control collision runtime regression in `tools/check` | Patched, local + WordPress retest pending |
+| WT-G-010 | High | Bulk Edit repeats the DOM named-control collision with `bulk.action` and a hidden `name="action"` field | Read `bulk.getAttribute('action')` and test the actual submit listener against success, partial, conflict, HTTP failure and missing action | Patched, local + WordPress retest pending |
+| WT-G-011 | High (test reliability) | Initial Quick Edit runtime mock omitted `window.location.origin` and `document.createElement`, masking the real assertion with a TypeError | Repair the browser mock and exercise success, conflict, HTTP failure and missing action | Patched, local + WordPress retest pending |
+| WT-G-012 | Review | Timer stop can persist a zero-second completed entry but `TimeEntries::update_completed()` rejects zero-duration changes, including note-only edits | Decide zero-second policy and add correction tests before Golden; not changed by this submit fix | Open acceptance gate |
 
 ## Existing positive contracts retained
 
@@ -51,6 +54,7 @@ php tests/time-bulk-edit-smoke.php
 php tests/global-time-hud-note-runtime.php
 node tests/time-bulk-visibility-runtime.js
 node tests/time-quick-edit-submit-runtime.js
+node tests/time-bulk-submit-runtime.js
 ./tools/i18n/check
 ./tools/check
 ```
@@ -63,6 +67,8 @@ unzip -tqq dist/core-blueprint-work.zip
 sha256sum dist/core-blueprint-work.zip
 (cd dist && sha256sum -c core-blueprint-work.zip.sha256)
 ```
+
+The submit-listener tests exercise actual JS handlers with DOM mocks; source-only smoke tests are not sufficient evidence of correct browser POST routing.
 
 Do not mark Golden until installation, Light/Dark theme, keyboard/navigation,
 13-second timer correction, manual correction, autumn DST fold behavior,
