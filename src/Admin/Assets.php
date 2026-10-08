@@ -85,6 +85,18 @@ final class Assets {
 		if ( ! is_file( $file ) ) {
 			return; // The original server notice remains available.
 		}
+		// The style prints in wp-admin's head before PHP renders notices.
+		// Its scripting-aware fallback reveals notices if the module never loads.
+		$handoff_css = CB_WORK_DIR . 'assets/work-toast-handoff.css';
+		if ( is_file( $handoff_css ) ) {
+			$css_modified = filemtime( $handoff_css );
+			wp_enqueue_style(
+				'cb-work-toast-handoff',
+				CB_WORK_URL . 'assets/work-toast-handoff.css',
+				[],
+				false === $css_modified ? CB_WORK_VERSION : (string) $css_modified
+			);
+		}
 		\CoreBlueprint\Core\UI\Assets::enqueue_toasts(
 			\CoreBlueprint\Core\UI\Assets::TOAST_PRESENTATION_CORE
 		);
