@@ -188,6 +188,10 @@
     border-radius: var(--cb-radius-md, 8px);
 }
 
+.cb-work-time-entries-scroll { 
+    max-width: 100%;
+    overflow-x: auto;
+}
 .cb-work-time-entries-scroll .widefat {
     min-width: 800px;
     border: 0;
@@ -264,14 +268,18 @@
 }
 .cb-work-time-entries-filters {
     display: grid;
-    grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(125px, 1fr)) minmax(140px, 1fr) minmax(155px, 1fr);
-    gap: 16px;
-    align-items: end;
-    padding: 18px;
-    margin: 0 0 18px;
+    gap: 10px;
+    padding: 16px 18px 12px;
+    margin: 0 0 16px;
     border: 1px solid var(--cb-border, #dcdcde);
     border-radius: var(--cb-radius-md, 8px);
     background: var(--cb-surface-1, #fff);
+}
+.cb-work-time-entries-primary-filters {
+    display: grid;
+    grid-template-columns: minmax(230px, 2fr) repeat(2, minmax(145px, 1fr)) minmax(155px, 1fr) auto;
+    gap: 12px;
+    align-items: end;
 }
 .cb-work-time-filter {
     min-width: 0;
@@ -283,24 +291,75 @@
 }
 .cb-work-time-filter > :is(input, select) {
     box-sizing: border-box;
+    display: block;
     width: 100%;
     max-width: 100%;
     min-height: 38px;
-}
-.cb-work-time-filter--user {
-    grid-column: auto;
-    min-width: 190px;
-}
-.cb-work-time-filter--user [data-cb-object-picker] {
-    width: 100%;
-    max-width: 100%;
 }
 .cb-work-time-filter-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+    justify-content: flex-end;
     min-height: 38px;
-    flex-wrap: wrap;
+    white-space: nowrap;
+}
+.cb-work-time-entries-more-filters {
+    min-width: 0;
+    border-top: 1px solid var(--cb-border, #dcdcde);
+    padding-block-start: 10px;
+}
+.cb-work-time-entries-more-filters > summary {
+    display: list-item;
+    width: fit-content;
+    max-width: 100%;
+    cursor: pointer;
+    color: var(--cb-text-muted, inherit);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+.cb-work-time-entries-more-filters > summary:hover,
+.cb-work-time-entries-more-filters > summary:focus-visible {
+    color: var(--wp-admin-theme-color, #2271b1);
+}
+.cb-work-time-entries-more-filters[open] > summary {
+    margin-bottom: 12px;
+}
+.cb-work-time-entries-active-filters {
+    display: inline-block;
+    margin-inline-start: 10px;
+    color: var(--wp-admin-theme-color, #2271b1);
+    font-size: 12px;
+}
+.cb-work-time-entries-secondary-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 340px));
+    gap: 16px;
+    align-items: start;
+}
+.cb-work-time-filter--user {
+    min-width: 0;
+}
+.cb-work-time-filter--user .cb-core-object-picker {
+    width: 100%;
+    max-width: none;
+}
+.cb-work-time-filter--user .cb-core-object-picker__selected.is-empty {
+    display: none;
+}
+.cb-work-time-filter--user .cb-core-object-picker[data-multiple="0"] .cb-core-object-picker__chip {
+    min-height: 38px;
+    padding: 4px 10px;
+}
+.cb-work-time-filter--user .cb-core-object-picker__chip-meta {
+    display: none;
+}
+.cb-work-time-filter--user .cb-core-object-picker__search {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    min-height: 38px;
 }
 .cb-work-time-entries-summary,
 .cb-work-time-entries-pagination {
@@ -329,8 +388,11 @@
     display: inline-flex;
     gap: 4px;
     align-items: center;
-    color: inherit;
+    color: var(--cb-text-strong, inherit);
     text-decoration: none;
+}
+.cb-work-time-entries-scroll .widefat th[aria-sort] a {
+    color: var(--wp-admin-theme-color, #2271b1);
 }
 .cb-work-time-entries-scroll .widefat th a:hover {
     color: var(--wp-admin-theme-color, #2271b1);
@@ -393,20 +455,55 @@
     outline: 2px solid var(--wp-admin-theme-color, #2271b1);
     outline-offset: 2px;
 }
-@media (max-width: 1250px) {
-    .cb-work-time-entries-filters {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 1380px) {
+    .cb-work-time-entries-primary-filters {
+        grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+    }
+    .cb-work-time-filter--search {
+        grid-column: 1 / 2;
+    }
+    .cb-work-time-filter--source {
+        grid-column: 1 / 2;
+    }
+    .cb-work-time-filter-actions {
+        grid-column: 2 / -1;
+        justify-self: end;
     }
 }
 @media (max-width: 782px) {
     .cb-work-time-entries-filters {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         padding: 14px;
+    }
+    .cb-work-time-entries-primary-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .cb-work-time-filter--search {
+        grid-column: 1 / -1;
+    }
+    .cb-work-time-filter--source {
+        grid-column: auto;
+    }
+    .cb-work-time-filter-actions {
+        grid-column: auto;
+    }
+    .cb-work-time-entries-secondary-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 @media (max-width: 520px) {
-    .cb-work-time-entries-filters {
+    .cb-work-time-entries-primary-filters,
+    .cb-work-time-entries-secondary-filters {
         grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-time-filter--search,
+    .cb-work-time-filter--source,
+    .cb-work-time-filter-actions {
+        grid-column: 1;
+    }
+    .cb-work-time-filter-actions {
+        justify-self: stretch;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
     .cb-work-time-entries-head > .button {
         width: 100%;
