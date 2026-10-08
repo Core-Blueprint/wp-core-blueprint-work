@@ -129,11 +129,11 @@ final class TimeEntryList {
                             </div>
                             <div class="cb-work-time-bulk-field cb-work-time-bulk-field--note">
                                 <label for="cb-work-time-bulk-note"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label>
-                                <textarea id="cb-work-time-bulk-note" name="bulk_note" rows="2" maxlength="4000" data-cb-work-time-bulk-note disabled></textarea>
+                                <textarea id="cb-work-time-bulk-note" name="bulk_note" rows="2" maxlength="4000" data-cb-work-time-bulk-note></textarea>
                             </div>
                         </div>
                         <div class="cb-work-time-bulk-actions">
-                            <button type="submit" class="button button-primary" data-cb-work-time-bulk-submit disabled><?php esc_html_e( 'Update selected', 'core-blueprint-work' ); ?></button>
+                            <button type="submit" class="button button-primary" data-cb-work-time-bulk-submit><?php esc_html_e( 'Update selected', 'core-blueprint-work' ); ?></button>
                         </div>
                     </details>
                 </form>
