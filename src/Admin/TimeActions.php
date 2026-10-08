@@ -172,7 +172,16 @@ final class TimeActions {
 			return null;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		return null !== $duration && $duration > 0
+		// A timer may legitimately stop in the same UTC second. Permit
+		// correction of such an existing entry without changing its instants.
+		// New manual zero-duration entries remain forbidden.
+		$preserving_zero_timer = 0 === $duration
+			&& is_array( $original_entry )
+			&& TimeEntries::SOURCE_TIMER === (string) ( $original_entry['entry_source'] ?? '' )
+			&& 0 === (int) ( $original_entry['duration_seconds'] ?? -1 )
+			&& $started_at === (string) ( $original_entry['started_at'] ?? '' )
+			&& $ended_at === (string) ( $original_entry['ended_at'] ?? '' );
+		return null !== $duration && ( $duration > 0 || $preserving_zero_timer )
 			? [ 'started_at' => $started_at, 'ended_at' => $ended_at ]
 			: null;
 	}
