@@ -152,7 +152,7 @@ namespace {
         || ! str_contains( $view_source, "type=\"submit\" class=\"button button-primary\"" )
         || ! str_contains( $view_source, "'Clear filters', 'core-blueprint-work'" )
         || ! str_contains( $pickers, 'int $user_id = 0, bool $show_hint = true' )
-        || ! str_contains( $pickers, 'false, $show_hint );' ) {
+        || ! str_contains( $pickers, 'false, $show_hint );' ) ) {
         $fail( 'T2-A1 primary and disclosure filters preserve query inputs and default picker contract' );
     }
     if ( ! str_contains( $styles, '.cb-work-time-entries-primary-filters {' )
