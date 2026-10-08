@@ -2468,3 +2468,23 @@ msgstr "Prossime occorrenze (anteprima)"
 #: src/Admin/Recurrence.php
 msgid "Dates are a preview only while this rule is inactive."
 msgstr "Finché questa regola è inattiva, le date sono solo un’anteprima."
+
+#: src/Admin/Recurrence.php
+msgid "Work Item defaults"
+msgstr "Impostazioni predefinite dei Work Item"
+
+#: src/Admin/Recurrence.php
+msgid "Settings applied to each generated Work Item."
+msgstr "Impostazioni applicate a ogni Work Item generato."
+
+#: src/Admin/Recurrence.php
+msgid "Work details"
+msgstr "Dettagli del lavoro"
+
+#: src/Admin/Recurrence.php
+msgid "Assignment"
+msgstr "Assegnazione"
+
+#: src/Admin/Recurrence.php
+msgid "All changes saved"
+msgstr "Tutte le modifiche salvate"
