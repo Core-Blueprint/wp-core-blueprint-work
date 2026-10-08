@@ -1334,10 +1334,6 @@ msgstr ""
 "Het Work Item kon niet worden toegevoegd. Open de volledige editor om alle "
 "vereiste gegevens te controleren."
 
-#: src/Admin/Recurrence.php:65
-msgid "Add New Rule"
-msgstr "Nieuwe regel toevoegen"
-
 #: src/Admin/Recurrence.php:68
 msgid ""
 "Create real Work Items from reusable schedules. Commercial recurring service "
