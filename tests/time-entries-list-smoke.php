@@ -127,5 +127,40 @@ namespace {
         || ! str_contains( $view_source, 'name="te_search"' ) ) {
         $fail( 'manager picker, authorization, sorting, pagination and empty state presentation contracts' );
     }
+    $styles = file_get_contents( dirname( __DIR__ ) . '/assets/time-workspace.css' );
+    $pickers = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Pickers.php' );
+    $primary = strpos( $view_source, 'class="cb-work-time-entries-primary-filters"' );
+    $advanced = strpos( $view_source, '<details class="cb-work-time-entries-more-filters"' );
+    $picker = strpos( $view_source, "Pickers::assignee( 'te_user', 'cb-work-te-user', \$state['user_id'], false )" );
+    if ( false === $primary || false === $advanced || false === $picker
+        || ! ( $primary < $advanced && $advanced < $picker )
+        || ! str_contains( $view_source, "name=\"te_search\"" )
+        || ! str_contains( $view_source, "name=\"te_from\"" )
+        || ! str_contains( $view_source, "name=\"te_to\"" )
+        || ! str_contains( $view_source, "name=\"te_source\"" )
+        || ! str_contains( $view_source, "name=\"te_sort\"" )
+        || ! str_contains( $view_source, "name=\"view\"" )
+        || ! str_contains( $view_source, '$advanced_active = ( $manager &&' )
+        || ! str_contains( $view_source, "if ( \$advanced_active ) : ?>open" )
+        || ! str_contains( $view_source, "'More filters', 'core-blueprint-work'" )
+        || ! str_contains( $view_source, "'Active filters', 'core-blueprint-work'" )
+        || ! str_contains( $view_source, "type=\"submit\" class=\"button button-primary\"" )
+        || ! str_contains( $view_source, "'Clear filters', 'core-blueprint-work'" )
+        || ! str_contains( $pickers, 'int $user_id = 0, bool $show_hint = true' )
+        || ! str_contains( $pickers, 'false, $show_hint );' ) {
+        $fail( 'T2-A1 primary and disclosure filters preserve query inputs and default picker contract' );
+    }
+    if ( ! str_contains( $styles, '.cb-work-time-entries-primary-filters {' )
+        || ! str_contains( $styles, '.cb-work-time-entries-secondary-filters {' )
+        || ! str_contains( $styles, '.cb-work-time-entries-more-filters > summary:focus-visible' )
+        || ! str_contains( $styles, '.cb-work-time-filter--user .cb-core-object-picker__selected.is-empty' )
+        || ! str_contains( $styles, '.cb-work-time-filter--user .cb-core-object-picker__search' )
+        || ! str_contains( $styles, '.cb-work-time-entries-scroll {' )
+        || ! str_contains( $styles, 'overflow-x: auto;' )
+        || ! str_contains( $styles, '.cb-work-time-entries-scroll .widefat th[aria-sort] a' )
+        || ! str_contains( $styles, '@media (max-width: 782px)' )
+        || ! str_contains( $styles, '@media (max-width: 520px)' ) ) {
+        $fail( 'T2-A1 accessible responsive toolbar, compact picker and active sorting styling' );
+    }
     echo "Time Entries list smoke passed.\n";
 }
