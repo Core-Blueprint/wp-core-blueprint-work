@@ -40,7 +40,31 @@ foreach ( $view_cases as [ $request, $expected ] ) {
 }
 $_GET = [];
 
+// Stale redirects must never contradict the current server-owned timer.
+$notice_method = new ReflectionMethod( Time::class, 'notice_matches_timer_state' );
+$running = [ 'time_entry_id' => 19 ];
+$notice_cases = [
+    [ 'timer-stopped', $running, false ],
+    [ 'timer-stopped', null, true ],
+    [ 'timer-started', $running, true ],
+    [ 'timer-started', null, false ],
+    [ 'timer-stop-failed', $running, true ],
+    [ 'timer-start-failed', null, true ],
+    [ 'time-created', null, true ],
+];
+$notice_cases_pass = true;
+foreach ( $notice_cases as [ $notice, $active, $expected ] ) {
+    if ( $notice_method->invoke( null, $notice, $active ) !== $expected ) {
+        $notice_cases_pass = false;
+        break;
+    }
+}
+
 $checks = [
+    'T1-B old start and stop redirect notices never contradict server timer state' => $notice_cases_pass
+        && str_contains( $admin, 'self::render_notice( $active );' )
+        && strpos( $admin, 'self::render_notice( $active );' ) > strpos( $admin, '$active = Timers::active_for_user( $user_id );' )
+        && str_contains( $admin, 'self::notice_matches_timer_state( $notice, $active )' ),
     'view routing recognizes only three canonical views and forces correction context' => $view_cases_pass,
     'Time tabs are links with distinct URLs and an accessible active state' => str_contains( $admin, 'cb-work-time-navigation' )
         && str_contains( $admin, 'aria-label="<?php esc_attr_e( \'Time views\'' )
