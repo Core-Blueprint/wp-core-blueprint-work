@@ -5,6 +5,7 @@ namespace CB\Work\Repository;
 
 use CB\Work\Database\Schema;
 use CB\Work\Domain\TimeRange;
+use CB\Work\Domain\TimeNote;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -163,7 +164,7 @@ final class TimeEntries {
 				'started_at'       => $started_at,
 				'ended_at'         => $ended_at,
 				'duration_seconds' => $duration,
-				'note'             => self::note( $note ),
+				'note'             => TimeNote::normalize( $note ),
 				'revision'         => 1,
 				'created_by'       => max( 0, $actor_user_id ),
 				'updated_by'       => max( 0, $actor_user_id ),
@@ -211,7 +212,7 @@ final class TimeEntries {
 				$started_at,
 				$ended_at,
 				$duration,
-				self::note( $note ),
+				TimeNote::normalize( $note ),
 				max( 0, $actor_user_id ),
 				current_time( 'mysql', true ),
 				$id,
@@ -254,11 +255,6 @@ final class TimeEntries {
 	private static function is_actual_end( string $ended_at ): bool {
 		return TimeRange::valid_utc( $ended_at )
 			&& $ended_at <= current_time( 'mysql', true );
-	}
-
-	private static function note( string $note ): string {
-		$note = sanitize_textarea_field( $note );
-		return function_exists( 'mb_substr' ) ? mb_substr( $note, 0, 4000 ) : substr( $note, 0, 4000 );
 	}
 
 	/** @param array<string,mixed> $row @return array<string,mixed> */
