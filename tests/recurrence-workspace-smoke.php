@@ -156,7 +156,7 @@ $checks = [
 	'Advanced fields stay in their original form and are operable by keyboard' => str_contains( $defaults, 'aria-controls="cb-work-recurrence-advanced-fields"' )
 		&& str_contains( $defaults, 'id="cb-work-recurrence-advanced-fields"' )
 		&& str_contains( $defaults, 'aria-expanded="false"' )
-		&& 3 === substr_count( $defaults, 'data-cb-work-advanced' )
+		&& 3 === preg_match_all( '/<tr\\b[^>]*\\bdata-cb-work-advanced(?=[\\s>])/', $defaults )
 		&& str_contains( $script, 'advancedFields.hidden = !expanded;' )
 		&& str_contains( $styles, '.cb-work-recurrence-advanced-toggle:focus-visible' )
 		&& str_contains( $styles, '@container (max-width: 760px)' )
