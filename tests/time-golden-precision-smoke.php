@@ -8,6 +8,9 @@ function sanitize_text_field( string $value ): string { return trim( strip_tags(
 
 $root = dirname( __DIR__ );
 require $root . '/src/Domain/TimeRange.php';
+// The zero-second policy references the canonical TimeEntries::SOURCE_TIMER
+// constant. Load its class in this isolated, DB-free reflection smoke test.
+require $root . '/src/Repository/TimeEntries.php';
 require $root . '/src/Admin/TimeActions.php';
 
 use CB\Work\Domain\TimeRange;
