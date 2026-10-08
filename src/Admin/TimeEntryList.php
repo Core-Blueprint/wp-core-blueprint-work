@@ -27,6 +27,10 @@ final class TimeEntryList {
             || TimeEntryListState::SORT_NEWEST !== $state['sort'];
         $user_filter_active = $manager && $state['user_id'] > 0;
         $advanced_active = $user_filter_active || TimeEntryListState::SORT_NEWEST !== $state['sort'];
+        $quick_edit_raw = $_GET['te_edit'] ?? '';
+        $quick_edit_id = is_scalar( $quick_edit_raw ) && ctype_digit( (string) $quick_edit_raw )
+            ? (int) $quick_edit_raw
+            : 0;
         ?>
         <div class="cb-work-time-entries">
             <header class="cb-work-time-entries-head">
@@ -155,10 +159,16 @@ final class TimeEntryList {
                                     <td class="cb-work-time-duration"><?php echo esc_html( self::duration( (int) $entry['duration_seconds'] ) ); ?></td>
                                     <td><?php echo esc_html( TimeEntries::SOURCE_TIMER === $entry['entry_source'] ? __( 'Timer', 'core-blueprint-work' ) : __( 'Manual', 'core-blueprint-work' ) ); ?></td>
                                     <td class="cb-work-time-note"><?php echo esc_html( wp_html_excerpt( (string) $entry['note'], 120, '…' ) ); ?></td>
-                                    <td><?php if ( Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
+                                    <td class="cb-work-time-entries-row-actions"><?php if ( Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
                                         <a class="button button-small" href="<?php echo esc_url( Menu::time_url( [ 'view' => Time::VIEW_MANUAL, 'entry_id' => (int) $entry['id'] ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a>
+                                        <a class="button button-small" href="<?php echo esc_url( Menu::time_url( [ ...TimeEntryListState::url_args( $state ), 'te_edit' => (int) $entry['id'] ] ) ); ?>" <?php if ( $quick_edit_id === (int) $entry['id'] ) : ?>aria-expanded="true" aria-controls="cb-work-time-quick-edit-<?php echo esc_attr( (string) $entry['id'] ); ?>"<?php endif; ?>><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></a>
                                     <?php endif; ?></td>
                                 </tr>
+                                <?php if ( $quick_edit_id === (int) $entry['id'] && null !== $entry['ended_at'] && Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
+                                    <tr class="cb-work-time-quick-edit-row">
+                                        <td colspan="<?php echo esc_attr( (string) ( $manager ? 7 : 6 ) ); ?>"><?php TimeEntryQuickEdit::render( $entry, $state ); ?></td>
+                                    </tr>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
