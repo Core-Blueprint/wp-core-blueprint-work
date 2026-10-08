@@ -39,6 +39,16 @@ final class Time {
 					(string) filemtime( $css_file )
 				);
 			}
+            $bulk_edit_js = CB_WORK_DIR . 'assets/time-entry-bulk-edit.js';
+            if ( is_file( $bulk_edit_js ) ) {
+                wp_enqueue_script(
+                    'cb-work-time-entry-bulk-edit',
+                    CB_WORK_URL . 'assets/time-entry-bulk-edit.js',
+                    [],
+                    (string) filemtime( $bulk_edit_js ),
+                    true
+                );
+            }
 			$quick_edit_js = CB_WORK_DIR . 'assets/time-entry-quick-edit.js';
 			if ( is_file( $quick_edit_js ) ) {
 				wp_enqueue_script(
