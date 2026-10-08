@@ -1,0 +1,21 @@
+/*
+ * Work -> Base Toast handoff.
+ *
+ * Server notices are deliberately still rendered for progressive enhancement.
+ * Keep only explicitly transient Work notices out of the first paint while the
+ * deferred Base Toast module starts. If modules cannot load, reveal the original
+ * notice after the delay instead of losing operational feedback.
+ *
+ * With JavaScript disabled, (scripting: enabled) does not match, so the
+ * canonical server-rendered WordPress notice is visible immediately.
+ */
+@media (scripting: enabled) {
+    body.wp-admin [data-cb-work-toast] {
+        visibility: hidden;
+        animation: cb-work-toast-fallback-reveal 0s 3s forwards;
+    }
+
+    @keyframes cb-work-toast-fallback-reveal {
+        to { visibility: visible; }
+    }
+}
