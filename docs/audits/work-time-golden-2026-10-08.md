@@ -25,6 +25,7 @@ No release or merge is authorized by this audit.
 | WT-G-006 | Review | Bulk Edit deliberately performs preflight followed by per-entry compare-and-swap; concurrent changes can yield a partial result | Preserve explicit partial-result reporting. Verify in a real multi-user database test before Golden | Open acceptance gate |
 | WT-G-007 | Review | Manual create and Bulk Edit Work Item dropdowns use the canonical `WorkItems::all(500)` limit; underlying Work Item search loads a complete ID set | Measure at realistic Work Item scale before deciding whether an indexed/autocomplete picker is warranted | Deferred until profiling |
 | WT-G-008 | Review | `time-workspace.css` contains shared Time workspace layout and editor styling; it is larger than a single view stylesheet but still presentation-only | Do not split it without an independent maintainability/performance benefit; no monolithic mixed PHP/JS controller should be introduced | No patch required |
+| WT-G-009 | High | Quick Edit POST used `form.action`, which resolves to WordPress's hidden `name="action"` input instead of the form URL in affected browsers; the request goes to `/wp-admin/[object HTMLInputElement]` and returns 404 | Read `form.getAttribute('action')` explicitly. Add named-control collision runtime regression in `tools/check` | Patched, local + WordPress retest pending |
 
 ## Existing positive contracts retained
 
@@ -49,6 +50,7 @@ php tests/time-quick-edit-smoke.php
 php tests/time-bulk-edit-smoke.php
 php tests/global-time-hud-note-runtime.php
 node tests/time-bulk-visibility-runtime.js
+node tests/time-quick-edit-submit-runtime.js
 ./tools/i18n/check
 ./tools/check
 ```
