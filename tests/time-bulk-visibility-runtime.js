@@ -97,7 +97,8 @@ rows[1].checked = false;
 change(rows[1]);
 assert.equal(form.hidden, true, 'back to one selected: toolbar hides again');
 assert.equal(editor.open, false, 'expanded editor closes when selection is insufficient');
-assert.equal(submit.disabled, false, 'selection is not destructively cleared');
+assert.equal(submit.disabled, true, 'one selection cannot trigger a bulk update');
+assert.equal(rows[0].checked, true, 'selection is not destructively cleared');
 
 selectAll.checked = true;
 change(selectAll);
