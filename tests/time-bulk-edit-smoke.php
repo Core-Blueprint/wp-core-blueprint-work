@@ -73,6 +73,8 @@ $checks = [
         && str_contains( $list, 'name="bulk_work_item_id"' ),
     'JavaScript enhancement retains progressive fallback' =>
         str_contains( $script, 'new FormData(bulk)' )
+        && str_contains( $script, "bulk.getAttribute('action')" )
+        && ! str_contains( $script, 'fetch(bulk.action' )
         && str_contains( $script, "current.replaceWith(document.importNode(updatedList, true))" )
         && str_contains( $script, 'selectAll.indeterminate' )
         && str_contains( $script, 'notice(serverNotice)' )
