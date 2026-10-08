@@ -25,18 +25,20 @@ $checks = [
         str_contains( $assets, 'Settings::SLUG === $page' )
         && str_contains( $assets, 'Suite::EXTENSION_ID === $extension' )
         && str_contains( (string) file_get_contents( $root . '/src/Admin/Page.php' ), 'data-cb-work-toast=' ),
-    // The CSS hides only explicitly transient Work feedback while scripting
-    // is enabled. The 3s animation reveals it if Base's module fails.
+    // The small head bootstrap removes only transient notices from first
+    // paint. If Base's module is unavailable, the timeout reveals them.
     'pre-paint feedback avoids flash without breaking no-JS fallback' =>
-        str_contains( $assets, "wp_enqueue_style(" )
-        && str_contains( $assets, "'cb-work-toast-handoff'" )
+        str_contains( $assets, "'cb-work-toast-handoff'" )
         && str_contains( $assets, "'assets/work-toast-handoff.css'" )
-        && str_contains( $handoff, '@media (scripting: enabled)' )
-        && str_contains( $handoff, 'body.wp-admin [data-cb-work-toast]' )
-        && str_contains( $handoff, 'visibility: hidden;' )
-        && str_contains( $handoff, 'animation: cb-work-toast-fallback-reveal 0s 3s forwards;' )
-        && str_contains( $handoff, 'to { visibility: visible; }' )
-        && ! str_contains( $handoff, '.notice {'),
+        && str_contains( $assets, "wp_register_script( 'cb-work-toast-handoff', false" )
+        && str_contains( $assets, "wp_add_inline_script(" )
+        && str_contains( $assets, "'before'" )
+        && str_contains( $assets, 'window.setTimeout(function()' )
+        && str_contains( $assets, '},3000);' )
+        && str_contains( $handoff, 'html.cb-work-toast-pending body.wp-admin [data-cb-work-toast]' )
+        && str_contains( $handoff, 'display: none !important;' )
+        && ! str_contains( $handoff, '.notice {' )
+        && str_contains( $adapter, "document.documentElement.classList.remove('cb-work-toast-pending');" ),
     'Work Settings transient wrapper remains balanced' =>
         str_contains( (string) file_get_contents( $root . '/src/Admin/Page.php' ), "echo '<div data-cb-work-toast=" )
         && str_contains( (string) file_get_contents( $root . '/src/Admin/Page.php' ), "echo '</div>';" ),
