@@ -105,6 +105,29 @@ sha256sum dist/core-blueprint-work.zip
 Do not run the final build if earlier checks are red. These commands do not
 activate `set -e` in the operator's interactive shell.
 
+## First operator run and fixture correction
+
+Initial operator run on the first candidate: PHPUnit 9.6.36 ran six tests,
+**four passed and two failed** (608 assertions). Both failures occurred in
+the fixture setup: a separate WordPress `wpdb` connection B could not read
+the table that `wpdb::query()` on connection A had apparently created.
+The SQL-error path returned an empty value and made the initial visibility
+assertion fail. No production repository or application behavior was implicated.
+
+The fixture now forces `wordpress_test` selection and autocommit in both
+independent MariaDB sessions, verifies both `DATABASE()` results, performs
+test-only InnoDB DDL directly over the existing `mysqli` connection A,
+checks visibility through each direct `mysqli` connection, and uses the
+same raw handle for explicit fixture cleanup. A failure now identifies the
+offending session and reports its MariaDB error instead of silently treating
+a failed SELECT as zero rows. The source-contract smoke also enforces these
+additional environment and visibility guards.
+
+**Updated candidate is not yet revalidated by PHPUnit.** Wait for a new
+six-test run before any claim of WT-G-006 technical completion. Successful
+standalone tests are not a substitute for the full `./tools/check` and
+artifact SHA verification.
+
 ## Decision after evidence
 
 Wait for operator-provided test output, canonical checks and package SHA.
