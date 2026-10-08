@@ -166,9 +166,15 @@ async function scenario(outcome, status = 200, hasAction = true) {
         preventDefault() { prevented = true; }
     });
     assert.equal(prevented, true, 'Bulk Edit must avoid full-page navigation');
-    assert.equal(originalForm.submitButton.disabled, false,
-        'the initial controls must recover after a completed request');
     assert.ok(feedbackNode, 'a result or fallback notice must be rendered');
+    if (hasAction && status === 200 && success) {
+        assert.equal(freshForm.hidden, true, 'replacement form must start unselected');
+        assert.equal(freshForm.submitButton.disabled, true,
+            'replacement form must not submit with zero selected rows');
+    } else {
+        assert.equal(originalForm.submitButton.disabled, false,
+            'failed request must restore the submit button');
+    }
 
     if (!hasAction) {
         assert.equal(requests, 0, 'missing action URL must not POST');
