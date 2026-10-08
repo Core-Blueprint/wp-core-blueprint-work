@@ -2610,3 +2610,12 @@ msgstr "De bulkwijziging kon niet worden opgeslagen. Controleer de geselecteerde
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Minstens één geselecteerde tijdregistratie is gewijzigd. Laad de lijst opnieuw en probeer het opnieuw."
+
+msgid "Append to note"
+msgstr "Aan notitie toevoegen"
+
+msgid "Replace note"
+msgstr "Notitie vervangen"
+
+msgid "Clear note"
+msgstr "Notitie wissen"
