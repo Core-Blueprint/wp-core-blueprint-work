@@ -71,6 +71,12 @@ $checks = [
         && str_contains( $css, 'inset-block-end: 88px' )
         && str_contains( $css, '.cb-work-global-time-hud :is(button, a, textarea):focus-visible' )
         && str_contains( $css, '@media (max-width: 782px)' ),
+    'Time view and floating HUD share exactly one live server-authoritative clock renderer' =>
+        str_contains( $time, 'data-cb-work-time-live' )
+        && str_contains( $time, "esc_attr_e( 'Elapsed time', 'core-blueprint-work' )" )
+        && str_contains( $js, "[data-cb-work-time-live]" )
+        && str_contains( $js, 'clocks.forEach((node) => { node.textContent = format(elapsed); });' )
+        && str_contains( $js, "clocks.forEach((node) => { node.textContent = '00:00:00'; });" ),
     'Time workspace and existing server start/stop are preserved; pause is not simulated' =>
         str_contains( $time, 'self::render_active_timer_status( $active, $view );' )
         && str_contains( $actions, "Timers::stop( $user_id, get_current_user_id() )" )
