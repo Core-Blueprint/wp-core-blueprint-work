@@ -52,6 +52,8 @@ final class Recurrence {
 				'activeDescription' => __( 'Automatic generation active', 'core-blueprint-work' ),
 				'inactiveDescription' => __( 'Automatic generation paused', 'core-blueprint-work' ),
                 'minuteUnit' => __( 'min', 'core-blueprint-work' ),
+                'generatorConfirm' => __( 'Run the generator now? Eligible active rules may create Work Items.', 'core-blueprint-work' ),
+                'updated' => __( 'Recurring Work rule updated.', 'core-blueprint-work' ),
 			] );
 		}
 
@@ -146,7 +148,7 @@ final class Recurrence {
 			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
 			?></p>
 			<p class="description"><?php esc_html_e( 'Running the generator manually may create Work Items from eligible active rules.', 'core-blueprint-work' ); ?></p>
-			<form data-cb-run-generator-form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
+			<form data-cb-run-generator-form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="cb_work_run_recurrence_generator">
 				<?php wp_nonce_field( 'cb_work_run_recurrence_generator' ); ?>
 				<?php submit_button( __( 'Run Generator Now', 'core-blueprint-work' ), 'secondary', 'submit', false ); ?>
@@ -311,10 +313,10 @@ final class Recurrence {
 				<label><span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span><select name="cb_status"><option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option><option value="active" <?php selected( $filter_status, 'active' ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option><option value="inactive" <?php selected( $filter_status, 'inactive' ); ?>><?php esc_html_e( 'Inactive', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></span><select name="cb_context"><option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option><option value="internal" <?php selected( $filter_context, 'internal' ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option><option value="customer" <?php selected( $filter_context, 'customer' ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></span><select name="cb_project"><option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option><?php foreach ( $projects as $project ) : ?><option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( $filter_project, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option><?php endforeach; ?></select></label>
-				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button><?php if ( [] !== $active_filters ) : ?><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
+				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button></div>
 			</form>
 			<?php if ( [] !== $active_filters ) : ?>
-			<div class="cb-work-recurrence-active-filters" aria-label="<?php esc_attr_e( 'Clear filters', 'core-blueprint-work' ); ?>">
+			<div class="cb-work-recurrence-active-filters" role="group" aria-label="<?php esc_attr_e( 'Active filters', 'core-blueprint-work' ); ?>">
 				<?php foreach ( $active_filters as $active_filter ) : ?>
 				<a class="cb-work-recurrence-filter-chip" href="<?php echo esc_url( $active_filter['url'] ); ?>"><?php echo esc_html( $active_filter['label'] ); ?> <span aria-hidden="true">×</span></a>
 				<?php endforeach; ?>
