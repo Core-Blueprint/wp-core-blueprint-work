@@ -24,9 +24,15 @@ Work Item workflows, nonce boundaries and status persistence unchanged.
 - **Today:** highlight the WordPress-site-local current date
   (`current_time('Y-m-d')`) using semantic
   `<time datetime="…" aria-current="date">` markup.
-- **Timezone:** render month/day labels with a midday anchor to
-  avoid shifting the displayed date across a timezone boundary
-  near midnight.
+- **Timezone:** create calendar dates directly with
+  `wp_timezone()` and render them through `wp_date()`. This uses the exact
+  WordPress site-local date without a potentially incorrect UTC-midday
+  approximation, including extreme timezone offsets.
+- **Accessible day actions:** modal-opening buttons announce the
+  full site-local day and Work Item count and expose `aria-haspopup="dialog"`.
+- **Modal Light/Dark:** Base moves modal body outside the Work Items page.
+  Scope existing Work semantic color/surface aliases directly to the
+  transplanted day root so dark-mode cards and text retain valid tokens.
 - **Day modal:** preserve Base `size:'workspace'` and
   `expandable:true`; make the Board lane viewport keyboard-scrollable
   and leave padding beside its scrollbar. Active Work status
@@ -68,6 +74,18 @@ Work Item workflows, nonce boundaries and status persistence unchanged.
    modal lanes, focus outline and scrollbars in the admin theme.
 7. **Other Work views:** Table, List, Board and Time must show no layout
    change from this calendar-only stylesheet.
+
+## Candidate reconciliation
+
+A second experimental implementation
+`feature/work-calendar-final-ux-golden-v1` was discovered while this
+Calendar-only candidate was already registered in Overseer. To avoid
+parallel merge targets, **this branch remains the single canonical
+acceptance candidate**. The experimental alternative must not be
+merged or installed for this gate. Two useful safeguards from the
+alternative were applied here: local modal theme aliases and accessible
+day/action naming. Only this candidate's exact SHA, tests and release
+checksum are authoritative for WC-G-001.
 
 ## Operator local checks
 
