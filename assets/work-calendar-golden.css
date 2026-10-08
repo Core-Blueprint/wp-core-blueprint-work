@@ -165,3 +165,10 @@
 		padding-inline-end: var(--cb-space-2);
 	}
 }
+
+/* Reduced-motion users keep the hover affordance without card movement. */
+@media (prefers-reduced-motion: reduce) {
+	.cb-work-day-modal .cb-work-day-card:hover {
+		transform: none;
+	}
+}
