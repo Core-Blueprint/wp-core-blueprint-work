@@ -47,6 +47,34 @@ fully validated. After AJAX replacement of the canonical entries list,
 the Base picker is initialized again. No second picker implementation or
 new CSS framework is introduced.
 
+## Source-contract / translation reconciliation
+
+The first operator validation of candidate
+`b8f13fc0eb9211602e5115bc6a3100330df17f38` confirmed
+the existing WordPress/MariaDB integration test **PASS**
+(3 tests, 583 assertions), and release ZIP/checksum PASS
+(SHA-256 `5106671e0602b69a9c8e7172b3ff327160e2cfaab74b10571fe6422fb4504e59`).
+
+The read-only picker smoke then reported one false-positive:
+it checked for `WorkItems::search(` in the entire search source,
+including an explanatory docblock naming the old method. The
+assertion now examines the executable `results()` method only.
+
+The canonical i18n gate reported `POT/source drift: missing=0 stale=2`.
+Exactly two strings removed with the old Time dropdowns have now been
+retired from POT and all six PO sources:
+
+- `No Work Items are available for time tracking.`
+- `No Work Items are available for this entry.`
+
+All six PO catalogs were checked to have the same 582 message keys
+as the amended POT, with no missing/extra keys. This is source-level
+reconciliation evidence, not a substitute for re-running the canonical
+i18n/check, full Work suite or release build.
+
+**Status: corrected candidate; operator revalidation pending.** Never
+merge before local checks and WordPress runtime acceptance.
+
 ## Acceptance gates
 
 - PHP/JS syntax, read-only picker contract and existing Time smoke/runtime
