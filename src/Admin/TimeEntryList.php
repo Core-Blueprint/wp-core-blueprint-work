@@ -83,7 +83,7 @@ final class TimeEntryList {
             <div class="cb-work-time-entries-summary" role="status">
                 <span><?php
                     /* translators: 1: first visible entry, 2: last visible entry, 3: total matching entries. */
-                    echo esc_html( sprintf( __( '%1$d–%2$d of %3$d Time entries', 'core-blueprint-work' ), $from, $to, $total ) );
+                    echo esc_html( sprintf( __( 'Entries: %1$d–%2$d of %3$d', 'core-blueprint-work' ), $from, $to, $total ) );
                 ?></span>
                 <strong><?php
                     /* translators: %s: total recorded duration within all active filters. */
