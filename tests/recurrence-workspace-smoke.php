@@ -16,7 +16,7 @@ $checks = [
 		&& str_contains( $recurrence, 'Menu::RECURRENCE_SLUG !== $page' )
 		&& str_contains( $recurrence, "wp_enqueue_style( 'cb-work-recurrence-workspace'" )
 		&& ! str_contains( $render, 'wp_enqueue_style(' ),
-	'Stylesheet cache key updates when its contents change' => str_contains( $recurrence, "filemtime( $stylesheet )" ),
+	'Stylesheet cache key updates when its contents change' => str_contains( $recurrence, 'filemtime( $stylesheet )' ),
 	'List is the default workspace and editor is explicitly opened' => str_contains( $recurrence, "'add' === sanitize_key" )
 		&& str_contains( $recurrence, 'if ( $show_editor ) : ?>' )
 		&& str_contains( $recurrence, "self::url( [ 'mode' => 'add' ] )" ),
@@ -24,7 +24,7 @@ $checks = [
 		&& str_contains( $recurrence, 'cb_work_update_recurrence_rule' )
 		&& str_contains( $recurrence, 'wp_nonce_field(' )
 		&& str_contains( $actions, "self::guard( 'cb_work_create_recurrence_rule' )" )
-		&& str_contains( $actions, "self::guard( 'cb_work_update_recurrence_rule_' . $rule_id )" ),
+		&& str_contains( $actions, "self::guard( 'cb_work_update_recurrence_rule_' . \$rule_id )" ),
 	'History-locked schedule fields are preserved' => str_contains( $recurrence, 'RecurrenceOccurrences::count_for_rule( $edit_id ) > 0' )
 		&& str_contains( $recurrence, 'if ( $locked ) : ?>' ),
 	'Editor fields are grouped semantically and respond by class' => str_contains( $recurrence, 'cb-work-recurrence-section--rule' )
