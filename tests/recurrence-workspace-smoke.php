@@ -16,7 +16,8 @@ $checks = [
 		&& str_contains( $recurrence, 'Menu::RECURRENCE_SLUG !== $page' )
 		&& str_contains( $recurrence, "wp_enqueue_style( 'cb-work-recurrence-workspace'" )
 		&& ! str_contains( $render, 'wp_enqueue_style(' ),
-	'Stylesheet cache key updates when its contents change' => str_contains( $recurrence, 'filemtime( $stylesheet )' ),
+	'Stylesheet cache key tracks CSS content across deterministic ZIP builds' => str_contains( $recurrence, "hash_file( 'sha256', \$stylesheet )" )
+		&& ! str_contains( $recurrence, 'filemtime( $stylesheet )' ),
 	'List is the default workspace and editor is explicitly opened' => str_contains( $recurrence, "'add' === sanitize_key" )
 		&& str_contains( $recurrence, 'if ( $show_editor ) : ?>' )
 		&& str_contains( $recurrence, "self::url( [ 'mode' => 'add' ] )" ),
