@@ -123,8 +123,9 @@ final class TimeEntryList {
                                 <label for="cb-work-time-bulk-mode"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label>
                                 <select id="cb-work-time-bulk-mode" name="note_mode" data-cb-work-time-bulk-mode>
                                     <option value="keep"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
-                                    <option value="append"><?php esc_html_e( 'Append' ); ?></option>
-                                    <option value="replace"><?php esc_html_e( 'Replace' ); ?></option>
+                                    <option value="append"><?php esc_html_e( 'Append to note', 'core-blueprint-work' ); ?></option>
+                                    <option value="replace"><?php esc_html_e( 'Replace note', 'core-blueprint-work' ); ?></option>
+                                    <option value="clear"><?php esc_html_e( 'Clear note', 'core-blueprint-work' ); ?></option>
                                 </select>
                             </div>
                             <div class="cb-work-time-bulk-field cb-work-time-bulk-field--note">
