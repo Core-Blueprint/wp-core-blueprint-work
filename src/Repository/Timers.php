@@ -157,6 +157,58 @@ final class Timers {
 		return TimeEntries::get( $entry_id );
 	}
 
+
+	/**
+	 * Update the note of the current user's running timer without ending its entry.
+	 * The active timer and its unfinished entry are locked to exclude concurrent stops.
+	 */
+	public static function update_active_note( int $user_id, int $entry_id, string $note, int $actor_user_id ): bool {
+		if ( ! self::schema_ready() || $user_id <= 0 || $entry_id <= 0 || $actor_user_id !== $user_id ) {
+			return false;
+		}
+		global $wpdb;
+		$note = self::note( $note );
+		$wpdb->query( 'START TRANSACTION' );
+		$timer = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT time_entry_id FROM ' . Schema::active_timers_table() . ' WHERE user_id = %d LIMIT 1 FOR UPDATE', $user_id ),
+			ARRAY_A
+		);
+		if ( ! is_array( $timer ) || (int) $timer['time_entry_id'] !== $entry_id ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		$entry = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT id, user_id, ended_at, entry_source, note FROM ' . Schema::time_entries_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $entry_id ),
+			ARRAY_A
+		);
+		if ( ! is_array( $entry ) || (int) $entry['user_id'] !== $user_id || null !== $entry['ended_at'] || TimeEntries::SOURCE_TIMER !== (string) $entry['entry_source'] ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		if ( (string) $entry['note'] === $note ) {
+			$wpdb->query( 'COMMIT' );
+			return true;
+		}
+		$updated = $wpdb->update(
+			Schema::time_entries_table(),
+			[
+				'note'       => $note,
+				'updated_by' => $actor_user_id,
+				'updated_at' => current_time( 'mysql', true ),
+				'revision'   => 1 + (int) ( TimeEntries::get( $entry_id )['revision'] ?? 1 ),
+			],
+			[ 'id' => $entry_id, 'user_id' => $user_id, 'ended_at' => null ],
+			[ '%s', '%d', '%s', '%d' ],
+			[ '%d', '%d', '%s' ]
+		);
+		if ( 1 !== $updated ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		$wpdb->query( 'COMMIT' );
+		return true;
+	}
+
 	private static function note( string $note ): string {
 		$note = sanitize_textarea_field( $note );
 		return function_exists( 'mb_substr' ) ? mb_substr( $note, 0, 4000 ) : substr( $note, 0, 4000 );
