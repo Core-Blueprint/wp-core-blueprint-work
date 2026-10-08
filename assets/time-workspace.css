@@ -1,0 +1,231 @@
+/*
+ * Core Blueprint Work: Time workspace navigation and layout (T1-A).
+ * Scoped presentation only; Base remains authoritative for native controls.
+ */
+
+.cb-work-time-workspace {
+    max-width: none;
+    margin-inline-end: 20px;
+}
+
+.cb-work-time-header {
+    margin: 0 0 20px;
+}
+
+.cb-work-time-header h1 {
+    margin: 0 0 6px;
+}
+
+.cb-work-time-header .description {
+    margin: 0;
+    max-width: 75ch;
+    line-height: 1.55;
+}
+
+.cb-work-time-running-status {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin: 0 0 16px;
+    padding: 13px 18px;
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+    background: var(--cb-surface-1, #fff);
+    color: inherit;
+}
+
+.cb-work-time-running-indicator {
+    display: inline-block;
+    flex: 0 0 9px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #27865d;
+}
+
+.cb-work-time-running-status strong {
+    font-size: 13px;
+}
+
+.cb-work-time-running-item {
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.cb-work-time-running-start {
+    font-size: 12px;
+    opacity: .8;
+}
+
+.cb-work-time-running-status .button {
+    margin-inline-start: auto;
+}
+
+.cb-work-time-navigation {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 24px;
+    padding-block: 0 10px;
+    border-bottom: 1px solid var(--cb-border, #dcdcde);
+}
+
+.cb-work-time-navigation-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 40px;
+    padding: 8px 17px;
+    border: 1px solid transparent;
+    border-radius: var(--cb-radius-md, 7px);
+    color: var(--cb-text-muted, inherit);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.cb-work-time-navigation-link:hover {
+    background: var(--cb-surface-2, rgba(125, 125, 125, .09));
+    color: var(--cb-text-strong, inherit);
+}
+
+.cb-work-time-navigation-link.is-active,
+.cb-work-time-navigation-link[aria-current="page"] {
+    border-color: var(--cb-border, #dcdcde);
+    background: var(--cb-surface-2, rgba(125, 125, 125, .11));
+    color: var(--cb-text-strong, inherit);
+}
+
+.cb-work-time-navigation-link:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+}
+
+.cb-work-time-view {
+    min-width: 0;
+    width: 100%;
+}
+
+.cb-work-time-view > .card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1160px;
+    margin: 0;
+    padding: clamp(18px, 2.4vw, 30px);
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+    background: var(--cb-surface-1, #fff);
+}
+
+.cb-work-time-view > .card h2 {
+    margin: 0 0 22px;
+    font-size: 17px;
+}
+
+.cb-work-time-view--timer > .card {
+    max-width: 920px;
+}
+
+.cb-work-time-view--timer .card form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 22px;
+    align-items: start;
+}
+
+.cb-work-time-view--timer .card form > p {
+    min-width: 0;
+    margin-block: 0 12px;
+}
+
+.cb-work-time-view--timer .card form > p select,
+.cb-work-time-view--timer .card form > p textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 8px;
+}
+
+.cb-work-time-view--timer .card form > .button,
+.cb-work-time-view--timer .card form > input[type="submit"],
+.cb-work-time-view--timer .card form > p.submit {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+.cb-work-time-view--manual > .card .form-table {
+    max-width: 100%;
+    margin-top: 12px;
+}
+
+.cb-work-time-view--manual > .card .form-table th {
+    width: 130px;
+}
+
+.cb-work-time-view--manual > .card .form-table td {
+    min-width: 0;
+}
+
+.cb-work-time-view--manual > .card .form-table textarea {
+    max-width: 780px;
+}
+
+.cb-work-time-view--entries h2 {
+    margin: 0 0 18px;
+    font-size: 17px;
+}
+
+.cb-work-time-entries-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+}
+
+.cb-work-time-entries-scroll .widefat {
+    min-width: 800px;
+    border: 0;
+}
+
+@media (max-width: 782px) {
+    .cb-work-time-workspace {
+        margin-inline-end: 10px;
+    }
+
+    .cb-work-time-running-status .button {
+        margin-inline-start: 0;
+    }
+
+    .cb-work-time-view--timer .card form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cb-work-time-view--manual > .card .form-table th,
+    .cb-work-time-view--manual > .card .form-table td {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        padding-inline: 0;
+    }
+
+    .cb-work-time-view--manual > .card .form-table td {
+        padding-top: 6px;
+    }
+}
+
+@media (max-width: 520px) {
+    .cb-work-time-navigation {
+        gap: 4px;
+    }
+
+    .cb-work-time-navigation-link {
+        padding-inline: 11px;
+        min-height: 42px;
+    }
+}
