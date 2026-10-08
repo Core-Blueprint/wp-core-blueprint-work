@@ -92,7 +92,19 @@
 
 /* The Base workspace modal already has a 1480px width and expand control.
  * Keep the board lanes legible, scrolling inside the board when needed. */
+/* Base mounts the dialog outside the Work Items page. Give the moved day
+ * board its own semantic aliases so Light/Dark styles remain consistent. */
 .cb-work-day-modal {
+	--cb-work-surface: var(--cb-surface-1);
+	--cb-work-surface-raised: var(--cb-surface-2);
+	--cb-work-canvas: var(--cb-surface-0);
+	--cb-work-border: var(--cb-border);
+	--cb-work-text: var(--cb-text);
+	--cb-work-text-strong: var(--cb-text-strong);
+	--cb-work-text-muted: var(--cb-text-muted);
+	--cb-work-shadow: var(--cb-shadow-sm);
+	--cb-work-radius: var(--cb-radius-md);
+	--cb-work-transition: var(--cb-interactive-transition);
 	min-width: 0;
 	max-width: 100%;
 }
