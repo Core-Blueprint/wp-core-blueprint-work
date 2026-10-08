@@ -6,7 +6,7 @@
     if (!config || typeof config.ajaxUrl !== 'string') return;
 
     document.querySelectorAll('form').forEach((form) => {
-        if (form.matches('[data-cb-inline-toggle]')) return;
+        if (form.matches('[data-cb-inline-toggle], [data-cb-editor-toggle]')) return;
         const activate = form.querySelector('[data-cb-work-confirm]');
         if (!activate) return;
         form.addEventListener('submit', (event) => {
