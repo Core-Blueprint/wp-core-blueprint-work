@@ -533,6 +533,18 @@
     }
 }
 
+/* Async enhancement: keep busy/error states legible in light and dark admin themes. */
+.cb-work-time-entries [data-cb-work-time-quick-edit-toggle][aria-busy="true"],
+.cb-work-time-quick-edit form[aria-busy="true"] {
+    opacity: .7;
+}
+.cb-work-time-entries .cb-work-time-request-notice {
+    margin: 0 0 14px;
+}
+.cb-work-time-quick-edit form > .cb-work-time-request-notice {
+    margin-bottom: 16px;
+}
+
 /* T2-B: one inline editor below the selected Time Entry, never a second workspace. */
 .cb-work-time-entries-row-actions {
     white-space: nowrap;
