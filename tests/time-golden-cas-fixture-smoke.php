@@ -15,6 +15,8 @@ $checks = [
         str_contains( $fixture, "'CB_WORK_TIME_CAS_TEST'" )
         && str_contains( $fixture, "defined( 'WP_CLI' )" )
         && str_contains( $fixture, "defined( 'DB_NAME' )" )
+        && str_contains( $fixture, "defined( 'DB_HOST' )" )
+        && str_contains( $fixture, 'local database host' )
         && str_contains( $fixture, 'testdb' ),
     'transactional storage is checked before fixture mutations' =>
         str_contains( $fixture, 'information_schema.TABLES' )
