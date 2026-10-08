@@ -1,45 +1,60 @@
 'use strict';
 
-// Dependency-free browser-submit regression: WordPress requires an input
-// named "action", which can shadow the HTML form's .action URL property.
+// Browser-level submit contract without a WordPress DB.
+// A WordPress <input name="action"> shadows HTMLFormElement.action.
+// The stub must include browser URL.origin and createElement or test failures
+// will be hidden by exceptions inside the error-reporting branch.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../assets/time-entry-quick-edit.js'), 'utf8');
-const root = 'https://example.test';
-const endpoint = root + '/wp-admin/admin-post.php';
+const origin = 'https://example.test';
+const endpoint = origin + '/wp-admin/admin-post.php';
 const listeners = Object.create(null);
-let postedTo = null;
-let redirectedTo = null;
-let savedNotice = null;
-let replaced = false;
+
+let postUrl = '';
+let postCount = 0;
+let redirectedTo = '';
+let serverOutcome = 'time-updated';
+let validHttp = true;
+let actionUrl = endpoint;
+let renderedNotice = null;
+let replaced = 0;
 
 const classList = (...initial) => {
     const names = new Set(initial);
     return {
-        add: (...added) => added.forEach(name => names.add(name)),
+        add: (...values) => values.forEach(name => names.add(name)),
         contains: name => names.has(name)
     };
 };
-const notice = {
-    classList: classList('notice', 'notice-success'),
-    setAttribute() {},
+const makeNotice = (type = 'success') => ({
+    classList: classList('notice', 'notice-' + type),
+    children: [],
+    append(node) { this.children.push(node); },
+    setAttribute(name, value) { this[name] = value; },
     focus() {}
-};
-const replacement = {
-    prepend(node) { savedNotice = node; }
-};
+});
+const successNotice = makeNotice();
+const conflictNotice = makeNotice('error');
+const newList = { prepend(node) { renderedNotice = node; } };
 let list = {
     dataset: { cbWorkTimeAsyncError: 'Request failed' },
-    replaceWith(node) { assert.strictEqual(node, replacement); list = node; replaced = true; }
+    replaceWith(node) {
+        assert.strictEqual(node, newList);
+        list = node;
+        replaced++;
+    }
 };
 const page = {
     querySelector(selector) {
-        return selector === '.cb-work-time-entries' ? replacement
-            : selector === '.cb-work-time-page > .notice' ? notice
-            : null;
+        if (selector === '.cb-work-time-entries') return newList;
+        if (selector === '.cb-work-time-page > .notice') {
+            return serverOutcome === 'time-updated' ? successNotice : conflictNotice;
+        }
+        return null;
     }
 };
 const host = {
@@ -49,12 +64,12 @@ const host = {
 };
 const button = { disabled: false };
 const form = {
-    // Mimic the browser's named form control collision.
     action: { toString: () => '[object HTMLInputElement]' },
-    getAttribute(name) { return name === 'action' ? endpoint : null; },
+    getAttribute(name) { return name === 'action' ? actionUrl : null; },
     matches(selector) { return selector === '[data-cb-work-time-quick-edit] form'; },
     reportValidity() { return true; },
     querySelector(selector) { return selector === 'button[type="submit"]' ? button : null; },
+    prepend(node) { renderedNotice = node; },
     setAttribute() {},
     removeAttribute() {}
 };
@@ -64,7 +79,8 @@ class FakeFormData {
 const context = {
     document: {
         querySelector: selector => selector === '.cb-work-time-view--entries' ? host : null,
-        importNode: node => node
+        importNode: node => node,
+        createElement: () => makeNotice()
     },
     DOMParser: class {
         parseFromString(html, type) {
@@ -75,42 +91,74 @@ const context = {
     FormData: FakeFormData,
     URL,
     window: {
-        location: { href: root + '/wp-admin/admin.php?page=core-blueprint-work-time&view=entries' },
+        location: {
+            origin,
+            href: origin + '/wp-admin/admin.php?page=core-blueprint-work-time&view=entries'
+        },
         history: {
             state: null,
             replaceState(state, title, url) { redirectedTo = String(url); }
         }
     },
     async fetch(url, options) {
-        postedTo = String(url);
-        assert.equal(postedTo, endpoint, 'POST must target admin-post.php, not the shadowing input');
+        postUrl = String(url);
+        postCount++;
+        assert.equal(postUrl, endpoint, 'POST must use the real form action');
         assert.equal(options.method, 'POST');
         assert.equal(options.credentials, 'same-origin');
         assert.equal(options.redirect, 'follow');
         assert.ok(options.body instanceof FakeFormData);
         return {
-            ok: true,
-            url: root + '/wp-admin/admin.php?page=core-blueprint-work-time&view=entries&cb-work-notice=time-updated',
+            ok: validHttp,
+            url: origin + '/wp-admin/admin.php?page=core-blueprint-work-time&view=entries&cb-work-notice=' + serverOutcome,
             async text() { return '<html></html>'; }
         };
     }
 };
 vm.runInNewContext(source, context, { filename: 'time-entry-quick-edit.js' });
 
-(async () => {
+async function submit() {
     let prevented = false;
     await listeners.submit({
         target: form,
         preventDefault() { prevented = true; }
     });
-    assert.equal(prevented, true, 'Quick Edit must prevent a full-page form submission');
-    assert.equal(postedTo, endpoint, 'the original form action attribute must be used');
-    assert.equal(replaced, true, 'successful save must update entries without reloading');
-    assert.strictEqual(savedNotice, notice, 'server success notice must be displayed');
-    assert.equal(button.disabled, false, 'submit button must be enabled after completion');
-    assert.ok(redirectedTo);
+    assert.equal(prevented, true, 'form must not cause a full page navigation');
+    assert.equal(button.disabled, false, 'submit must be re-enabled');
+}
+
+(async () => {
+    await submit();
+    assert.equal(postUrl, endpoint);
+    assert.equal(replaced, 1, 'success must refresh the list');
+    assert.strictEqual(renderedNotice, successNotice, 'success notice must be displayed');
+    assert.ok(redirectedTo, 'history is updated only after a confirmed save');
     assert.equal(new URL(redirectedTo).searchParams.has('cb-work-notice'), false);
-    console.log('Time Quick Edit submit runtime passed.');
+
+    const savedUrl = redirectedTo;
+    renderedNotice = null;
+    serverOutcome = 'time-conflict';
+    await submit();
+    assert.equal(replaced, 1, 'conflict must preserve existing form and list');
+    assert.strictEqual(renderedNotice, conflictNotice, 'revision conflict must be displayed');
+    assert.equal(redirectedTo, savedUrl, 'failed save must not update history');
+
+    renderedNotice = null;
+    validHttp = false;
+    await submit();
+    assert.equal(replaced, 1, 'unexpected HTTP failure must not replace list');
+    assert.equal(renderedNotice.classList.contains('notice-error'), true,
+        'network/server failures must display a fallback error');
+    assert.equal(redirectedTo, savedUrl);
+
+    renderedNotice = null;
+    actionUrl = null;
+    const before = postCount;
+    await submit();
+    assert.equal(postCount, before, 'missing form action must not trigger a request');
+    assert.equal(renderedNotice.classList.contains('notice-error'), true);
+
+    console.log('Time Quick Edit submit runtime passed (success, conflict, HTTP error, missing action).');
 })().catch(error => {
     console.error(error);
     process.exitCode = 1;
