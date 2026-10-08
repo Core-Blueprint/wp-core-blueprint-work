@@ -36,7 +36,16 @@ const window = {
         replaceState(state, title, url) { locationAfter = String(url); }
     }
 };
+let handoffCleared = false;
 const document = {
+    documentElement: {
+        classList: {
+            remove(name) {
+                assert.equal(name, 'cb-work-toast-pending');
+                handoffCleared = true;
+            }
+        }
+    },
     querySelectorAll: selector => selector === '[data-cb-work-toast]' ? visible.filter(n => n.matches(selector)) : []
 };
 
@@ -51,6 +60,7 @@ assert.equal(shown[0].options.persistent, false);
 assert.equal(shown[1].options.persistent, true);
 assert.equal(shown[2].options.persistent, true);
 assert.equal(context.removed, false, 'persistent page notices remain inline');
+assert.equal(handoffCleared, true, 'remove pre-paint guard only after processing notices');
 assert.ok(success.removed && warning.removed && invalid.removed);
 assert.equal(new URL(locationAfter).searchParams.get('cb-work-notice'), null, 'one-time feedback URL is cleaned');
 assert.equal(new URL(locationAfter).searchParams.get('te_source'), 'timer', 'filters remain intact');
