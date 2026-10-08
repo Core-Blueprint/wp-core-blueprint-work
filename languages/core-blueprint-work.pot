@@ -1389,10 +1389,6 @@ msgstr ""
 msgid "The Work Item could not be added. Open the full editor to review all required details."
 msgstr ""
 
-#: src/Admin/Recurrence.php:68
-msgid "Create real Work Items from reusable schedules. Commercial recurring service pricing is separate from Work Item recurrence."
-msgstr ""
-
 #: src/Admin/Recurrence.php:71
 msgid "Work storage is not ready yet. Recurring Work becomes available after the Work schema is installed."
 msgstr ""
@@ -1483,10 +1479,6 @@ msgstr ""
 #: src/Admin/Recurrence.php:114
 #: src/Admin/Recurrence.php:159
 msgid "days"
-msgstr ""
-
-#: src/Admin/Recurrence.php:114
-msgid "Work Items are generated when an occurrence enters this planning horizon."
 msgstr ""
 
 #: src/Admin/Recurrence.php:115
@@ -2429,10 +2421,50 @@ msgstr ""
 msgid "The Work Item view preferences could not be saved."
 msgstr ""
 
-#: src/Admin/Recurrence.php:158
-msgid "Advanced settings"
-msgstr ""
-
 #: src/Admin/Recurrence.php:205
 msgid "Rule Preview"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Leave without saving?"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Show advanced settings"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Hide advanced settings"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Automatic generation active"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Automatic generation paused"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Configure recurring Work Items and preview their schedule before activating a rule."
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Back to Rules"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Unsaved changes"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Work Items can be created this many days before their scheduled date."
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Upcoming occurrences (preview)"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Dates are a preview only while this rule is inactive."
 msgstr ""
