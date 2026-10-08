@@ -311,30 +311,41 @@
 }
 .cb-work-time-entries-more-filters > summary {
     display: list-item;
+    box-sizing: border-box;
     width: fit-content;
     max-width: 100%;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-sm, 6px);
+    background: var(--cb-surface-2, rgba(125, 125, 125, .09));
+    color: var(--cb-text-strong, inherit);
     cursor: pointer;
-    color: var(--cb-text-muted, inherit);
     font-size: 13px;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 .cb-work-time-entries-more-filters > summary:hover,
-.cb-work-time-entries-more-filters > summary:focus-visible {
-    color: var(--wp-admin-theme-color, #2271b1);
+.cb-work-time-entries-more-filters[open] > summary {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    color: var(--cb-text-strong, inherit);
 }
 .cb-work-time-entries-more-filters > summary:focus-visible {
     outline: 2px solid var(--wp-admin-theme-color, #2271b1);
-    outline-offset: 4px;
+    outline-offset: 3px;
 }
 .cb-work-time-entries-more-filters[open] > summary {
     margin-bottom: 12px;
 }
 .cb-work-time-entries-active-filters {
     display: inline-block;
-    margin-inline-start: 10px;
+    margin-inline-start: 8px;
+    padding: 2px 7px;
+    border: 1px solid var(--wp-admin-theme-color, #2271b1);
+    border-radius: var(--cb-radius-pill, 999px);
     color: var(--wp-admin-theme-color, #2271b1);
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.4;
 }
 .cb-work-time-entries-secondary-filters {
     display: grid;
@@ -392,13 +403,19 @@
     display: inline-flex;
     gap: 4px;
     align-items: center;
-    color: var(--cb-text-strong, inherit);
     text-decoration: none;
 }
-.cb-work-time-entries-scroll .widefat th[aria-sort] a {
+/* Only the current sort receives an accent. Other sortable columns stay neutral. */
+.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort]) > a,
+.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort]) > a:visited {
+    color: var(--cb-text-strong, inherit);
+}
+.cb-work-time-entries-scroll table.widefat thead th[aria-sort] > a,
+.cb-work-time-entries-scroll table.widefat thead th[aria-sort] > a:visited {
     color: var(--wp-admin-theme-color, #2271b1);
 }
-.cb-work-time-entries-scroll .widefat th a:hover {
+.cb-work-time-entries-scroll table.widefat thead th > a:hover,
+.cb-work-time-entries-scroll table.widefat thead th > a:focus-visible {
     color: var(--wp-admin-theme-color, #2271b1);
     text-decoration: underline;
 }
