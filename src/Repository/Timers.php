@@ -178,7 +178,7 @@ final class Timers {
 			return false;
 		}
 		$entry = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT id, user_id, ended_at, entry_source, note FROM ' . Schema::time_entries_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $entry_id ),
+			$wpdb->prepare( 'SELECT id, user_id, ended_at, entry_source, note, revision FROM ' . Schema::time_entries_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $entry_id ),
 			ARRAY_A
 		);
 		if ( ! is_array( $entry ) || (int) $entry['user_id'] !== $user_id || null !== $entry['ended_at'] || TimeEntries::SOURCE_TIMER !== (string) $entry['entry_source'] ) {
@@ -195,7 +195,7 @@ final class Timers {
 				'note'       => $note,
 				'updated_by' => $actor_user_id,
 				'updated_at' => current_time( 'mysql', true ),
-				'revision'   => 1 + (int) ( TimeEntries::get( $entry_id )['revision'] ?? 1 ),
+				'revision'   => 1 + (int) $entry['revision'],
 			],
 			[ 'id' => $entry_id, 'user_id' => $user_id, 'ended_at' => null ],
 			[ '%s', '%d', '%s', '%d' ],
