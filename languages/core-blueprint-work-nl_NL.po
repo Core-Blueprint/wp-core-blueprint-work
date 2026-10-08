@@ -2496,3 +2496,43 @@ msgstr "Tijdweergaven"
 #: src/Admin/Time.php
 msgid "Active timer"
 msgstr "Actieve timer"
+
+#: src/Admin/TimerHud.php
+msgid "Open timer controls"
+msgstr "Timerbediening openen"
+
+#: src/Admin/TimerHud.php
+msgid "Stop this timer and save the time entry?"
+msgstr "Deze timer stoppen en de tijdregistratie opslaan?"
+
+#: src/Admin/TimerHud.php
+msgid "Timer could not be updated. Please try again."
+msgstr "De timer kan niet worden bijgewerkt. Probeer het opnieuw."
+
+#: src/Admin/TimerHud.php
+msgid "Note saved."
+msgstr "Notitie opgeslagen."
+
+#: src/Admin/TimerHud.php
+msgid "Discard unsaved note changes?"
+msgstr "Niet-opgeslagen wijzigingen aan de notitie verwijderen?"
+
+#: src/Admin/TimerHud.php
+msgid "Save the note before stopping this timer."
+msgstr "Sla de notitie op voordat je deze timer stopt."
+
+#: src/Admin/TimerHud.php
+msgid "Timer status could not be refreshed."
+msgstr "De timerstatus kon niet worden vernieuwd."
+
+#: src/Admin/TimerHud.php
+msgid "Elapsed time"
+msgstr "Verstreken tijd"
+
+#: src/Admin/TimerHud.php
+msgid "Save note"
+msgstr "Notitie opslaan"
+
+#: src/Admin/TimerHud.php
+msgid "Open Time workspace"
+msgstr "Time-workspace openen"
