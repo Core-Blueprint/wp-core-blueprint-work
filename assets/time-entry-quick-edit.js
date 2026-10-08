@@ -56,6 +56,8 @@
 
     function report(target, serverNotice = null) {
         clearNotices();
+        if (serverNotice && window.cbWorkToast?.showNotice(serverNotice)) return;
+        if (!serverNotice && window.cbWorkToast?.showMessage(errorMessage(), 'error', { persistent: true })) return;
         const notice = serverNotice
             ? document.importNode(serverNotice, true)
             : document.createElement('div');
