@@ -70,11 +70,11 @@ $checks = [
         && strpos( $admin, 'self::render_notice( $active );' ) > strpos( $admin, '$active = Timers::active_for_user( $user_id );' )
         && str_contains( $admin, 'self::notice_matches_timer_state( $notice, $active )' ),
     'view routing recognizes only three canonical views and forces correction context' => $view_cases_pass,
-    'entry correction preserves original Work Item beyond the first 500' =>
-        str_contains( $admin, "array_column( \$items, 'id' )" )
-        && str_contains( $admin, 'WorkItems::get( $selected_id )' )
-        && str_contains( $admin, '$items[] = $original_item;' )
-        && str_contains( $admin, 'self::requested_entry_id()' ),
+    'corrections preserve the selected Work Item without a 500-entry dropdown cap' =>
+        str_contains( $admin, 'self::requested_entry_id()' )
+        && str_contains( $admin, "Pickers::time_work_item( 'time[work_item_id]', 'cb-work-time-item', \$selected_item );" )
+        && ! str_contains( $admin, 'WorkItems::all( 500 )' )
+        && ! str_contains( $admin, 'array_column( $items' ),
     'Time tabs are links with distinct URLs and an accessible active state' => str_contains( $admin, 'cb-work-time-navigation' )
         && str_contains( $admin, 'aria-label="<?php esc_attr_e( \'Time views\'' )
         && str_contains( $admin, 'aria-current="page"' )
@@ -84,7 +84,7 @@ $checks = [
         && str_contains( $admin, 'case self::VIEW_MANUAL:' )
         && str_contains( $admin, 'case self::VIEW_ENTRIES:' )
         && str_contains( $admin, 'TimeEntryList::render( $manager );' )
-        && str_contains( $admin, 'self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );' ),
+        && str_contains( $admin, 'self::render_timer( $active, $user_id );' ),
     'active timer is surfaced above view navigation using server data' => str_contains( $admin, 'self::render_active_timer_status( $active, $view );' )
         && strpos( $admin, 'self::render_active_timer_status( $active, $view );' ) < strpos( $admin, 'self::render_navigation( $view );' )
         && str_contains( $admin, 'Timers::active_for_user( $user_id )' )
