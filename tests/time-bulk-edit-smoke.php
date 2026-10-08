@@ -79,6 +79,13 @@ $checks = [
         && str_contains( $script, 'window.history.replaceState(' )
         && str_contains( $time, 'assets/time-entry-bulk-edit.js' )
         && str_contains( $style, '.cb-work-time-bulk-fields' ),
+    'disabled note has a theme-aware visual state only when native disabled applies' =>
+        str_contains( $script, 'note.disabled = !needsNoteText;' )
+        && str_contains( $style, 'textarea[data-cb-work-time-bulk-note]:disabled' )
+        && str_contains( $style, 'background: var(--cb-surface-2,' )
+        && str_contains( $style, 'border-style: dashed;' )
+        && str_contains( $style, ':has(textarea[data-cb-work-time-bulk-note]:disabled) > label' )
+        && str_contains( $style, 'resize: none;' ),
     'dedicated outcome messages are rendered' =>
         str_contains( $time, "'time-bulk-updated'" )
         && str_contains( $time, "'time-bulk-partial'" )
