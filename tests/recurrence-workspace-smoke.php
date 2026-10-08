@@ -122,6 +122,7 @@ $checks = [
 		&& ! str_contains( $recurrence, 'cb-work-recurrence-actions' )
 		&& str_contains( $script, "window.addEventListener('beforeunload'" )
 		&& str_contains( $script, 'config.leaveConfirm' )
+		&& str_contains( $script, "event.target?.name?.startsWith('recurrence[')" )
 		&& str_contains( $script, 'leavingIntentionally = true;' ),
 	'ObjectPicker initial state and updates synchronize the assignee preview' => str_contains( $script, "assigneePicker.dataset.cbCoreObjectPickerReady === '1'" )
 		&& str_contains( $script, 'assigneePicker.dataset.selected' )
