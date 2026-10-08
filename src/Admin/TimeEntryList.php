@@ -25,6 +25,7 @@ final class TimeEntryList {
         $has_filters = '' !== $state['search'] || '' !== $state['from'] || '' !== $state['to']
             || '' !== $state['source'] || ( $manager && $state['user_id'] > 0 )
             || TimeEntryListState::SORT_NEWEST !== $state['sort'];
+        $advanced_active = ( $manager && $state['user_id'] > 0 ) || TimeEntryListState::SORT_NEWEST !== $state['sort'];
         ?>
         <div class="cb-work-time-entries">
             <header class="cb-work-time-entries-head">
@@ -38,46 +39,56 @@ final class TimeEntryList {
             <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="cb-work-time-entries-filters" role="search">
                 <input type="hidden" name="page" value="<?php echo esc_attr( $manager ? Menu::TIME_SLUG : Menu::TOP_LEVEL_SLUG ); ?>">
                 <input type="hidden" name="view" value="<?php echo esc_attr( Time::VIEW_ENTRIES ); ?>">
-                <div class="cb-work-time-filter">
-                    <label for="cb-work-te-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
-                    <input type="search" id="cb-work-te-search" name="te_search" value="<?php echo esc_attr( $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Work Item title…', 'core-blueprint-work' ); ?>">
+                <div class="cb-work-time-entries-primary-filters">
+                    <div class="cb-work-time-filter cb-work-time-filter--search">
+                        <label for="cb-work-te-search"><?php esc_html_e( 'Search Work Items', 'core-blueprint-work' ); ?></label>
+                        <input type="search" id="cb-work-te-search" name="te_search" value="<?php echo esc_attr( $state['search'] ); ?>" placeholder="<?php esc_attr_e( 'Work Item title…', 'core-blueprint-work' ); ?>">
+                    </div>
+                    <div class="cb-work-time-filter cb-work-time-filter--from">
+                        <label for="cb-work-te-from"><?php esc_html_e( 'From', 'core-blueprint-work' ); ?></label>
+                        <input type="date" id="cb-work-te-from" name="te_from" value="<?php echo esc_attr( $state['from'] ); ?>">
+                    </div>
+                    <div class="cb-work-time-filter cb-work-time-filter--to">
+                        <label for="cb-work-te-to"><?php esc_html_e( 'To', 'core-blueprint-work' ); ?></label>
+                        <input type="date" id="cb-work-te-to" name="te_to" value="<?php echo esc_attr( $state['to'] ); ?>">
+                    </div>
+                    <div class="cb-work-time-filter cb-work-time-filter--source">
+                        <label for="cb-work-te-source"><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></label>
+                        <select id="cb-work-te-source" name="te_source">
+                            <option value=""><?php esc_html_e( 'All sources', 'core-blueprint-work' ); ?></option>
+                            <option value="timer" <?php selected( $state['source'], 'timer' ); ?>><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></option>
+                            <option value="manual" <?php selected( $state['source'], 'manual' ); ?>><?php esc_html_e( 'Manual', 'core-blueprint-work' ); ?></option>
+                        </select>
+                    </div>
+                    <div class="cb-work-time-filter-actions">
+                        <button type="submit" class="button button-primary"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button>
+                        <?php if ( $has_filters ) : ?>
+                            <a class="button" href="<?php echo esc_url( Menu::time_url( [ 'view' => Time::VIEW_ENTRIES ] ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                <div class="cb-work-time-filter">
-                    <label for="cb-work-te-from"><?php esc_html_e( 'From', 'core-blueprint-work' ); ?></label>
-                    <input type="date" id="cb-work-te-from" name="te_from" value="<?php echo esc_attr( $state['from'] ); ?>">
-                </div>
-                <div class="cb-work-time-filter">
-                    <label for="cb-work-te-to"><?php esc_html_e( 'To', 'core-blueprint-work' ); ?></label>
-                    <input type="date" id="cb-work-te-to" name="te_to" value="<?php echo esc_attr( $state['to'] ); ?>">
-                </div>
-                <div class="cb-work-time-filter">
-                    <label for="cb-work-te-source"><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></label>
-                    <select id="cb-work-te-source" name="te_source">
-                        <option value=""><?php esc_html_e( 'All sources', 'core-blueprint-work' ); ?></option>
-                        <option value="timer" <?php selected( $state['source'], 'timer' ); ?>><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></option>
-                        <option value="manual" <?php selected( $state['source'], 'manual' ); ?>><?php esc_html_e( 'Manual', 'core-blueprint-work' ); ?></option>
-                    </select>
-                </div>
-                <?php if ( $manager ) : ?>
-                <div class="cb-work-time-filter cb-work-time-filter--user">
-                    <label for="cb-work-te-user"><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></label>
-                    <?php Pickers::assignee( 'te_user', 'cb-work-te-user', $state['user_id'] ); ?>
-                </div>
-                <?php endif; ?>
-                <div class="cb-work-time-filter">
-                    <label for="cb-work-te-sort"><?php esc_html_e( 'Sort by', 'core-blueprint-work' ); ?></label>
-                    <select id="cb-work-te-sort" name="te_sort">
-                        <?php foreach ( self::sort_labels() as $value => $label ) : ?>
-                            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $state['sort'], $value ); ?>><?php echo esc_html( $label ); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="cb-work-time-filter-actions">
-                    <button type="submit" class="button button-primary"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button>
-                    <?php if ( $has_filters ) : ?>
-                        <a class="button" href="<?php echo esc_url( Menu::time_url( [ 'view' => Time::VIEW_ENTRIES ] ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
-                    <?php endif; ?>
-                </div>
+                <details class="cb-work-time-entries-more-filters" <?php if ( $advanced_active ) : ?>open<?php endif; ?>>
+                    <summary>
+                        <?php esc_html_e( 'More filters', 'core-blueprint-work' ); ?>
+                        <?php if ( $advanced_active ) : ?><span class="cb-work-time-entries-active-filters"><?php esc_html_e( 'Active filters', 'core-blueprint-work' ); ?></span><?php endif; ?>
+                    </summary>
+                    <div class="cb-work-time-entries-secondary-filters">
+                        <?php if ( $manager ) : ?>
+                            <div class="cb-work-time-filter cb-work-time-filter--user">
+                                <label for="cb-work-te-user"><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></label>
+                                <?php Pickers::assignee( 'te_user', 'cb-work-te-user', $state['user_id'], false ); ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="cb-work-time-filter cb-work-time-filter--sort">
+                            <label for="cb-work-te-sort"><?php esc_html_e( 'Sort by', 'core-blueprint-work' ); ?></label>
+                            <select id="cb-work-te-sort" name="te_sort">
+                                <?php foreach ( self::sort_labels() as $value => $label ) : ?>
+                                    <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $state['sort'], $value ); ?>><?php echo esc_html( $label ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </details>
             </form>
 
             <div class="cb-work-time-entries-summary" role="status">
