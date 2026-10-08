@@ -2490,3 +2490,15 @@ msgstr "Atribuição"
 #: src/Admin/Recurrence.php
 msgid "All changes saved"
 msgstr "Todas as alterações guardadas"
+
+#: src/Admin/Recurrence.php
+msgid "Automation"
+msgstr "Automatização"
+
+#: src/Admin/Recurrence.php
+msgid "Running the generator manually may create Work Items from eligible active rules."
+msgstr "A execução manual do gerador pode criar Work Items a partir de regras ativas elegíveis."
+
+#: src/Admin/Recurrence.php
+msgid "Run the generator now? Eligible active rules may create Work Items."
+msgstr "Executar o gerador agora? Poderão ser criados Work Items a partir das regras ativas elegíveis."
