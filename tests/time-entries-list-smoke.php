@@ -117,5 +117,15 @@ namespace {
     if ( 12 !== $manager['user_id'] || ! $manager['is_manager'] || ! isset( TimeEntryListState::url_args( $manager )['te_user'] ) ) {
         $fail( 'manager-only user filtering and pagination URL' );
     }
+    $view_source = file_get_contents( dirname( __DIR__ ) . '/src/Admin/TimeEntryList.php' );
+    if ( ! str_contains( $view_source, "Pickers::assignee( 'te_user'" )
+        || ! str_contains( $view_source, 'Access::can_edit_entry( $entry,' )
+        || ! str_contains( $view_source, 'aria-sort=' )
+        || ! str_contains( $view_source, 'cb-work-time-entries-pagination' )
+        || ! str_contains( $view_source, 'cb-work-time-entries-empty' )
+        || ! str_contains( $view_source, "'total_seconds'" )
+        || ! str_contains( $view_source, "'te_search'" ) ) {
+        $fail( 'manager picker, authorization, sorting, pagination and empty state presentation contracts' );
+    }
     echo "Time Entries list smoke passed.\n";
 }
