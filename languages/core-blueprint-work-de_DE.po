@@ -2624,3 +2624,12 @@ msgstr "Die Sammelbearbeitung konnte nicht gespeichert werden. Prüfen Sie die a
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Mindestens ein ausgewählter Zeiteintrag wurde geändert. Laden Sie die Liste neu und versuchen Sie es erneut."
+
+msgid "Append to note"
+msgstr "An Notiz anhängen"
+
+msgid "Replace note"
+msgstr "Notiz ersetzen"
+
+msgid "Clear note"
+msgstr "Notiz löschen"
