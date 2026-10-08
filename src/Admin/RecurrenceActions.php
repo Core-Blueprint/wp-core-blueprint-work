@@ -135,8 +135,16 @@ final class RecurrenceActions {
 		$interval = $locked ? (int) $current['interval_count'] : (int) ( $input['interval_count'] ?? 0 );
 		$start = $locked ? (string) $current['start_on'] : sanitize_text_field( (string) ( $input['start_on'] ?? '' ) );
 		$end = $locked ? $current['end_on'] : sanitize_text_field( (string) ( $input['end_on'] ?? '' ) );
-		$next = $locked ? $current['next_occurrence_on'] : null;
-		$dates = Recurrence::preview_dates( $frequency, $interval, $start, $end, $next, $locked );
+		// Use the saved occurrence cursor only while the schedule identity remains unchanged.
+		// Changing a draft schedule previews that new schedule, never stale persisted dates.
+		$unchanged = null !== $current
+			&& $frequency === (string) $current['frequency']
+			&& $interval === (int) $current['interval_count']
+			&& $start === (string) $current['start_on']
+			&& (string) $end === (string) ( $current['end_on'] ?? '' );
+		$use_cursor = $locked || $unchanged;
+		$next = $use_cursor && null !== $current ? $current['next_occurrence_on'] : null;
+		$dates = Recurrence::preview_dates( $frequency, $interval, $start, $end, $next, $use_cursor, current_time( 'Y-m-d' ) );
 		if ( null === $dates ) {
 			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 400 );
 		}
