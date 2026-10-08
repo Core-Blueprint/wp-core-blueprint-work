@@ -6,6 +6,16 @@
     const config = window.cbWorkTimerHud;
     if (!root || !config || !config.endpoint || !config.nonce) return;
 
+    // Server-rendered redirect notices are useful once, not indefinitely.
+    // Keep the current Time view, entry ID and other query parameters intact.
+    if (document.querySelector('.cb-work-time-page')) {
+        const address = new URL(window.location.href);
+        if (address.searchParams.has('cb-work-notice')) {
+            address.searchParams.delete('cb-work-notice');
+            window.history.replaceState(window.history.state, '', address.pathname + address.search + address.hash);
+        }
+    }
+
     const toggle = root.querySelector('[data-cb-time-hud-toggle]');
     const panel = root.querySelector('[data-cb-time-hud-panel]');
     const closeButton = root.querySelector('[data-cb-time-hud-close]');
