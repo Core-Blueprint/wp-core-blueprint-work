@@ -2567,7 +2567,7 @@ msgstr ""
 
 #: src/Admin/TimeEntryList.php
 #, php-format
-msgid "%1$d–%2$d of %3$d Time entries"
+msgid "Entries: %1$d–%2$d of %3$d"
 msgstr ""
 
 #: src/Admin/TimeEntryList.php
