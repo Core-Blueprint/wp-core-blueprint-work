@@ -82,42 +82,62 @@ real tracker/manager permissions, stale revision conflicts, and partial bulk
 results are accepted against a real WordPress test environment. Also test
 at least one Work Item beyond the first 500 picker results.
 
-## WT-G-006: opt-in real database verification (hardening follow-up)
+## WT-G-006: existing WordPress PHPUnit / MariaDB integration
 
-An opt-in `tests/time-golden-cas-live.php` fixture executes the real
-`TimeEntries::update_completed()` SQL against a disposable local
-WordPress/MariaDB database only. It verifies:
+The original standalone `wp eval-file` fixture was unsuitable for the
+canonical Base test installation: Base uses `WP_CORE_DIR`,
+`WP_TESTS_DIR` and the pinned WordPress PHPUnit bootstrap, not an
+independently WP-CLI-configured site. That fixture was removed before
+operator execution.
 
-1. two operators reading the same revision, first update accepted, stale
-   update refused without overwriting note/timestamps/revision;
-2. an interleaved update after preflight, where one bulk row succeeds and
-   a second stale row remains untouched;
-3. fixture isolation by one database transaction and unconditional rollback.
+The replacement is a **separate, opt-in PHPUnit test**:
 
-Mandatory safeguards: WordPress CLI, `CB_WORK_TIME_CAS_TEST=1`,
-DB_NAME clearly containing `test`, schema readiness, and InnoDB storage.
-It is NOT executed by `tools/check` or packaged in release ZIP. Never run
-it on `coreblueprint.io`, staging with production data, or a shared DB.
+- `tests/phpunit-time-bootstrap.php` loads the existing Base
+  `tests/bootstrap.php` and then the Work entrypoint;
+- `tests/phpunit-time-cas.xml.dist` isolates this integration test;
+- `tests/integration/WorkTimeCasIntegrationTest.php` runs production
+  `TimeEntries::create_manual()` and `update_completed()` against
+  MariaDB SQL with a temporary InnoDB table shadowing Work's Time Entries.
+  WordPress PHPUnit owns rollback of posts/users/options and the test
+  tears down its temporary SQL table;
+- `tests/time-golden-cas-fixture-smoke.php` is a read-only contract
+  included in the existing `tools/check` gate.
 
-The fixture models stale reads sequentially on actual MariaDB SQL. It does
-not create two simultaneous independent sessions and does not fully exercise
-the WP admin-post permissions/notice redirects. Therefore **WT-G-006 remains
-open** until a separate two-user WordPress runtime acceptance is performed.
+This tests stale revisions and an interleaved two-row partial update,
+**not two independent simultaneous connections**, so two-user UI
+acceptance remains open. It does not install WordPress, create an
+independent `wp-config.php`, mutate an existing Work table, or call WP-CLI.
 
-Use the WP test DB fixture after local tests are GREEN, with your existing
-isolated `WP_CORE_DIR` and throwaway database:
+### Run in the existing Base test environment
+
+Use the already-provisioned local `cb-base-test-db` and pinned
+WordPress/PHPUnit installation. Do **not** rerun the destructive Base
+WordPress installer just for this test.
 
 ```bash
-CB_WORK_TIME_CAS_TEST=1 wp --path="$WP_CORE_DIR" eval-file tests/time-golden-cas-live.php
+cd ~/Downloads/wp-core-blueprint-work
+export CB_BASE_SOURCE_DIR="$HOME/Downloads/wp-core-blueprint"
+export WP_CORE_DIR=/tmp/core-blueprint-wp
+export WP_TESTS_DIR=/tmp/core-blueprint-wp-tests
+export CB_PLUGIN_FILE="$WP_CORE_DIR/wp-content/plugins/core-blueprint/core-blueprint.php"
+export WP_DB_NAME=wordpress_test
+export WP_DB_USER=root
+export WP_DB_PASSWORD=root
+export WP_DB_HOST=127.0.0.1:3307
+php8.4 "$CB_BASE_SOURCE_DIR/vendor/bin/phpunit" \
+  -c tests/phpunit-time-cas.xml.dist --do-not-cache-result
 ```
 
-Never infer that this has passed without the operator's actual output.
+If the existing directories, pinned PHPUnit dependency or Base test plugin
+copy are absent, stop and re-establish the standard environment using
+its usual controlled workflow. This is not a reason to improvise a
+standalone WordPress setup.
 
 ## Outstanding
 
 1. Validate the safe CAS fixture gate and full canonical suite on the hardening branch.
 2. Build deterministic ZIP and record HEAD / SHA-256.
-3. Run the optional live fixture on a disposable local WordPress TEST DB only.
+3. Run the optional PHPUnit integration test in the existing local Base WordPress TEST DB.
 4. Run real multi-user admin conflict acceptance (WT-G-006).
 5. Decide/test zero-second correction semantics (WT-G-012), profile >500 picker (WT-G-007).
 6. Return to final Work cross-view UX and product audit rounds; require GO before merge.
