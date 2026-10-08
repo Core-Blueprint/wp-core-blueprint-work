@@ -70,7 +70,8 @@ $checks = [
         && str_contains( $list, 'value="append"' )
         && str_contains( $list, 'value="replace"' )
         && str_contains( $list, 'value="clear"' )
-        && str_contains( $list, 'name="bulk_work_item_id"' ),
+        && str_contains( $list, "Pickers::time_work_item( 'bulk_work_item_id'" )
+        && str_contains( $handler, "'' === \$target_value ? '0'" ),
     'JavaScript enhancement retains progressive fallback' =>
         str_contains( $script, 'new FormData(bulk)' )
         && str_contains( $script, "bulk.getAttribute('action')" )
