@@ -801,3 +801,190 @@
         transition: none;
     }
 }
+
+/* G3-A Rules List: operations belong to the header, not the table footer. */
+.cb-work-recurrence-header-actions {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.cb-work-recurrence-automation {
+    position: relative;
+}
+
+.cb-work-recurrence-automation > summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 34px;
+    padding: 4px 13px;
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    border-radius: 4px;
+    background: var(--cb-surface-1, Canvas);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.cb-work-recurrence-automation > summary::-webkit-details-marker {
+    display: none;
+}
+
+.cb-work-recurrence-automation > summary::after {
+    content: "⌄";
+    margin-inline-start: 10px;
+}
+
+.cb-work-recurrence-automation[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+.cb-work-recurrence-automation > summary:focus-visible,
+.cb-work-recurrence-title-link:focus-visible,
+.cb-work-recurrence-filter-chip:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 3px;
+}
+
+.cb-work-recurrence-automation-content {
+    position: absolute;
+    inset-block-start: calc(100% + 8px);
+    inset-inline-end: 0;
+    z-index: 30;
+    width: min(360px, calc(100vw - 64px));
+    box-sizing: border-box;
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    border-radius: 8px;
+    background: var(--cb-surface-1, Canvas);
+    box-shadow: 0 10px 26px color-mix(in srgb, #000 30%, transparent);
+}
+
+.cb-work-recurrence-automation-content h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+}
+
+.cb-work-recurrence-automation-content .description {
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.cb-work-recurrence-automation-content form {
+    margin: 14px 0 0 !important;
+}
+
+.cb-work-recurrence-active-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: -3px 0 16px;
+}
+
+.cb-work-recurrence-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 100%;
+    padding: 5px 10px;
+    border: 1px solid color-mix(in srgb, currentColor 23%, transparent);
+    border-radius: 99px;
+    color: inherit;
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    font-size: 12px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.cb-work-recurrence-filter-chip:hover,
+.cb-work-recurrence-filter-chip:focus-visible {
+    color: inherit;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.cb-work-recurrence-clear-all {
+    font-size: 12px;
+}
+
+.cb-work-recurrence-table-scroll {
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: 7px 7px 0 0;
+}
+
+.cb-work-recurrence-list .cb-work-recurrence-rules-table {
+    border: 0;
+    min-width: 870px;
+}
+
+.cb-work-recurrence-list .cb-work-recurrence-rules-table th[aria-sort] {
+    background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.cb-work-recurrence-rules-table th a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.cb-work-recurrence-rules-table th a:hover {
+    text-decoration: underline;
+}
+
+.cb-work-recurrence-title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cb-work-recurrence-title-link:hover {
+    color: var(--wp-admin-theme-color, #2271b1);
+    text-decoration: underline;
+}
+
+.cb-work-recurrence-row-actions {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+.cb-work-recurrence-row-actions form {
+    margin: 0;
+}
+
+.cb-work-recurrence-row-actions button {
+    white-space: nowrap;
+}
+
+.cb-work-recurrence-list .cb-work-recurrence-pagination {
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-top: 0;
+    border-radius: 0 0 7px 7px;
+    background: color-mix(in srgb, currentColor 3%, transparent);
+    font-size: 13px;
+}
+
+@media (max-width: 680px) {
+    .cb-work-recurrence-header-actions {
+        align-self: stretch;
+        justify-content: flex-start;
+    }
+    .cb-work-recurrence-automation-content {
+        inset-inline-start: 0;
+        inset-inline-end: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cb-work-recurrence-automation > summary::after {
+        transition: none;
+    }
+}
