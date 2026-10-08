@@ -33,7 +33,7 @@ The accepted Time/Toast implementation was merged by explicit operator GO. Furth
 | WT-G-009 | High | Quick Edit POST used `form.action`, which resolves to WordPress's hidden `name="action"` input instead of the form URL in affected browsers; the request goes to `/wp-admin/[object HTMLInputElement]` and returns 404 | Read `form.getAttribute('action')` explicitly. Add named-control collision runtime regression in `tools/check` | MERGED / OPERATOR ACCEPTED |
 | WT-G-010 | High | Bulk Edit repeats the DOM named-control collision with `bulk.action` and a hidden `name="action"` field | Read `bulk.getAttribute('action')` and test the actual submit listener against success, partial, conflict, HTTP failure and missing action | MERGED / OPERATOR ACCEPTED |
 | WT-G-011 | High (test reliability) | Initial Quick Edit runtime mock omitted `window.location.origin` and `document.createElement`, masking the real assertion with a TypeError | Repair the browser mock and exercise success, conflict, HTTP failure and missing action | MERGED / OPERATOR ACCEPTED |
-| WT-G-012 | Review | Timer stop can persist a zero-second completed entry but `TimeEntries::update_completed()` rejects zero-duration changes, including note-only edits | Decide zero-second policy and add correction tests before Golden; not changed by this submit fix | Open acceptance gate |
+| WT-G-012 | Review | Timer stop can persist a zero-second completed entry but `TimeEntries::update_completed()` rejects zero-duration changes, including note-only edits | Permit corrections preserving the exact instants of an existing zero-second TIMER row; guard this in the atomic CAS SQL; keep manual zero and positive-to-zero forbidden | Candidate patch; local tests + live PHPUnit pending |
 
 ## Existing positive contracts retained
 
@@ -61,6 +61,7 @@ node tests/time-bulk-visibility-runtime.js
 node tests/time-quick-edit-submit-runtime.js
 node tests/time-bulk-submit-runtime.js
 php tests/time-golden-cas-fixture-smoke.php
+php tests/time-golden-zero-second-smoke.php
 ./tools/i18n/check
 ./tools/check
 ```
@@ -132,6 +133,41 @@ If the existing directories, pinned PHPUnit dependency or Base test plugin
 copy are absent, stop and re-establish the standard environment using
 its usual controlled workflow. This is not a reason to improvise a
 standalone WordPress setup.
+
+## WT-G-012: zero-second correction policy (candidate)
+
+A timer may start and stop within the same UTC second. Such a completed
+entry is an actual record, not an invalid manual entry. Previously, even
+correcting its note failed because both the admin time-range parser and
+`TimeEntries::update_completed()` required strictly positive duration.
+
+The candidate accepts a **previously persisted timer entry with 0 seconds**
+when correcting its note or Work Item **without changing either UTC instant**.
+The SQL `WHERE` matches revision, timer source, zero duration, original
+started_at and ended_at in one atomic conditional write. Direct requests
+cannot change a different timestamp to a fresh zero-duration range.
+
+Positive corrections can extend the end timestamp of a zero-second timer.
+New zero-second manual records and converting positive time into zero remain
+disallowed. No migrations or destructive record deletion are added.
+
+Regression scope: Time Golden precision reflection cases, static SQL
+contracts, and optional real-MariaDB PHPUnit tests for zero timer update,
+revision conflict, changed zero timestamps, manual zero rejection and
+extension to positive time. Browser acceptance is still required.
+
+```bash
+php tests/time-golden-zero-second-smoke.php
+php tests/time-golden-precision-smoke.php
+./tools/check
+php8.4 "$CB_BASE_SOURCE_DIR/vendor/bin/phpunit" \
+  -c tests/phpunit-time-cas.xml.dist --do-not-cache-result
+./tools/build-release
+sha256sum dist/core-blueprint-work.zip
+```
+
+Do not mark WT-G-012 closed before the operator supplies the real test
+results and WordPress UI acceptance.
 
 ## Outstanding
 
