@@ -2614,3 +2614,15 @@ msgstr "Más largos primero"
 #: src/Admin/TimeEntryList.php
 msgid "Shortest first"
 msgstr "Más cortos primero"
+
+msgid "Selected Time entries updated."
+msgstr "Se han actualizado los registros de tiempo seleccionados."
+
+msgid "Some selected Time entries could not be updated. Review the list."
+msgstr "No se pudieron actualizar algunos registros de tiempo seleccionados. Revisa la lista."
+
+msgid "The bulk edit could not be saved. Review the selected entries and changes."
+msgstr "No se pudo guardar la edición masiva. Revisa los registros seleccionados y los cambios."
+
+msgid "At least one selected Time entry changed. Reload the list and try again."
+msgstr "Al menos uno de los registros de tiempo seleccionados ha cambiado. Vuelve a cargar la lista e inténtalo de nuevo."
