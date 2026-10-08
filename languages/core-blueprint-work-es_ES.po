@@ -1813,14 +1813,6 @@ msgstr "Fin"
 msgid "Save Correction"
 msgstr "Guardar corrección"
 
-#: src/Admin/Time.php:151
-msgid "Recent Time Entries"
-msgstr "Entradas de tiempo recientes"
-
-#: src/Admin/Time.php:153
-msgid "No completed Time entries yet."
-msgstr "Todavía no hay entradas de tiempo completadas."
-
 #: src/Admin/Time.php:156
 msgid "When"
 msgstr "Cuándo"
