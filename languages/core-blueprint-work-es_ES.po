@@ -2481,3 +2481,23 @@ msgstr "Próximas ejecuciones (vista previa)"
 #: src/Admin/Recurrence.php
 msgid "Dates are a preview only while this rule is inactive."
 msgstr "Mientras esta regla esté inactiva, las fechas son solo una vista previa."
+
+#: src/Admin/Recurrence.php
+msgid "Work Item defaults"
+msgstr "Valores predeterminados de Work Items"
+
+#: src/Admin/Recurrence.php
+msgid "Settings applied to each generated Work Item."
+msgstr "Ajustes aplicados a cada Work Item generado."
+
+#: src/Admin/Recurrence.php
+msgid "Work details"
+msgstr "Detalles del trabajo"
+
+#: src/Admin/Recurrence.php
+msgid "Assignment"
+msgstr "Asignación"
+
+#: src/Admin/Recurrence.php
+msgid "All changes saved"
+msgstr "Todos los cambios guardados"
