@@ -123,6 +123,10 @@ namespace {
         || ! str_contains( $view_source, 'aria-sort=' )
         || ! str_contains( $view_source, 'cb-work-time-entries-pagination' )
         || ! str_contains( $view_source, 'cb-work-time-entries-empty' )
+        || ! str_contains( $view_source, "get_option( 'date_format', 'Y-m-d' )" )
+        || ! str_contains( $view_source, "get_option( 'time_format', 'H:i' )" )
+        || ! str_contains( $view_source, 'TimeRange::valid_utc( $started_at )' )
+        || ! str_contains( $view_source, '<time datetime=' )
         || ! str_contains( $view_source, "'total_seconds'" )
         || ! str_contains( $view_source, 'name="te_search"' ) ) {
         $fail( 'manager picker, authorization, sorting, pagination and empty state presentation contracts' );
