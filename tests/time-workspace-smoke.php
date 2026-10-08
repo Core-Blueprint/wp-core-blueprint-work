@@ -74,7 +74,7 @@ $checks = [
     'only the chosen panel is rendered and entries are fetched only in its view' => str_contains( $admin, 'switch ( $view )' )
         && str_contains( $admin, 'case self::VIEW_MANUAL:' )
         && str_contains( $admin, 'case self::VIEW_ENTRIES:' )
-        && str_contains( $admin, 'self::render_entries( TimeEntries::all( 200, $manager ? 0 : $user_id ), $manager );' )
+        && str_contains( $admin, 'TimeEntryList::render( $manager );' )
         && str_contains( $admin, 'self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );' ),
     'active timer is surfaced above view navigation using server data' => str_contains( $admin, 'self::render_active_timer_status( $active, $view );' )
         && strpos( $admin, 'self::render_active_timer_status( $active, $view );' ) < strpos( $admin, 'self::render_navigation( $view );' )
@@ -102,7 +102,7 @@ $checks = [
         && str_contains( $style, 'max-width: 1160px' )
         && str_contains( $style, '.cb-work-time-entries-scroll' )
         && str_contains( $style, '@media (max-width: 782px)' )
-        && str_contains( $admin, 'cb-work-time-entries-scroll' ),
+        && str_contains( file_get_contents( $root . '/src/Admin/TimeEntryList.php' ), 'cb-work-time-entries-scroll' ),
 ];
 
 foreach ( $checks as $label => $passed ) {
