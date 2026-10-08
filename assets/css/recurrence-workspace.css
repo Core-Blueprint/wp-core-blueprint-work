@@ -140,6 +140,16 @@
 	grid-column: span 2;
 }
 
+.cb-work-recurrence-fields [data-cb-work-customer-row] {
+	grid-column: 1 / -1;
+}
+
+/* Keep the customer picker aligned with a half-width field when visible. */
+.cb-work-recurrence-fields [data-cb-work-customer-row] td {
+	width: 100%;
+	max-width: 740px;
+}
+
 .cb-work-recurrence-fields .cb-work-recurrence-field--status {
 	grid-column: 1 / -1;
 }
@@ -155,10 +165,23 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
+	white-space: nowrap;
+}
+
+.cb-work-recurrence-field--frequency td select {
+	flex: 1 1 200px;
+	width: auto;
+	max-width: 360px;
 }
 
 .cb-work-recurrence-field--frequency td input {
 	width: 76px;
+}
+
+.cb-work-recurrence-section--schedule input[type="date"] {
+	width: 100%;
+	min-width: 0;
+	max-width: 280px;
 }
 
 .cb-work-recurrence-actions {
