@@ -92,7 +92,7 @@ $checks = [
 		&& str_contains( $recurrence, 'data-cb-recurrence-unsaved' )
 		&& str_contains( $script, 'if (unsavedNotice) unsavedNotice.hidden = false;' )
 		&& str_contains( $script, 'saveButton?.focus()' ),
-	'Rule preview includes assignment schedule offset and paused status without writes' => str_contains( $recurrence, "__( 'Preview' )" )
+	'Rule preview includes assignment schedule offset and paused status without writes' => str_contains( $recurrence, "esc_html_e( 'Rule Preview', 'core-blueprint-work' )" )
 		&& str_contains( $recurrence, 'data-cb-preview-assignees' )
 		&& str_contains( $script, "assigneePicker?.querySelector('[data-cb-core-object-picker-input]')" )
 		&& str_contains( $script, 'queueMicrotask(syncAssignees)' )
