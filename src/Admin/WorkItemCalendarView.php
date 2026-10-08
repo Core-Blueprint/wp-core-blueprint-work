@@ -17,7 +17,7 @@ final class WorkItemCalendarView {
 	 */
 	public static function render( array $items, array $project_map, array $type_map, array $state ): void {
 		$month = (string) ( $state['calendar_month'] ?? '' );
-		$first = \DateTimeImmutable::createFromFormat( '!Y-m-d', $month . '-01' );
+		$first = \DateTimeImmutable::createFromFormat( '!Y-m-d', $month . '-01', wp_timezone() );
 		if ( ! $first ) {
 			return;
 		}
@@ -27,7 +27,7 @@ final class WorkItemCalendarView {
 		$next_month     = $first->modify( '+1 month' )->format( 'Y-m' );
 		$current_month  = current_time( 'Y-m' );
 		$today_date     = current_time( 'Y-m-d' );
-		$month_label    = wp_date( 'F Y', $first->setTime( 12, 0 )->getTimestamp() );
+		$month_label    = wp_date( 'F Y', $first->getTimestamp() );
 		$days_in_month  = (int) $first->format( 't' );
 		$leading_cells  = (int) $first->format( 'N' ) - 1;
 		$weekdays       = [
@@ -80,6 +80,8 @@ final class WorkItemCalendarView {
 								type="button"
 								class="button-link cb-work-calendar-day__trigger"
 								data-cb-work-calendar-day-open
+								aria-haspopup="dialog"
+								aria-label="<?php echo esc_attr( self::day_label( $date ) . ': ' . count( $day_entries ) . ' ' . __( 'Work Items', 'core-blueprint-work' ) ); ?>"
 								data-template-id="<?php echo esc_attr( self::template_id( $date ) ); ?>"
 								data-modal-title="<?php echo esc_attr( self::day_label( $date ) ); ?>"
 							>
@@ -353,8 +355,8 @@ final class WorkItemCalendarView {
 	}
 
 	private static function day_label( string $date ): string {
-		$value = \DateTimeImmutable::createFromFormat( '!Y-m-d', $date );
-		return $value ? wp_date( 'l, j F Y', $value->setTime( 12, 0 )->getTimestamp() ) : $date;
+		$value = \DateTimeImmutable::createFromFormat( '!Y-m-d', $date, wp_timezone() );
+		return $value ? wp_date( 'l, j F Y', $value->getTimestamp() ) : $date;
 	}
 
 	/** @param array<string,mixed> $state @param array<string,mixed> $overrides */
