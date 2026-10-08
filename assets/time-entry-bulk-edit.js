@@ -31,6 +31,13 @@
         if (counter) counter.textContent = String(selected.length);
         boxes.forEach(box => box.closest('tr')?.classList.toggle('is-selected', box.checked));
 
+        // Match the Work Items selection-driven bulk toolbar. Time Entries
+        // deliberately requires at least two selected entries for Bulk Edit.
+        bulk.hidden = selected.length < 2;
+        if (bulk.hidden) {
+            bulk.querySelector('[data-cb-work-time-bulk-editor]')?.removeAttribute('open');
+        }
+
         const hasNoteChange = mode?.value !== 'keep';
         const needsNoteText = mode?.value === 'append' || mode?.value === 'replace';
         if (note) {
@@ -48,7 +55,10 @@
     function notice(source = null) {
         host.querySelectorAll('.cb-work-time-bulk-request-notice').forEach(node => node.remove());
         const bulk = form();
-        if (!bulk) return;
+        // After a successful save, the replacement list has no selection and
+        // hides the bulk form. Keep the success/partial notice visible above it.
+        const container = bulk && !bulk.hidden ? bulk : list();
+        if (!container) return;
         const div = source ? document.importNode(source, true) : document.createElement('div');
         div.classList.add('cb-work-time-bulk-request-notice');
         if (!source) {
@@ -59,11 +69,11 @@
         }
         div.setAttribute('role', div.classList.contains('notice-error') ? 'alert' : 'status');
         div.tabIndex = -1;
-        bulk.prepend(div);
+        container.prepend(div);
         div.focus({ preventScroll: true });
     }
 
-    // Fallback without JS: native multi-checkbox + normal admin-post submission.
+    // Fallback without JS: the <noscript> override reveals the ordinary POST form.
     // With JS enabled, the form can save without navigation and refresh the canonical list.
     controls();
 
