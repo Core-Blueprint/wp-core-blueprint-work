@@ -19,8 +19,8 @@ final class TimeEntryQuickEdit {
             return;
         }
 
-        $start = self::local_parts( (string) $entry['started_at'] );
-        $end = self::local_parts( (string) $entry['ended_at'] );
+        $start = TimeRange::utc_to_local_parts( (string) $entry['started_at'], true );
+        $end = TimeRange::utc_to_local_parts( (string) $entry['ended_at'], true );
         if ( null === $start || null === $end ) {
             return;
         }
@@ -73,12 +73,4 @@ final class TimeEntryQuickEdit {
         <?php
     }
 
-    /** @return array{date:string,time:string}|null */
-    private static function local_parts( string $value ): ?array {
-        if ( ! TimeRange::valid_utc( $value ) ) {
-            return null;
-        }
-        $local = ( new \DateTimeImmutable( $value, new \DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
-        return [ 'date' => $local->format( 'Y-m-d' ), 'time' => $local->format( 'H:i:s' ) ];
-    }
 }
