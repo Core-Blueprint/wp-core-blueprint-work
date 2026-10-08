@@ -302,3 +302,218 @@
 		grid-column: 1 / -1;
 	}
 }
+
+/* Golden Rule Builder: form actions stay on the left, a read-only result preview on the right. */
+.cb-work-recurrence-builder {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(310px, 360px);
+	gap: 22px;
+	align-items: start;
+}
+
+.cb-work-recurrence-builder-form {
+	min-width: 0;
+}
+
+.cb-work-recurrence-advanced-toggle {
+	margin: -8px 0 18px !important;
+}
+
+.cb-work-recurrence-advanced-toggle span {
+	margin-inline-start: 8px;
+}
+
+.cb-work-recurrence-preview {
+	position: sticky;
+	top: 48px;
+	min-width: 0;
+	padding: 24px;
+	box-sizing: border-box;
+	border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+	border-radius: 8px;
+	background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.cb-work-recurrence-preview-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 18px;
+}
+
+.cb-work-recurrence-preview-top h3 {
+	margin: 0;
+	font-size: 16px;
+}
+
+.cb-work-recurrence-preview-fact {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	padding: 10px 0;
+	border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.cb-work-recurrence-preview-fact span {
+	opacity: .7;
+	font-size: 12px;
+}
+
+.cb-work-recurrence-preview-fact strong {
+	font-size: 14px;
+	overflow-wrap: anywhere;
+}
+
+.cb-work-recurrence-preview hr {
+	border: 0;
+	border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+	margin: 14px 0;
+}
+
+.cb-work-recurrence-preview h4 {
+	margin: 0 0 12px;
+}
+
+.cb-work-recurrence-preview ol {
+	margin: 0;
+	padding-inline-start: 22px;
+	min-height: 32px;
+	line-height: 1.9;
+}
+
+.cb-work-recurrence-activation {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 16px 20px;
+	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+	border-radius: 8px;
+}
+
+.cb-work-recurrence-activation form {
+	margin-inline-start: auto;
+}
+
+.cb-work-recurrence-filterbar {
+	display: grid;
+	grid-template-columns: minmax(180px, 2fr) repeat(3, minmax(135px, 1fr)) auto;
+	gap: 12px;
+	align-items: end;
+	padding: 16px;
+	margin-bottom: 16px;
+	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+	border-radius: 8px;
+}
+
+.cb-work-recurrence-filterbar label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+	font-weight: 600;
+}
+
+.cb-work-recurrence-filterbar :is(input, select) {
+	width: 100%;
+	min-width: 0;
+	max-width: none;
+}
+
+.cb-work-recurrence-filter-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.cb-work-recurrence-list .widefat th a {
+	color: inherit;
+}
+
+.cb-work-recurrence-list .widefat tr[hidden] {
+	display: none;
+}
+
+.cb-work-recurrence-quick-row td {
+	padding: 18px !important;
+}
+
+.cb-work-recurrence-quick-row form {
+	display: flex;
+	align-items: end;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.cb-work-recurrence-quick-row label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 150px;
+	font-weight: 600;
+}
+
+.cb-work-recurrence-quick-row label:first-of-type {
+	flex: 1;
+}
+
+.cb-work-recurrence-quick-row [name="title"] {
+	width: 100%;
+}
+
+.cb-work-recurrence-quick-row [role="status"] {
+	flex-basis: 100%;
+}
+
+.cb-work-recurrence-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 16px 0;
+}
+
+.cb-work-recurrence-pagination nav {
+	display: flex;
+	gap: 8px;
+}
+
+@media (max-width: 1220px) {
+	.cb-work-recurrence-builder {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.cb-work-recurrence-preview {
+		position: static;
+	}
+
+	.cb-work-recurrence-filterbar {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.cb-work-recurrence-filter-actions {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 680px) {
+	.cb-work-recurrence-filterbar {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.cb-work-recurrence-filter-actions {
+		grid-column: auto;
+	}
+
+	.cb-work-recurrence-preview {
+		padding: 16px;
+	}
+
+	.cb-work-recurrence-quick-row form,
+	.cb-work-recurrence-pagination {
+		align-items: stretch;
+		flex-direction: column;
+	}
+}
