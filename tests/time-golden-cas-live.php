@@ -18,6 +18,10 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI || '1' !== getenv( 'CB_WORK_TIME_CAS_TEST
 if ( ! defined( 'DB_NAME' ) || ! preg_match( '/(?:^|[_-])test(?:$|[_-])|testing|testdb/i', (string) DB_NAME ) ) {
     throw new RuntimeException( 'Time CAS fixture refuses databases without a test-specific DB_NAME.' );
 }
+// Refuse external DB hosts even if a live database is named "test".
+if ( ! defined( 'DB_HOST' ) || ! preg_match( '/^(?:localhost|127\\.0\\.0\\.1|\\[?::1\\]?)(?::[0-9]+)?$/i', (string) DB_HOST ) ) {
+    throw new RuntimeException( 'Time CAS fixture only permits a local database host.' );
+}
 if ( ! defined( 'CB_WORK_SCHEMA_VERSION' ) || ! class_exists( \CB\Work\Repository\TimeEntries::class ) ) {
     throw new RuntimeException( 'Activate Core Blueprint Base + Work in the disposable WordPress test site.' );
 }
@@ -125,10 +129,10 @@ try {
     $assert( 'interleaved' === (string) ( TimeEntries::get( $other_id )['note'] ?? '' ),
         'newer interleaved row must not be overwritten' );
 
-    echo "Time live CAS fixture PASS: stale edit rejected; partial bulk writes preserved; transaction rolled back.\n";
 } finally {
     $rollback = $wpdb->query( 'ROLLBACK' );
     if ( false === $rollback ) {
         throw new RuntimeException( 'CRITICAL: Time CAS fixture rollback failed. Inspect disposable test DB.' );
     }
 }
+echo "Time live CAS fixture PASS: stale edit rejected; partial bulk writes preserved; transaction rolled back.\n";
