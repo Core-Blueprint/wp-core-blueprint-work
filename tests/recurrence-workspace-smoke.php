@@ -44,7 +44,7 @@ $checks = [
 	'G2 project-first layout keeps dependent context fields grouped' => strpos( $recurrence, 'cb-work-recurrence-project' ) < strpos( $recurrence, 'data-cb-work-context-row' )
 		&& strpos( $recurrence, 'data-cb-work-context-row' ) < strpos( $recurrence, 'data-cb-work-customer-row' )
 		&& str_contains( $styles, '.cb-work-recurrence-fields [data-cb-work-customer-row] {' ),
-	'G2 billing, assignees, frequency and dates use balanced field widths' => str_contains( $recurrence, 'class="cb-work-recurrence-field--wide"><th scope="row"><label for="cb-work-recurrence-billing"' )
+	'G2 billing, assignees, frequency and dates use balanced field widths' => str_contains( $recurrence, 'class="cb-work-recurrence-field--wide" data-cb-work-advanced><th scope="row"><label for="cb-work-recurrence-billing"' )
 		&& str_contains( $recurrence, "Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', \$assignees, false )" )
 		&& str_contains( $styles, '.cb-work-recurrence-field--frequency td select {' )
 		&& str_contains( $styles, '.cb-work-recurrence-section--schedule input[type="date"] {' ),
