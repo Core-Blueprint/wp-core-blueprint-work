@@ -1762,10 +1762,6 @@ msgstr "In esecuzione da %1$s %2$s."
 msgid "Stop Timer"
 msgstr "Ferma timer"
 
-#: src/Admin/Time.php:88
-msgid "No Work Items are available for time tracking."
-msgstr "Nessun Work Item è disponibile per la registrazione del tempo."
-
 #: src/Admin/Time.php:94 src/Admin/Time.php:138 src/Admin/Time.php:156
 msgid "Note"
 msgstr "Nota"
@@ -1789,10 +1785,6 @@ msgid ""
 msgstr ""
 "Le correzioni usano controlli di revisione. Se qualcuno ha salvato questa "
 "voce prima di te, il tuo modulo obsoleto non sovrascriverà la sua modifica."
-
-#: src/Admin/Time.php:115
-msgid "No Work Items are available for this entry."
-msgstr "Nessun Work Item è disponibile per questa voce."
 
 #: src/Admin/Time.php:128 src/Admin/Time.php:156
 msgid "User"
