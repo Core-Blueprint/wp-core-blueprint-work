@@ -2465,3 +2465,23 @@ msgstr "Komende uitvoermomenten (voorbeeld)"
 #: src/Admin/Recurrence.php
 msgid "Dates are a preview only while this rule is inactive."
 msgstr "Zolang deze regel inactief is, zijn de datums alleen een voorbeeld."
+
+#: src/Admin/Recurrence.php
+msgid "Work Item defaults"
+msgstr "Standaardinstellingen voor Work Items"
+
+#: src/Admin/Recurrence.php
+msgid "Settings applied to each generated Work Item."
+msgstr "Instellingen die voor elk aangemaakt Work Item gelden."
+
+#: src/Admin/Recurrence.php
+msgid "Work details"
+msgstr "Werkgegevens"
+
+#: src/Admin/Recurrence.php
+msgid "Assignment"
+msgstr "Toewijzing"
+
+#: src/Admin/Recurrence.php
+msgid "All changes saved"
+msgstr "Alle wijzigingen opgeslagen"
