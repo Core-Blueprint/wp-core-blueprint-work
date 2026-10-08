@@ -46,7 +46,7 @@
         }
         const hasTargetChange = target && target.value !== '0';
         if (submit) {
-            submit.disabled = busy || selected.length === 0
+            submit.disabled = busy || selected.length < 2
                 || (!hasTargetChange && !hasNoteChange)
                 || (needsNoteText && !note?.value.trim());
         }
