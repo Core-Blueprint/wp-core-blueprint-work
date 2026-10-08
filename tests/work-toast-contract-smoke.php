@@ -14,9 +14,12 @@ $quickJs = (string) file_get_contents( $root . '/assets/time-entry-quick-edit.js
 $bulkJs = (string) file_get_contents( $root . '/assets/time-entry-bulk-edit.js' );
 $quickAdd = (string) file_get_contents( $root . '/src/Admin/QuickAdd.php' );
 $checks = [
+    // Work owns its admin screens plus its own provider in Base Settings Hub.
+    // Both scopes must be absent before the adapter returns without enqueueing.
     'enqueue only on Work screens' =>
-        str_contains( $assets, "if ( '' === Menu::screen_context() )" )
-        && str_contains( $assets, 'enqueue_toast_feedback' ),
+        str_contains( $assets, 'enqueue_toast_feedback' )
+        && str_contains( $assets, "if ( '' === Menu::screen_context() && ! \$work_settings )" )
+        && str_contains( $assets, 'return;' ),
     'Work Settings is scoped to Work provider' =>
         str_contains( $assets, 'Settings::SLUG === $page' )
         && str_contains( $assets, 'Suite::EXTENSION_ID === $extension' )
