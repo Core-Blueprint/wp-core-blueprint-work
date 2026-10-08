@@ -142,7 +142,7 @@ final class RecurrenceActions {
 		}
 		wp_send_json_success( [ 'dates' => array_map( static fn( string $date ): array => [
 			'iso' => $date,
-			'label' => wp_date( get_option( 'date_format' ), strtotime( $date . ' 12:00:00' ) ),
+			'label' => mysql2date( get_option( 'date_format' ), $date . ' 12:00:00' ),
 		], $dates ) ] );
 	}
 
