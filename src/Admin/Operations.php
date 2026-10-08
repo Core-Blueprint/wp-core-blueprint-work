@@ -1937,7 +1937,7 @@ final class Operations {
 			return;
 		}
 		[ $class, $message ] = $messages[ $notice ];
-		echo '<div class="notice notice-' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+		echo '<div class="notice notice-' . esc_attr( $class ) . ' is-dismissible" data-cb-work-toast="' . esc_attr( $class ) . '"><p>' . esc_html( $message ) . '</p></div>';
 	}
 
 	private static function storage_notice(): void {
