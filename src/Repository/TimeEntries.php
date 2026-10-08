@@ -199,24 +199,39 @@ final class TimeEntries {
 			return false;
 		}
 		$duration = TimeRange::duration_seconds( $started_at, $ended_at );
-		if ( null === $duration || $duration <= 0 || ! self::is_actual_end( $ended_at ) ) {
+		if ( null === $duration || ! self::is_actual_end( $ended_at ) ) {
 			return false;
+		}
+
+		// Zero seconds is legal only when preserving the unchanged instants
+		// of a previously stopped timer. The conditional SQL WHERE enforces
+		// this against the authoritative row in the same revision-guarded write,
+		// without a vulnerable read-then-write gap.
+		$zero_guard = 0 === $duration
+			? ' AND entry_source = %s AND duration_seconds = 0 AND started_at = %s AND ended_at = %s'
+			: '';
+
+		$arguments = [
+			$work_item_id,
+			$user_id,
+			$started_at,
+			$ended_at,
+			$duration,
+			TimeNote::normalize( $note ),
+			max( 0, $actor_user_id ),
+			current_time( 'mysql', true ),
+			$id,
+			$expected_revision,
+		];
+		if ( 0 === $duration ) {
+			array_push( $arguments, self::SOURCE_TIMER, $started_at, $ended_at );
 		}
 
 		global $wpdb;
 		$updated = $wpdb->query(
 			$wpdb->prepare(
-				'UPDATE ' . Schema::time_entries_table() . ' SET work_item_id = %d, user_id = %d, started_at = %s, ended_at = %s, duration_seconds = %d, note = %s, revision = revision + 1, updated_by = %d, updated_at = %s WHERE id = %d AND revision = %d AND ended_at IS NOT NULL',
-				$work_item_id,
-				$user_id,
-				$started_at,
-				$ended_at,
-				$duration,
-				TimeNote::normalize( $note ),
-				max( 0, $actor_user_id ),
-				current_time( 'mysql', true ),
-				$id,
-				$expected_revision
+				'UPDATE ' . Schema::time_entries_table() . ' SET work_item_id = %d, user_id = %d, started_at = %s, ended_at = %s, duration_seconds = %d, note = %s, revision = revision + 1, updated_by = %d, updated_at = %s WHERE id = %d AND revision = %d AND ended_at IS NOT NULL' . $zero_guard,
+				...$arguments
 			)
 		);
 		return 1 === $updated;
