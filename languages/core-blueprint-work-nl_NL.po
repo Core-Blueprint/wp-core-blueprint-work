@@ -1726,15 +1726,6 @@ msgstr "Het CSV-bestand kon niet veilig worden gelezen."
 msgid "VAT Data Exchange"
 msgstr "Btw Data Exchange"
 
-#: src/Admin/Time.php:39
-msgid ""
-"Register actual Work time. Work Item estimates and billing classification "
-"remain separate planning and commercial facts."
-msgstr ""
-"Registreer werkelijke Work-tijd. Work Item-schattingen en "
-"facturatieclassificatie blijven afzonderlijke plannings- en commerciële "
-"gegevens."
-
 #: src/Admin/Time.php:42
 msgid ""
 "Work Time storage is not ready yet. Complete the Work schema upgrade first."
@@ -2485,3 +2476,23 @@ msgstr "Toewijzing"
 #: src/Admin/Recurrence.php
 msgid "All changes saved"
 msgstr "Alle wijzigingen opgeslagen"
+
+#: src/Admin/Time.php
+msgid "Track time, add entries and review recorded work."
+msgstr "Registreer tijd, voeg registraties toe en bekijk uitgevoerd werk."
+
+#: src/Admin/Time.php
+msgid "Manual Entry"
+msgstr "Handmatige registratie"
+
+#: src/Admin/Time.php
+msgid "Time Entries"
+msgstr "Tijdregistraties"
+
+#: src/Admin/Time.php
+msgid "Time views"
+msgstr "Tijdweergaven"
+
+#: src/Admin/Time.php
+msgid "Active timer"
+msgstr "Actieve timer"
