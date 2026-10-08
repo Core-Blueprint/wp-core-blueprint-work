@@ -29,6 +29,7 @@ namespace {
     require dirname( __DIR__ ) . '/src/Domain/TimeRange.php';
     require dirname( __DIR__ ) . '/src/Admin/TimeEntryListState.php';
     require dirname( __DIR__ ) . '/src/Admin/TimeEntryQuickEdit.php';
+    require dirname( __DIR__ ) . '/src/Admin/TimeActions.php';
 
     use CB\Work\Admin\TimeEntryQuickEdit;
     use CB\Work\Admin\TimeEntryListState;
@@ -111,6 +112,18 @@ namespace {
         || ! str_contains( $script, "form.addEventListener('input'" )
         || ! str_contains( $time, "assets/time-entry-quick-edit.js" ) ) {
         $fail( 'editor routing, permissions, auditing, responsive presentation or progressive preview contract' );
+    }
+
+    $marker = new \ReflectionMethod( \CB\Work\Admin\TimeActions::class, 'quick_edit_request' );
+    $_POST = [ 'cb_work_quick_edit' => '1' ];
+    $valid_marker = $marker->invoke( null );
+    $_POST = [ 'cb_work_quick_edit' => [ '1' ] ];
+    $array_marker = $marker->invoke( null );
+    $_POST = [ 'cb_work_quick_edit' => '0' ];
+    $wrong_marker = $marker->invoke( null );
+    $_POST = [];
+    if ( true !== $valid_marker || false !== $array_marker || false !== $wrong_marker ) {
+        $fail( 'Quick Edit marker accepts only explicit scalar opt-in' );
     }
 
     echo "Time Quick Edit smoke passed.\n";
