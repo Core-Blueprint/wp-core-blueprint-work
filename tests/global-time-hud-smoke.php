@@ -43,10 +43,10 @@ $checks = [
         str_contains( $timers, 'public static function update_active_note(' )
         && str_contains( $timers, '$actor_user_id !== $user_id' )
         && str_contains( $timers, "FOR UPDATE" )
-        && str_contains( $timers, "(int) \\$timer['time_entry_id'] !== \\$entry_id" )
+        && str_contains( $timers, '(int) $timer[\'time_entry_id\'] !== $entry_id' )
         && str_contains( $timers, "TimeEntries::SOURCE_TIMER" )
         && str_contains( $timers, 'null !== $entry[' )
-        && str_contains( $timers, "1 + (int) \\$entry['revision']" )
+        && str_contains( $timers, '1 + (int) $entry[\'revision\']' )
         && str_contains( $timers, "'ROLLBACK'" )
         && str_contains( $timers, "'COMMIT'" ),
     'HUD is keyboard operable, focus restored and note edits cannot be silently discarded' =>
