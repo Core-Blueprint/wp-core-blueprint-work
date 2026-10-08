@@ -532,3 +532,100 @@
         text-align: center;
     }
 }
+
+/* T2-B: one inline editor below the selected Time Entry, never a second workspace. */
+.cb-work-time-entries-row-actions {
+    white-space: nowrap;
+}
+.cb-work-time-entries-row-actions .button + .button {
+    margin-inline-start: 6px;
+}
+.cb-work-time-entries-scroll .widefat tr.cb-work-time-quick-edit-row > td {
+    padding: 0;
+    background: var(--cb-surface-1, #fff);
+    white-space: normal;
+}
+.cb-work-time-quick-edit {
+    padding: 18px 20px 20px;
+    border-inline-start: 3px solid var(--wp-admin-theme-color, #2271b1);
+}
+.cb-work-time-quick-edit h3 {
+    margin: 0 0 16px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+.cb-work-time-quick-edit-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+.cb-work-time-quick-edit-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+.cb-work-time-quick-edit-field > label {
+    font-weight: 600;
+}
+.cb-work-time-quick-edit-date-time {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 8px;
+}
+.cb-work-time-quick-edit :is(input[type="date"], input[type="time"], textarea) {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+}
+.cb-work-time-quick-edit-field--note {
+    grid-column: 1 / -1;
+}
+.cb-work-time-quick-edit textarea {
+    min-height: 68px;
+    resize: vertical;
+}
+.cb-work-time-quick-edit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--cb-border, #dcdcde);
+}
+.cb-work-time-quick-edit-duration {
+    color: var(--cb-text-muted, inherit);
+    font-variant-numeric: tabular-nums;
+}
+.cb-work-time-quick-edit-duration output {
+    color: var(--cb-text-strong, inherit);
+    font-weight: 600;
+}
+.cb-work-time-quick-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+@media (max-width: 782px) {
+    .cb-work-time-quick-edit-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-time-quick-edit-field--note {
+        grid-column: auto;
+    }
+}
+@media (max-width: 520px) {
+    .cb-work-time-quick-edit {
+        padding: 14px;
+    }
+    .cb-work-time-quick-edit-date-time {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-time-quick-edit-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
