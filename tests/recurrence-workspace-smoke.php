@@ -82,7 +82,8 @@ $checks = [
 		&& str_contains( $script, 'const syncUnits = () => {' )
 		&& str_contains( $recurrence, 'RecurrenceSchedule::frequencies()' ),
 	'Explicit editor activation guards unsaved changes and has no nested forms' => str_contains( $recurrence, 'data-cb-editor-toggle' )
-		&& str_contains( $script, 'const markUnsaved = () => {' )
+		&& str_contains( $script, 'const markUnsaved = (event) => {' )
+		&& str_contains( $script, "event.target?.name?.startsWith('recurrence[')" )
 		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" )
 		&& str_contains( $script, "body.set('action', 'cb_work_toggle_recurrence_rule_inline')" ),
 	'Activation toolbar is above builder and uses the governed form without nested forms' => strpos( $recurrence, 'data-cb-recurrence-toolbar' ) < strpos( $recurrence, 'data-cb-recurrence-editor' )
