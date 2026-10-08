@@ -166,8 +166,9 @@ namespace {
         || ! str_contains( $styles, 'min-height: 36px;' )
         || ! str_contains( $styles, '.cb-work-time-entries-more-filters[open] > summary' )
         || ! str_contains( $styles, '.cb-work-time-entries-active-filters {' )
-        || ! str_contains( $styles, '.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort]) > a' )
-        || ! str_contains( $styles, '.cb-work-time-entries-scroll table.widefat thead th[aria-sort] > a' )
+        || ! str_contains( $styles, '.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort="ascending"]):not([aria-sort="descending"]) > a' )
+        || ! str_contains( $styles, '.cb-work-time-entries-scroll table.widefat thead th:is([aria-sort="ascending"], [aria-sort="descending"]) > a' )
+        || str_contains( $styles, 'thead th[aria-sort] > a' )
         || ! str_contains( $styles, '.cb-work-time-entries-scroll table.widefat thead th > a:focus-visible' )
         || ! str_contains( $styles, '@media (max-width: 782px)' )
         || ! str_contains( $styles, '@media (max-width: 520px)' ) ) {
