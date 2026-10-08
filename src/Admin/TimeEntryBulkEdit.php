@@ -67,8 +67,8 @@ final class TimeEntryBulkEdit {
         }
         $target_id = (int) $target_raw;
 
-        if ( ! in_array( $mode, [ 'keep', 'append', 'replace' ], true )
-            || ( 'append' === $mode && '' === trim( $note ) )
+        if ( ! in_array( $mode, [ 'keep', 'append', 'replace', 'clear' ], true )
+            || ( in_array( $mode, [ 'append', 'replace' ], true ) && '' === trim( $note ) )
             || ( 'keep' === $mode && 0 === $target_id )
             || ( $target_id > 0 && ! Access::can_manage() ) ) {
             self::redirect( $state, 'time-bulk-invalid' );
@@ -152,6 +152,9 @@ final class TimeEntryBulkEdit {
     private static function next_note( string $old_note, string $mode, string $note ): string {
         if ( 'replace' === $mode ) {
             return $note;
+        }
+        if ( 'clear' === $mode ) {
+            return '';
         }
         if ( 'append' === $mode ) {
             return '' === $old_note ? $note : $old_note . "\n" . $note;
