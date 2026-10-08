@@ -72,7 +72,13 @@ final class Assets {
 
 	/** Shared Base Toast Foundation on Work-owned admin screens only. */
 	public static function enqueue_toast_feedback(): void {
-		if ( '' === Menu::screen_context() ) {
+		$page = isset( $_GET['page'] ) && is_string( $_GET['page'] )
+			? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
+		$extension = isset( $_GET['extension'] ) && is_string( $_GET['extension'] )
+			? sanitize_key( (string) wp_unslash( $_GET['extension'] ) ) : '';
+		$work_settings = \CoreBlueprint\Core\Admin\Pages\Settings::SLUG === $page
+			&& \CB\Work\Integration\Suite::EXTENSION_ID === $extension;
+		if ( '' === Menu::screen_context() && ! $work_settings ) {
 			return;
 		}
 		$file = CB_WORK_DIR . 'assets/work-toast.js';
