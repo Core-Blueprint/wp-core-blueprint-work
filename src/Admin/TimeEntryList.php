@@ -107,11 +107,17 @@ final class TimeEntryList {
                     <table class="widefat striped">
                         <thead>
                             <tr>
-                                <th scope="col"><?php esc_html_e( 'When', 'core-blueprint-work' ); ?></th>
+                                <th scope="col" <?php if ( in_array( $state['sort'], [ 'newest', 'oldest' ], true ) ) : ?>aria-sort="<?php echo esc_attr( 'newest' === $state['sort'] ? 'descending' : 'ascending' ); ?>"<?php endif; ?>>
+                                    <a href="<?php echo esc_url( Menu::time_url( TimeEntryListState::url_args( [ ...$state, 'sort' => 'newest' === $state['sort'] ? 'oldest' : 'newest' ], 1 ) ) ); ?>"><?php esc_html_e( 'When', 'core-blueprint-work' ); ?></a>
+                                </th>
                                 <th scope="col"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
                                 <?php if ( $manager ) : ?><th scope="col"><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></th><?php endif; ?>
-                                <th scope="col"><?php esc_html_e( 'Duration', 'core-blueprint-work' ); ?></th>
-                                <th scope="col"><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></th>
+                                <th scope="col" <?php if ( in_array( $state['sort'], [ 'longest', 'shortest' ], true ) ) : ?>aria-sort="<?php echo esc_attr( 'longest' === $state['sort'] ? 'descending' : 'ascending' ); ?>"<?php endif; ?>>
+                                    <a href="<?php echo esc_url( Menu::time_url( TimeEntryListState::url_args( [ ...$state, 'sort' => 'longest' === $state['sort'] ? 'shortest' : 'longest' ], 1 ) ) ); ?>"><?php esc_html_e( 'Duration', 'core-blueprint-work' ); ?></a>
+                                </th>
+                                <th scope="col" <?php if ( 'source' === $state['sort'] ) : ?>aria-sort="ascending"<?php endif; ?>>
+                                    <a href="<?php echo esc_url( Menu::time_url( TimeEntryListState::url_args( [ ...$state, 'sort' => 'source' ], 1 ) ) ); ?>"><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></a>
+                                </th>
                                 <th scope="col"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></th>
                                 <th scope="col"><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th>
                             </tr>
