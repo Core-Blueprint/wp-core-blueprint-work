@@ -2598,3 +2598,15 @@ msgstr "Langste eerst"
 #: src/Admin/TimeEntryList.php
 msgid "Shortest first"
 msgstr "Kortste eerst"
+
+msgid "Selected Time entries updated."
+msgstr "Geselecteerde tijdregistraties zijn bijgewerkt."
+
+msgid "Some selected Time entries could not be updated. Review the list."
+msgstr "Sommige geselecteerde tijdregistraties konden niet worden bijgewerkt. Controleer de lijst."
+
+msgid "The bulk edit could not be saved. Review the selected entries and changes."
+msgstr "De bulkwijziging kon niet worden opgeslagen. Controleer de geselecteerde registraties en wijzigingen."
+
+msgid "At least one selected Time entry changed. Reload the list and try again."
+msgstr "Minstens één geselecteerde tijdregistratie is gewijzigd. Laad de lijst opnieuw en probeer het opnieuw."
