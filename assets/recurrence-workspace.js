@@ -113,19 +113,23 @@
         const feedback = document.createElement('span');
         feedback.setAttribute('role', 'status');
         editorToggle.appendChild(feedback);
+        const unsavedNotice = document.querySelector('[data-cb-recurrence-unsaved]');
+        const saveButton = document.querySelector('[form="cb-work-recurrence-editor-form"][type="submit"]');
         let dirty = false;
         const markDirty = () => {
             dirty = true;
-            if (button) {
-                button.disabled = true;
-                button.title = config.saveFirst;
-            }
+            if (unsavedNotice) unsavedNotice.hidden = false;
         };
         editForm.addEventListener('input', markDirty);
         editForm.addEventListener('change', markDirty);
         editorToggle.addEventListener('submit', async (event) => {
             event.preventDefault();
-            if (dirty || !button || !activeInput) return;
+            if (dirty) {
+                feedback.textContent = config.saveFirst;
+                saveButton?.focus();
+                return;
+            }
+            if (!button || !activeInput) return;
             if (activeInput.value === '1' && !window.confirm(button.textContent.trim() + '?')) return;
             const body = new FormData(editorToggle);
             body.set('action', 'cb_work_toggle_recurrence_rule_inline');
@@ -189,14 +193,27 @@
     const title = preview.querySelector('[data-cb-preview-title]');
     const projectLabel = preview.querySelector('[data-cb-preview-project]');
     const estimate = preview.querySelector('[data-cb-preview-estimate]');
+    const schedule = preview.querySelector('[data-cb-preview-schedule]');
+    const due = preview.querySelector('[data-cb-preview-due]');
     const dates = preview.querySelector('[data-cb-preview-dates]');
     let pending = 0;
     let requestId = 0;
+    const scheduleNames = new Set([
+        'recurrence[frequency]',
+        'recurrence[interval_count]',
+        'recurrence[start_on]',
+        'recurrence[end_on]'
+    ]);
 
     const updateSummary = () => {
         syncUnits();
         if (title) title.textContent = value('title') || '—';
         if (estimate) estimate.textContent = value('estimated_minutes') || '0';
+        const frequency = unitsField?.selectedOptions?.[0];
+        if (schedule && intervalField && frequency) {
+            schedule.textContent = config.every + ' ' + (intervalField.value || '1') + ' ' + frequency.textContent.trim();
+        }
+        if (due) due.textContent = (value('due_offset_days') || '0') + ' ' + config.dueSuffix;
         if (projectLabel && project) {
             projectLabel.textContent = project.options[project.selectedIndex]?.textContent?.trim() || '—';
         }
@@ -204,7 +221,7 @@
 
     const refreshDates = async () => {
         const current = ++requestId;
-        if (dates) dates.textContent = config.loading;
+        if (dates) dates.setAttribute('aria-busy', 'true');
         const body = new FormData(editor);
         body.set('action', 'cb_work_preview_recurrence_rule');
         body.set('_ajax_nonce', config.previewNonce);
@@ -230,10 +247,13 @@
             }
         } catch (error) {
             if (current === requestId && dates) dates.textContent = error.message || config.error;
+        } finally {
+            if (current === requestId && dates) dates.removeAttribute('aria-busy');
         }
     };
-    const onChange = () => {
+    const onChange = (event) => {
         updateSummary();
+        if (!scheduleNames.has(event.target?.name)) return;
         window.clearTimeout(pending);
         pending = window.setTimeout(refreshDates, 350);
     };
