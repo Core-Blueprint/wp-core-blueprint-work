@@ -2504,3 +2504,43 @@ msgstr ""
 #: src/Admin/Time.php
 msgid "Active timer"
 msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Open timer controls"
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Stop this timer and save the time entry?"
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Timer could not be updated. Please try again."
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Note saved."
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Discard unsaved note changes?"
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Save the note before stopping this timer."
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Timer status could not be refreshed."
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Elapsed time"
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Save note"
+msgstr ""
+
+#: src/Admin/TimerHud.php
+msgid "Open Time workspace"
+msgstr ""
