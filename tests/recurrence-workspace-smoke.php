@@ -83,7 +83,7 @@ $checks = [
 		&& str_contains( $recurrence, 'RecurrenceSchedule::frequencies()' ),
 	'Explicit editor activation guards unsaved changes and has no nested forms' => str_contains( $recurrence, 'data-cb-editor-toggle' )
 		&& str_contains( $script, 'const markDirty = () => {' )
-		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" ) === false
+		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" )
 		&& str_contains( $script, "body.set('action', 'cb_work_toggle_recurrence_rule_inline')" ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
