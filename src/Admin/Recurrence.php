@@ -41,6 +41,8 @@ final class Recurrence {
 				'error' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ),
 				'loading' => __( 'Building server preview…', 'core-blueprint-work' ),
 				'saveFirst' => __( 'Save changes', 'core-blueprint-work' ),
+				'every' => __( 'Every', 'core-blueprint-work' ),
+				'dueSuffix' => __( 'days after scheduled date', 'core-blueprint-work' ),
 			] );
 		}
 
@@ -162,7 +164,7 @@ final class Recurrence {
 					<tr data-cb-work-advanced><th scope="row"><label for="cb-work-recurrence-priority"><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-priority" name="recurrence[priority]"><?php foreach ( WorkItemPriority::all() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $priority, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr data-cb-work-advanced><th scope="row"><label for="cb-work-recurrence-estimate"><?php esc_html_e( 'Estimated time (minutes)', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-estimate" class="small-text" type="number" min="0" step="5" name="recurrence[estimated_minutes]" value="<?php echo esc_attr( (string) $estimated_minutes ); ?>"><p class="description"><?php esc_html_e( 'Planning estimate only. Registered time remains separate.', 'core-blueprint-work' ); ?></p></td></tr>
 					<tr class="cb-work-recurrence-field--wide" data-cb-work-advanced><th scope="row"><label for="cb-work-recurrence-billing"><?php esc_html_e( 'Billing classification', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-billing" name="recurrence[billing_disposition]" data-cb-work-billing-select><option value=""><?php esc_html_e( 'Not classified', 'core-blueprint-work' ); ?></option><?php foreach ( BillingDisposition::all() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $billing, $value ); ?>><?php echo esc_html( ucfirst( str_replace( '_', ' ', $value ) ) ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr class="cb-work-recurrence-field--wide"><th scope="row"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th><td><?php Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', $assignees, false ); ?></td></tr>
+					<tr class="cb-work-recurrence-field--wide cb-work-recurrence-field--assignees"><th scope="row"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th><td><?php Pickers::assignees( 'recurrence[assigned_user_ids]', 'cb-work-recurrence-assignees', $assignees, false ); ?></td></tr>
 					</tbody></table></section><section class="cb-work-recurrence-section cb-work-recurrence-section--schedule"><h3><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></h3><table class="form-table cb-work-recurrence-fields" role="presentation"><tbody>
 					<?php if ( $locked ) : ?>
 						<?php
@@ -318,7 +320,7 @@ final class Recurrence {
 			return null;
 		}
 		$date = $use_cursor ? $cursor : $schedule['start_on'];
-		if ( ! $use_cursor && null !== $from_on && preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/', $from_on ) ) {
+		if ( ! $use_cursor && null !== $from_on && true ) {
 			// Walk the canonical schedule to its first occurrence on/after the site date.
 			// Capped to prevent malformed historical rules from exhausting a request.
 			for ( $i = 0; $i < 50000 && null !== $date && $date < $from_on; $i++ ) {
