@@ -62,10 +62,17 @@ final class TimeEntryBulkEdit {
         $note_raw = $_POST['bulk_note'] ?? '';
         $note = is_string( $note_raw ) ? sanitize_textarea_field( wp_unslash( $note_raw ) ) : '';
         $target_raw = $_POST['bulk_work_item_id'] ?? '0';
-        if ( ! is_scalar( $target_raw ) || ! ctype_digit( (string) $target_raw ) ) {
+        if ( ! is_scalar( $target_raw ) ) {
             self::redirect( $state, 'time-bulk-invalid' );
         }
-        $target_id = (int) $target_raw;
+        // Base ObjectPicker submits an empty string when no Work Item
+        // replacement is selected. Preserve the existing zero=no-change API.
+        $target_value = trim( (string) $target_raw );
+        $target_value = '' === $target_value ? '0' : $target_value;
+        if ( ! ctype_digit( $target_value ) ) {
+            self::redirect( $state, 'time-bulk-invalid' );
+        }
+        $target_id = (int) $target_value;
 
         if ( ! in_array( $mode, [ 'keep', 'append', 'replace', 'clear' ], true )
             || ( in_array( $mode, [ 'append', 'replace' ], true ) && '' === trim( $note ) )
