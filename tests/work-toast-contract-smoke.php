@@ -17,6 +17,10 @@ $checks = [
     'enqueue only on Work screens' =>
         str_contains( $assets, "if ( '' === Menu::screen_context() )" )
         && str_contains( $assets, 'enqueue_toast_feedback' ),
+    'Work Settings is scoped to Work provider' =>
+        str_contains( $assets, 'Settings::SLUG === $page' )
+        && str_contains( $assets, 'Suite::EXTENSION_ID === $extension' )
+        && str_contains( (string) file_get_contents( $root . '/src/Admin/Page.php' ), 'data-cb-work-toast=' ),
     'Base owns toast presentation and module' =>
         str_contains( $assets, 'Assets::enqueue_toasts(' )
         && str_contains( $assets, 'Assets::TOAST_PRESENTATION_CORE' )
