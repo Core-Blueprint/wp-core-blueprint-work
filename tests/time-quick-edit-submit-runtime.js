@@ -39,7 +39,10 @@ const makeNotice = (type = 'success') => ({
 });
 const successNotice = makeNotice();
 const conflictNotice = makeNotice('error');
-const newList = { prepend(node) { renderedNotice = node; } };
+const newList = {
+    dataset: { cbWorkTimeAsyncError: 'Request failed' },
+    prepend(node) { renderedNotice = node; }
+};
 let list = {
     dataset: { cbWorkTimeAsyncError: 'Request failed' },
     replaceWith(node) {
