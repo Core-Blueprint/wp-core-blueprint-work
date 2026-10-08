@@ -17,7 +17,7 @@ $method = new ReflectionMethod( TimeEntryBulkEdit::class, 'next_note' );
 if ( 'existing' !== $method->invoke( null, 'existing', 'keep', 'ignored' )
     || "existing\nadded" !== $method->invoke( null, 'existing', 'append', 'added' )
     || 'added' !== $method->invoke( null, '', 'append', 'added' )
-    || '' !== $method->invoke( null, 'existing', 'replace', '' )
+    || '' !== $method->invoke( null, 'existing', 'clear', '' )
     || 'replacement' !== $method->invoke( null, 'existing', 'replace', 'replacement' ) ) {
     $fail( 'note transformations must preserve, append, replace or explicitly clear' );
 }
@@ -69,6 +69,7 @@ $checks = [
         str_contains( $list, 'value="keep"' )
         && str_contains( $list, 'value="append"' )
         && str_contains( $list, 'value="replace"' )
+        && str_contains( $list, 'value="clear"' )
         && str_contains( $list, 'name="bulk_work_item_id"' ),
     'JavaScript enhancement retains progressive fallback' =>
         str_contains( $script, 'new FormData(bulk)' )
