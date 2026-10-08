@@ -323,6 +323,10 @@
 .cb-work-time-entries-more-filters > summary:focus-visible {
     color: var(--wp-admin-theme-color, #2271b1);
 }
+.cb-work-time-entries-more-filters > summary:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 4px;
+}
 .cb-work-time-entries-more-filters[open] > summary {
     margin-bottom: 12px;
 }
