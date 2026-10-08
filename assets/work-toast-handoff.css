@@ -1,21 +1,13 @@
 /*
- * Work -> Base Toast handoff.
+ * Work -> Base Toast pre-paint handoff.
  *
- * Server notices are deliberately still rendered for progressive enhancement.
- * Keep only explicitly transient Work notices out of the first paint while the
- * deferred Base Toast module starts. If modules cannot load, reveal the original
- * notice after the delay instead of losing operational feedback.
+ * A small head bootstrap adds cb-work-toast-pending only when JS runs. The
+ * deferred Base module consumes the marked PHP notices and clears the flag.
+ * A head-script timer clears it after 3s if the module fails to initialise.
  *
- * With JavaScript disabled, (scripting: enabled) does not match, so the
- * canonical server-rendered WordPress notice is visible immediately.
+ * No scripting => no pending class => WordPress notices remain visible.
+ * Pending notices are removed from layout (no flash or empty-space shift).
  */
-@media (scripting: enabled) {
-    body.wp-admin [data-cb-work-toast] {
-        visibility: hidden;
-        animation: cb-work-toast-fallback-reveal 0s 3s forwards;
-    }
-
-    @keyframes cb-work-toast-fallback-reveal {
-        to { visibility: visible; }
-    }
+html.cb-work-toast-pending body.wp-admin [data-cb-work-toast] {
+    display: none !important;
 }
