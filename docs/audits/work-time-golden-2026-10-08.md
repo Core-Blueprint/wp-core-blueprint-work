@@ -4,30 +4,35 @@ Date: 2026-10-08
 Repository: `Core-Blueprint/wp-core-blueprint-work`
 Audit branch: `audit/work-time-golden-v1`
 Source baseline: `1a547f400b2d5345777be26b9ee63a7d8ba98711`
-Status: **AUDIT IN PROGRESS / NOT GOLDEN / NOT MERGED**
+Status: **ACCEPTED IMPLEMENTATION MERGED / FINAL HARDENING OPEN**.
+Merged and operator-accepted `main` HEAD on 2026-10-08:
+`5dd1bdd575ae086f38ad8700db03d9ee4b0de4de`.
+Operator validated `./tools/check`, 6 locales and release ZIP;
+SHA-256 `d3672dbd70a00f71fd09f00743fca1e53a0c62b5846958dbbea1c345447d8a53`.
+This is NOT a claim that WT-G-006, WT-G-007 or WT-G-012 have closed.
 
 ## Scope
 
 Review the Timer, global Timer HUD, Manual Entry, Time Entries, Quick Edit,
 Bulk Edit, repositories, domain validation, authorization, browser interactions,
 i18n, package determinism and production acceptance. PHP baseline is 8.4.
-No release or merge is authorized by this audit.
+The accepted Time/Toast implementation was merged by explicit operator GO. Further source changes or releases still require their normal approval gates.
 
 ## Findings and candidate changes
 
 | ID | Severity | Finding | Candidate action | Status |
 | --- | --- | --- | --- | --- |
-| WT-G-001 | High | Full Edit converted persisted UTC timestamps into minute-only local input; note-only correction could erase seconds and silently alter duration | Render second-precision native time controls when correcting, retain Base TimePicker for new manual entries, and reuse the original UTC instant whenever local fields are unchanged | Patched, local test pending |
-| WT-G-002 | High | During the wintertime fold, two UTC instants share the same local wall clock; a correction could silently switch to the other instant | Preserve the existing UTC instant for unchanged values and reject newly entered ambiguous local timestamps; the springtime gap remains rejected | Patched, local test pending |
-| WT-G-003 | Medium | Both TimeEntries and Timers contained identical note sanitization and 4000-character truncation | Introduce one `Domain/TimeNote.php` policy, remove duplicate repository methods, and retain active-timer regression fixture | Patched, local test pending |
-| WT-G-004 | Medium | Full Edit Work Item options used only the first 500 results; historical entries outside that range could lack the originally selected item | Add the persisted Work Item when missing from the list | Patched, local test pending |
-| WT-G-005 | Low | Entry-ID request routing used broad coercion rather than a positive decimal identifier check | Strict scalar-digit parsing in one helper | Patched, local test pending |
-| WT-G-006 | Review | Bulk Edit deliberately performs preflight followed by per-entry compare-and-swap; concurrent changes can yield a partial result | Preserve explicit partial-result reporting. Verify in a real multi-user database test before Golden | Open acceptance gate |
+| WT-G-001 | High | Full Edit converted persisted UTC timestamps into minute-only local input; note-only correction could erase seconds and silently alter duration | Render second-precision native time controls when correcting, retain Base TimePicker for new manual entries, and reuse the original UTC instant whenever local fields are unchanged | MERGED / OPERATOR ACCEPTED |
+| WT-G-002 | High | During the wintertime fold, two UTC instants share the same local wall clock; a correction could silently switch to the other instant | Preserve the existing UTC instant for unchanged values and reject newly entered ambiguous local timestamps; the springtime gap remains rejected | MERGED / OPERATOR ACCEPTED |
+| WT-G-003 | Medium | Both TimeEntries and Timers contained identical note sanitization and 4000-character truncation | Introduce one `Domain/TimeNote.php` policy, remove duplicate repository methods, and retain active-timer regression fixture | MERGED / OPERATOR ACCEPTED |
+| WT-G-004 | Medium | Full Edit Work Item options used only the first 500 results; historical entries outside that range could lack the originally selected item | Add the persisted Work Item when missing from the list | MERGED / OPERATOR ACCEPTED |
+| WT-G-005 | Low | Entry-ID request routing used broad coercion rather than a positive decimal identifier check | Strict scalar-digit parsing in one helper | MERGED / OPERATOR ACCEPTED |
+| WT-G-006 | Review | Bulk Edit deliberately performs preflight followed by per-entry compare-and-swap; concurrent changes can yield a partial result | Preserve explicit partial-result reporting. Verify in a real multi-user database test before Golden | Opt-in MariaDB CAS fixture added on hardening branch; real DB execution + multi-user acceptance pending |
 | WT-G-007 | Review | Manual create and Bulk Edit Work Item dropdowns use the canonical `WorkItems::all(500)` limit; underlying Work Item search loads a complete ID set | Measure at realistic Work Item scale before deciding whether an indexed/autocomplete picker is warranted | Deferred until profiling |
 | WT-G-008 | Review | `time-workspace.css` contains shared Time workspace layout and editor styling; it is larger than a single view stylesheet but still presentation-only | Do not split it without an independent maintainability/performance benefit; no monolithic mixed PHP/JS controller should be introduced | No patch required |
-| WT-G-009 | High | Quick Edit POST used `form.action`, which resolves to WordPress's hidden `name="action"` input instead of the form URL in affected browsers; the request goes to `/wp-admin/[object HTMLInputElement]` and returns 404 | Read `form.getAttribute('action')` explicitly. Add named-control collision runtime regression in `tools/check` | Patched, local + WordPress retest pending |
-| WT-G-010 | High | Bulk Edit repeats the DOM named-control collision with `bulk.action` and a hidden `name="action"` field | Read `bulk.getAttribute('action')` and test the actual submit listener against success, partial, conflict, HTTP failure and missing action | Patched, local + WordPress retest pending |
-| WT-G-011 | High (test reliability) | Initial Quick Edit runtime mock omitted `window.location.origin` and `document.createElement`, masking the real assertion with a TypeError | Repair the browser mock and exercise success, conflict, HTTP failure and missing action | Patched, local + WordPress retest pending |
+| WT-G-009 | High | Quick Edit POST used `form.action`, which resolves to WordPress's hidden `name="action"` input instead of the form URL in affected browsers; the request goes to `/wp-admin/[object HTMLInputElement]` and returns 404 | Read `form.getAttribute('action')` explicitly. Add named-control collision runtime regression in `tools/check` | MERGED / OPERATOR ACCEPTED |
+| WT-G-010 | High | Bulk Edit repeats the DOM named-control collision with `bulk.action` and a hidden `name="action"` field | Read `bulk.getAttribute('action')` and test the actual submit listener against success, partial, conflict, HTTP failure and missing action | MERGED / OPERATOR ACCEPTED |
+| WT-G-011 | High (test reliability) | Initial Quick Edit runtime mock omitted `window.location.origin` and `document.createElement`, masking the real assertion with a TypeError | Repair the browser mock and exercise success, conflict, HTTP failure and missing action | MERGED / OPERATOR ACCEPTED |
 | WT-G-012 | Review | Timer stop can persist a zero-second completed entry but `TimeEntries::update_completed()` rejects zero-duration changes, including note-only edits | Decide zero-second policy and add correction tests before Golden; not changed by this submit fix | Open acceptance gate |
 
 ## Existing positive contracts retained
@@ -55,6 +60,7 @@ php tests/global-time-hud-note-runtime.php
 node tests/time-bulk-visibility-runtime.js
 node tests/time-quick-edit-submit-runtime.js
 node tests/time-bulk-submit-runtime.js
+php tests/time-golden-cas-fixture-smoke.php
 ./tools/i18n/check
 ./tools/check
 ```
@@ -76,10 +82,42 @@ real tracker/manager permissions, stale revision conflicts, and partial bulk
 results are accepted against a real WordPress test environment. Also test
 at least one Work Item beyond the first 500 picker results.
 
+## WT-G-006: opt-in real database verification (hardening follow-up)
+
+An opt-in `tests/time-golden-cas-live.php` fixture executes the real
+`TimeEntries::update_completed()` SQL against a disposable local
+WordPress/MariaDB database only. It verifies:
+
+1. two operators reading the same revision, first update accepted, stale
+   update refused without overwriting note/timestamps/revision;
+2. an interleaved update after preflight, where one bulk row succeeds and
+   a second stale row remains untouched;
+3. fixture isolation by one database transaction and unconditional rollback.
+
+Mandatory safeguards: WordPress CLI, `CB_WORK_TIME_CAS_TEST=1`,
+DB_NAME clearly containing `test`, schema readiness, and InnoDB storage.
+It is NOT executed by `tools/check` or packaged in release ZIP. Never run
+it on `coreblueprint.io`, staging with production data, or a shared DB.
+
+The fixture models stale reads sequentially on actual MariaDB SQL. It does
+not create two simultaneous independent sessions and does not fully exercise
+the WP admin-post permissions/notice redirects. Therefore **WT-G-006 remains
+open** until a separate two-user WordPress runtime acceptance is performed.
+
+Use the WP test DB fixture after local tests are GREEN, with your existing
+isolated `WP_CORE_DIR` and throwaway database:
+
+```bash
+CB_WORK_TIME_CAS_TEST=1 wp --path="$WP_CORE_DIR" eval-file tests/time-golden-cas-live.php
+```
+
+Never infer that this has passed without the operator's actual output.
+
 ## Outstanding
 
-1. Run all local PHP and JS regressions; fix any detected source or contract failure.
-2. Build the deterministic ZIP; record commit SHA, ZIP SHA-256 and test logs.
-3. Complete sandbox installation smoke and the operator's production functional/visual acceptance.
-4. Close or explicitly classify WT-G-006/007 based on observed behavior.
-5. Request explicit merge GO separately. The audit's completion is not merge authorization.
+1. Validate the safe CAS fixture gate and full canonical suite on the hardening branch.
+2. Build deterministic ZIP and record HEAD / SHA-256.
+3. Run the optional live fixture on a disposable local WordPress TEST DB only.
+4. Run real multi-user admin conflict acceptance (WT-G-006).
+5. Decide/test zero-second correction semantics (WT-G-012), profile >500 picker (WT-G-007).
+6. Return to final Work cross-view UX and product audit rounds; require GO before merge.
