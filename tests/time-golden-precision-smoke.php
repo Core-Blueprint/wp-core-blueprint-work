@@ -48,6 +48,35 @@ if ( [ 'started_at' => $short_start, 'ended_at' => '2026-10-08 13:29:26' ] !== $
     $fail( 'actual clock edits must update only the changed endpoint' );
 }
 
+// A stopped timer may legitimately have zero seconds. Preserve its exact
+// timestamps for note/Work Item corrections; never synthesize zero manual
+// entries or change a previously positive entry to zero.
+$zero_utc = '2026-10-08 13:28:13';
+$zero_input = [
+    'start_date' => '2026-10-08', 'start_time' => '15:28:13',
+    'end_date' => '2026-10-08', 'end_time' => '15:28:13',
+];
+$zero_timer = [
+    'started_at' => $zero_utc,
+    'ended_at' => $zero_utc,
+    'duration_seconds' => 0,
+    'entry_source' => 'timer',
+];
+if ( $range_from_input->invoke( null, $zero_input, $zero_timer )
+        !== [ 'started_at' => $zero_utc, 'ended_at' => $zero_utc ]
+    || null !== $range_from_input->invoke( null, $zero_input, null )
+    || null !== $range_from_input->invoke( null, $zero_input, [
+        ...$zero_timer, 'entry_source' => 'manual',
+    ] )
+    || null !== $range_from_input->invoke( null, $zero_input, [
+        ...$zero_timer, 'duration_seconds' => 13,
+    ] )
+    || null !== $range_from_input->invoke( null, [
+        ...$zero_input, 'start_time' => '15:27:13', 'end_time' => '15:27:13',
+    ], $zero_timer ) ) {
+    $fail( 'zero-second correction must preserve only an existing timer instant' );
+}
+
 // Europe/Amsterdam switches from +02:00 to +01:00 at 2026-10-25 01:00 UTC.
 // Both instants display as 02:30:13, but they must never collapse on note-only save.
 $fold_early = '2026-10-25 00:30:13';
