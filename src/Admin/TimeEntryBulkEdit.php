@@ -95,12 +95,7 @@ final class TimeEntryBulkEdit {
                 self::redirect( $state, 'time-bulk-conflict' );
             }
 
-            $updated_note = (string) $entry['note'];
-            if ( 'replace' === $mode ) {
-                $updated_note = $note;
-            } elseif ( 'append' === $mode ) {
-                $updated_note = '' === $updated_note ? $note : $updated_note . "\n" . $note;
-            }
+            $updated_note = self::next_note( (string) $entry['note'], $mode, $note );
             $length = function_exists( 'mb_strlen' ) ? mb_strlen( $updated_note ) : strlen( $updated_note );
             if ( $length > 4000 ) {
                 self::redirect( $state, 'time-bulk-invalid' );
@@ -152,6 +147,16 @@ final class TimeEntryBulkEdit {
             $updated,
             $failed
         );
+    }
+
+    private static function next_note( string $old_note, string $mode, string $note ): string {
+        if ( 'replace' === $mode ) {
+            return $note;
+        }
+        if ( 'append' === $mode ) {
+            return '' === $old_note ? $note : $old_note . "\n" . $note;
+        }
+        return $old_note;
     }
 
     /** @param array<string,mixed> $state */
