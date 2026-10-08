@@ -107,24 +107,41 @@
 
     const editorToggle = document.querySelector('[data-cb-editor-toggle]');
     const editForm = document.querySelector('[data-cb-recurrence-editor]');
+    const backToRules = document.querySelector('[data-cb-recurrence-back]');
+    let isDirty = false;
+    let leavingIntentionally = false;
+    if (editForm) {
+        const notice = document.querySelector('[data-cb-recurrence-unsaved]');
+        const markUnsaved = () => {
+            isDirty = true;
+            if (notice) notice.hidden = false;
+        };
+        editForm.addEventListener('input', markUnsaved);
+        editForm.addEventListener('change', markUnsaved);
+        editForm.addEventListener('submit', () => { leavingIntentionally = true; });
+        backToRules?.addEventListener('click', (event) => {
+            if (!isDirty) return;
+            if (!window.confirm(config.leaveConfirm)) event.preventDefault();
+            else leavingIntentionally = true;
+        });
+        window.addEventListener('beforeunload', (event) => {
+            if (!isDirty || leavingIntentionally) return;
+            event.preventDefault();
+            event.returnValue = '';
+        });
+    }
     if (editorToggle && editForm) {
         const button = editorToggle.querySelector('[type="submit"]');
         const activeInput = editorToggle.querySelector('input[name="active"]');
         const feedback = document.createElement('span');
         feedback.setAttribute('role', 'status');
         editorToggle.appendChild(feedback);
-        const unsavedNotice = document.querySelector('[data-cb-recurrence-unsaved]');
         const saveButton = document.querySelector('[form="cb-work-recurrence-editor-form"][type="submit"]');
-        let dirty = false;
-        const markDirty = () => {
-            dirty = true;
-            if (unsavedNotice) unsavedNotice.hidden = false;
-        };
-        editForm.addEventListener('input', markDirty);
-        editForm.addEventListener('change', markDirty);
+        const toolbarDescription = document.querySelector('[data-cb-recurrence-status-description]');
+        const previewNote = document.querySelector('[data-cb-recurrence-preview-status-note]');
         editorToggle.addEventListener('submit', async (event) => {
             event.preventDefault();
-            if (dirty) {
+            if (isDirty) {
                 feedback.textContent = config.saveFirst;
                 saveButton?.focus();
                 return;
@@ -149,6 +166,8 @@
                     badge.classList.toggle('cb-work-recurrence-status--inactive', !result.data.active);
                 });
                 button.textContent = result.data.action;
+                if (toolbarDescription) toolbarDescription.textContent = result.data.active ? config.activeDescription : config.inactiveDescription;
+                if (previewNote) previewNote.hidden = result.data.active;
                 activeInput.value = result.data.active ? '0' : '1';
                 if (result.data.active) button.removeAttribute('data-cb-work-confirm');
                 else button.setAttribute('data-cb-work-confirm', '');
@@ -166,16 +185,35 @@
 
     const advanced = editor.querySelectorAll('[data-cb-work-advanced]');
     const advancedToggle = editor.querySelector('[data-cb-work-advanced-toggle]');
+    const advancedLabel = advancedToggle?.querySelector('[data-cb-advanced-label]');
+    const advancedSummary = editor.querySelector('[data-cb-advanced-summary]');
+    const describeAdvanced = () => {
+        if (!advancedSummary) return;
+        const field = (name) => editor.elements.namedItem('recurrence[' + name + ']');
+        const choice = (name) => field(name)?.selectedOptions?.[0]?.textContent?.trim() || '—';
+        advancedSummary.textContent = [
+            config.priorityLabel + ': ' + choice('priority'),
+            config.estimateLabel + ': ' + (field('estimated_minutes')?.value || '0'),
+            config.billingLabel + ': ' + choice('billing_disposition')
+        ].join(' · ');
+    };
     if (advancedToggle) {
         let expanded = advancedToggle.getAttribute('aria-expanded') === 'true';
         const syncAdvanced = () => {
             advanced.forEach((row) => { row.hidden = !expanded; });
             advancedToggle.setAttribute('aria-expanded', String(expanded));
+            if (advancedLabel) advancedLabel.textContent = expanded ? config.hideAdvanced : config.showAdvanced;
+            if (advancedSummary) {
+                advancedSummary.hidden = expanded;
+                if (!expanded) describeAdvanced();
+            }
         };
         advancedToggle.addEventListener('click', () => {
             expanded = !expanded;
             syncAdvanced();
         });
+        editor.addEventListener('input', () => { if (!expanded) describeAdvanced(); });
+        editor.addEventListener('change', () => { if (!expanded) describeAdvanced(); });
         syncAdvanced();
     }
 
@@ -194,13 +232,28 @@
     const projectLabel = preview.querySelector('[data-cb-preview-project]');
     const assignees = preview.querySelector('[data-cb-preview-assignees]');
     const assigneePicker = editor.querySelector('#cb-work-recurrence-assignees')?.closest('[data-cb-core-object-picker]');
+    const selectedChips = assigneePicker?.querySelector('[data-cb-core-object-picker-selected]');
     const syncAssignees = () => {
         if (!assignees || !assigneePicker) return;
-        const names = Array.from(assigneePicker.querySelectorAll('.cb-core-object-picker__chip-label'))
-            .map((node) => node.textContent.trim())
-            .filter(Boolean);
+        let names;
+        if (assigneePicker.dataset.cbCoreObjectPickerReady === '1') {
+            names = Array.from(assigneePicker.querySelectorAll('.cb-core-object-picker__chip-label'))
+                .map((node) => node.textContent.trim())
+                .filter(Boolean);
+        } else {
+            // Base initializes asynchronously. Preserve the server-rendered selection.
+            try {
+                const initial = JSON.parse(assigneePicker.dataset.selected || '[]');
+                names = Array.isArray(initial) ? initial.map((item) => String(item.label || '').trim()).filter(Boolean) : [];
+            } catch {
+                names = [];
+            }
+        }
         assignees.textContent = names.join(', ') || '—';
     };
+    if (selectedChips) {
+        new MutationObserver(syncAssignees).observe(selectedChips, { childList: true, subtree: true });
+    }
     const estimate = preview.querySelector('[data-cb-preview-estimate]');
     const schedule = preview.querySelector('[data-cb-preview-schedule]');
     const due = preview.querySelector('[data-cb-preview-due]');
