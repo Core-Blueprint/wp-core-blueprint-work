@@ -2480,3 +2480,23 @@ msgstr "Prochaines occurrences (aperçu)"
 #: src/Admin/Recurrence.php
 msgid "Dates are a preview only while this rule is inactive."
 msgstr "Tant que cette règle est inactive, les dates sont présentées uniquement à titre indicatif."
+
+#: src/Admin/Recurrence.php
+msgid "Work Item defaults"
+msgstr "Valeurs par défaut des Work Items"
+
+#: src/Admin/Recurrence.php
+msgid "Settings applied to each generated Work Item."
+msgstr "Paramètres appliqués à chaque Work Item généré."
+
+#: src/Admin/Recurrence.php
+msgid "Work details"
+msgstr "Détails du travail"
+
+#: src/Admin/Recurrence.php
+msgid "Assignment"
+msgstr "Attribution"
+
+#: src/Admin/Recurrence.php
+msgid "All changes saved"
+msgstr "Toutes les modifications sont enregistrées"
