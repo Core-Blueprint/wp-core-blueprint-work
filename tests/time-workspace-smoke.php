@@ -14,6 +14,7 @@ require $root . '/src/Admin/Time.php';
 use CB\Work\Admin\Time;
 
 $admin = file_get_contents( $root . '/src/Admin/Time.php' );
+$entries = file_get_contents( $root . '/src/Admin/TimeEntryList.php' );
 $actions = file_get_contents( $root . '/src/Admin/TimeActions.php' );
 $menu = file_get_contents( $root . '/src/Admin/Menu.php' );
 $style = file_get_contents( $root . '/assets/time-workspace.css' );
@@ -81,8 +82,9 @@ $checks = [
         && str_contains( $admin, 'Timers::active_for_user( $user_id )' )
         && str_contains( $admin, 'Running since %1$s %2$s.' )
         && str_contains( $admin, 'if ( self::VIEW_TIMER !== $view )' ),
-    'correction links and cancel navigation go to their intended views' => str_contains( $admin, "'view' => self::VIEW_MANUAL, 'entry_id' => (int) \$entry['id']" )
-        && str_contains( $admin, "'view' => self::VIEW_ENTRIES" ),
+    'correction links and cancel navigation go to their intended views' => str_contains( $entries, "Menu::time_url( [ 'view' => Time::VIEW_MANUAL, 'entry_id' => (int) \$entry['id'] ] )" )
+        && str_contains( $entries, "Access::can_edit_entry( \$entry, (int) \$entry['work_item_id'] )" )
+        && str_contains( $admin, "self::url( [ 'view' => self::VIEW_ENTRIES ] )" ),
     'post-action redirects preserve the correct view and tracker landing' => str_contains( $actions, "Menu::time_url( [" )
         && str_contains( $actions, "Time::VIEW_TIMER" )
         && str_contains( $actions, "Time::VIEW_ENTRIES" )
