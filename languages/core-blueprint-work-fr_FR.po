@@ -1399,14 +1399,6 @@ msgstr "Aucun type de travail"
 msgid "Estimated time (minutes)"
 msgstr "Temps estimé (minutes)"
 
-#: src/Admin/Recurrence.php:94
-msgid ""
-"Planning estimate inherited by future generated Work Items. Registered time "
-"remains separate."
-msgstr ""
-"Estimation de planification héritée par les futurs Work Items générés. Le "
-"temps enregistré reste distinct."
-
 #: src/Admin/Recurrence.php:95 src/Admin/WorkItems.php:182
 msgid "Billing classification"
 msgstr "Classification de facturation"
@@ -1469,10 +1461,6 @@ msgstr "Décalage d’échéance"
 #: src/Admin/Recurrence.php:115
 msgid "days after scheduled date"
 msgstr "jours après la date planifiée"
-
-#: src/Admin/Recurrence.php:118
-msgid "Save Recurring Work Rule"
-msgstr "Enregistrer la règle de travail récurrent"
 
 #: src/Admin/Recurrence.php:122
 msgid "Recurring Work Rules"
@@ -2460,3 +2448,11 @@ msgstr "La charge utile des préférences d’affichage des Work Items n’est p
 #: src/Admin/Operations.php
 msgid "The Work Item view preferences could not be saved."
 msgstr "Les préférences d’affichage des Work Items n’ont pas pu être enregistrées."
+
+#: src/Admin/Recurrence.php:158
+msgid "Advanced settings"
+msgstr "Paramètres avancés"
+
+#: src/Admin/Recurrence.php:205
+msgid "Rule Preview"
+msgstr "Aperçu de la règle"
