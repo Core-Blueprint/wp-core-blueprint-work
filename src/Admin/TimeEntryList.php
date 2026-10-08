@@ -96,6 +96,49 @@ final class TimeEntryList {
                 </details>
             </form>
 
+            <?php if ( [] !== $result['items'] ) : ?>
+                <form id="cb-work-time-bulk-form" class="cb-work-time-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-cb-work-time-bulk-form>
+                    <input type="hidden" name="action" value="<?php echo esc_attr( TimeEntryBulkEdit::ACTION ); ?>">
+                    <?php wp_nonce_field( TimeEntryBulkEdit::ACTION ); ?>
+                    <?php foreach ( TimeEntryListState::url_args( $state ) as $key => $value ) : ?>
+                        <input type="hidden" name="time_list[<?php echo esc_attr( $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
+                    <?php endforeach; ?>
+                    <details class="cb-work-time-bulk-editor" data-cb-work-time-bulk-editor>
+                        <summary><?php esc_html_e( 'Bulk Edit', 'core-blueprint-work' ); ?> <span class="cb-work-time-bulk-count" role="status"><output data-cb-work-time-bulk-count>0</output> <?php esc_html_e( 'Selected', 'core-blueprint-work' ); ?></span></summary>
+                        <div class="cb-work-time-bulk-fields">
+                            <?php if ( $manager ) : ?>
+                                <div class="cb-work-time-bulk-field">
+                                    <label for="cb-work-time-bulk-item"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></label>
+                                    <select id="cb-work-time-bulk-item" name="bulk_work_item_id" data-cb-work-time-bulk-target>
+                                        <option value="0"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
+                                        <?php foreach ( WorkItems::all( 500 ) as $work_item ) : ?>
+                                            <option value="<?php echo esc_attr( (string) $work_item['id'] ); ?>"><?php echo esc_html( (string) $work_item['title'] ); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php else : ?>
+                                <input type="hidden" name="bulk_work_item_id" value="0">
+                            <?php endif; ?>
+                            <div class="cb-work-time-bulk-field">
+                                <label for="cb-work-time-bulk-mode"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label>
+                                <select id="cb-work-time-bulk-mode" name="note_mode" data-cb-work-time-bulk-mode>
+                                    <option value="keep"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
+                                    <option value="append"><?php esc_html_e( 'Append' ); ?></option>
+                                    <option value="replace"><?php esc_html_e( 'Replace' ); ?></option>
+                                </select>
+                            </div>
+                            <div class="cb-work-time-bulk-field cb-work-time-bulk-field--note">
+                                <label for="cb-work-time-bulk-note"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label>
+                                <textarea id="cb-work-time-bulk-note" name="bulk_note" rows="2" maxlength="4000" data-cb-work-time-bulk-note disabled></textarea>
+                            </div>
+                        </div>
+                        <div class="cb-work-time-bulk-actions">
+                            <button type="submit" class="button button-primary" data-cb-work-time-bulk-submit disabled><?php esc_html_e( 'Update selected', 'core-blueprint-work' ); ?></button>
+                        </div>
+                    </details>
+                </form>
+            <?php endif; ?>
+
             <div class="cb-work-time-entries-summary" role="status">
                 <span><?php
                     /* translators: 1: first visible entry, 2: last visible entry, 3: total matching entries. */
@@ -123,6 +166,10 @@ final class TimeEntryList {
                     <table class="widefat striped">
                         <thead>
                             <tr>
+                                <th scope="col" class="cb-work-time-bulk-select-column">
+                                    <label class="screen-reader-text" for="cb-work-time-bulk-all"><?php esc_html_e( 'Select all' ); ?></label>
+                                    <input id="cb-work-time-bulk-all" type="checkbox" data-cb-work-time-bulk-select-all aria-label="<?php esc_attr_e( 'Select all' ); ?>">
+                                </th>
                                 <th scope="col" <?php if ( in_array( $state['sort'], [ 'newest', 'oldest' ], true ) ) : ?>aria-sort="<?php echo esc_attr( 'newest' === $state['sort'] ? 'descending' : 'ascending' ); ?>"<?php endif; ?>>
                                     <a href="<?php echo esc_url( Menu::time_url( TimeEntryListState::url_args( [ ...$state, 'sort' => 'newest' === $state['sort'] ? 'oldest' : 'newest' ], 1 ) ) ); ?>"><?php esc_html_e( 'When', 'core-blueprint-work' ); ?><?php if ( in_array( $state['sort'], [ 'newest', 'oldest' ], true ) ) : ?><span aria-hidden="true" class="cb-work-time-sort-indicator"><?php echo 'newest' === $state['sort'] ? ' ↓' : ' ↑'; ?></span><?php endif; ?></a>
                                 </th>
@@ -153,6 +200,13 @@ final class TimeEntryList {
                                 $item_title = (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $entry['work_item_id'] ) );
                                 ?>
                                 <tr>
+                                    <td class="cb-work-time-bulk-select-column">
+                                        <?php if ( null !== $entry['ended_at'] && Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
+                                            <label class="screen-reader-text" for="cb-work-time-bulk-select-<?php echo esc_attr( (string) $entry['id'] ); ?>"><?php esc_html_e( 'Select' ); ?></label>
+                                            <input type="checkbox" id="cb-work-time-bulk-select-<?php echo esc_attr( (string) $entry['id'] ); ?>" name="entry_ids[]" value="<?php echo esc_attr( (string) $entry['id'] ); ?>" form="cb-work-time-bulk-form" data-cb-work-time-bulk-select>
+                                            <input type="hidden" name="entry_revisions[<?php echo esc_attr( (string) $entry['id'] ); ?>]" value="<?php echo esc_attr( (string) $entry['revision'] ); ?>" form="cb-work-time-bulk-form">
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="cb-work-time-when"><time datetime="<?php echo esc_attr( str_replace( ' ', 'T', $started_at ) . 'Z' ); ?>"><?php echo esc_html( $when ); ?></time></td>
                                     <td class="cb-work-time-entry-title"><?php echo esc_html( $item_title ); ?></td>
                                     <?php if ( $manager ) : ?><td><?php echo esc_html( $user ? (string) $user->display_name : (string) $entry['user_id'] ); ?></td><?php endif; ?>
@@ -166,7 +220,7 @@ final class TimeEntryList {
                                 </tr>
                                 <?php if ( $quick_edit_id === (int) $entry['id'] && null !== $entry['ended_at'] && Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
                                     <tr class="cb-work-time-quick-edit-row">
-                                        <td colspan="<?php echo esc_attr( (string) ( $manager ? 7 : 6 ) ); ?>"><?php TimeEntryQuickEdit::render( $entry, $state ); ?></td>
+                                        <td colspan="<?php echo esc_attr( (string) ( $manager ? 8 : 7 ) ); ?>"><?php TimeEntryQuickEdit::render( $entry, $state ); ?></td>
                                     </tr>
                                 <?php endif; ?>
                             <?php endforeach; ?>
