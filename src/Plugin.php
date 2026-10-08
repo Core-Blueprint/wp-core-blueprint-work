@@ -17,6 +17,7 @@ use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
 use CB\Work\Admin\Time;
 use CB\Work\Admin\TimeActions;
+use CB\Work\Admin\TimerHud;
 use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
 use CB\Work\Admin\WorkItemListPreferences;
@@ -75,6 +76,7 @@ final class Plugin {
 			RecurrenceActions::init();
 			Time::init();
 			TimeActions::init();
+			TimerHud::init();
 			ServicePricing::init();
 			TaxRateActions::init();
 			OperationalActions::init();
