@@ -32,6 +32,69 @@ final class RecurrenceRules {
 		return array_values( array_map( [ self::class, 'hydrate_rule' ], $rows ) );
 	}
 
+	/**
+	 * Bounded server-side rules list. A separate COUNT query ensures that filters
+	 * and pagination never silently omit rows beyond the legacy 500-rule cap.
+	 *
+	 * @param array<string,mixed> $filters
+	 * @return array{rows:array<int,array<string,mixed>>,total:int,page:int,pages:int,per_page:int}
+	 */
+	public static function search_page( array $filters = [] ): array {
+		$page     = max( 1, (int) ( $filters['page'] ?? 1 ) );
+		$per_page = 25;
+		$empty    = [ 'rows' => [], 'total' => 0, 'page' => $page, 'pages' => 1, 'per_page' => $per_page ];
+		if ( ! self::schema_ready() ) {
+			return $empty;
+		}
+		global $wpdb;
+		$table = Schema::recurrence_rules_table();
+		$where = [];
+		$params = [];
+		$search = trim( (string) ( $filters['search'] ?? '' ) );
+		if ( '' !== $search ) {
+			$where[] = 'title LIKE %s';
+			$params[] = '%' . $wpdb->esc_like( $search ) . '%';
+		}
+		$status = (string) ( $filters['status'] ?? '' );
+		if ( in_array( $status, [ 'active', 'inactive' ], true ) ) {
+			$where[] = 'is_active = %d';
+			$params[] = 'active' === $status ? 1 : 0;
+		}
+		$context = (string) ( $filters['context'] ?? '' );
+		if ( in_array( $context, [ WorkContext::INTERNAL, WorkContext::CUSTOMER ], true ) ) {
+			$where[] = 'work_context = %s';
+			$params[] = $context;
+		}
+		$project_id = max( 0, (int) ( $filters['project_id'] ?? 0 ) );
+		if ( $project_id > 0 ) {
+			$where[] = 'project_id = %d';
+			$params[] = $project_id;
+		}
+		$predicate = $where ? ' WHERE ' . implode( ' AND ', $where ) : '';
+		$count_sql = 'SELECT COUNT(*) FROM ' . $table . $predicate;
+		$total = (int) $wpdb->get_var( $params ? $wpdb->prepare( $count_sql, ...$params ) : $count_sql );
+		$pages = max( 1, (int) ceil( $total / $per_page ) );
+		$page = min( $page, $pages );
+		$allowed_order = [
+			'title' => 'title',
+			'next_occurrence' => 'next_occurrence_on',
+			'status' => 'is_active',
+			'created' => 'id',
+		];
+		$sort = (string) ( $filters['sort'] ?? 'next_occurrence' );
+		$column = $allowed_order[ $sort ] ?? 'next_occurrence_on';
+		$direction = 'desc' === (string) ( $filters['direction'] ?? '' ) ? 'DESC' : 'ASC';
+		$sql = 'SELECT * FROM ' . $table . $predicate . ' ORDER BY ' . $column . ' ' . $direction . ', id ASC LIMIT %d OFFSET %d';
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, ...[ ...$params, $per_page, ( $page - 1 ) * $per_page ] ), ARRAY_A );
+		return [
+			'rows' => is_array( $rows ) ? array_values( array_map( [ self::class, 'hydrate_rule' ], $rows ) ) : [],
+			'total' => $total,
+			'page' => $page,
+			'pages' => $pages,
+			'per_page' => $per_page,
+		];
+	}
+
 	/** @return array<string,mixed>|null */
 	public static function get( int $id ): ?array {
 		if ( ! self::schema_ready() || $id <= 0 ) {
