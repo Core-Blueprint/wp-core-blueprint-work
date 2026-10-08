@@ -15,6 +15,10 @@ use CB\Work\Time\Access;
 defined( 'ABSPATH' ) || exit;
 
 final class Time {
+	public const VIEW_TIMER = 'timer';
+	public const VIEW_MANUAL = 'manual';
+	public const VIEW_ENTRIES = 'entries';
+
 	public static function init(): void {
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue' ] );
 	}
@@ -26,6 +30,15 @@ final class Time {
 			&& current_user_can( Capabilities::TRACK_TIME );
 		if ( Menu::TIME_SLUG === $page || $tracker_landing ) {
 			Assets::enqueue_time_picker();
+			$css_file = CB_WORK_DIR . 'assets/time-workspace.css';
+			if ( is_file( $css_file ) ) {
+				wp_enqueue_style(
+					'cb-work-time-workspace',
+					CB_WORK_URL . 'assets/time-workspace.css',
+					[],
+					(string) filemtime( $css_file )
+				);
+			}
 		}
 	}
 
@@ -33,10 +46,13 @@ final class Time {
 		self::guard();
 		$manager = Access::can_manage();
 		$user_id = get_current_user_id();
+		$view = self::requested_view();
 		?>
-		<div class="wrap cb-work-time-page">
-			<h1><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></h1>
-			<p class="description"><?php esc_html_e( 'Register actual Work time. Work Item estimates and billing classification remain separate planning and commercial facts.', 'core-blueprint-work' ); ?></p>
+		<div class="wrap cb-work-time-page cb-work-time-workspace">
+			<header class="cb-work-time-header">
+				<h1><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></h1>
+				<p class="description"><?php esc_html_e( 'Track time, add entries and review recorded work.', 'core-blueprint-work' ); ?></p>
+			</header>
 			<?php self::render_notice(); ?>
 			<?php if ( ! self::schema_ready() ) : ?>
 				<div class="notice notice-warning inline"><p><?php esc_html_e( 'Work Time storage is not ready yet. Complete the Work schema upgrade first.', 'core-blueprint-work' ); ?></p></div>
@@ -44,18 +60,82 @@ final class Time {
 			<?php return; ?>
 			<?php endif; ?>
 			<?php
-			$items  = self::available_work_items( $manager, $user_id );
 			$active = Timers::active_for_user( $user_id );
-			$edit_id = isset( $_GET['entry_id'] ) ? absint( $_GET['entry_id'] ) : 0;
-			$editing = $edit_id > 0 ? TimeEntries::get( $edit_id ) : null;
-			if ( is_array( $editing ) && ! Access::can_view_entry( $editing ) ) {
-				wp_die( esc_html__( 'You do not have permission to view this Time entry.', 'core-blueprint-work' ) );
-			}
-			$entries = TimeEntries::all( 200, $manager ? 0 : $user_id );
-			self::render_timer( $items, $active, $user_id );
-			self::render_entry_form( $items, $editing, $manager, $user_id );
-			self::render_entries( $entries, $manager );
+			self::render_active_timer_status( $active );
+			self::render_navigation( $view );
 			?>
+			<section class="cb-work-time-view cb-work-time-view--<?php echo esc_attr( $view ); ?>" aria-label="<?php echo esc_attr( self::view_label( $view ) ); ?>">
+			<?php
+			switch ( $view ) {
+				case self::VIEW_MANUAL:
+					$items = self::available_work_items( $manager, $user_id );
+					$edit_id = isset( $_GET['entry_id'] ) ? absint( $_GET['entry_id'] ) : 0;
+					$editing = $edit_id > 0 ? TimeEntries::get( $edit_id ) : null;
+					if ( is_array( $editing ) && ! Access::can_view_entry( $editing ) ) {
+						wp_die( esc_html__( 'You do not have permission to view this Time entry.', 'core-blueprint-work' ) );
+					}
+					self::render_entry_form( $items, $editing, $manager, $user_id );
+					break;
+				case self::VIEW_ENTRIES:
+					self::render_entries( TimeEntries::all( 200, $manager ? 0 : $user_id ), $manager );
+					break;
+				default:
+					self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );
+					break;
+			}
+			?>
+			</section>
+		</div>
+		<?php
+	}
+
+	private static function requested_view(): string {
+		// Correction links must always open the editable entry, regardless of view.
+		if ( isset( $_GET['entry_id'] ) && absint( $_GET['entry_id'] ) > 0 ) {
+			return self::VIEW_MANUAL;
+		}
+		$raw_view = isset( $_GET['view'] ) && is_string( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '';
+		return in_array( $raw_view, [ self::VIEW_TIMER, self::VIEW_MANUAL, self::VIEW_ENTRIES ], true )
+			? $raw_view
+			: self::VIEW_TIMER;
+	}
+
+	private static function view_label( string $view ): string {
+		return match ( $view ) {
+			self::VIEW_MANUAL => __( 'Manual Entry', 'core-blueprint-work' ),
+			self::VIEW_ENTRIES => __( 'Time Entries', 'core-blueprint-work' ),
+			default => __( 'Timer', 'core-blueprint-work' ),
+		};
+	}
+
+	private static function render_navigation( string $current ): void {
+		?>
+		<nav class="cb-work-time-navigation" aria-label="<?php esc_attr_e( 'Time views', 'core-blueprint-work' ); ?>">
+			<?php foreach ( [ self::VIEW_TIMER, self::VIEW_MANUAL, self::VIEW_ENTRIES ] as $view ) : ?>
+				<a class="cb-work-time-navigation-link <?php echo $view === $current ? 'is-active' : ''; ?>" href="<?php echo esc_url( self::url( [ 'view' => $view ] ) ); ?>" <?php if ( $view === $current ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( self::view_label( $view ) ); ?></a>
+			<?php endforeach; ?>
+		</nav>
+		<?php
+	}
+
+	/** @param array<string,mixed>|null $active */
+	private static function render_active_timer_status( ?array $active ): void {
+		if ( ! is_array( $active ) ) {
+			return;
+		}
+		$item = WorkItems::get( (int) $active['work_item_id'] );
+		$parts = TimeRange::utc_to_local_parts( (string) $active['started_at'] );
+		$title = (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $active['work_item_id'] ) );
+		?>
+		<div class="cb-work-time-running-status" role="status">
+			<span class="cb-work-time-running-indicator" aria-hidden="true"></span>
+			<strong><?php esc_html_e( 'Active timer', 'core-blueprint-work' ); ?></strong>
+			<span class="cb-work-time-running-item"><?php echo esc_html( $title ); ?></span>
+			<span class="cb-work-time-running-start"><?php
+				/* translators: 1: local start date, 2: local start time. */
+				echo esc_html( sprintf( __( 'Running since %1$s %2$s.', 'core-blueprint-work' ), (string) ( $parts['date'] ?? '' ), (string) ( $parts['time'] ?? '' ) ) );
+			?></span>
+			<a class="button button-secondary" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_TIMER ] ) ); ?>"><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></a>
 		</div>
 		<?php
 	}
@@ -138,7 +218,7 @@ final class Time {
 				<tr><th scope="row"><label for="cb-work-time-note"><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></label></th><td><textarea id="cb-work-time-note" class="large-text" rows="3" name="time[note]"><?php echo esc_textarea( $editing ? (string) $entry['note'] : '' ); ?></textarea></td></tr>
 				</tbody></table>
 				<?php submit_button( $editing ? __( 'Save Correction', 'core-blueprint-work' ) : __( 'Add Time Entry', 'core-blueprint-work' ) ); ?>
-				<?php if ( $editing ) : ?><a class="button" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a><?php endif; ?>
+				<?php if ( $editing ) : ?><a class="button" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_ENTRIES ] ) ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a><?php endif; ?>
 			</form>
 			<?php endif; ?>
 		</div>
@@ -153,7 +233,7 @@ final class Time {
 			<p><?php esc_html_e( 'No completed Time entries yet.', 'core-blueprint-work' ); ?></p>
 			<?php return; ?>
 		<?php endif; ?>
-		<table class="widefat striped"><thead><tr><th><?php esc_html_e( 'When', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th><?php if ( $manager ) : ?><th><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></th><?php endif; ?><th><?php esc_html_e( 'Duration', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
+		<div class="cb-work-time-entries-scroll"><table class="widefat striped"><thead><tr><th><?php esc_html_e( 'When', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th><?php if ( $manager ) : ?><th><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></th><?php endif; ?><th><?php esc_html_e( 'Duration', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
 		<?php foreach ( $entries as $entry ) : ?>
 			<?php
 			$item = WorkItems::get( (int) $entry['work_item_id'] );
@@ -167,10 +247,10 @@ final class Time {
 				<td><?php echo esc_html( self::duration_label( (int) $entry['duration_seconds'] ) ); ?></td>
 				<td><?php echo esc_html( ucfirst( (string) $entry['entry_source'] ) ); ?></td>
 				<td><?php echo esc_html( (string) $entry['note'] ); ?></td>
-				<td><?php if ( Access::can_view_entry( $entry ) ) : ?><a class="button button-small" href="<?php echo esc_url( self::url( [ 'entry_id' => (int) $entry['id'] ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a><?php endif; ?></td>
+				<td><?php if ( Access::can_view_entry( $entry ) ) : ?><a class="button button-small" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_MANUAL, 'entry_id' => (int) $entry['id'] ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a><?php endif; ?></td>
 			</tr>
 		<?php endforeach; ?>
-		</tbody></table>
+		</tbody></table></div>
 		<?php
 	}
 
@@ -214,7 +294,7 @@ final class Time {
 
 	/** @param array<string,int|string> $args */
 	private static function url( array $args = [] ): string {
-		return add_query_arg( [ 'page' => Menu::TIME_SLUG, ...$args ], admin_url( 'admin.php' ) );
+		return Menu::time_url( $args );
 	}
 
 	private static function render_notice(): void {
