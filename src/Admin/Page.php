@@ -152,5 +152,6 @@ final class Page {
 			'title'   => __( 'VAT Rates', 'core-blueprint-work' ),
 			'message' => $message,
 		] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base renderer returns escaped component HTML.
+		echo '</div>';
 	}
 }
