@@ -77,7 +77,7 @@ final class Time {
 					self::render_entry_form( $items, $editing, $manager, $user_id );
 					break;
 				case self::VIEW_ENTRIES:
-					self::render_entries( TimeEntries::all( 200, $manager ? 0 : $user_id ), $manager );
+					TimeEntryList::render( $manager );
 					break;
 				default:
 					self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );
@@ -226,34 +226,6 @@ final class Time {
 		<?php
 	}
 
-	/** @param array<int,array<string,mixed>> $entries */
-	private static function render_entries( array $entries, bool $manager ): void {
-		?>
-		<h2><?php esc_html_e( 'Recent Time Entries', 'core-blueprint-work' ); ?></h2>
-		<?php if ( [] === $entries ) : ?>
-			<p><?php esc_html_e( 'No completed Time entries yet.', 'core-blueprint-work' ); ?></p>
-			<?php return; ?>
-		<?php endif; ?>
-		<div class="cb-work-time-entries-scroll"><table class="widefat striped"><thead><tr><th><?php esc_html_e( 'When', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th><?php if ( $manager ) : ?><th><?php esc_html_e( 'User', 'core-blueprint-work' ); ?></th><?php endif; ?><th><?php esc_html_e( 'Duration', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Source', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Note', 'core-blueprint-work' ); ?></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
-		<?php foreach ( $entries as $entry ) : ?>
-			<?php
-			$item = WorkItems::get( (int) $entry['work_item_id'] );
-			$user = get_userdata( (int) $entry['user_id'] );
-			$parts = TimeRange::utc_to_local_parts( (string) $entry['started_at'] );
-			?>
-			<tr>
-				<td><?php echo esc_html( trim( (string) ( $parts['date'] ?? '' ) . ' ' . (string) ( $parts['time'] ?? '' ) ) ); ?></td>
-				<td><?php echo esc_html( (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $entry['work_item_id'] ) ) ); ?></td>
-				<?php if ( $manager ) : ?><td><?php echo esc_html( $user ? (string) $user->display_name : (string) $entry['user_id'] ); ?></td><?php endif; ?>
-				<td><?php echo esc_html( self::duration_label( (int) $entry['duration_seconds'] ) ); ?></td>
-				<td><?php echo esc_html( ucfirst( (string) $entry['entry_source'] ) ); ?></td>
-				<td><?php echo esc_html( (string) $entry['note'] ); ?></td>
-				<td><?php if ( Access::can_view_entry( $entry ) ) : ?><a class="button button-small" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_MANUAL, 'entry_id' => (int) $entry['id'] ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a><?php endif; ?></td>
-			</tr>
-		<?php endforeach; ?>
-		</tbody></table></div>
-		<?php
-	}
 
 	/** @return array<int,array<string,mixed>> */
 	private static function available_work_items( bool $manager, int $user_id ): array {
@@ -284,13 +256,6 @@ final class Time {
 			<button type="button" class="button" data-cb-time-picker-toggle aria-label="<?php esc_attr_e( 'Choose time', 'core-blueprint-work' ); ?>"></button>
 		</div>
 		<?php
-	}
-
-	private static function duration_label( int $seconds ): string {
-		$seconds = max( 0, $seconds );
-		$hours   = intdiv( $seconds, 3600 );
-		$minutes = intdiv( $seconds % 3600, 60 );
-		return sprintf( '%d:%02d', $hours, $minutes );
 	}
 
 	/** @param array<string,int|string> $args */
