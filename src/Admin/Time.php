@@ -53,7 +53,6 @@ final class Time {
 				<h1><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></h1>
 				<p class="description"><?php esc_html_e( 'Track time, add entries and review recorded work.', 'core-blueprint-work' ); ?></p>
 			</header>
-			<?php self::render_notice(); ?>
 			<?php if ( ! self::schema_ready() ) : ?>
 				<div class="notice notice-warning inline"><p><?php esc_html_e( 'Work Time storage is not ready yet. Complete the Work schema upgrade first.', 'core-blueprint-work' ); ?></p></div>
 			</div>
@@ -61,6 +60,7 @@ final class Time {
 			<?php endif; ?>
 			<?php
 			$active = Timers::active_for_user( $user_id );
+			self::render_notice( $active );
 			self::render_active_timer_status( $active, $view );
 			self::render_navigation( $view );
 			?>
@@ -298,7 +298,16 @@ final class Time {
 		return Menu::time_url( $args );
 	}
 
-	private static function render_notice(): void {
+	/** @param array<string,mixed>|null $active */
+	private static function notice_matches_timer_state( string $notice, ?array $active ): bool {
+		// A redirect's ?cb-work-notice can outlive the timer it described.
+		// Never show "stopped" for a running timer or "started" after it has stopped.
+		return ! ( ( 'timer-stopped' === $notice && is_array( $active ) )
+			|| ( 'timer-started' === $notice && ! is_array( $active ) ) );
+	}
+
+	/** @param array<string,mixed>|null $active */
+	private static function render_notice( ?array $active ): void {
 		$notice = isset( $_GET['cb-work-notice'] ) ? sanitize_key( (string) wp_unslash( $_GET['cb-work-notice'] ) ) : '';
 		$messages = [
 			'timer-started'       => [ 'success', __( 'Timer started.', 'core-blueprint-work' ) ],
@@ -311,7 +320,7 @@ final class Time {
 			'time-conflict'       => [ 'error', __( 'This Time entry changed after you opened it. Reload the latest entry before editing again.', 'core-blueprint-work' ) ],
 			'time-not-authorized' => [ 'error', __( 'You are not authorized to track time for that Work Item or user.', 'core-blueprint-work' ) ],
 		];
-		if ( isset( $messages[ $notice ] ) ) {
+		if ( isset( $messages[ $notice ] ) && self::notice_matches_timer_state( $notice, $active ) ) {
 			[ $type, $message ] = $messages[ $notice ];
 			printf( '<div class="notice notice-%1$s inline"><p>%2$s</p></div>', esc_attr( $type ), esc_html( $message ) );
 		}
