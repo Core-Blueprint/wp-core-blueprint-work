@@ -180,7 +180,7 @@ final class Recurrence {
 					<ol data-cb-preview-dates aria-live="polite" aria-atomic="true">
 					<?php $forecast = self::preview_dates( $frequency, $interval, $start_on, $end_on, $locked ? $rule['next_occurrence_on'] : null, $locked ); ?>
 					<?php foreach ( $forecast ?? [] as $forecast_date ) : ?>
-					<li><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $forecast_date . ' 12:00:00' ) ) ); ?></li>
+					<li><?php echo esc_html( mysql2date( get_option( 'date_format' ), $forecast_date . ' 12:00:00' ) ); ?></li>
 					<?php endforeach; ?>
 					</ol>
 				</aside>
@@ -213,7 +213,10 @@ final class Recurrence {
 
 
 			<?php if ( [] === $rules ) : ?>
-				<div class="cb-work-recurrence-empty"><h3><?php esc_html_e( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3><a class="button button-primary" href="<?php echo esc_url( self::url( [ 'mode' => 'add' ] ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a></div>
+				<div class="cb-work-recurrence-empty"><h3><?php esc_html_e( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3>
+				<?php if ( '' !== $filter_search || '' !== $filter_status || '' !== $filter_context || 0 !== $filter_project ) : ?>
+				<p><?php esc_html_e( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ); ?></p><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+				<?php else : ?><a class="button button-primary" href="<?php echo esc_url( self::url( [ 'mode' => 'add' ] ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
 			<?php else : ?>
 				<div class="cb-work-recurrence-table-scroll"><table class="widefat striped"><thead><tr><th scope="col"><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'title', 'cb_dir' => 'title' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Rule', 'core-blueprint-work' ); ?></a></th><th scope="col"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></th><th scope="col"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'next_occurrence', 'cb_dir' => 'next_occurrence' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Generated', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'status', 'cb_dir' => 'status' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
 				<?php foreach ( $rules as $configured ) : ?>
