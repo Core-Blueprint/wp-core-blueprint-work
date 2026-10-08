@@ -44,7 +44,9 @@ namespace {
     if ( '2026-10-08 13:28:13' !== TimeRange::local_to_utc( '2026-10-08', '15:28:13' )
         || '2026-10-08 13:28:00' !== TimeRange::local_to_utc( '2026-10-08', '15:28' )
         || null !== TimeRange::local_to_utc( '2026-10-08', '15:28:99' )
-        || null !== TimeRange::local_to_utc( '2026-02-30', '15:28:13' ) ) {
+        || null !== TimeRange::local_to_utc( '2026-02-30', '15:28:13' )
+        || 13 !== TimeRange::duration_seconds( '2026-10-08 13:28:13', '2026-10-08 13:28:26' )
+        || 0 !== TimeRange::duration_seconds( '2026-10-08 13:28:13', '2026-10-08 13:28:13' ) ) {
         $fail( 'second-precision conversion or backward compatibility' );
     }
 
