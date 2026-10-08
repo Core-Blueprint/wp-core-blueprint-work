@@ -16,7 +16,7 @@
     const feedback = root.querySelector('[data-cb-time-hud-feedback]');
     const title = root.querySelector('[data-cb-time-hud-title]');
     const detailTitle = root.querySelector('[data-cb-time-hud-detail-title]');
-    const clocks = root.querySelectorAll('[data-cb-time-hud-clock], [data-cb-time-hud-elapsed]');
+    const clocks = document.querySelectorAll('[data-cb-time-hud-clock], [data-cb-time-hud-elapsed], [data-cb-work-time-live]');
 
     let state = { active: false };
     let elapsedAtSync = 0;
@@ -58,6 +58,7 @@
         state = next;
         root.hidden = !state.active;
         if (!state.active) {
+            clocks.forEach((node) => { node.textContent = '00:00:00'; });
             // The page-level Time banner was server-rendered and must not remain
             // stale after another tab (or this HUD) completes the timer.
             document.querySelector('.cb-work-time-running-status')?.remove();
