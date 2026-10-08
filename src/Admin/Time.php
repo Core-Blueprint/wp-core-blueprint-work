@@ -39,6 +39,16 @@ final class Time {
 					(string) filemtime( $css_file )
 				);
 			}
+			$quick_edit_js = CB_WORK_DIR . 'assets/time-entry-quick-edit.js';
+			if ( is_file( $quick_edit_js ) ) {
+				wp_enqueue_script(
+					'cb-work-time-entry-quick-edit',
+					CB_WORK_URL . 'assets/time-entry-quick-edit.js',
+					[],
+					(string) filemtime( $quick_edit_js ),
+					true
+				);
+			}
 		}
 	}
 
