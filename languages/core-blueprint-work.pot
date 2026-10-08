@@ -2468,3 +2468,23 @@ msgstr ""
 #: src/Admin/Recurrence.php
 msgid "Dates are a preview only while this rule is inactive."
 msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Work Item defaults"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Settings applied to each generated Work Item."
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Work details"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "Assignment"
+msgstr ""
+
+#: src/Admin/Recurrence.php
+msgid "All changes saved"
+msgstr ""
