@@ -46,6 +46,7 @@ namespace CB\Work\Repository {
 
 namespace {
     use CB\Work\Repository\Timers;
+    require dirname( __DIR__ ) . '/src/Domain/TimeNote.php';
     require dirname( __DIR__ ) . '/src/Repository/Timers.php';
 
     $fail = static function ( string $reason ): never {
