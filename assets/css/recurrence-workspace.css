@@ -740,6 +740,10 @@
     opacity: .8;
 }
 
+.cb-work-recurrence-advanced-fields[hidden] {
+    display: none;
+}
+
 .cb-work-recurrence-defaults-advanced .cb-work-recurrence-fields tbody {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
