@@ -71,7 +71,7 @@ $checks = [
         && ! str_contains( $css, 'inset-inline-end: clamp(14px, 2vw, 32px);' )
         && str_contains( $css, 'inset-block-end: 88px;' )
         && str_contains( $css, 'inset-block-end: 94px;' )
-        && str_contains( $css, 'calc(100vw - 2 * var(--cb-hud-safe, 18px))' ),
+        && str_contains( $css, 'calc(100vw - var(--cb-hud-safe, 18px) - var(--cb-hud-safe, 18px))' ),
     'T1-B Time redirect notices are consumed once without touching other admin pages' =>
         str_contains( $js, "document.querySelector('.cb-work-time-page')" )
         && str_contains( $js, "address.searchParams.has('cb-work-notice')" )
