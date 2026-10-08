@@ -317,6 +317,15 @@ final class Assets {
 	private static function enqueue_calendar_assets(): void {
 		\CoreBlueprint\Core\UI\Assets::enqueue_modals( \CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_CORE );
 
+		// Calendar-only presentation. Base Modal remains responsible for
+		// workspace sizing, expand/restore and focus management.
+		$style = CB_WORK_DIR . 'assets/work-calendar-golden.css';
+		if ( is_file( $style ) ) {
+			$modified = filemtime( $style );
+			$version = false === $modified ? CB_WORK_VERSION : (string) $modified;
+			wp_enqueue_style( 'cb-work-calendar-golden', CB_WORK_URL . 'assets/work-calendar-golden.css', [ self::REFINEMENT_STYLE_HANDLE ], $version );
+		}
+
 		$file = CB_WORK_DIR . 'assets/work-calendar.js';
 		if ( ! is_file( $file ) ) {
 			return;
