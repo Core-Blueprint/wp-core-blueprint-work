@@ -2615,3 +2615,12 @@ msgstr "Não foi possível guardar a edição em lote. Reveja os registos seleci
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Pelo menos um registo de tempo selecionado foi alterado. Recarregue a lista e tente novamente."
+
+msgid "Append to note"
+msgstr "Acrescentar à nota"
+
+msgid "Replace note"
+msgstr "Substituir a nota"
+
+msgid "Clear note"
+msgstr "Limpar nota"
