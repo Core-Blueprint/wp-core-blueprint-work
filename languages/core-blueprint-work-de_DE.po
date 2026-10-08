@@ -1401,14 +1401,6 @@ msgstr "Kein Arbeitstyp"
 msgid "Estimated time (minutes)"
 msgstr "Geschätzte Zeit (Minuten)"
 
-#: src/Admin/Recurrence.php:94
-msgid ""
-"Planning estimate inherited by future generated Work Items. Registered time "
-"remains separate."
-msgstr ""
-"Planungsschätzung, die von künftig erzeugten Work Items übernommen wird. "
-"Erfasste Zeit bleibt getrennt."
-
 #: src/Admin/Recurrence.php:95 src/Admin/WorkItems.php:182
 msgid "Billing classification"
 msgstr "Abrechnungsklassifizierung"
@@ -1471,10 +1463,6 @@ msgstr "Fälligkeitsversatz"
 #: src/Admin/Recurrence.php:115
 msgid "days after scheduled date"
 msgstr "Tage nach dem geplanten Datum"
-
-#: src/Admin/Recurrence.php:118
-msgid "Save Recurring Work Rule"
-msgstr "Regel für wiederkehrende Arbeit speichern"
 
 #: src/Admin/Recurrence.php:122
 msgid "Recurring Work Rules"
@@ -2458,3 +2446,11 @@ msgstr "Die Nutzlast für die Work-Item-Ansichtseinstellung ist ungültig."
 #: src/Admin/Operations.php
 msgid "The Work Item view preferences could not be saved."
 msgstr "Die Einstellungen für die Work-Item-Ansicht konnten nicht gespeichert werden."
+
+#: src/Admin/Recurrence.php:158
+msgid "Advanced settings"
+msgstr "Erweiterte Einstellungen"
+
+#: src/Admin/Recurrence.php:205
+msgid "Rule Preview"
+msgstr "Regelvorschau"
