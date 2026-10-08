@@ -52,10 +52,11 @@ $checks = [
         && str_contains( $admin, 'case self::VIEW_ENTRIES:' )
         && str_contains( $admin, 'self::render_entries( TimeEntries::all( 200, $manager ? 0 : $user_id ), $manager );' )
         && str_contains( $admin, 'self::render_timer( self::available_work_items( $manager, $user_id ), $active, $user_id );' ),
-    'active timer is surfaced above view navigation using server data' => str_contains( $admin, 'self::render_active_timer_status( $active );' )
-        && strpos( $admin, 'self::render_active_timer_status( $active );' ) < strpos( $admin, 'self::render_navigation( $view );' )
+    'active timer is surfaced above view navigation using server data' => str_contains( $admin, 'self::render_active_timer_status( $active, $view );' )
+        && strpos( $admin, 'self::render_active_timer_status( $active, $view );' ) < strpos( $admin, 'self::render_navigation( $view );' )
         && str_contains( $admin, 'Timers::active_for_user( $user_id )' )
-        && str_contains( $admin, 'Running since %1$s %2$s.' ),
+        && str_contains( $admin, 'Running since %1$s %2$s.' )
+        && str_contains( $admin, 'if ( self::VIEW_TIMER !== $view )' ),
     'correction links and cancel navigation go to their intended views' => str_contains( $admin, "'view' => self::VIEW_MANUAL, 'entry_id' => (int) \$entry['id']" )
         && str_contains( $admin, "'view' => self::VIEW_ENTRIES" ),
     'post-action redirects preserve the correct view and tracker landing' => str_contains( $actions, "Menu::time_url( [" )
