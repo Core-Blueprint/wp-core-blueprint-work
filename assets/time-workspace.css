@@ -545,6 +545,95 @@
     margin-bottom: 16px;
 }
 
+
+/* T2-C Time Entries bulk selection: independent of the inline Quick Edit row. */
+.cb-work-time-bulk-form {
+    margin-block: 0 16px;
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+    background: var(--cb-surface-1, #fff);
+}
+.cb-work-time-bulk-editor > summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--cb-text-strong, inherit);
+}
+.cb-work-time-bulk-editor > summary:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: -3px;
+}
+.cb-work-time-bulk-count {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+    border-radius: var(--cb-radius-pill, 999px);
+    padding: 2px 8px;
+    background: var(--cb-surface-2, rgba(125, 125, 125, .09));
+    color: var(--cb-text-muted, inherit);
+    font-size: 12px;
+    font-weight: 500;
+}
+.cb-work-time-bulk-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 18px 14px;
+}
+.cb-work-time-bulk-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+}
+.cb-work-time-bulk-field label { font-weight: 600; }
+.cb-work-time-bulk-field :is(select, textarea) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+}
+.cb-work-time-bulk-field--note {
+    grid-column: 1 / -1;
+}
+.cb-work-time-bulk-field textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+.cb-work-time-bulk-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 13px 18px;
+    border-top: 1px solid var(--cb-border, #dcdcde);
+}
+.cb-work-time-bulk-form > .cb-work-time-bulk-request-notice {
+    margin: 12px 18px;
+}
+.cb-work-time-entries-scroll .widefat .cb-work-time-bulk-select-column {
+    width: 38px;
+    min-width: 38px;
+    padding-inline: 12px 6px;
+    text-align: center;
+}
+.cb-work-time-bulk-select-column input[type="checkbox"] {
+    margin: 0;
+    vertical-align: middle;
+}
+.cb-work-time-entries-scroll .widefat tbody tr.is-selected:not(.cb-work-time-quick-edit-row) {
+    background: var(--cb-surface-2, rgba(125, 125, 125, .09));
+}
+@media (max-width: 782px) {
+    .cb-work-time-bulk-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-time-bulk-field--note {
+        grid-column: 1;
+    }
+}
+
 /* T2-B: one inline editor below the selected Time Entry, never a second workspace. */
 .cb-work-time-entries-row-actions {
     white-space: nowrap;
