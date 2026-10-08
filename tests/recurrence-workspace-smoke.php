@@ -94,6 +94,8 @@ $checks = [
 		&& str_contains( $script, 'saveButton?.focus()' ),
 	'Rule preview includes assignment schedule offset and paused status without writes' => str_contains( $recurrence, "__( 'Preview' )" )
 		&& str_contains( $recurrence, 'data-cb-preview-assignees' )
+		&& str_contains( $script, "assigneePicker?.querySelector('[data-cb-core-object-picker-input]')" )
+		&& str_contains( $script, 'queueMicrotask(syncAssignees)' )
 		&& str_contains( $recurrence, 'data-cb-preview-schedule' )
 		&& str_contains( $recurrence, 'data-cb-preview-due' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-preview-status-note' )
@@ -111,6 +113,7 @@ $checks = [
 	'Sticky toolbar and roomy assignee group support desktop and mobile' => str_contains( $styles, '.cb-work-recurrence-activation {' )
 		&& str_contains( $styles, 'top: var(--wp-admin--admin-bar--height, 32px)' )
 		&& str_contains( $styles, '.cb-work-recurrence-section--defaults .cb-work-recurrence-field--assignees {' )
+		&& str_contains( $styles, 'grid-template-columns: repeat(5, minmax(0, 1fr));' )
 		&& str_contains( $styles, '@media (max-width: 680px)' ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
