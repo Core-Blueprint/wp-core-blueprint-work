@@ -85,6 +85,33 @@ $checks = [
 		&& str_contains( $script, 'const markDirty = () => {' )
 		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" )
 		&& str_contains( $script, "body.set('action', 'cb_work_toggle_recurrence_rule_inline')" ),
+	'Activation toolbar is above builder and uses the governed form without nested forms' => strpos( $recurrence, 'data-cb-recurrence-toolbar' ) < strpos( $recurrence, 'data-cb-recurrence-editor' )
+		&& str_contains( $recurrence, 'form="cb-work-recurrence-editor-form"' )
+		&& str_contains( $recurrence, 'id="cb-work-recurrence-editor-form"' )
+		&& 1 === substr_count( $recurrence, 'class="cb-work-recurrence-activation"' )
+		&& str_contains( $recurrence, 'data-cb-recurrence-unsaved' )
+		&& str_contains( $script, 'if (unsavedNotice) unsavedNotice.hidden = false;' )
+		&& str_contains( $script, 'saveButton?.focus()' ),
+	'Rule preview includes assignment schedule offset and paused status without writes' => str_contains( $recurrence, "__( 'Preview' )" )
+		&& str_contains( $recurrence, 'data-cb-preview-assignees' )
+		&& str_contains( $recurrence, 'data-cb-preview-schedule' )
+		&& str_contains( $recurrence, 'data-cb-preview-due' )
+		&& str_contains( $recurrence, 'cb-work-recurrence-preview-status-note' )
+		&& str_contains( $styles, '.cb-work-recurrence-preview-status-note {' ),
+	'Only schedule changes request a new read-only preview' => str_contains( $script, 'const scheduleNames = new Set([' )
+		&& str_contains( $script, 'if (!scheduleNames.has(event.target?.name)) return;' )
+		&& str_contains( $script, "dates.setAttribute('aria-busy', 'true')" )
+		&& str_contains( $script, "dates.removeAttribute('aria-busy')" ),
+	'Existing saved rules use their occurrence cursor and changed drafts start fresh' => str_contains( $recurrence, "bool \$use_cursor = false, ?string \$from_on = null" )
+		&& str_contains( $actions, '$unchanged = null !== $current' )
+		&& str_contains( $actions, '$use_cursor = $locked || $unchanged;' )
+		&& \CB\Work\Admin\Recurrence::preview_dates( 'weekly', 1, '2026-01-01', null, '2026-02-05', true, '2026-06-01' ) === [ '2026-02-05', '2026-02-12', '2026-02-19' ]
+		&& \CB\Work\Admin\Recurrence::preview_dates( 'weekly', 1, '2026-01-01', null, null, false, '2026-01-15' ) === [ '2026-01-15', '2026-01-22', '2026-01-29' ]
+		&& \CB\Work\Admin\Recurrence::preview_dates( 'weekly', 1, '2026-01-01', null, null, true, '2026-06-01' ) === [],
+	'Sticky toolbar and roomy assignee group support desktop and mobile' => str_contains( $styles, '.cb-work-recurrence-activation {' )
+		&& str_contains( $styles, 'top: var(--wp-admin--admin-bar--height, 32px)' )
+		&& str_contains( $styles, '.cb-work-recurrence-section--defaults .cb-work-recurrence-field--assignees {' )
+		&& str_contains( $styles, '@media (max-width: 680px)' ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
