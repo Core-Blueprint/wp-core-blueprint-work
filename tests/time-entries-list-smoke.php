@@ -83,7 +83,7 @@ namespace {
         'te_source' => 'injection', 'te_sort' => '1; DROP TABLE', 'te_page' => '-5',
     ], true );
     if ( '' !== $bad['from'] || '' !== $bad['to'] || '' !== $bad['source']
-        || 'newest' !== $bad['sort'] || $bad['page'] < 1 || $bad['user_id'] !== 0 ) {
+        || 'newest' !== $bad['sort'] || 1 !== $bad['page'] || $bad['user_id'] !== 0 ) {
         $fail( 'malformed filters must not influence SQL' );
     }
     $spring = TimeEntryListState::from_request( [ 'te_from' => '2026-03-29', 'te_to' => '2026-03-29' ], true );
