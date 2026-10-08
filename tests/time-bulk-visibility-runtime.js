@@ -34,7 +34,7 @@ const editor = {
     }
 };
 const mode = { value: 'keep', matches: selector => selector.includes('[data-cb-work-time-bulk-mode]') };
-const target = { value: '0', matches: selector => selector.includes('[data-cb-work-time-bulk-target]') };
+const target = { value: '0', matches: selector => selector.includes('input[name="bulk_work_item_id"]') };
 const note = { value: '', disabled: false, required: false, matches: selector => selector.includes('[data-cb-work-time-bulk-note]') };
 const submit = { disabled: false };
 const counter = { textContent: '' };
@@ -43,7 +43,7 @@ const form = {
     querySelector(selector) {
         return {
             '[data-cb-work-time-bulk-mode]': mode,
-            '[data-cb-work-time-bulk-target]': target,
+            'input[name="bulk_work_item_id"]': target,
             '[data-cb-work-time-bulk-note]': note,
             '[data-cb-work-time-bulk-submit]': submit,
             '[data-cb-work-time-bulk-count]': counter,
