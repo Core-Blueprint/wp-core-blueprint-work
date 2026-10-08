@@ -39,6 +39,10 @@ document.querySelectorAll(SELECTOR).forEach((node) => {
     shown = true;
 });
 
+// Every server notice eligible for a Toast has now been processed. Clear
+// pre-paint concealment; unconverted notices remain available inline.
+document.documentElement.classList.remove('cb-work-toast-pending');
+
 // Do not repeat one-off redirect notifications after refresh. Query state
 // for filters, edit IDs and other domains is intentionally untouched.
 if (shown) {
