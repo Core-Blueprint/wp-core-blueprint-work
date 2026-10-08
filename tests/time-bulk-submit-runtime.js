@@ -20,7 +20,7 @@ const classList = (...initial) => {
     };
 };
 
-async function scenario(outcome, status = 200, hasAction = true) {
+async function scenario(outcome, status = 200, hasAction = true, useToast = false) {
     const handlers = Object.create(null);
     const success = outcome === 'time-bulk-updated' || outcome === 'time-bulk-partial';
     const noticeType = success ? 'success' : 'error';
@@ -30,6 +30,7 @@ async function scenario(outcome, status = 200, hasAction = true) {
         focus() {}
     };
     let feedbackNode = null;
+    const toastEvents = [];
     let postUrl = null;
     let requests = 0;
     let listReplacements = 0;
@@ -156,6 +157,12 @@ async function scenario(outcome, status = 200, hasAction = true) {
             };
         }
     };
+    if (useToast) {
+        context.window.cbWorkToast = {
+            showNotice(node) { toastEvents.push(node); return true; },
+            showMessage() { return true; }
+        };
+    }
     vm.runInNewContext(source, context, { filename: 'time-entry-bulk-edit.js' });
     assert.equal(originalForm.hidden, false, 'two selected rows must expose Bulk Edit');
     assert.equal(originalForm.submitButton.disabled, false);
@@ -166,7 +173,12 @@ async function scenario(outcome, status = 200, hasAction = true) {
         preventDefault() { prevented = true; }
     });
     assert.equal(prevented, true, 'Bulk Edit must avoid full-page navigation');
-    assert.ok(feedbackNode, 'a result or fallback notice must be rendered');
+    if (useToast) {
+        assert.equal(feedbackNode, null, 'Base Toast prevents duplicate inline feedback');
+        assert.strictEqual(toastEvents[0], serverNotice);
+    } else {
+        assert.ok(feedbackNode, 'a result or fallback notice must be rendered');
+    }
     if (hasAction && status === 200 && success) {
         assert.equal(freshForm.hidden, true, 'replacement form must start unselected');
         assert.equal(freshForm.submitButton.disabled, true,
@@ -186,14 +198,14 @@ async function scenario(outcome, status = 200, hasAction = true) {
 
     if (hasAction && status === 200 && success) {
         assert.equal(listReplacements, 1, 'success or partial update refreshes canonical entries');
-        assert.strictEqual(feedbackNode, serverNotice);
+        if (!useToast) assert.strictEqual(feedbackNode, serverNotice);
         assert.ok(historyUrl, 'successful save updates URL-backed state');
         assert.equal(new URL(historyUrl).searchParams.has('cb-work-notice'), false);
     } else {
         assert.equal(listReplacements, 0, 'failure must retain user selection and form');
         assert.equal(originalForm.hidden, false);
         assert.equal(historyUrl, '', 'failed update must not modify history');
-        assert.equal(feedbackNode.classList.contains('notice-error'), true);
+        if (!useToast) assert.equal(feedbackNode.classList.contains('notice-error'), true);
     }
 }
 
@@ -203,6 +215,8 @@ async function scenario(outcome, status = 200, hasAction = true) {
     await scenario('time-bulk-conflict');
     await scenario('time-bulk-invalid', 404);
     await scenario('time-bulk-updated', 200, false);
+    await scenario('time-bulk-updated', 200, true, true);
+    await scenario('time-bulk-partial', 200, true, true);
     console.log('Time Bulk Edit submit runtime passed (success, partial, conflict, HTTP error, missing action).');
 })().catch(error => {
     console.error(error);
