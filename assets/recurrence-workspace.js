@@ -112,7 +112,9 @@
     let leavingIntentionally = false;
     if (editForm) {
         const notice = document.querySelector('[data-cb-recurrence-unsaved]');
-        const markUnsaved = () => {
+        const markUnsaved = (event) => {
+            // Typing into the ObjectPicker search field does not change the rule.
+            if (!event.target?.name?.startsWith('recurrence[')) return;
             isDirty = true;
             if (notice) notice.hidden = false;
         };
