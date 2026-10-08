@@ -53,8 +53,8 @@ final class Pickers {
 		] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base ObjectPicker returns escaped markup.
 	}
 
-	public static function assignee( string $name, string $id, int $user_id = 0 ): void {
-		self::render_user_picker( $name, $id, $user_id > 0 ? [ $user_id ] : [], false );
+	public static function assignee( string $name, string $id, int $user_id = 0, bool $show_hint = true ): void {
+		self::render_user_picker( $name, $id, $user_id > 0 ? [ $user_id ] : [], false, $show_hint );
 	}
 
 	/** @param int[] $user_ids */
