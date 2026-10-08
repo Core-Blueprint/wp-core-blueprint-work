@@ -325,6 +325,21 @@
     font-weight: 600;
     white-space: nowrap;
 }
+.cb-work-time-entries-scroll .widefat th a {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+}
+.cb-work-time-entries-scroll .widefat th a:hover {
+    color: var(--wp-admin-theme-color, #2271b1);
+    text-decoration: underline;
+}
+.cb-work-time-sort-indicator {
+    color: var(--wp-admin-theme-color, #2271b1);
+    font-size: 14px;
+}
 .cb-work-time-entries-scroll .widefat :is(th, td) {
     padding: 13px 15px;
     vertical-align: middle;
