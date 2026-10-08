@@ -97,7 +97,9 @@ final class TimeEntryList {
             </form>
 
             <?php if ( [] !== $result['items'] ) : ?>
-                <form id="cb-work-time-bulk-form" class="cb-work-time-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-cb-work-time-bulk-form>
+                <!-- Without JavaScript the bulk form remains available as a regular POST form. -->
+                <noscript><style>#cb-work-time-bulk-form[hidden] { display: block !important; }</style></noscript>
+                <form id="cb-work-time-bulk-form" class="cb-work-time-bulk-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-cb-work-time-bulk-form hidden>
                     <input type="hidden" name="action" value="<?php echo esc_attr( TimeEntryBulkEdit::ACTION ); ?>">
                     <?php wp_nonce_field( TimeEntryBulkEdit::ACTION ); ?>
                     <?php foreach ( TimeEntryListState::url_args( $state ) as $key => $value ) : ?>
