@@ -28,6 +28,9 @@ $checks = [
 		&& str_contains( $actions, "self::guard( 'cb_work_update_recurrence_rule_' . \$rule_id )" ),
 	'History-locked schedule fields are preserved' => str_contains( $recurrence, 'RecurrenceOccurrences::count_for_rule( $edit_id ) > 0' )
 		&& str_contains( $recurrence, 'if ( $locked ) : ?>' ),
+	'Context-dependent rows stay hidden despite the flex field layout' => 1 === preg_match( '/\.cb-work-recurrence-fields\s+tr\[hidden\]\s*\{\s*display:\s*none\s*;/s', $styles )
+		&& str_contains( $recurrence, 'data-cb-work-customer-row' )
+		&& str_contains( $recurrence, 'data-cb-work-context-row' ),
 	'Editor fields are grouped semantically and respond by class' => str_contains( $recurrence, 'cb-work-recurrence-section--rule' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-section--defaults' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-section--schedule' )
