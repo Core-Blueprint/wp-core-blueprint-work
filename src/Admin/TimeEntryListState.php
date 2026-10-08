@@ -21,7 +21,7 @@ final class TimeEntryListState {
     private const SOURCES = [ 'manual', 'timer' ];
 
     /** @param array<string,mixed> $request
-     * @return array{search:string,from:string,to:string,source:string,user_id:int,sort:string,page:int,per_page:int,from_utc:string,to_utc:string}
+     * @return array{search:string,from:string,to:string,source:string,user_id:int,is_manager:bool,sort:string,page:int,per_page:int,from_utc:string,to_utc:string}
      */
     public static function from_request( array $request, bool $manager ): array {
         $source = self::key( $request['te_source'] ?? '' );
@@ -44,6 +44,7 @@ final class TimeEntryListState {
             'to'       => $to,
             'source'   => in_array( $source, self::SOURCES, true ) ? $source : '',
             'user_id'  => $manager ? absint( self::scalar( $request['te_user'] ?? '' ) ) : get_current_user_id(),
+            'is_manager' => $manager,
             'sort'     => in_array( $sort, self::SORTS, true ) ? $sort : self::SORT_NEWEST,
             'page'     => max( 1, min( 1000000, absint( self::scalar( $request['te_page'] ?? 1 ) ) ) ),
             'per_page' => 25,
