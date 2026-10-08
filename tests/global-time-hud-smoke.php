@@ -66,6 +66,18 @@ $checks = [
         && str_contains( $js, "document.addEventListener('pointerdown'" )
         && str_contains( $js, 'credentials: \'same-origin\'' )
         && str_contains( $js, "cache: 'no-store'" ),
+    'T1-B global HUD and toast align with the default Core Blueprint Base safe edge' =>
+        3 === substr_count( $css, 'inset-inline-end: var(--cb-hud-safe, 18px);' )
+        && ! str_contains( $css, 'inset-inline-end: clamp(14px, 2vw, 32px);' )
+        && str_contains( $css, 'inset-block-end: 88px;' )
+        && str_contains( $css, 'inset-block-end: 94px;' )
+        && str_contains( $css, 'calc(100vw - 2 * var(--cb-hud-safe, 18px))' ),
+    'T1-B Time redirect notices are consumed once without touching other admin pages' =>
+        str_contains( $js, "document.querySelector('.cb-work-time-page')" )
+        && str_contains( $js, "address.searchParams.has('cb-work-notice')" )
+        && str_contains( $js, "address.searchParams.delete('cb-work-notice')" )
+        && str_contains( $js, 'window.history.replaceState(window.history.state' )
+        && str_contains( $js, 'address.pathname + address.search + address.hash' ),
     'HUD owns its styling and stays docked above existing global utility' =>
         str_contains( $css, '.cb-work-global-time-hud {' )
         && str_contains( $css, 'inset-block-end: 88px' )
