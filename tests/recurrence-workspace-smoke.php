@@ -76,6 +76,15 @@ $checks = [
 		&& str_contains( $script, "row.hidden = !expanded" )
 		&& str_contains( $styles, '.cb-work-recurrence-builder {' )
 		&& str_contains( $styles, '@media (max-width: 1220px)' ),
+	'Natural-language schedule selection retains canonical frequency values' => str_contains( $recurrence, 'cb-work-recurrence-interval' )
+		&& str_contains( $recurrence, 'data-cb-unit-singular' )
+		&& str_contains( $recurrence, 'data-cb-unit-plural' )
+		&& str_contains( $script, 'const syncUnits = () => {' )
+		&& str_contains( $recurrence, 'RecurrenceSchedule::frequencies()' ),
+	'Explicit editor activation guards unsaved changes and has no nested forms' => str_contains( $recurrence, 'data-cb-editor-toggle' )
+		&& str_contains( $script, 'const markDirty = () => {' )
+		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" ) === false
+		&& str_contains( $script, "body.set('action', 'cb_work_toggle_recurrence_rule_inline')" ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
