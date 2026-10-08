@@ -138,6 +138,11 @@
                     window.location.reload();
                     return true;
                 }
+                // On Work screens the shared Base Toast is authoritative.
+                // Keep the existing HUD toast only as fallback on other admin screens.
+                if (window.cbWorkToast?.showMessage(config.strings.stopped, 'success')) {
+                    return true;
+                }
                 const toast = document.querySelector('[data-cb-time-hud-toast]');
                 if (toast) {
                     toast.textContent = config.strings.stopped;
