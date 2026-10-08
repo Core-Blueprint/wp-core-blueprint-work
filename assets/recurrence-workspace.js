@@ -112,11 +112,18 @@
     let leavingIntentionally = false;
     if (editForm) {
         const notice = document.querySelector('[data-cb-recurrence-unsaved]');
+        const savedNotice = document.querySelector('[data-cb-recurrence-saved]');
+        const saveButton = document.querySelector('[form="cb-work-recurrence-editor-form"][type="submit"]');
+        // Only disable Save on an existing, unchanged rule. The normal submit remains
+        // available without JS, and a new rule must always be creatable.
+        if (editForm.dataset.ruleId !== '0' && saveButton) saveButton.disabled = true;
         const markUnsaved = (event) => {
             // Typing into the ObjectPicker search field does not change the rule.
             if (!event.target?.name?.startsWith('recurrence[')) return;
             isDirty = true;
             if (notice) notice.hidden = false;
+            if (savedNotice) savedNotice.hidden = true;
+            if (saveButton) saveButton.disabled = false;
         };
         editForm.addEventListener('input', markUnsaved);
         editForm.addEventListener('change', markUnsaved);
@@ -189,20 +196,22 @@
     const advancedToggle = editor.querySelector('[data-cb-work-advanced-toggle]');
     const advancedLabel = advancedToggle?.querySelector('[data-cb-advanced-label]');
     const advancedSummary = editor.querySelector('[data-cb-advanced-summary]');
+    const advancedFields = editor.querySelector('#cb-work-recurrence-advanced-fields');
     const describeAdvanced = () => {
         if (!advancedSummary) return;
         const field = (name) => editor.elements.namedItem('recurrence[' + name + ']');
         const choice = (name) => field(name)?.selectedOptions?.[0]?.textContent?.trim() || '—';
         advancedSummary.textContent = [
-            config.priorityLabel + ': ' + choice('priority'),
-            config.estimateLabel + ': ' + (field('estimated_minutes')?.value || '0'),
-            config.billingLabel + ': ' + choice('billing_disposition')
+            choice('priority'),
+            (field('estimated_minutes')?.value || '0') + ' ' + config.minuteUnit,
+            choice('billing_disposition')
         ].join(' · ');
     };
     if (advancedToggle) {
         let expanded = advancedToggle.getAttribute('aria-expanded') === 'true';
         const syncAdvanced = () => {
             advanced.forEach((row) => { row.hidden = !expanded; });
+            if (advancedFields) advancedFields.hidden = !expanded;
             advancedToggle.setAttribute('aria-expanded', String(expanded));
             if (advancedLabel) advancedLabel.textContent = expanded ? config.hideAdvanced : config.showAdvanced;
             if (advancedSummary) {
