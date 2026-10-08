@@ -47,7 +47,9 @@ $checks = [
     'Work aliases are available in modal transplanted outside page wrapper' =>
         str_contains( $style, '.cb-work-day-modal {' )
         && str_contains( $style, '--cb-work-surface-raised: var(--cb-surface-2);' )
-        && str_contains( $style, '--cb-work-border: var(--cb-border);' ),
+        && str_contains( $style, '--cb-work-border: var(--cb-border);' )
+        && str_contains( $style, '@media (prefers-reduced-motion: reduce)' )
+        && str_contains( $style, '.cb-work-day-modal .cb-work-day-card:hover {' ),
     'Base workspace dialog stays the one modal; board can scroll independently' =>
         str_contains( $calendar, "import '@cb-core/modal';" )
         && str_contains( $calendar, "size: 'workspace'" )
