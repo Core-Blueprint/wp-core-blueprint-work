@@ -4,6 +4,9 @@ declare(strict_types=1);
 namespace {
     define( 'ABSPATH', '/tmp/wp/' );
     function wp_timezone(): \DateTimeZone { return new \DateTimeZone( 'Europe/Amsterdam' ); }
+    function wp_unslash( string $text ): string { return stripslashes( $text ); }
+    function sanitize_key( string $text ): string { return preg_replace( '/[^a-z0-9_\\-]/', '', strtolower( $text ) ) ?? ''; }
+    function sanitize_text_field( string $text ): string { return trim( strip_tags( $text ) ); }
     function esc_attr( mixed $value ): string { return htmlspecialchars( (string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ); }
     function esc_url( mixed $value ): string { return esc_attr( $value ); }
     function esc_html( mixed $value ): string { return esc_attr( $value ); }
@@ -84,7 +87,7 @@ namespace {
     if ( str_contains( $html, '<img ' ) || ! str_contains( $html, '&lt;img' )
         || str_contains( $html, 'name="time[user_id]"' )
         || str_contains( $html, 'name="time[work_item_id]"' )
-        || str_contains( $html, '<form', strpos( $html, '<form' ) + 1 ) ) {
+        || 1 !== substr_count( $html, '<form' ) ) {
         $fail( 'escaping, locked context or form nesting' );
     }
 
