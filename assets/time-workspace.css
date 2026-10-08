@@ -241,3 +241,160 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
+
+
+/* T2-A: Time Entries list workspace. All styles scoped to Time. */
+.cb-work-time-entries {
+    min-width: 0;
+    width: 100%;
+}
+.cb-work-time-entries-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.cb-work-time-entries-head h2 {
+    margin: 0 0 5px;
+}
+.cb-work-time-entries-head .description {
+    margin: 0;
+}
+.cb-work-time-entries-filters {
+    display: grid;
+    grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(125px, 1fr)) minmax(140px, 1fr) minmax(155px, 1fr);
+    gap: 16px;
+    align-items: end;
+    padding: 18px;
+    margin: 0 0 18px;
+    border: 1px solid var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+    background: var(--cb-surface-1, #fff);
+}
+.cb-work-time-filter {
+    min-width: 0;
+}
+.cb-work-time-filter label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+.cb-work-time-filter > :is(input, select) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-height: 38px;
+}
+.cb-work-time-filter--user {
+    grid-column: auto;
+    min-width: 190px;
+}
+.cb-work-time-filter--user [data-cb-object-picker] {
+    width: 100%;
+    max-width: 100%;
+}
+.cb-work-time-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    flex-wrap: wrap;
+}
+.cb-work-time-entries-summary,
+.cb-work-time-entries-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 12px;
+    color: var(--cb-text-muted, inherit);
+}
+.cb-work-time-entries-summary strong {
+    color: var(--cb-text-strong, inherit);
+    font-variant-numeric: tabular-nums;
+}
+.cb-work-time-entries-scroll .widefat {
+    min-width: 850px;
+    width: 100%;
+    border-collapse: collapse;
+}
+.cb-work-time-entries-scroll .widefat th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+.cb-work-time-entries-scroll .widefat :is(th, td) {
+    padding: 13px 15px;
+    vertical-align: middle;
+}
+.cb-work-time-entry-title {
+    font-weight: 600;
+}
+.cb-work-time-when,
+.cb-work-time-duration {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.cb-work-time-note {
+    max-width: 280px;
+    overflow-wrap: anywhere;
+}
+.cb-work-time-entries-pagination {
+    margin: 16px 0 0;
+}
+.cb-work-time-entries-pagination > div {
+    display: flex;
+    gap: 8px;
+}
+.cb-work-time-entries-empty {
+    padding: clamp(32px, 5vw, 68px) 20px;
+    border: 1px dashed var(--cb-border, #dcdcde);
+    border-radius: var(--cb-radius-md, 8px);
+    text-align: center;
+    background: var(--cb-surface-1, #fff);
+}
+.cb-work-time-entries-empty > .dashicons {
+    width: auto;
+    height: auto;
+    font-size: 30px;
+    opacity: .65;
+}
+.cb-work-time-entries-empty h3 {
+    margin: 12px 0 7px;
+}
+.cb-work-time-entries-empty p {
+    margin: 0 0 20px;
+    color: var(--cb-text-muted, inherit);
+}
+.cb-work-time-entries-empty-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.cb-work-time-entries :is(button, a, input, select):focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+}
+@media (max-width: 1250px) {
+    .cb-work-time-entries-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (max-width: 782px) {
+    .cb-work-time-entries-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 14px;
+    }
+}
+@media (max-width: 520px) {
+    .cb-work-time-entries-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-time-entries-head > .button {
+        width: 100%;
+        text-align: center;
+    }
+}
