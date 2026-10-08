@@ -1838,14 +1838,6 @@ msgstr ""
 msgid "Save Correction"
 msgstr ""
 
-#: src/Admin/Time.php:151
-msgid "Recent Time Entries"
-msgstr ""
-
-#: src/Admin/Time.php:153
-msgid "No completed Time entries yet."
-msgstr ""
-
 #: src/Admin/Time.php:156
 msgid "When"
 msgstr ""
