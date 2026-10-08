@@ -20,6 +20,14 @@ $checks = [
         substr_count( $integration, 'new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST )' ) === 2
         && substr_count( $integration, 'SELECT CONNECTION_ID()' ) === 2
         && str_contains( $integration, 'assertNotSame( $connection_a_id, $connection_b_id' ),
+    'both sessions share the same explicit test schema and committed DDL' =>
+        str_contains( $integration, 'mysqli_select_db( $a->dbh, DB_NAME )' )
+        && str_contains( $integration, 'mysqli_select_db( $b->dbh, DB_NAME )' )
+        && str_contains( $integration, 'mysqli_autocommit( $a->dbh, true )' )
+        && str_contains( $integration, 'mysqli_autocommit( $b->dbh, true )' )
+        && str_contains( $integration, "self::assertSame( DB_NAME, (string) \$schema_a->fetch_row()[0] )" )
+        && str_contains( $integration, "self::assertSame( DB_NAME, (string) \$schema_b->fetch_row()[0] )" )
+        && str_contains( $integration, 'mysqli_query( $client->dbh, \'SELECT COUNT(*) FROM \' . $table )' ),
     'shared isolated table has unique name and explicit cleanup' =>
         str_contains( $integration, "'cb_wtg006_time_' . bin2hex( random_bytes( 8 ) )" )
         && str_contains( $integration, 'CREATE TABLE ' )
