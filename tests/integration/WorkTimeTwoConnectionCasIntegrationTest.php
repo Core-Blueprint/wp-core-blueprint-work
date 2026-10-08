@@ -163,6 +163,41 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
         self::assertSame( 2, (int) $this->read_entry( $a, $second_id )['revision'] );
     }
 
+    public function test_zero_second_timer_keeps_atomic_guards_between_sessions(): void {
+        $this->open_shared_test_connections();
+        $a = $this->connection_a;
+        $b = $this->connection_b;
+        self::assertInstanceOf( wpdb::class, $a );
+        self::assertInstanceOf( wpdb::class, $b );
+
+        $instant = gmdate( 'Y-m-d H:i:s', time() - 3600 );
+        $id = $this->seed_entry( $a, $instant, $instant, 'stopped timer', 'timer' );
+        $first = $this->read_entry( $a, $id );
+        $stale = $this->read_entry( $b, $id );
+        self::assertSame( 0, (int) $first['duration_seconds'] );
+        self::assertSame( $first['revision'], $stale['revision'] );
+
+        self::assertSame( 1, $this->correct_with_repository_cas_sql(
+            $a, $first, 'timer note updated', 101
+        ) );
+        self::assertSame( 0, $this->correct_with_repository_cas_sql(
+            $b, $stale, 'stale timer note', 102
+        ) );
+
+        $latest = $this->read_entry( $b, $id );
+        self::assertSame( 'timer note updated', $latest['note'] );
+        self::assertSame( $instant, $latest['started_at'] );
+        self::assertSame( $instant, $latest['ended_at'] );
+        self::assertSame( 0, (int) $latest['duration_seconds'] );
+        self::assertSame( 2, (int) $latest['revision'] );
+
+        $shifted = gmdate( 'Y-m-d H:i:s', time() - 3300 );
+        self::assertSame( 0, $this->correct_with_repository_cas_sql(
+            $b, $latest, 'disallowed move', 102, $shifted, $shifted
+        ), 'A zero-second timer may not be relocated while preserving zero duration.' );
+        self::assertSame( 'timer note updated', $this->read_entry( $a, $id )['note'] );
+    }
+
     public function test_two_distinct_user_identities_obey_time_entry_permissions(): void {
         global $wpdb;
         register_post_type( PostTypes::WORK_ITEM, [ 'public' => false ] );
@@ -272,7 +307,7 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
         self::assertSame( 0, (int) $b->get_var( 'SELECT COUNT(*) FROM ' . $table ) );
     }
 
-    private function seed_entry( wpdb $client, string $start, string $end, string $note ): int {
+    private function seed_entry( wpdb $client, string $start, string $end, string $note, string $source = 'manual' ): int {
         $seconds = TimeRange::duration_seconds( $start, $end );
         self::assertNotNull( $seconds );
         $inserted = $client->insert(
@@ -280,7 +315,7 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
             [
                 'work_item_id' => 701,
                 'user_id' => 801,
-                'entry_source' => 'manual',
+                'entry_source' => $source,
                 'started_at' => $start,
                 'ended_at' => $end,
                 'duration_seconds' => $seconds,
