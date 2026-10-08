@@ -121,7 +121,7 @@ final class Recurrence {
 			<?php else : ?>
 			<div class="cb-work-recurrence-list">
 			<h2><?php esc_html_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?></h2>
-			<details class="cb-work-recurrence-diagnostics"><summary><?php esc_html_e( 'Generator', 'core-blueprint-work' ); ?></summary><p class="description"><?php
+			<details class="cb-work-recurrence-diagnostics"><summary><?php esc_html_e( 'Run Generator Now', 'core-blueprint-work' ); ?></summary><p class="description"><?php
 			/* translators: %s: next WordPress cron timestamp, or a not-scheduled label. */
 			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
 			?></p>
