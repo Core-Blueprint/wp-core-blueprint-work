@@ -161,7 +161,24 @@ async function submit() {
     assert.equal(postCount, before, 'missing form action must not trigger a request');
     assert.equal(renderedNotice.classList.contains('notice-error'), true);
 
-    console.log('Time Quick Edit submit runtime passed (success, conflict, HTTP error, missing action).');
+    // With Base's adapter ready, an async failure uses the shared Toast
+    // without prepending a second inline copy or losing the unsaved editor.
+    renderedNotice = null;
+    actionUrl = endpoint;
+    validHttp = true;
+    serverOutcome = 'time-conflict';
+    const toasts = [];
+    context.window.cbWorkToast = {
+        showNotice(node) { toasts.push(node); return true; },
+        showMessage() { return true; }
+    };
+    await submit();
+    assert.strictEqual(toasts[0], conflictNotice, 'Base Toast receives the server error');
+    assert.equal(renderedNotice, null, 'no duplicate inline notice is created');
+    assert.equal(replaced, 1, 'Toast feedback does not replace an unsaved editor');
+    assert.equal(redirectedTo, savedUrl);
+
+    console.log('Time Quick Edit submit runtime passed (success, conflict, HTTP error, missing action, Base Toast).');
 })().catch(error => {
     console.error(error);
     process.exitCode = 1;
