@@ -35,6 +35,8 @@ $checks = [
         && str_contains( $bulkJs, 'window.cbWorkToast?.showNotice(source)' )
         && str_contains( $quickJs, 'document.importNode(serverNotice, true)' )
         && str_contains( $bulkJs, 'document.importNode(source, true)' ),
+    'Global timer HUD reuses Work toast when available' =>
+        str_contains( (string) file_get_contents( $root . '/assets/global-time-hud.js' ), "window.cbWorkToast?.showMessage(config.strings.stopped, 'success')" ),
     'Quick Add retains action link and shows error toast' =>
         str_contains( $quickAdd, 'Menu::edit_work_item_url( $id )' )
         && str_contains( $quickAdd, 'data-cb-work-toast="error"' ),
