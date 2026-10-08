@@ -14,6 +14,10 @@ $script     = file_get_contents( $root . '/assets/recurrence-workspace.js' );
 
 $render_pos = strpos( $recurrence, 'public static function render(): void' );
 $render     = false === $render_pos ? '' : substr( $recurrence, $render_pos );
+$defaults_begin = strpos( $recurrence, '<section class="cb-work-recurrence-section cb-work-recurrence-section--defaults">' );
+$defaults_end = false === $defaults_begin ? false : strpos( $recurrence, '<section class="cb-work-recurrence-section cb-work-recurrence-section--schedule">', $defaults_begin );
+$defaults = false !== $defaults_begin && false !== $defaults_end ? substr( $recurrence, $defaults_begin, $defaults_end - $defaults_begin ) : '';
+
 
 $checks = [
 	'Recurrence stylesheet is registered before admin head renders' => str_contains( $menu, "add_action( 'admin_enqueue_scripts', [ Recurrence::class, 'enqueue_assets' ] );" )
@@ -140,6 +144,33 @@ $checks = [
 		&& str_contains( $recurrence, 'cb-work-recurrence-preview-group-heading' ),
 	'Native date fields preserve ISO values and advertise the site locale' => str_contains( $recurrence, "str_replace( '_', '-', determine_locale() )" )
 		&& str_contains( $recurrence, 'type="date" name="recurrence[start_on]"' ),
+	'Work Item defaults group essential fields by task details and assignment' => str_contains( $defaults, 'cb-work-recurrence-defaults-header' )
+		&& str_contains( $defaults, 'cb-work-recurrence-defaults-grid' )
+		&& str_contains( $defaults, 'cb-work-recurrence-defaults-work' )
+		&& str_contains( $defaults, 'cb-work-recurrence-defaults-assignment' )
+		&& str_contains( $defaults, "esc_html_e( 'Work details', 'core-blueprint-work' )" )
+		&& str_contains( $defaults, "esc_html_e( 'Assignment', 'core-blueprint-work' )" )
+		&& strpos( $defaults, 'cb-work-recurrence-project' ) < strpos( $defaults, 'cb-work-recurrence-service' )
+		&& strpos( $defaults, 'cb-work-recurrence-type' ) < strpos( $defaults, 'Pickers::assignees(' )
+		&& strpos( $defaults, 'Pickers::assignees(' ) < strpos( $defaults, 'cb-work-recurrence-priority' ),
+	'Advanced fields stay in their original form and are operable by keyboard' => str_contains( $defaults, 'aria-controls="cb-work-recurrence-advanced-fields"' )
+		&& str_contains( $defaults, 'id="cb-work-recurrence-advanced-fields"' )
+		&& str_contains( $defaults, 'aria-expanded="false"' )
+		&& 3 === substr_count( $defaults, 'data-cb-work-advanced' )
+		&& str_contains( $script, 'advancedFields.hidden = !expanded;' )
+		&& str_contains( $styles, '.cb-work-recurrence-advanced-toggle:focus-visible' )
+		&& str_contains( $styles, '@container (max-width: 760px)' )
+		&& str_contains( $styles, '@container (max-width: 490px)' ),
+	'Rule Preview avoids redundant schedule caption' => str_contains( $recurrence, 'cb-work-recurrence-preview-frequency' )
+		&& ! str_contains( $recurrence, "<span><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></span>" )
+		&& str_contains( $recurrence, 'data-cb-preview-schedule' ),
+	'Save shows current state and enables on persisted changes while no-JS form remains usable' => str_contains( $recurrence, 'data-cb-recurrence-saved' )
+		&& str_contains( $recurrence, 'data-cb-recurrence-unsaved' )
+		&& str_contains( $script, 'saveButton.disabled = true' )
+		&& str_contains( $script, 'saveButton.disabled = false' )
+		&& str_contains( $script, "editForm.dataset.ruleId !== '0'" )
+		&& str_contains( $script, 'savedNotice.hidden = true' )
+		&& str_contains( $recurrence, 'form="cb-work-recurrence-editor-form"' ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
