@@ -2625,3 +2625,12 @@ msgstr "La modification groupée n’a pas pu être enregistrée. Vérifiez les 
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Au moins une entrée de temps sélectionnée a été modifiée. Rechargez la liste et réessayez."
+
+msgid "Append to note"
+msgstr "Ajouter à la note"
+
+msgid "Replace note"
+msgstr "Remplacer la note"
+
+msgid "Clear note"
+msgstr "Effacer la note"
