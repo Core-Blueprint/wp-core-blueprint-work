@@ -298,6 +298,8 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
         self::assertInstanceOf( mysqli::class, $b->dbh );
         self::assertTrue( mysqli_select_db( $a->dbh, DB_NAME ), 'Session A could not select local test DB.' );
         self::assertTrue( mysqli_select_db( $b->dbh, DB_NAME ), 'Session B could not select local test DB.' );
+        self::assertTrue( mysqli_autocommit( $a->dbh, true ), 'Session A must commit visible changes.' );
+        self::assertTrue( mysqli_autocommit( $b->dbh, true ), 'Session B must read committed changes.' );
 
         $schema_a = mysqli_query( $a->dbh, 'SELECT DATABASE()' );
         $schema_b = mysqli_query( $b->dbh, 'SELECT DATABASE()' );
