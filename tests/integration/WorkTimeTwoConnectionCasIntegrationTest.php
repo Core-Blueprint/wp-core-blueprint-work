@@ -53,7 +53,13 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
                 && null !== $this->connection_a
                 && preg_match( '/^cb_wtg006_time_[a-f0-9]{16}$/D', $this->shared_table )
             ) {
-                $this->connection_a->query( 'DROP TABLE `' . $this->shared_table . '`' );
+                $dropped = mysqli_query(
+                    $this->connection_a->dbh,
+                    'DROP TABLE `' . $this->shared_table . '`'
+                );
+                if ( true !== $dropped ) {
+                    throw new RuntimeException( 'Failed to clean up WT-G-006 shared fixture: ' . mysqli_error( $this->connection_a->dbh ) );
+                }
                 $this->owns_shared_table = false;
             }
 
@@ -284,8 +290,26 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
         self::assertInstanceOf( wpdb::class, $a );
         self::assertInstanceOf( wpdb::class, $b );
 
+        // Use the actual mysqli connections rather than wpdb's query
+        // wrapper for DDL and visibility diagnostics. Explicitly select and
+        // verify the same test schema on BOTH independent server sessions.
+        // This also catches a misleading zero-row DDL return without a table.
+        self::assertInstanceOf( mysqli::class, $a->dbh );
+        self::assertInstanceOf( mysqli::class, $b->dbh );
+        self::assertTrue( mysqli_select_db( $a->dbh, DB_NAME ), 'Session A could not select local test DB.' );
+        self::assertTrue( mysqli_select_db( $b->dbh, DB_NAME ), 'Session B could not select local test DB.' );
+
+        $schema_a = mysqli_query( $a->dbh, 'SELECT DATABASE()' );
+        $schema_b = mysqli_query( $b->dbh, 'SELECT DATABASE()' );
+        self::assertInstanceOf( mysqli_result::class, $schema_a, 'Session A schema query failed.' );
+        self::assertInstanceOf( mysqli_result::class, $schema_b, 'Session B schema query failed.' );
+        self::assertSame( DB_NAME, (string) $schema_a->fetch_row()[0] );
+        self::assertSame( DB_NAME, (string) $schema_b->fetch_row()[0] );
+        $schema_a->free();
+        $schema_b->free();
+
         $table = '`' . $this->shared_table . '`';
-        $created = $a->query( 'CREATE TABLE ' . $table . ' (
+        $created = mysqli_query( $a->dbh, 'CREATE TABLE ' . $table . ' (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             work_item_id bigint(20) unsigned NOT NULL,
             user_id bigint(20) unsigned NOT NULL,
@@ -299,12 +323,25 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
             updated_at datetime NOT NULL,
             PRIMARY KEY (id)
         ) ENGINE=InnoDB' );
-        self::assertNotFalse( $created, 'Dedicated test-only shared table creation failed.' );
+        self::assertTrue(
+            $created,
+            'Dedicated test-only shared table creation failed: ' . mysqli_error( $a->dbh )
+        );
         $this->owns_shared_table = true;
 
-        // Prove visibility across distinct server sessions, not just two
-        // PHP references to the same global WordPress mysqli connection.
-        self::assertSame( '0', (string) $b->get_var( 'SELECT COUNT(*) FROM ' . $table ) );
+        // Verify visibility twice, directly through each distinct MariaDB
+        // session. Never coerce a failed SELECT (false) into a zero count.
+        foreach ( [ 'A' => $a, 'B' => $b ] as $identity => $client ) {
+            $result = mysqli_query( $client->dbh, 'SELECT COUNT(*) FROM ' . $table );
+            self::assertInstanceOf(
+                mysqli_result::class,
+                $result,
+                'The shared InnoDB fixture is not visible to session ' . $identity .
+                ': ' . mysqli_error( $client->dbh )
+            );
+            self::assertSame( '0', (string) $result->fetch_row()[0] );
+            $result->free();
+        }
     }
 
     private function seed_entry( wpdb $client, string $start, string $end, string $note, string $source = 'manual' ): int {
