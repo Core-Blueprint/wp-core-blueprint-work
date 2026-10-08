@@ -6,10 +6,54 @@
     if (!config || typeof config.ajaxUrl !== 'string') return;
 
     document.querySelectorAll('form').forEach((form) => {
+        if (form.matches('[data-cb-inline-toggle]')) return;
         const activate = form.querySelector('[data-cb-work-confirm]');
         if (!activate) return;
         form.addEventListener('submit', (event) => {
             if (!window.confirm(activate.textContent.trim() + '?')) event.preventDefault();
+        });
+    });
+
+    document.querySelectorAll('[data-cb-inline-toggle]').forEach((form) => {
+        const row = form.closest('[data-cb-rule-row]');
+        const button = form.querySelector('button[type="submit"]');
+        const activeInput = form.querySelector('input[name="active"]');
+        const badge = row?.querySelector('[data-cb-rule-status]');
+        if (!row || !button || !activeInput || !badge) return;
+        const status = document.createElement('span');
+        status.setAttribute('role', 'status');
+        status.className = 'cb-work-recurrence-inline-status';
+        form.after(status);
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const activating = activeInput.value === '1';
+            if (activating && !window.confirm(button.textContent.trim() + '?')) return;
+            const data = new FormData(form);
+            data.set('action', 'cb_work_toggle_recurrence_rule_inline');
+            button.disabled = true;
+            status.textContent = '';
+            try {
+                const response = await fetch(config.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: data
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.data?.message || config.error);
+                badge.textContent = result.data.status;
+                badge.classList.toggle('cb-work-recurrence-status--active', result.data.active);
+                badge.classList.toggle('cb-work-recurrence-status--inactive', !result.data.active);
+                button.textContent = result.data.action;
+                activeInput.value = result.data.active ? '0' : '1';
+                if (result.data.active) button.removeAttribute('data-cb-work-confirm');
+                else button.setAttribute('data-cb-work-confirm', '');
+                const filter = new URLSearchParams(window.location.search).get('cb_status');
+                if (filter === 'active' || filter === 'inactive') window.location.reload();
+            } catch (error) {
+                status.textContent = error.message || config.error;
+            } finally {
+                button.disabled = false;
+            }
         });
     });
 
@@ -46,6 +90,10 @@
                 if (!response.ok || !result.success) throw new Error(result.data?.message || config.error);
                 const label = row.querySelector('[data-cb-rule-title]');
                 if (label) label.textContent = result.data.title;
+                if (new URLSearchParams(window.location.search).get('cb_sort') === 'title') {
+                    window.location.reload();
+                    return;
+                }
                 editor.hidden = true;
                 trigger.setAttribute('aria-expanded', 'false');
                 trigger.focus();
