@@ -15,7 +15,8 @@ use CB\Work\Repository\TimeEntries;
  * This models stale revisions in real SQL, NOT simultaneous DB sessions.
  */
 final class WorkTimeCasIntegrationTest extends WP_UnitTestCase {
-    private string $entry_table = '';
+    /** @var string[] Temporary table names (never persistent Work tables). */
+    private array $temporary_tables = [];
 
     public function set_up(): void {
         parent::set_up();
@@ -32,10 +33,10 @@ final class WorkTimeCasIntegrationTest extends WP_UnitTestCase {
         self::assertTrue( class_exists( TimeEntries::class ) );
 
         global $wpdb;
-        $this->entry_table = Schema::time_entries_table();
         register_post_type( PostTypes::WORK_ITEM, [ 'public' => false ] );
 
-        $created = $wpdb->query( 'CREATE TEMPORARY TABLE ' . $this->entry_table . ' (
+        $entries = Schema::time_entries_table();
+        $created = $wpdb->query( 'CREATE TEMPORARY TABLE ' . $entries . ' (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             work_item_id bigint(20) unsigned NOT NULL,
             user_id bigint(20) unsigned NOT NULL,
@@ -52,15 +53,42 @@ final class WorkTimeCasIntegrationTest extends WP_UnitTestCase {
             PRIMARY KEY (id)
         ) ENGINE=InnoDB' );
         self::assertNotFalse( $created, 'Could not create temporary InnoDB Time Entries test table.' );
+        $this->temporary_tables[] = $entries;
+
+        // WorkItems::get() hydrates assignments and relations as part of
+        // the repository's real context validation. Shadow those tables too.
+        $assignments = Schema::assignments_table();
+        $created = $wpdb->query( 'CREATE TEMPORARY TABLE ' . $assignments . ' (
+            work_item_id bigint(20) unsigned NOT NULL,
+            user_id bigint(20) unsigned NOT NULL,
+            assigned_at datetime NOT NULL,
+            PRIMARY KEY (work_item_id, user_id)
+        ) ENGINE=InnoDB' );
+        self::assertNotFalse( $created, 'Could not create temporary assignments table.' );
+        $this->temporary_tables[] = $assignments;
+
+        $relations = Schema::relations_table();
+        $created = $wpdb->query( 'CREATE TEMPORARY TABLE ' . $relations . ' (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            work_item_id bigint(20) unsigned NOT NULL,
+            provider varchar(64) NOT NULL,
+            relation_type varchar(64) NOT NULL,
+            external_id varchar(191) NOT NULL,
+            created_at datetime NOT NULL,
+            PRIMARY KEY (id)
+        ) ENGINE=InnoDB' );
+        self::assertNotFalse( $created, 'Could not create temporary relations table.' );
+        $this->temporary_tables[] = $relations;
 
         update_option( Schema::OPTION, CB_WORK_SCHEMA_VERSION );
     }
 
     public function tear_down(): void {
         global $wpdb;
-        if ( '' !== $this->entry_table ) {
-            $wpdb->query( 'DROP TEMPORARY TABLE IF EXISTS ' . $this->entry_table );
+        foreach ( array_reverse( $this->temporary_tables ) as $table ) {
+            $wpdb->query( 'DROP TEMPORARY TABLE IF EXISTS ' . $table );
         }
+        $this->temporary_tables = [];
         if ( post_type_exists( PostTypes::WORK_ITEM ) ) {
             unregister_post_type( PostTypes::WORK_ITEM );
         }
