@@ -26,6 +26,7 @@ final class WorkItemCalendarView {
 		$previous_month = $first->modify( '-1 month' )->format( 'Y-m' );
 		$next_month     = $first->modify( '+1 month' )->format( 'Y-m' );
 		$current_month  = current_time( 'Y-m' );
+		$today          = current_time( 'Y-m-d' );
 		$days_in_month  = (int) $first->format( 't' );
 		$leading_cells  = (int) $first->format( 'N' ) - 1;
 		$weekdays       = [
@@ -40,15 +41,17 @@ final class WorkItemCalendarView {
 		?>
 		<nav class="cb-work-calendar-navigation" aria-label="<?php esc_attr_e( 'Calendar navigation', 'core-blueprint-work' ); ?>">
 			<div class="cb-work-calendar-navigation__controls">
-				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $previous_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Previous month', 'core-blueprint-work' ); ?></a>
-				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $current_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></a>
+				<a class="button cb-work-calendar-navigation__previous" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $previous_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Previous month', 'core-blueprint-work' ); ?></a>
 				<strong class="cb-work-calendar-navigation__month"><?php echo esc_html( wp_date( 'F Y', $first->getTimestamp() ) ); ?></strong>
-				<a class="button" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $next_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Next month', 'core-blueprint-work' ); ?></a>
+				<a class="button cb-work-calendar-navigation__today" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $current_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></a>
+				<a class="button cb-work-calendar-navigation__next" href="<?php echo esc_url( self::work_items_url( $state, [ 'calendar_month' => $next_month, 'page' => 1 ] ) ); ?>"><?php esc_html_e( 'Next month', 'core-blueprint-work' ); ?></a>
 			</div>
 		</nav>
 
 		<div class="cb-work-calendar" data-cb-work-calendar data-close-label="<?php echo esc_attr__( 'Close', 'core-blueprint-work' ); ?>">
+			<div class="cb-work-calendar__viewport cb-scrollbar" role="region" tabindex="0" aria-label="<?php esc_attr_e( 'Calendar', 'core-blueprint-work' ); ?>">
 			<table class="widefat cb-work-items-calendar">
+				<caption class="screen-reader-text"><?php echo esc_html( wp_date( 'F Y', $first->getTimestamp() ) ); ?></caption>
 				<thead><tr>
 					<?php foreach ( $weekdays as $weekday ) : ?>
 						<th scope="col"><?php echo esc_html( $weekday ); ?></th>
@@ -67,13 +70,15 @@ final class WorkItemCalendarView {
 					$day_entries = $entries_by_date[ $date ] ?? [];
 					$counts      = self::relationship_counts( $day_entries );
 					?>
-					<td class="cb-work-calendar-day">
-						<strong class="cb-work-calendar-day__number"><?php echo esc_html( (string) $day ); ?></strong>
+					<td class="cb-work-calendar-day<?php echo $date === $today ? ' is-today' : ''; ?>"<?php if ( $date === $today ) : ?> aria-current="date"<?php endif; ?>>
+						<strong class="cb-work-calendar-day__number"><?php echo esc_html( (string) $day ); ?><?php if ( $date === $today ) : ?><span class="screen-reader-text"> <?php esc_html_e( 'Today', 'core-blueprint-work' ); ?></span><?php endif; ?></strong>
 						<?php if ( [] !== $day_entries ) : ?>
 							<button
 								type="button"
 								class="button-link cb-work-calendar-day__trigger"
 								data-cb-work-calendar-day-open
+								aria-haspopup="dialog"
+								aria-label="<?php echo esc_attr( self::day_label( $date ) . ': ' . count( $day_entries ) . ' ' . __( 'Work Items', 'core-blueprint-work' ) ); ?>"
 								data-template-id="<?php echo esc_attr( self::template_id( $date ) ); ?>"
 								data-modal-title="<?php echo esc_attr( self::day_label( $date ) ); ?>"
 							>
@@ -102,6 +107,7 @@ final class WorkItemCalendarView {
 				<?php endwhile; ?>
 				</tr></tbody>
 			</table>
+			</div>
 
 			<?php foreach ( $entries_by_date as $date => $day_entries ) : ?>
 				<?php self::render_day_template( (string) $date, $day_entries, $project_map, $type_map ); ?>
@@ -173,7 +179,7 @@ final class WorkItemCalendarView {
 			<div class="cb-work-day-modal">
 				<p class="cb-work-day-modal__summary"><?php echo esc_html( (string) count( $day_entries ) ); ?> <?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></p>
 
-				<div class="cb-work-day-board__viewport cb-scrollbar">
+				<div class="cb-work-day-board__viewport cb-scrollbar" role="region" tabindex="0" aria-label="<?php esc_attr_e( 'Work Items', 'core-blueprint-work' ); ?>">
 					<div
 						class="cb-work-day-board cb-work-board"
 						data-cb-work-board-reorder
