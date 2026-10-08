@@ -25,7 +25,8 @@ final class TimeEntryList {
         $has_filters = '' !== $state['search'] || '' !== $state['from'] || '' !== $state['to']
             || '' !== $state['source'] || ( $manager && $state['user_id'] > 0 )
             || TimeEntryListState::SORT_NEWEST !== $state['sort'];
-        $advanced_active = ( $manager && $state['user_id'] > 0 ) || TimeEntryListState::SORT_NEWEST !== $state['sort'];
+        $user_filter_active = $manager && $state['user_id'] > 0;
+        $advanced_active = $user_filter_active || TimeEntryListState::SORT_NEWEST !== $state['sort'];
         ?>
         <div class="cb-work-time-entries">
             <header class="cb-work-time-entries-head">
@@ -67,7 +68,7 @@ final class TimeEntryList {
                         <?php endif; ?>
                     </div>
                 </div>
-                <details class="cb-work-time-entries-more-filters" <?php if ( $advanced_active ) : ?>open<?php endif; ?>>
+                <details class="cb-work-time-entries-more-filters" <?php if ( $user_filter_active ) : ?>open<?php endif; ?>>
                     <summary>
                         <?php esc_html_e( 'More filters', 'core-blueprint-work' ); ?>
                         <?php if ( $advanced_active ) : ?><span class="cb-work-time-entries-active-filters"><?php esc_html_e( 'Active filters', 'core-blueprint-work' ); ?></span><?php endif; ?>
