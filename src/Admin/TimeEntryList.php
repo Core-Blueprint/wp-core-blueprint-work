@@ -139,12 +139,17 @@ final class TimeEntryList {
                                 <?php
                                 $item = WorkItems::get( (int) $entry['work_item_id'] );
                                 $user = $manager ? get_userdata( (int) $entry['user_id'] ) : null;
-                                $parts = TimeRange::utc_to_local_parts( (string) $entry['started_at'] );
-                                $when = trim( (string) ( $parts['date'] ?? '' ) . ' ' . (string) ( $parts['time'] ?? '' ) );
+                                $started_at = (string) $entry['started_at'];
+                                $timestamp = TimeRange::valid_utc( $started_at )
+                                    ? ( new \DateTimeImmutable( $started_at, new \DateTimeZone( 'UTC' ) ) )->getTimestamp()
+                                    : null;
+                                $when = null !== $timestamp
+                                    ? wp_date( (string) get_option( 'date_format', 'Y-m-d' ) . ' ' . (string) get_option( 'time_format', 'H:i' ), $timestamp )
+                                    : '';
                                 $item_title = (string) ( $item['title'] ?? sprintf( __( 'Work Item #%d', 'core-blueprint-work' ), (int) $entry['work_item_id'] ) );
                                 ?>
                                 <tr>
-                                    <td class="cb-work-time-when"><?php echo esc_html( $when ); ?></td>
+                                    <td class="cb-work-time-when"><time datetime="<?php echo esc_attr( str_replace( ' ', 'T', $started_at ) . 'Z' ); ?>"><?php echo esc_html( $when ); ?></time></td>
                                     <td class="cb-work-time-entry-title"><?php echo esc_html( $item_title ); ?></td>
                                     <?php if ( $manager ) : ?><td><?php echo esc_html( $user ? (string) $user->display_name : (string) $entry['user_id'] ); ?></td><?php endif; ?>
                                     <td class="cb-work-time-duration"><?php echo esc_html( self::duration( (int) $entry['duration_seconds'] ) ); ?></td>
