@@ -180,10 +180,19 @@ final class TimeActions {
 
 	/** @param array<string,int|string> $extra */
 	private static function redirect( string $notice, array $extra = [] ): never {
-		wp_safe_redirect( add_query_arg(
-			[ 'page' => Menu::TIME_SLUG, 'cb-work-notice' => sanitize_key( $notice ), ...$extra ],
-			admin_url( 'admin.php' )
-		) );
+		// Redirect into the view associated with the completed action, preserving
+		// the tracker-only Work landing and correction context.
+		$action = isset( $_POST['action'] ) && is_string( $_POST['action'] )
+			? sanitize_key( wp_unslash( $_POST['action'] ) )
+			: '';
+		$view = in_array( $action, [ 'cb_work_start_timer', 'cb_work_stop_timer' ], true )
+			? Time::VIEW_TIMER
+			: ( in_array( $notice, [ 'time-created', 'time-updated' ], true ) ? Time::VIEW_ENTRIES : Time::VIEW_MANUAL );
+		wp_safe_redirect( Menu::time_url( [
+			'view' => $view,
+			'cb-work-notice' => sanitize_key( $notice ),
+			...$extra,
+		] ) );
 		exit;
 	}
 }
