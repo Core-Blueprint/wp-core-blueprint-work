@@ -93,6 +93,25 @@ final class Recurrence {
 		foreach ( $projects as $project ) {
 			$project_titles[ (int) $project['id'] ] = (string) $project['title'];
 		}
+		// Each active filter is independently removable without disturbing other filters or sorting.
+		$active_filters = [];
+		$filter_labels = [
+			'cb_search' => [ __( 'Search', 'core-blueprint-work' ), $filter_search ],
+			'cb_status' => [ __( 'Status', 'core-blueprint-work' ), 'active' === $filter_status ? __( 'Active', 'core-blueprint-work' ) : __( 'Inactive', 'core-blueprint-work' ) ],
+			'cb_context' => [ __( 'Work context', 'core-blueprint-work' ), WorkContext::CUSTOMER === $filter_context ? __( 'Customer', 'core-blueprint-work' ) : __( 'Internal', 'core-blueprint-work' ) ],
+			'cb_project' => [ __( 'Project', 'core-blueprint-work' ), $project_titles[ $filter_project ] ?? (string) $filter_project ],
+		];
+		foreach ( [ 'cb_search', 'cb_status', 'cb_context', 'cb_project' ] as $filter_key ) {
+			if ( ! isset( $list_args[ $filter_key ] ) ) {
+				continue;
+			}
+			$without_filter = $list_args;
+			unset( $without_filter[ $filter_key ] );
+			$active_filters[] = [
+				'label' => $filter_labels[ $filter_key ][0] . ': ' . $filter_labels[ $filter_key ][1],
+				'url' => self::url( $without_filter ),
+			];
+		}
 
 		$selected_customer = null;
 		if ( $editing ) {
@@ -122,7 +141,16 @@ final class Recurrence {
 		$assignees         = $editing ? (array) $rule['assigned_user_ids'] : [];
 		?>
 		<div class="wrap cb-work-recurrence-page">
-			<div class="cb-work-recurrence-header"><div><h1><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?></h1><p class="description"><?php esc_html_e( 'Configure recurring Work Items and preview their schedule before activating a rule.', 'core-blueprint-work' ); ?></p></div><div class="cb-work-recurrence-header-actions"><a class="button <?php echo $show_editor ? 'button-secondary' : 'button-primary'; ?>" <?php if ( $show_editor ) : ?>data-cb-recurrence-back<?php endif; ?> href="<?php echo esc_url( $show_editor ? self::url() : self::url( [ 'mode' => 'add' ] ) ); ?>"><?php echo $show_editor ? esc_html__( 'Back to Rules', 'core-blueprint-work' ) : esc_html__( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a></div></div>
+			<div class="cb-work-recurrence-header"><div><h1><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?></h1><p class="description"><?php esc_html_e( 'Configure recurring Work Items and preview their schedule before activating a rule.', 'core-blueprint-work' ); ?></p></div><div class="cb-work-recurrence-header-actions"><?php if ( ! $show_editor && self::schema_ready() ) : ?><details class="cb-work-recurrence-automation"><summary><?php esc_html_e( 'Automation', 'core-blueprint-work' ); ?></summary><div class="cb-work-recurrence-automation-content"><h3><?php esc_html_e( 'Run Generator Now', 'core-blueprint-work' ); ?></h3><p class="description"><?php
+			/* translators: %s: next WordPress cron timestamp, or a not-scheduled label. */
+			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
+			?></p>
+			<p class="description"><?php esc_html_e( 'Running the generator manually may create Work Items from eligible active rules.', 'core-blueprint-work' ); ?></p>
+			<form data-cb-run-generator-form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
+				<input type="hidden" name="action" value="cb_work_run_recurrence_generator">
+				<?php wp_nonce_field( 'cb_work_run_recurrence_generator' ); ?>
+				<?php submit_button( __( 'Run Generator Now', 'core-blueprint-work' ), 'secondary', 'submit', false ); ?>
+			</form></div></details><?php endif; ?><a class="button <?php echo $show_editor ? 'button-secondary' : 'button-primary'; ?>" <?php if ( $show_editor ) : ?>data-cb-recurrence-back<?php endif; ?> href="<?php echo esc_url( $show_editor ? self::url() : self::url( [ 'mode' => 'add' ] ) ); ?>"><?php echo $show_editor ? esc_html__( 'Back to Rules', 'core-blueprint-work' ) : esc_html__( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a></div></div>
 			<hr class="wp-header-end">
 			<?php self::render_notice(); ?>
 			<?php if ( ! self::schema_ready() ) : ?>
@@ -283,9 +311,16 @@ final class Recurrence {
 				<label><span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span><select name="cb_status"><option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option><option value="active" <?php selected( $filter_status, 'active' ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option><option value="inactive" <?php selected( $filter_status, 'inactive' ); ?>><?php esc_html_e( 'Inactive', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></span><select name="cb_context"><option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option><option value="internal" <?php selected( $filter_context, 'internal' ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option><option value="customer" <?php selected( $filter_context, 'customer' ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></span><select name="cb_project"><option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option><?php foreach ( $projects as $project ) : ?><option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( $filter_project, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option><?php endforeach; ?></select></label>
-				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a></div>
+				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button><?php if ( [] !== $active_filters ) : ?><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
 			</form>
-
+			<?php if ( [] !== $active_filters ) : ?>
+			<div class="cb-work-recurrence-active-filters" aria-label="<?php esc_attr_e( 'Clear filters', 'core-blueprint-work' ); ?>">
+				<?php foreach ( $active_filters as $active_filter ) : ?>
+				<a class="cb-work-recurrence-filter-chip" href="<?php echo esc_url( $active_filter['url'] ); ?>"><?php echo esc_html( $active_filter['label'] ); ?> <span aria-hidden="true">×</span></a>
+				<?php endforeach; ?>
+				<a class="cb-work-recurrence-clear-all" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+			</div>
+			<?php endif; ?>
 
 			<?php if ( [] === $rules ) : ?>
 				<div class="cb-work-recurrence-empty"><h3><?php esc_html_e( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3>
@@ -293,7 +328,15 @@ final class Recurrence {
 				<p><?php esc_html_e( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ); ?></p><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
 				<?php else : ?><a class="button button-primary" href="<?php echo esc_url( self::url( [ 'mode' => 'add' ] ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
 			<?php else : ?>
-				<div class="cb-work-recurrence-table-scroll"><table class="widefat striped"><thead><tr><th scope="col"><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'title', 'cb_dir' => 'title' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Rule', 'core-blueprint-work' ); ?></a></th><th scope="col"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></th><th scope="col"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'next_occurrence', 'cb_dir' => 'next_occurrence' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Generated', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'status', 'cb_dir' => 'status' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
+				<div class="cb-work-recurrence-table-scroll"><table class="widefat striped cb-work-recurrence-rules-table"><thead><tr>
+<th scope="col" <?php if ( 'title' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'title', 'cb_dir' => 'title' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Rule', 'core-blueprint-work' ); ?><?php if ( 'title' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th>
+<th scope="col"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></th>
+<th scope="col"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th>
+<th scope="col" <?php if ( 'next_occurrence' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'next_occurrence', 'cb_dir' => 'next_occurrence' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?><?php if ( 'next_occurrence' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th>
+<th scope="col"><?php esc_html_e( 'Generated', 'core-blueprint-work' ); ?></th>
+<th scope="col" <?php if ( 'status' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'status', 'cb_dir' => 'status' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?><?php if ( 'status' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th>
+<th scope="col"><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th>
+</tr></thead><tbody>
 				<?php foreach ( $rules as $configured ) : ?>
 					<?php
 						$configured_id = (int) $configured['id'];
@@ -302,13 +345,13 @@ final class Recurrence {
 						$is_customer   = WorkContext::CUSTOMER === (string) ( $configured['work_context'] ?? '' );
 					?>
 					<tr data-cb-rule-row="<?php echo esc_attr( (string) $configured_id ); ?>">
-						<td><strong data-cb-rule-title><?php echo esc_html( (string) $configured['title'] ); ?></strong><?php if ( ! empty( $configured['description'] ) ) : ?><div class="cb-work-recurrence-rule-description"><?php echo esc_html( (string) $configured['description'] ); ?></div><?php endif; ?></td>
+						<td><strong><a data-cb-rule-title class="cb-work-recurrence-title-link" href="<?php echo esc_url( self::url( [ 'rule_id' => $configured_id ] ) ); ?>"><?php echo esc_html( (string) $configured['title'] ); ?></a></strong><?php if ( ! empty( $configured['description'] ) ) : ?><div class="cb-work-recurrence-rule-description"><?php echo esc_html( (string) $configured['description'] ); ?></div><?php endif; ?></td>
 						<td><?php if ( '' !== $project_title ) : ?><strong><?php echo esc_html( $project_title ); ?></strong><span class="cb-work-recurrence-context-kind"><?php echo $is_customer ? esc_html__( 'Customer', 'core-blueprint-work' ) : esc_html__( 'Internal', 'core-blueprint-work' ); ?></span><?php else : ?><?php echo $is_customer ? esc_html__( 'Customer', 'core-blueprint-work' ) : esc_html__( 'Internal', 'core-blueprint-work' ); ?><?php endif; ?></td>
 						<td><?php echo esc_html( self::schedule_label( $configured ) ); ?></td>
 						<td><?php echo esc_html( null === $configured['next_occurrence_on'] ? __( 'Complete', 'core-blueprint-work' ) : mysql2date( get_option( 'date_format' ), (string) $configured['next_occurrence_on'] . ' 12:00:00' ) ); ?></td>
 						<td><?php echo esc_html( (string) $count ); ?></td>
 						<td><span data-cb-rule-status class="cb-work-recurrence-status <?php echo ! empty( $configured['is_active'] ) ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo ! empty( $configured['is_active'] ) ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span></td>
-						<td><a class="button button-small" href="<?php echo esc_url( self::url( [ 'rule_id' => $configured_id ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a> <button type="button" class="button button-small" data-cb-quick-edit-trigger aria-expanded="false" aria-controls="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>"><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></button> <form data-cb-inline-toggle method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block"><input type="hidden" name="action" value="cb_work_toggle_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><input type="hidden" name="active" value="<?php echo empty( $configured['is_active'] ) ? '1' : '0'; ?>"><?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit" <?php if ( empty( $configured['is_active'] ) ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo empty( $configured['is_active'] ) ? esc_html__( 'Activate', 'core-blueprint-work' ) : esc_html__( 'Deactivate', 'core-blueprint-work' ); ?></button></form></td>
+						<td><div class="cb-work-recurrence-row-actions"><button type="button" class="button button-small" data-cb-quick-edit-trigger aria-expanded="false" aria-controls="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>"><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></button> <form data-cb-inline-toggle method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="cb_work_toggle_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><input type="hidden" name="active" value="<?php echo empty( $configured['is_active'] ) ? '1' : '0'; ?>"><?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit" <?php if ( empty( $configured['is_active'] ) ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo empty( $configured['is_active'] ) ? esc_html__( 'Activate', 'core-blueprint-work' ) : esc_html__( 'Deactivate', 'core-blueprint-work' ); ?></button></form><span class="screen-reader-text" role="status" data-cb-rule-action-notice></span></div></td>
 					</tr>
 					<tr id="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>" class="cb-work-recurrence-quick-row" hidden data-cb-quick-edit-row>
 						<td colspan="7">
@@ -326,23 +369,15 @@ final class Recurrence {
 					</tr>
 				<?php endforeach; ?>
 				</tbody></table></div>
-			<?php endif; ?>
-			<details class="cb-work-recurrence-diagnostics"><summary><?php esc_html_e( 'Run Generator Now', 'core-blueprint-work' ); ?></summary><p class="description"><?php
-			/* translators: %s: next WordPress cron timestamp, or a not-scheduled label. */
-			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
-			?></p>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
-				<input type="hidden" name="action" value="cb_work_run_recurrence_generator">
-				<?php wp_nonce_field( 'cb_work_run_recurrence_generator' ); ?>
-				<?php submit_button( __( 'Run Generator Now', 'core-blueprint-work' ), 'secondary', 'submit', false ); ?>
-			</form></details>
-			<div class="cb-work-recurrence-pagination">
-				<span><?php echo esc_html( (string) $listing['total'] ); ?> <?php esc_html_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?> · <?php echo esc_html( sprintf( __( 'Page %1$d of %2$d', 'core-blueprint-work' ), $listing['page'], $listing['pages'] ) ); ?></span>
+				<div class="cb-work-recurrence-pagination">
+				<span><?php echo esc_html( (string) ( ( $listing['page'] - 1 ) * $listing['per_page'] + 1 ) . '–' . (string) ( ( $listing['page'] - 1 ) * $listing['per_page'] + count( $rules ) ) . ' / ' . (string) $listing['total'] ); ?> <?php esc_html_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?> · <?php echo esc_html( sprintf( __( 'Page %1$d of %2$d', 'core-blueprint-work' ), $listing['page'], $listing['pages'] ) ); ?></span>
 				<nav aria-label="<?php esc_attr_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?>">
 					<?php if ( $listing['page'] > 1 ) : ?><a class="button" href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_page' => $listing['page'] - 1 ] ) ); ?>"><?php esc_html_e( 'Previous', 'core-blueprint-work' ); ?></a><?php endif; ?>
 					<?php if ( $listing['page'] < $listing['pages'] ) : ?><a class="button" href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_page' => $listing['page'] + 1 ] ) ); ?>"><?php esc_html_e( 'Next', 'core-blueprint-work' ); ?></a><?php endif; ?>
 				</nav>
 			</div>
+			<?php endif; ?>
+
 			</div>
 			<?php endif; ?>
 		</div>
