@@ -45,8 +45,8 @@ namespace CB\Work\Repository {
 }
 
 namespace {
-    require dirname( __DIR__ ) . '/src/Repository/Timers.php';
     use CB\Work\Repository\Timers;
+    require dirname( __DIR__ ) . '/src/Repository/Timers.php';
 
     $fail = static function ( string $reason ): never {
         fwrite( STDERR, "Global Timer HUD note runtime FAILED: {$reason}\n" );
