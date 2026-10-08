@@ -2626,3 +2626,12 @@ msgstr "No se pudo guardar la edición masiva. Revisa los registros seleccionado
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Al menos uno de los registros de tiempo seleccionados ha cambiado. Vuelve a cargar la lista e inténtalo de nuevo."
+
+msgid "Append to note"
+msgstr "Añadir a la nota"
+
+msgid "Replace note"
+msgstr "Sustituir la nota"
+
+msgid "Clear note"
+msgstr "Borrar la nota"
