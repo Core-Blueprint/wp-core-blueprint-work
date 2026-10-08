@@ -405,13 +405,14 @@
     align-items: center;
     text-decoration: none;
 }
-/* Only the current sort receives an accent. Other sortable columns stay neutral. */
-.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort]) > a,
-.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort]) > a:visited {
+/* Only ascending and descending denote an active sort. An aria-sort="none"
+   attribute must not activate the accent color. */
+.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort="ascending"]):not([aria-sort="descending"]) > a,
+.cb-work-time-entries-scroll table.widefat thead th:not([aria-sort="ascending"]):not([aria-sort="descending"]) > a:visited {
     color: var(--cb-text-strong, inherit);
 }
-.cb-work-time-entries-scroll table.widefat thead th[aria-sort] > a,
-.cb-work-time-entries-scroll table.widefat thead th[aria-sort] > a:visited {
+.cb-work-time-entries-scroll table.widefat thead th:is([aria-sort="ascending"], [aria-sort="descending"]) > a,
+.cb-work-time-entries-scroll table.widefat thead th:is([aria-sort="ascending"], [aria-sort="descending"]) > a:visited {
     color: var(--wp-admin-theme-color, #2271b1);
 }
 .cb-work-time-entries-scroll table.widefat thead th > a:hover,
