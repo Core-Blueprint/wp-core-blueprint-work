@@ -61,7 +61,7 @@ final class Time {
 			<?php endif; ?>
 			<?php
 			$active = Timers::active_for_user( $user_id );
-			self::render_active_timer_status( $active );
+			self::render_active_timer_status( $active, $view );
 			self::render_navigation( $view );
 			?>
 			<section class="cb-work-time-view cb-work-time-view--<?php echo esc_attr( $view ); ?>" aria-label="<?php echo esc_attr( self::view_label( $view ) ); ?>">
@@ -119,7 +119,7 @@ final class Time {
 	}
 
 	/** @param array<string,mixed>|null $active */
-	private static function render_active_timer_status( ?array $active ): void {
+	private static function render_active_timer_status( ?array $active, string $view ): void {
 		if ( ! is_array( $active ) ) {
 			return;
 		}
@@ -135,7 +135,7 @@ final class Time {
 				/* translators: 1: local start date, 2: local start time. */
 				echo esc_html( sprintf( __( 'Running since %1$s %2$s.', 'core-blueprint-work' ), (string) ( $parts['date'] ?? '' ), (string) ( $parts['time'] ?? '' ) ) );
 			?></span>
-			<a class="button button-secondary" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_TIMER ] ) ); ?>"><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></a>
+			<?php if ( self::VIEW_TIMER !== $view ) : ?><a class="button button-secondary" href="<?php echo esc_url( self::url( [ 'view' => self::VIEW_TIMER ] ) ); ?>"><?php esc_html_e( 'Timer', 'core-blueprint-work' ); ?></a><?php endif; ?>
 		</div>
 		<?php
 	}
