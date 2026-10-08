@@ -159,4 +159,93 @@ final class WorkTimeCasIntegrationTest extends WP_UnitTestCase {
         self::assertSame( 'bulk-note', (string) ( TimeEntries::get( $id )['note'] ?? '' ) );
         self::assertSame( 'newer-second', (string) ( TimeEntries::get( $id2 )['note'] ?? '' ) );
     }
+    /**
+     * WT-G-012: a stopped timer may have a genuinely zero-second duration.
+     * Corrections must keep the authoritative instants and revision guard.
+     */
+    public function test_zero_second_timer_can_be_corrected_without_creating_zero_manual_entries(): void {
+        global $wpdb;
+        $user_id = self::factory()->user->create();
+        $work_item_id = self::factory()->post->create( [
+            'post_type' => PostTypes::WORK_ITEM,
+            'post_status' => 'draft',
+            'post_title' => 'Zero-duration timer fixture',
+        ] );
+        self::assertGreaterThan( 0, $user_id );
+        self::assertGreaterThan( 0, $work_item_id );
+
+        $instant = gmdate( 'Y-m-d H:i:s', time() - 3600 );
+        $positive_end = gmdate( 'Y-m-d H:i:s', time() - 3540 );
+
+        self::assertSame( 0, TimeEntries::create_manual(
+            $work_item_id, $user_id, $instant, $instant, 'not allowed', $user_id
+        ), 'Manual creation must continue to reject zero-second ranges.' );
+
+        // Model the canonical output of Timers::stop() when both instants
+        // fall in the same second. The temporary table is connection-local.
+        $inserted = $wpdb->insert(
+            Schema::time_entries_table(),
+            [
+                'work_item_id' => $work_item_id,
+                'user_id' => $user_id,
+                'entry_source' => TimeEntries::SOURCE_TIMER,
+                'started_at' => $instant,
+                'ended_at' => $instant,
+                'duration_seconds' => 0,
+                'note' => 'timer stopped',
+                'revision' => 2,
+                'created_by' => $user_id,
+                'updated_by' => $user_id,
+                'created_at' => $instant,
+                'updated_at' => $instant,
+            ]
+        );
+        self::assertSame( 1, $inserted );
+        $timer_id = (int) $wpdb->insert_id;
+        self::assertGreaterThan( 0, $timer_id );
+
+        self::assertTrue( TimeEntries::update_completed(
+            $timer_id, 2, $work_item_id, $user_id,
+            $instant, $instant, 'corrected note', $user_id
+        ) );
+        $zero = TimeEntries::get( $timer_id );
+        self::assertIsArray( $zero );
+        self::assertSame( 0, $zero['duration_seconds'] );
+        self::assertSame( $instant, $zero['started_at'] );
+        self::assertSame( $instant, $zero['ended_at'] );
+        self::assertSame( 3, $zero['revision'] );
+        self::assertSame( 'corrected note', $zero['note'] );
+
+        self::assertFalse( TimeEntries::update_completed(
+            $timer_id, 2, $work_item_id, $user_id,
+            $instant, $instant, 'stale edit', $user_id
+        ), 'A stale revision must still fail for zero-second timer entries.' );
+
+        $other_instant = gmdate( 'Y-m-d H:i:s', time() - 3000 );
+        self::assertFalse( TimeEntries::update_completed(
+            $timer_id, 3, $work_item_id, $user_id,
+            $other_instant, $other_instant, 'moved zero', $user_id
+        ), 'Changing both timestamps to a different zero-second range is forbidden.' );
+
+        $manual_id = TimeEntries::create_manual(
+            $work_item_id, $user_id, $instant, $positive_end, 'positive', $user_id
+        );
+        self::assertGreaterThan( 0, $manual_id );
+        self::assertFalse( TimeEntries::update_completed(
+            $manual_id, 1, $work_item_id, $user_id,
+            $instant, $instant, 'converted to zero', $user_id
+        ), 'Positive manual time cannot be converted to zero seconds.' );
+
+        // A legitimate correction can turn a zero-second timer into
+        // positive time by extending its end timestamp.
+        self::assertTrue( TimeEntries::update_completed(
+            $timer_id, 3, $work_item_id, $user_id,
+            $instant, $positive_end, 'elapsed time corrected', $user_id
+        ) );
+        $corrected = TimeEntries::get( $timer_id );
+        self::assertIsArray( $corrected );
+        self::assertSame( 60, $corrected['duration_seconds'] );
+        self::assertSame( 4, $corrected['revision'] );
+    }
+
 }
