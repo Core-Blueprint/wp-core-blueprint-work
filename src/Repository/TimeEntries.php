@@ -47,6 +47,95 @@ final class TimeEntries {
 		return is_array( $rows ) ? array_values( array_map( [ self::class, 'hydrate' ], $rows ) ) : [];
 	}
 
+
+    /**
+     * Server-paginated completed entries. All predicates also apply to the
+     * summary count and duration, never just to the visible page.
+     *
+     * @param array<string,mixed> $criteria Validated TimeEntryListState data.
+     * @return array{items:array<int,array<string,mixed>>,total:int,total_seconds:int,page:int,per_page:int,pages:int}
+     */
+    public static function query_completed( array $criteria ): array {
+        $page = max( 1, (int) ( $criteria['page'] ?? 1 ) );
+        $per_page = max( 1, min( 100, (int) ( $criteria['per_page'] ?? 25 ) ) );
+        $empty = [ 'items' => [], 'total' => 0, 'total_seconds' => 0, 'page' => 1, 'per_page' => $per_page, 'pages' => 1 ];
+        if ( ! self::schema_ready() ) {
+            return $empty;
+        }
+
+        global $wpdb;
+        $table = Schema::time_entries_table();
+        $where = [ 'te.ended_at IS NOT NULL' ];
+        $args = [];
+        $user_id = (int) ( $criteria['user_id'] ?? 0 );
+        if ( $user_id > 0 ) {
+            $where[] = 'te.user_id = %d';
+            $args[] = $user_id;
+        }
+        $source = (string) ( $criteria['source'] ?? '' );
+        if ( in_array( $source, [ self::SOURCE_MANUAL, self::SOURCE_TIMER ], true ) ) {
+            $where[] = 'te.entry_source = %s';
+            $args[] = $source;
+        }
+        $from = (string) ( $criteria['from_utc'] ?? '' );
+        $to = (string) ( $criteria['to_utc'] ?? '' );
+        if ( '' !== $from && TimeRange::valid_utc( $from ) ) {
+            $where[] = 'te.started_at >= %s';
+            $args[] = $from;
+        }
+        if ( '' !== $to && TimeRange::valid_utc( $to ) ) {
+            $where[] = 'te.started_at < %s';
+            $args[] = $to;
+        }
+        if ( '' !== $from && '' !== $to && $from >= $to ) {
+            return $empty;
+        }
+
+        $search = trim( (string) ( $criteria['search'] ?? '' ) );
+        if ( '' !== $search ) {
+            // Work Items are canonical WordPress CPT posts, not time-entry titles.
+            // Correlated EXISTS prevents multiplying rows and total durations.
+            $where[] = 'EXISTS (SELECT 1 FROM ' . $wpdb->posts . ' AS wi WHERE wi.ID = te.work_item_id AND wi.post_type = %s AND wi.post_title LIKE %s)';
+            $args[] = \CB\Work\Content\PostTypes::WORK_ITEM;
+            $args[] = '%' . $wpdb->esc_like( $search ) . '%';
+        }
+
+        $clause = implode( ' AND ', $where );
+        $query = static fn( string $sql ): string => [] === $args ? $sql : $wpdb->prepare( $sql, ...$args );
+        $summary = $wpdb->get_row(
+            $query( "SELECT COUNT(*) AS total, COALESCE(SUM(te.duration_seconds), 0) AS total_seconds FROM {$table} AS te WHERE {$clause}" ),
+            ARRAY_A
+        );
+        $total = max( 0, (int) ( $summary['total'] ?? 0 ) );
+        $seconds = max( 0, (int) ( $summary['total_seconds'] ?? 0 ) );
+        $pages = max( 1, (int) ceil( $total / $per_page ) );
+        $page = min( $page, $pages );
+
+        $sort_map = [
+            'newest'   => 'te.started_at DESC, te.id DESC',
+            'oldest'   => 'te.started_at ASC, te.id ASC',
+            'longest'  => 'te.duration_seconds DESC, te.id DESC',
+            'shortest' => 'te.duration_seconds ASC, te.id ASC',
+            'source'   => 'te.entry_source ASC, te.started_at DESC, te.id DESC',
+        ];
+        $sort = (string) ( $criteria['sort'] ?? 'newest' );
+        $order = $sort_map[ $sort ] ?? $sort_map['newest'];
+        $offset = ( $page - 1 ) * $per_page;
+        $sql = $query( "SELECT te.* FROM {$table} AS te WHERE {$clause} ORDER BY {$order}" );
+        $rows = $wpdb->get_results(
+            $wpdb->prepare( "{$sql} LIMIT %d OFFSET %d", $per_page, $offset ),
+            ARRAY_A
+        );
+        return [
+            'items'         => is_array( $rows ) ? array_values( array_map( [ self::class, 'hydrate' ], $rows ) ) : [],
+            'total'         => $total,
+            'total_seconds' => $seconds,
+            'page'          => $page,
+            'per_page'      => $per_page,
+            'pages'         => $pages,
+        ];
+    }
+
 	public static function create_manual(
 		int $work_item_id,
 		int $user_id,
