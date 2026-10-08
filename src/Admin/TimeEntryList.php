@@ -111,12 +111,8 @@ final class TimeEntryList {
                             <?php if ( $manager ) : ?>
                                 <div class="cb-work-time-bulk-field">
                                     <label for="cb-work-time-bulk-item"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></label>
-                                    <select id="cb-work-time-bulk-item" name="bulk_work_item_id" data-cb-work-time-bulk-target>
-                                        <option value="0"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?></option>
-                                        <?php foreach ( WorkItems::all( 500 ) as $work_item ) : ?>
-                                            <option value="<?php echo esc_attr( (string) $work_item['id'] ); ?>"><?php echo esc_html( (string) $work_item['title'] ); ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <?php Pickers::time_work_item( 'bulk_work_item_id', 'cb-work-time-bulk-item', 0, false ); ?>
+                                    <p class="description"><?php esc_html_e( 'No change', 'core-blueprint-work' ); ?>: <?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></p>
                                 </div>
                             <?php else : ?>
                                 <input type="hidden" name="bulk_work_item_id" value="0">
