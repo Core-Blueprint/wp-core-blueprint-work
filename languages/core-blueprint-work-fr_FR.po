@@ -2574,8 +2574,8 @@ msgstr "Trier par"
 
 #: src/Admin/TimeEntryList.php
 #, php-format
-msgid "%1$d–%2$d of %3$d Time entries"
-msgstr "%1$d–%2$d sur %3$d entrées de temps"
+msgid "Entries: %1$d–%2$d of %3$d"
+msgstr "Entrées : %1$d–%2$d sur %3$d"
 
 #: src/Admin/TimeEntryList.php
 #, php-format
