@@ -766,10 +766,11 @@
 }
 
 .cb-work-calendar-navigation__controls {
-	display: flex;
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
 	align-items: center;
-	flex-wrap: wrap;
 	gap: var(--cb-space-2);
+	min-width: 0;
 }
 
 .cb-work-calendar-navigation__controls .button {
@@ -779,10 +780,31 @@
 .cb-work-calendar-navigation__month {
 	display: inline-flex;
 	align-items: center;
+	justify-self: center;
 	min-height: 30px;
+	min-width: 0;
 	padding-inline: var(--cb-space-2);
+	color: var(--cb-work-text-strong);
 	font-weight: var(--cb-fw-semibold);
 	white-space: nowrap;
+}
+
+/* Calendar owns its horizontal scroll, rather than overflowing the whole
+ * admin workspace and clipping surrounding filters or popovers. */
+.cb-work-calendar__viewport {
+	box-sizing: border-box;
+	max-width: 100%;
+	min-width: 0;
+	overflow-x: auto;
+	overscroll-behavior-inline: contain;
+	scrollbar-gutter: stable;
+	border-radius: var(--cb-radius-sm);
+}
+
+.cb-work-calendar__viewport:focus-visible,
+.cb-work-day-board__viewport:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus);
+	outline-offset: -2px;
 }
 
 .cb-work-items-calendar {
@@ -820,6 +842,15 @@
 
 .cb-work-calendar-day:hover {
 	background: var(--cb-interactive-hover);
+}
+
+.cb-work-calendar-day.is-today {
+	box-shadow: inset 0 0 0 2px var(--cb-interactive-focus);
+}
+
+.cb-work-calendar-day.is-today .cb-work-calendar-day__number {
+	color: var(--cb-work-text-strong);
+	font-weight: var(--cb-fw-semibold);
 }
 
 .cb-work-calendar-day__number {
@@ -869,11 +900,22 @@
 	color: var(--cb-work-text-muted);
 }
 
+.cb-work-day-modal {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .cb-work-day-board__viewport {
+	box-sizing: border-box;
 	width: 100%;
+	min-width: 0;
+	max-width: 100%;
 	overflow-x: auto;
 	overscroll-behavior-inline: contain;
-	padding-bottom: var(--cb-space-1);
+	scrollbar-gutter: stable;
+	scroll-padding-inline: var(--cb-space-2);
+	padding-inline-end: var(--cb-space-3);
+	padding-bottom: var(--cb-space-2);
 }
 
 .cb-work-day-board {
@@ -1004,6 +1046,18 @@
 }
 
 @media screen and (max-width: 782px) {
+	.cb-work-calendar-navigation__controls {
+		grid-template-columns: repeat(3, max-content);
+		justify-content: space-between;
+	}
+
+	.cb-work-calendar-navigation__month {
+		grid-column: 1 / -1;
+		grid-row: 1;
+		justify-self: start;
+		padding-inline: 0;
+	}
+
 	.cb-work-items-page > .description {
 		margin-bottom: var(--cb-space-4);
 	}
@@ -1092,6 +1146,35 @@
 	}
 
 	.cb-work-items-calendar {
-		min-width: 760px;
+		min-width: 840px;
+	}
+}
+
+/* Very narrow admin widths keep navigational actions reachable without
+ * shrinking touch targets or extending the Calendar parent container. */
+@media screen and (max-width: 480px) {
+	.cb-work-calendar-navigation__controls {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.cb-work-calendar-navigation__month {
+		grid-column: 1 / -1;
+	}
+
+	.cb-work-calendar-navigation__previous,
+	.cb-work-calendar-navigation__next {
+		text-align: center;
+	}
+
+	.cb-work-calendar-navigation__today {
+		grid-column: 1 / -1;
+		grid-row: 3;
+		text-align: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cb-work-day-card:hover {
+		transform: none;
 	}
 }
