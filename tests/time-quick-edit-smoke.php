@@ -111,9 +111,20 @@ namespace {
         || ! str_contains( $actions, "\$args['te_edit'] = (int) \$extra['entry_id'];" )
         || ! str_contains( $styles, '.cb-work-time-quick-edit-fields' )
         || ! str_contains( $styles, '.cb-work-time-quick-edit-row' )
+        || ! str_contains( $list, 'data-cb-work-time-quick-edit-toggle' )
+        || ! str_contains( $list, 'data-cb-work-time-async-error' )
         || ! str_contains( $script, "form.addEventListener('input'" )
+        || ! str_contains( $script, 'fetch(trigger.href' )
+        || ! str_contains( $script, "trigger.closest('tr').after(row)" )
+        || ! str_contains( $script, 'fetch(form.action' )
+        || ! str_contains( $script, 'body: new FormData(form)' )
+        || ! str_contains( $script, "outcome === 'time-updated'" )
+        || ! str_contains( $script, 'list.replaceWith(replacement)' )
+        || ! str_contains( $script, 'report(form, serverNotice)' )
+        || ! str_contains( $script, 'window.history.replaceState(' )
+        || ! str_contains( $script, 'closeEditor(true)' )
         || ! str_contains( $time, "assets/time-entry-quick-edit.js" ) ) {
-        $fail( 'editor routing, permissions, auditing, responsive presentation or progressive preview contract' );
+        $fail( 'editor routing, secured save, no-reload quick edit, state restoration or preview contract' );
     }
 
     $marker = new \ReflectionMethod( \CB\Work\Admin\TimeActions::class, 'quick_edit_request' );
