@@ -82,7 +82,7 @@ $checks = [
 		&& str_contains( $script, 'const syncUnits = () => {' )
 		&& str_contains( $recurrence, 'RecurrenceSchedule::frequencies()' ),
 	'Explicit editor activation guards unsaved changes and has no nested forms' => str_contains( $recurrence, 'data-cb-editor-toggle' )
-		&& str_contains( $script, 'const markDirty = () => {' )
+		&& str_contains( $script, 'const markUnsaved = () => {' )
 		&& str_contains( $script, "data.set('action', 'cb_work_toggle_recurrence_rule_inline')" )
 		&& str_contains( $script, "body.set('action', 'cb_work_toggle_recurrence_rule_inline')" ),
 	'Activation toolbar is above builder and uses the governed form without nested forms' => strpos( $recurrence, 'data-cb-recurrence-toolbar' ) < strpos( $recurrence, 'data-cb-recurrence-editor' )
@@ -90,10 +90,11 @@ $checks = [
 		&& str_contains( $recurrence, 'id="cb-work-recurrence-editor-form"' )
 		&& 1 === substr_count( $recurrence, 'class="cb-work-recurrence-activation"' )
 		&& str_contains( $recurrence, 'data-cb-recurrence-unsaved' )
-		&& str_contains( $script, 'if (unsavedNotice) unsavedNotice.hidden = false;' )
+		&& str_contains( $script, 'if (notice) notice.hidden = false;' )
 		&& str_contains( $script, 'saveButton?.focus()' ),
 	'Rule preview includes assignment schedule offset and paused status without writes' => str_contains( $recurrence, "esc_html_e( 'Rule Preview', 'core-blueprint-work' )" )
-		&& str_contains( $recurrence, "esc_html_e( 'Advanced settings', 'core-blueprint-work' )" )
+		&& str_contains( $recurrence, "__( 'Show advanced settings', 'core-blueprint-work' )" )
+		&& str_contains( $recurrence, "__( 'Hide advanced settings', 'core-blueprint-work' )" )
 		&& str_contains( $recurrence, 'data-cb-preview-assignees' )
 		&& str_contains( $script, "assigneePicker?.querySelector('[data-cb-core-object-picker-input]')" )
 		&& str_contains( $script, 'queueMicrotask(syncAssignees)' )
@@ -116,6 +117,27 @@ $checks = [
 		&& str_contains( $styles, '.cb-work-recurrence-section--defaults .cb-work-recurrence-field--assignees {' )
 		&& str_contains( $styles, 'grid-template-columns: repeat(5, minmax(0, 1fr));' )
 		&& str_contains( $styles, '@media (max-width: 680px)' ),
+	'Back navigation replaces isolated cancel and protects pending edits' => str_contains( $recurrence, 'data-cb-recurrence-back' )
+		&& str_contains( $recurrence, "esc_html__( 'Back to Rules', 'core-blueprint-work' )" )
+		&& ! str_contains( $recurrence, 'cb-work-recurrence-actions' )
+		&& str_contains( $script, "window.addEventListener('beforeunload'" )
+		&& str_contains( $script, 'config.leaveConfirm' )
+		&& str_contains( $script, 'leavingIntentionally = true;' ),
+	'ObjectPicker initial state and updates synchronize the assignee preview' => str_contains( $script, "assigneePicker.dataset.cbCoreObjectPickerReady === '1'" )
+		&& str_contains( $script, 'assigneePicker.dataset.selected' )
+		&& str_contains( $script, 'new MutationObserver(syncAssignees)' )
+		&& str_contains( $script, "assignees.textContent = names.join(', ') || '—';" ),
+	'Advanced settings summarize collapsed values and preserve explicit labels' => str_contains( $recurrence, 'data-cb-advanced-summary' )
+		&& str_contains( $script, 'const describeAdvanced = () => {' )
+		&& str_contains( $script, 'advancedLabel.textContent = expanded ? config.hideAdvanced : config.showAdvanced' )
+		&& str_contains( $script, 'if (!expanded) describeAdvanced();' ),
+	'Preview grouping and activation descriptions avoid ambiguous paused schedules' => str_contains( $recurrence, "esc_html_e( 'Upcoming occurrences (preview)', 'core-blueprint-work' )" )
+		&& str_contains( $recurrence, 'data-cb-recurrence-preview-status-note' )
+		&& str_contains( $script, 'previewNote.hidden = result.data.active;' )
+		&& str_contains( $recurrence, 'data-cb-recurrence-status-description' )
+		&& str_contains( $recurrence, 'cb-work-recurrence-preview-group-heading' ),
+	'Native date fields preserve ISO values and advertise the site locale' => str_contains( $recurrence, "str_replace( '_', '-', determine_locale() )" )
+		&& str_contains( $recurrence, 'type="date" name="recurrence[start_on]"' ),
 	'Rules table shows context, schedule, and state' => str_contains( $recurrence, "'Work context', 'core-blueprint-work'" )
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
