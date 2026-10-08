@@ -79,7 +79,7 @@ $checks = [
         && str_contains( $js, "clocks.forEach((node) => { node.textContent = '00:00:00'; });" ),
     'Time workspace and existing server start/stop are preserved; pause is not simulated' =>
         str_contains( $time, 'self::render_active_timer_status( $active, $view );' )
-        && str_contains( $actions, "Timers::stop( $user_id, get_current_user_id() )" )
+        && str_contains( $actions, 'Timers::stop( $user_id, get_current_user_id() )' )
         && ! str_contains( $hud, 'pause_timer' )
         && ! str_contains( $js, 'pauseTimer' ),
 ];
