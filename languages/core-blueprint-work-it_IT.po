@@ -2613,3 +2613,12 @@ msgstr "Non è stato possibile salvare la modifica in blocco. Controlla le regis
 
 msgid "At least one selected Time entry changed. Reload the list and try again."
 msgstr "Almeno una registrazione di tempo selezionata è stata modificata. Ricarica l'elenco e riprova."
+
+msgid "Append to note"
+msgstr "Aggiungi alla nota"
+
+msgid "Replace note"
+msgstr "Sostituisci la nota"
+
+msgid "Clear note"
+msgstr "Cancella la nota"
