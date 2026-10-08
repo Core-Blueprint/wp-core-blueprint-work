@@ -14,6 +14,16 @@
         });
     });
 
+    const generatorForm = document.querySelector('[data-cb-run-generator-form]');
+    generatorForm?.addEventListener('submit', (event) => {
+        if (!window.confirm(config.generatorConfirm)) {
+            event.preventDefault();
+            return;
+        }
+        const button = generatorForm.querySelector('[type="submit"]');
+        if (button) button.disabled = true;
+    });
+
     document.querySelectorAll('[data-cb-inline-toggle]').forEach((form) => {
         const row = form.closest('[data-cb-rule-row]');
         const button = form.querySelector('button[type="submit"]');
@@ -61,15 +71,34 @@
         const row = trigger.closest('tr');
         const editor = row?.nextElementSibling;
         if (!editor?.matches('[data-cb-quick-edit-row]')) return;
-        trigger.addEventListener('click', () => {
-            editor.hidden = !editor.hidden;
-            trigger.setAttribute('aria-expanded', String(!editor.hidden));
-            if (!editor.hidden) editor.querySelector('input[name="title"]')?.focus();
-        });
-        editor.querySelector('[data-cb-quick-edit-cancel]')?.addEventListener('click', () => {
+        const close = (restoreFocus = true) => {
             editor.hidden = true;
             trigger.setAttribute('aria-expanded', 'false');
-            trigger.focus();
+            if (restoreFocus) trigger.focus();
+        };
+        trigger.addEventListener('click', () => {
+            const shouldOpen = editor.hidden;
+            if (shouldOpen) {
+                document.querySelectorAll('[data-cb-quick-edit-row]:not([hidden])').forEach((openEditor) => {
+                    openEditor.hidden = true;
+                    openEditor.previousElementSibling?.querySelector('[data-cb-quick-edit-trigger]')?.setAttribute('aria-expanded', 'false');
+                });
+            }
+            editor.hidden = !shouldOpen;
+            trigger.setAttribute('aria-expanded', String(shouldOpen));
+            if (shouldOpen) {
+                const notice = row.querySelector('[data-cb-rule-action-notice]');
+                if (notice) notice.textContent = '';
+                editor.querySelector('input[name="title"]')?.focus();
+            } else {
+                trigger.focus();
+            }
+        });
+        editor.querySelector('[data-cb-quick-edit-cancel]')?.addEventListener('click', () => close());
+        editor.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            event.preventDefault();
+            close();
         });
         const form = editor.querySelector('[data-cb-quick-edit-form]');
         form?.addEventListener('submit', async (event) => {
@@ -94,9 +123,9 @@
                     window.location.reload();
                     return;
                 }
-                editor.hidden = true;
-                trigger.setAttribute('aria-expanded', 'false');
-                trigger.focus();
+                const notice = row.querySelector('[data-cb-rule-action-notice]');
+                if (notice) notice.textContent = config.updated;
+                close();
             } catch (error) {
                 if (status) status.textContent = error.message || config.error;
             } finally {
