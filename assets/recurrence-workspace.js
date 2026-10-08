@@ -192,6 +192,15 @@
     const project = editor.elements.namedItem('recurrence[project_id]');
     const title = preview.querySelector('[data-cb-preview-title]');
     const projectLabel = preview.querySelector('[data-cb-preview-project]');
+    const assignees = preview.querySelector('[data-cb-preview-assignees]');
+    const assigneePicker = editor.querySelector('#cb-work-recurrence-assignees')?.closest('[data-cb-core-object-picker]');
+    const syncAssignees = () => {
+        if (!assignees || !assigneePicker) return;
+        const names = Array.from(assigneePicker.querySelectorAll('.cb-core-object-picker__chip-label'))
+            .map((node) => node.textContent.trim())
+            .filter(Boolean);
+        assignees.textContent = names.join(', ') || '—';
+    };
     const estimate = preview.querySelector('[data-cb-preview-estimate]');
     const schedule = preview.querySelector('[data-cb-preview-schedule]');
     const due = preview.querySelector('[data-cb-preview-due]');
@@ -259,5 +268,10 @@
     };
     editor.addEventListener('input', onChange);
     editor.addEventListener('change', onChange);
+    assigneePicker?.querySelector('[data-cb-core-object-picker-input]')?.addEventListener('change', () => {
+        // Base dispatches "change" before repainting picker chips.
+        queueMicrotask(syncAssignees);
+    });
     updateSummary();
+    syncAssignees();
 })();
