@@ -1757,10 +1757,6 @@ msgstr "Loopt sinds %1$s %2$s."
 msgid "Stop Timer"
 msgstr "Timer stoppen"
 
-#: src/Admin/Time.php:88
-msgid "No Work Items are available for time tracking."
-msgstr "Er zijn geen Work Items beschikbaar voor tijdregistratie."
-
 #: src/Admin/Time.php:94 src/Admin/Time.php:138 src/Admin/Time.php:156
 msgid "Note"
 msgstr "Notitie"
@@ -1784,10 +1780,6 @@ msgid ""
 msgstr ""
 "Correcties gebruiken revisiecontroles. Als iemand deze invoer eerder heeft "
 "opgeslagen, overschrijft jouw verouderde formulier die wijziging niet."
-
-#: src/Admin/Time.php:115
-msgid "No Work Items are available for this entry."
-msgstr "Er zijn geen Work Items beschikbaar voor deze invoer."
 
 #: src/Admin/Time.php:128 src/Admin/Time.php:156
 msgid "User"
