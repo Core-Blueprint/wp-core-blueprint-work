@@ -158,7 +158,18 @@ final class Recurrence {
 						echo esc_html( sprintf( __( 'Start %1$s%2$s.', 'core-blueprint-work' ), $start_on, $end_label ) );
 						?></p></td></tr>
 					<?php else : ?>
-						<tr class="cb-work-recurrence-field--frequency"><th scope="row"><label for="cb-work-recurrence-frequency"><?php esc_html_e( 'Frequency', 'core-blueprint-work' ); ?></label></th><td><select id="cb-work-recurrence-frequency" name="recurrence[frequency]"><?php foreach ( RecurrenceSchedule::frequencies() as $value ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( $frequency, $value ); ?>><?php echo esc_html( ucfirst( $value ) ); ?></option><?php endforeach; ?></select> <label><?php esc_html_e( 'Every', 'core-blueprint-work' ); ?> <input class="small-text" type="number" min="1" max="999" name="recurrence[interval_count]" value="<?php echo esc_attr( (string) $interval ); ?>"></label></td></tr>
+						<tr class="cb-work-recurrence-field--frequency"><th scope="row"><label for="cb-work-recurrence-frequency"><?php esc_html_e( 'Frequency', 'core-blueprint-work' ); ?></label></th><td>
+							<label for="cb-work-recurrence-interval"><?php esc_html_e( 'Every', 'core-blueprint-work' ); ?></label>
+							<input id="cb-work-recurrence-interval" class="small-text" type="number" min="1" max="999" name="recurrence[interval_count]" value="<?php echo esc_attr( (string) $interval ); ?>">
+							<select id="cb-work-recurrence-frequency" name="recurrence[frequency]"><?php foreach ( RecurrenceSchedule::frequencies() as $value ) : ?>
+								<?php $unit = match ( $value ) {
+									RecurrenceSchedule::DAILY => [ __( 'day', 'core-blueprint-work' ), __( 'days', 'core-blueprint-work' ) ],
+									RecurrenceSchedule::WEEKLY => [ __( 'week', 'core-blueprint-work' ), __( 'weeks', 'core-blueprint-work' ) ],
+									RecurrenceSchedule::MONTHLY => [ __( 'month', 'core-blueprint-work' ), __( 'months', 'core-blueprint-work' ) ],
+									default => [ __( 'year', 'core-blueprint-work' ), __( 'years', 'core-blueprint-work' ) ],
+								}; ?>
+								<option value="<?php echo esc_attr( $value ); ?>" data-cb-unit-singular="<?php echo esc_attr( $unit[0] ); ?>" data-cb-unit-plural="<?php echo esc_attr( $unit[1] ); ?>" <?php selected( $frequency, $value ); ?>><?php echo esc_html( 1 === $interval ? $unit[0] : $unit[1] ); ?></option>
+							<?php endforeach; ?></select></td></tr>
 						<tr><th scope="row"><label for="cb-work-recurrence-start"><?php esc_html_e( 'Start date', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-start" type="date" name="recurrence[start_on]" value="<?php echo esc_attr( $start_on ); ?>" required></td></tr>
 						<tr><th scope="row"><label for="cb-work-recurrence-end"><?php esc_html_e( 'End date', 'core-blueprint-work' ); ?></label></th><td><input id="cb-work-recurrence-end" type="date" name="recurrence[end_on]" value="<?php echo esc_attr( $end_on ); ?>"><p class="description"><?php esc_html_e( 'Optional. Leave empty for an open-ended rule.', 'core-blueprint-work' ); ?></p></td></tr>
 					<?php endif; ?>
