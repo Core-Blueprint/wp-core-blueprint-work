@@ -628,3 +628,172 @@
 		flex-direction: column;
 	}
 }
+
+/* G2 final: hierarchy within Work Item defaults follows the DOM/tab order. */
+.cb-work-recurrence-section--defaults {
+    container-type: inline-size;
+}
+
+.cb-work-recurrence-defaults-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px 24px;
+    margin-bottom: 26px;
+}
+
+.cb-work-recurrence-defaults-header h3 {
+    margin: 0 0 6px;
+}
+
+.cb-work-recurrence-defaults-header .description {
+    margin: 0;
+    line-height: 1.5;
+    opacity: .8;
+}
+
+.cb-work-recurrence-section--defaults .cb-work-recurrence-advanced-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 8px;
+    margin: 0 !important;
+    padding: 7px 4px;
+    min-height: 34px;
+    max-width: 100%;
+    border: 0;
+    border-radius: 4px;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cb-work-recurrence-section--defaults .cb-work-recurrence-advanced-toggle:hover {
+    background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.cb-work-recurrence-section--defaults .cb-work-recurrence-advanced-toggle:focus-visible {
+    outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+    outline-offset: 2px;
+}
+
+.cb-work-recurrence-chevron {
+    display: inline-block;
+    transition: transform 150ms ease;
+}
+
+.cb-work-recurrence-advanced-toggle[aria-expanded="true"] .cb-work-recurrence-chevron {
+    transform: rotate(180deg);
+}
+
+.cb-work-recurrence-defaults-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 30px;
+    row-gap: 28px;
+    align-items: start;
+}
+
+.cb-work-recurrence-defaults-work,
+.cb-work-recurrence-defaults-assignment {
+    min-width: 0;
+}
+
+.cb-work-recurrence-defaults-grid h4 {
+    margin: 0 0 18px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.cb-work-recurrence-defaults-work .cb-work-recurrence-fields tbody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+}
+
+.cb-work-recurrence-defaults-assignment .cb-work-recurrence-fields tbody {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.cb-work-recurrence-defaults-assignment .cb-work-recurrence-field--assignees,
+.cb-work-recurrence-defaults-work .cb-work-recurrence-field--wide {
+    grid-column: 1 / -1;
+}
+
+.cb-work-recurrence-defaults-assignment .cb-work-recurrence-field--assignees td {
+    max-width: none;
+}
+
+.cb-work-recurrence-defaults-advanced {
+    margin-top: 26px;
+    padding-top: 15px;
+    border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.cb-work-recurrence-defaults-advanced .cb-work-recurrence-advanced-summary {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.7;
+    opacity: .8;
+}
+
+.cb-work-recurrence-defaults-advanced .cb-work-recurrence-fields tbody {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.cb-work-recurrence-defaults-advanced .cb-work-recurrence-field--wide {
+    grid-column: auto;
+}
+
+.cb-work-recurrence-preview-frequency {
+    margin: 0 0 14px;
+    font-size: 14px;
+}
+
+.cb-work-recurrence-saved {
+    font-size: 12px;
+    opacity: .7;
+}
+
+.cb-work-recurrence-activation [type="submit"]:disabled {
+    cursor: not-allowed;
+}
+
+/* The available width is the editor column, not the whole WP Admin viewport. */
+@container (max-width: 760px) {
+    .cb-work-recurrence-defaults-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cb-work-recurrence-defaults-advanced .cb-work-recurrence-fields tbody {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cb-work-recurrence-defaults-advanced .cb-work-recurrence-field--wide {
+        grid-column: 1 / -1;
+    }
+}
+
+@container (max-width: 490px) {
+    .cb-work-recurrence-defaults-header {
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .cb-work-recurrence-defaults-work .cb-work-recurrence-fields tbody {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cb-work-recurrence-defaults-work .cb-work-recurrence-fields tr {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cb-work-recurrence-chevron {
+        transition: none;
+    }
+}
