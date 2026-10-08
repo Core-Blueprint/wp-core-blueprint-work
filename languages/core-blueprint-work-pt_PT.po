@@ -1336,10 +1336,6 @@ msgstr ""
 "Não foi possível adicionar o Work Item. Abra o editor completo para rever "
 "todos os detalhes obrigatórios."
 
-#: src/Admin/Recurrence.php:65
-msgid "Add New Rule"
-msgstr "Adicionar nova regra"
-
 #: src/Admin/Recurrence.php:68
 msgid ""
 "Create real Work Items from reusable schedules. Commercial recurring service "
