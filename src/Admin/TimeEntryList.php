@@ -137,7 +137,7 @@ final class TimeEntryList {
                                     <?php if ( $manager ) : ?><td><?php echo esc_html( $user ? (string) $user->display_name : (string) $entry['user_id'] ); ?></td><?php endif; ?>
                                     <td class="cb-work-time-duration"><?php echo esc_html( self::duration( (int) $entry['duration_seconds'] ) ); ?></td>
                                     <td><?php echo esc_html( TimeEntries::SOURCE_TIMER === $entry['entry_source'] ? __( 'Timer', 'core-blueprint-work' ) : __( 'Manual', 'core-blueprint-work' ) ); ?></td>
-                                    <td class="cb-work-time-note"><?php echo esc_html( (string) $entry['note'] ); ?></td>
+                                    <td class="cb-work-time-note"><?php echo esc_html( wp_html_excerpt( (string) $entry['note'], 120, '…' ) ); ?></td>
                                     <td><?php if ( Access::can_edit_entry( $entry, (int) $entry['work_item_id'] ) ) : ?>
                                         <a class="button button-small" href="<?php echo esc_url( Menu::time_url( [ 'view' => Time::VIEW_MANUAL, 'entry_id' => (int) $entry['id'] ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a>
                                     <?php endif; ?></td>
