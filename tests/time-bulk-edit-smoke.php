@@ -86,6 +86,14 @@ $checks = [
         && str_contains( $style, 'border-style: dashed;' )
         && str_contains( $style, ':has(textarea[data-cb-work-time-bulk-note]:disabled) > label' )
         && str_contains( $style, 'resize: none;' ),
+    'bulk toolbar follows Work Items selection visibility with two-entry threshold' =>
+        str_contains( $list, 'data-cb-work-time-bulk-form hidden' )
+        && str_contains( $list, '<noscript><style>#cb-work-time-bulk-form[hidden]' )
+        && str_contains( $script, 'bulk.hidden = selected.length < 2;' )
+        && str_contains( $script, "bulk.querySelector('[data-cb-work-time-bulk-editor]')?.removeAttribute('open');" )
+        && str_contains( $style, '.cb-work-time-bulk-form[hidden]' )
+        && str_contains( $script, 'const container = bulk && !bulk.hidden ? bulk : list();' )
+        && str_contains( $script, 'container.prepend(div);' ),
     'dedicated outcome messages are rendered' =>
         str_contains( $time, "'time-bulk-updated'" )
         && str_contains( $time, "'time-bulk-partial'" )
