@@ -103,6 +103,7 @@ final class TimerHud {
                 <time class="cb-work-time-hud-clock" data-cb-time-hud-clock aria-label="<?php esc_attr_e( 'Elapsed time', 'core-blueprint-work' ); ?>">00:00:00</time>
                 <span aria-hidden="true">⌃</span>
             </button>
+            <noscript><a class="button" href="<?php echo esc_url( Menu::time_url( [ 'view' => Time::VIEW_TIMER ] ) ); ?>"><?php esc_html_e( 'Open Time workspace', 'core-blueprint-work' ); ?></a></noscript>
             <div class="cb-work-time-hud-panel" id="cb-work-time-hud-panel" data-cb-time-hud-panel hidden>
                 <div class="cb-work-time-hud-heading">
                     <strong><?php esc_html_e( 'Active timer', 'core-blueprint-work' ); ?></strong>
