@@ -304,7 +304,7 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
 
         // Prove visibility across distinct server sessions, not just two
         // PHP references to the same global WordPress mysqli connection.
-        self::assertSame( 0, (int) $b->get_var( 'SELECT COUNT(*) FROM ' . $table ) );
+        self::assertSame( '0', (string) $b->get_var( 'SELECT COUNT(*) FROM ' . $table ) );
     }
 
     private function seed_entry( wpdb $client, string $start, string $end, string $note, string $source = 'manual' ): int {
