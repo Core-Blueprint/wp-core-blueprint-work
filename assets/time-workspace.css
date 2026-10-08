@@ -547,6 +547,9 @@
 
 
 /* T2-C Time Entries bulk selection: independent of the inline Quick Edit row. */
+.cb-work-time-bulk-form[hidden] {
+    display: none;
+}
 .cb-work-time-bulk-form {
     margin-block: 0 16px;
     border: 1px solid var(--cb-border, #dcdcde);
@@ -626,6 +629,9 @@
 }
 .cb-work-time-bulk-form > .cb-work-time-bulk-request-notice {
     margin: 12px 18px;
+}
+.cb-work-time-entries > .cb-work-time-bulk-request-notice {
+    margin: 0 0 12px;
 }
 .cb-work-time-entries-scroll .widefat .cb-work-time-bulk-select-column {
     width: 38px;
