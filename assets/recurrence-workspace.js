@@ -176,6 +176,15 @@
     }
 
     const value = (name) => editor.elements.namedItem('recurrence[' + name + ']')?.value || '';
+    const intervalField = editor.elements.namedItem('recurrence[interval_count]');
+    const unitsField = editor.elements.namedItem('recurrence[frequency]');
+    const syncUnits = () => {
+        if (!intervalField || !unitsField) return;
+        const plural = Number(intervalField.value) !== 1;
+        Array.from(unitsField.options).forEach((option) => {
+            option.textContent = plural ? option.dataset.cbUnitPlural : option.dataset.cbUnitSingular;
+        });
+    };
     const project = editor.elements.namedItem('recurrence[project_id]');
     const title = preview.querySelector('[data-cb-preview-title]');
     const projectLabel = preview.querySelector('[data-cb-preview-project]');
@@ -185,6 +194,7 @@
     let requestId = 0;
 
     const updateSummary = () => {
+        syncUnits();
         if (title) title.textContent = value('title') || '—';
         if (estimate) estimate.textContent = value('estimated_minutes') || '0';
         if (projectLabel && project) {
