@@ -51,9 +51,9 @@ $checks = [
         && str_contains( $handler, 'Access::can_track_work_item( $work_item_id' ),
     'canonical CAS keeps timestamps, owner, source, duration' =>
         str_contains( $handler, 'TimeEntries::update_completed(' )
-        && str_contains( $handler, "(string) $entry['started_at']" )
-        && str_contains( $handler, "(string) $entry['ended_at']" )
-        && str_contains( $handler, "(int) $entry['user_id']" )
+        && str_contains( $handler, '(string) $entry[\'started_at\']' )
+        && str_contains( $handler, '(string) $entry[\'ended_at\']' )
+        && str_contains( $handler, '(int) $entry[\'user_id\']' )
         && ! str_contains( $handler, "TimeEntries::create_manual(" ),
     'each successful change is audited as bulk' =>
         str_contains( $handler, "Audit::record( Events::TIME_ENTRY_UPDATED" )
