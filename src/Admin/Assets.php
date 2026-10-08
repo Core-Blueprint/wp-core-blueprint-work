@@ -97,6 +97,18 @@ final class Assets {
 				false === $css_modified ? CB_WORK_VERSION : (string) $css_modified
 			);
 		}
+		// Run in the admin head: hide only Work's transient PHP notices
+		// before first paint, and restore them if the Toast module fails.
+		if ( is_file( $handoff_css ) ) {
+			wp_register_script( 'cb-work-toast-handoff', false, [], CB_WORK_VERSION, false );
+			wp_enqueue_script( 'cb-work-toast-handoff' );
+			wp_add_inline_script(
+				'cb-work-toast-handoff',
+				'document.documentElement.classList.add("cb-work-toast-pending");'
+				. 'window.setTimeout(function(){document.documentElement.classList.remove("cb-work-toast-pending");},3000);',
+				'before'
+			);
+		}
 		\CoreBlueprint\Core\UI\Assets::enqueue_toasts(
 			\CoreBlueprint\Core\UI\Assets::TOAST_PRESENTATION_CORE
 		);
