@@ -19,6 +19,7 @@ final class RecurrenceActions {
 		add_action( 'admin_post_cb_work_toggle_recurrence_rule', [ self::class, 'toggle' ] );
 		add_action( 'admin_post_cb_work_run_recurrence_generator', [ self::class, 'run_generator' ] );
 		add_action( 'wp_ajax_cb_work_quick_edit_recurrence_rule', [ self::class, 'quick_edit' ] );
+		add_action( 'wp_ajax_cb_work_toggle_recurrence_rule_inline', [ self::class, 'toggle_inline' ] );
 		add_action( 'wp_ajax_cb_work_preview_recurrence_rule', [ self::class, 'preview' ] );
 	}
 
@@ -75,6 +76,25 @@ final class RecurrenceActions {
 			'generated' => (int) $stats['generated'],
 			'recovered' => (int) $stats['recovered'],
 			'failed'    => (int) $stats['failed'],
+		] );
+	}
+
+	/** Governed inline activation; the legacy admin-post action remains the no-JS fallback. */
+	public static function toggle_inline(): void {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		if ( ! current_user_can( Capabilities::MANAGE ) || $rule_id <= 0 ) {
+			wp_send_json_error( [ 'message' => __( 'You do not have permission to manage Work.', 'core-blueprint-work' ) ], 403 );
+		}
+		check_ajax_referer( 'cb_work_toggle_recurrence_rule_' . $rule_id );
+		$active = isset( $_POST['active'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_POST['active'] ) );
+		if ( null === RecurrenceRules::get( $rule_id ) || ! RecurrenceRules::update( $rule_id, [ 'is_active' => $active, 'updated_by' => get_current_user_id() ] ) ) {
+			wp_send_json_error( [ 'message' => __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ], 409 );
+		}
+		Audit::record( Events::RECURRENCE_RULE_STATUS_CHANGED, 'notice', [ 'rule_id' => $rule_id, 'active' => $active, 'source' => 'inline' ] );
+		wp_send_json_success( [
+			'active' => $active,
+			'status' => $active ? __( 'Active', 'core-blueprint-work' ) : __( 'Inactive', 'core-blueprint-work' ),
+			'action' => $active ? __( 'Deactivate', 'core-blueprint-work' ) : __( 'Activate', 'core-blueprint-work' ),
 		] );
 	}
 
