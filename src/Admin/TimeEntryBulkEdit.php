@@ -39,23 +39,23 @@ final class TimeEntryBulkEdit {
 
         $raw_ids = $_POST['entry_ids'] ?? [];
         if ( ! is_array( $raw_ids ) || [] === $raw_ids || count( $raw_ids ) > self::LIMIT ) {
-            self::redirect( $state, 'time-invalid' );
+            self::redirect( $state, 'time-bulk-invalid' );
         }
         $ids = [];
         foreach ( $raw_ids as $value ) {
             if ( ! is_scalar( $value ) || ! ctype_digit( (string) $value ) || (int) $value <= 0 ) {
-                self::redirect( $state, 'time-invalid' );
+                self::redirect( $state, 'time-bulk-invalid' );
             }
             $id = (int) $value;
             if ( isset( $ids[ $id ] ) ) {
-                self::redirect( $state, 'time-invalid' );
+                self::redirect( $state, 'time-bulk-invalid' );
             }
             $ids[ $id ] = $id;
         }
 
         $raw_revisions = $_POST['entry_revisions'] ?? [];
         if ( ! is_array( $raw_revisions ) ) {
-            self::redirect( $state, 'time-invalid' );
+            self::redirect( $state, 'time-bulk-invalid' );
         }
         $mode_raw = $_POST['note_mode'] ?? '';
         $mode = is_scalar( $mode_raw ) ? sanitize_key( (string) wp_unslash( $mode_raw ) ) : '';
@@ -63,7 +63,7 @@ final class TimeEntryBulkEdit {
         $note = is_string( $note_raw ) ? sanitize_textarea_field( wp_unslash( $note_raw ) ) : '';
         $target_raw = $_POST['bulk_work_item_id'] ?? '0';
         if ( ! is_scalar( $target_raw ) || ! ctype_digit( (string) $target_raw ) ) {
-            self::redirect( $state, 'time-invalid' );
+            self::redirect( $state, 'time-bulk-invalid' );
         }
         $target_id = (int) $target_raw;
 
@@ -71,7 +71,7 @@ final class TimeEntryBulkEdit {
             || ( 'append' === $mode && '' === trim( $note ) )
             || ( 'keep' === $mode && 0 === $target_id )
             || ( $target_id > 0 && ! Access::can_manage() ) ) {
-            self::redirect( $state, 'time-invalid' );
+            self::redirect( $state, 'time-bulk-invalid' );
         }
 
         // Preflight *all* selected entries before the first write, so a stale
@@ -80,11 +80,11 @@ final class TimeEntryBulkEdit {
         foreach ( $ids as $id ) {
             $revision = $raw_revisions[ $id ] ?? null;
             if ( ! is_scalar( $revision ) || ! ctype_digit( (string) $revision ) || (int) $revision <= 0 ) {
-                self::redirect( $state, 'time-invalid' );
+                self::redirect( $state, 'time-bulk-invalid' );
             }
             $entry = TimeEntries::get( $id );
             if ( ! is_array( $entry ) || null === $entry['ended_at'] ) {
-                self::redirect( $state, 'time-invalid' );
+                self::redirect( $state, 'time-bulk-invalid' );
             }
             $work_item_id = $target_id > 0 ? $target_id : (int) $entry['work_item_id'];
             if ( ! Access::can_edit_entry( $entry, $work_item_id )
@@ -92,7 +92,7 @@ final class TimeEntryBulkEdit {
                 self::redirect( $state, 'time-not-authorized' );
             }
             if ( (int) $entry['revision'] !== (int) $revision ) {
-                self::redirect( $state, 'time-conflict' );
+                self::redirect( $state, 'time-bulk-conflict' );
             }
 
             $updated_note = (string) $entry['note'];
@@ -103,7 +103,7 @@ final class TimeEntryBulkEdit {
             }
             $length = function_exists( 'mb_strlen' ) ? mb_strlen( $updated_note ) : strlen( $updated_note );
             if ( $length > 4000 ) {
-                self::redirect( $state, 'time-invalid' );
+                self::redirect( $state, 'time-bulk-invalid' );
             }
             if ( $work_item_id !== (int) $entry['work_item_id'] || $updated_note !== (string) $entry['note'] ) {
                 $updates[] = [ 'entry' => $entry, 'revision' => (int) $revision, 'work_item_id' => $work_item_id, 'note' => $updated_note ];
@@ -111,7 +111,7 @@ final class TimeEntryBulkEdit {
         }
 
         if ( [] === $updates ) {
-            self::redirect( $state, 'time-invalid' );
+            self::redirect( $state, 'time-bulk-invalid' );
         }
 
         $updated = 0;
@@ -148,7 +148,7 @@ final class TimeEntryBulkEdit {
 
         self::redirect(
             $state,
-            $failed > 0 ? ( $updated > 0 ? 'time-bulk-partial' : 'time-conflict' ) : 'time-bulk-updated',
+            $failed > 0 ? ( $updated > 0 ? 'time-bulk-partial' : 'time-bulk-conflict' ) : 'time-bulk-updated',
             $updated,
             $failed
         );
