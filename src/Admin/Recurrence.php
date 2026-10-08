@@ -320,7 +320,7 @@ final class Recurrence {
 			return null;
 		}
 		$date = $use_cursor ? $cursor : $schedule['start_on'];
-		if ( ! $use_cursor && null !== $from_on && true ) {
+		if ( ! $use_cursor && null !== $from_on ) {
 			// Walk the canonical schedule to its first occurrence on/after the site date.
 			// Capped to prevent malformed historical rules from exhausting a request.
 			for ( $i = 0; $i < 50000 && null !== $date && $date < $from_on; $i++ ) {
