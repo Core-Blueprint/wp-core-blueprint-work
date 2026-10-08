@@ -175,7 +175,11 @@
         try {
             // Fetch follows the existing admin-post redirect. No second write API,
             // and all nonce, capability, revision and audit checks remain server-side.
-            const response = await fetch(form.action, {
+            // Read the actual attribute: the WordPress hidden input named "action"
+            // can shadow HTMLFormElement.action and become the fetch URL.
+            const actionUrl = form.getAttribute('action');
+            if (!actionUrl) throw new Error('Time Quick Edit action URL missing');
+            const response = await fetch(actionUrl, {
                 method: 'POST',
                 body: new FormData(form),
                 credentials: 'same-origin',
