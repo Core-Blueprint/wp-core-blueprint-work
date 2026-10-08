@@ -1794,10 +1794,6 @@ msgstr ""
 msgid "Stop Timer"
 msgstr ""
 
-#: src/Admin/Time.php:88
-msgid "No Work Items are available for time tracking."
-msgstr ""
-
 #: src/Admin/Time.php:94
 #: src/Admin/Time.php:138
 #: src/Admin/Time.php:156
@@ -1819,10 +1815,6 @@ msgstr ""
 
 #: src/Admin/Time.php:113
 msgid "Corrections use revision checks. If someone saved this entry first, your stale form will not overwrite their change."
-msgstr ""
-
-#: src/Admin/Time.php:115
-msgid "No Work Items are available for this entry."
 msgstr ""
 
 #: src/Admin/Time.php:128
