@@ -121,9 +121,9 @@ final class TimeEntries {
         $sort = (string) ( $criteria['sort'] ?? 'newest' );
         $order = $sort_map[ $sort ] ?? $sort_map['newest'];
         $offset = ( $page - 1 ) * $per_page;
-        $sql = $query( "SELECT te.* FROM {$table} AS te WHERE {$clause} ORDER BY {$order}" );
+        $sql = "SELECT te.* FROM {$table} AS te WHERE {$clause} ORDER BY {$order} LIMIT %d OFFSET %d";
         $rows = $wpdb->get_results(
-            $wpdb->prepare( "{$sql} LIMIT %d OFFSET %d", $per_page, $offset ),
+            $wpdb->prepare( $sql, ...[ ...$args, $per_page, $offset ] ),
             ARRAY_A
         );
         return [
