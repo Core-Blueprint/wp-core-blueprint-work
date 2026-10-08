@@ -8,6 +8,9 @@ use CoreBlueprint\Core\UI\ObjectPicker;
 use CB\Work\Capabilities;
 use CB\Work\Content\PostTypes;
 use CB\Work\Integration\CRMCustomers;
+use CB\Work\Repository\WorkItems;
+use CB\Work\Time\Access;
+use CB\Work\Time\WorkItemPickerSearch;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,6 +20,7 @@ final class Pickers {
 	public static function init(): void {
 		add_action( 'wp_ajax_cb_work_search_customers', [ self::class, 'search_customers' ] );
 		add_action( 'wp_ajax_cb_work_search_users', [ self::class, 'search_users' ] );
+		add_action( 'wp_ajax_cb_work_search_time_work_items', [ self::class, 'search_time_work_items' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue' ] );
 	}
 
@@ -28,7 +32,7 @@ final class Pickers {
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if (
 			! in_array( (string) $screen->post_type, [ PostTypes::PROJECT, PostTypes::WORK_ITEM ], true )
-			&& ! in_array( $page, [ Menu::WORK_ITEMS_SLUG, Menu::RECURRENCE_SLUG, Menu::TIME_SLUG ], true )
+			&& ! in_array( $page, [ Menu::WORK_ITEMS_SLUG, Menu::RECURRENCE_SLUG, Menu::TIME_SLUG, Menu::TOP_LEVEL_SLUG ], true )
 		) {
 			return;
 		}
@@ -61,6 +65,49 @@ final class Pickers {
 	public static function assignees( string $name, string $id, array $user_ids = [], bool $show_hint = true ): void {
 		self::render_user_picker( $name, $id, $user_ids, true, $show_hint );
 	}
+
+    /**
+     * A single async Work Item picker for Timer, Manual Entry and Bulk Edit.
+     * Selected existing IDs remain visible even beyond the old first-500 cap.
+     * Without JS, Base exposes the numeric ID text input as a fallback.
+     */
+    public static function time_work_item( string $name, string $id, int $selected_id = 0, bool $show_hint = true ): void {
+        $selected = [];
+        if ( $selected_id > 0 ) {
+            $item = WorkItems::get( $selected_id );
+            if ( is_array( $item ) ) {
+                $selected[] = [
+                    'id' => (int) $item['id'],
+                    'label' => (string) $item['title'],
+                    'meta' => '#' . (int) $item['id'],
+                ];
+            }
+        }
+
+        echo ObjectPicker::render( [
+            'name' => $name,
+            'id' => $id,
+            'multiple' => false,
+            'action' => 'cb_work_search_time_work_items',
+            'nonce' => wp_create_nonce( self::NONCE_ACTION ),
+            'selected' => $selected,
+            'placeholder' => __( 'Search Work Items', 'core-blueprint-work' ),
+            'empty_message' => __( 'Select a Work Item', 'core-blueprint-work' ),
+            'show_hint' => $show_hint,
+        ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Base ObjectPicker escapes markup.
+    }
+
+    public static function search_time_work_items(): never {
+        if ( ! Access::can_track() ) {
+            wp_send_json_error( [ 'message' => __( 'You do not have permission to track Work time.', 'core-blueprint-work' ) ], 403 );
+        }
+        check_ajax_referer( self::NONCE_ACTION );
+        $raw = $_POST['search'] ?? '';
+        $term = is_string( $raw ) ? sanitize_text_field( wp_unslash( $raw ) ) : '';
+        wp_send_json_success( [
+            'items' => WorkItemPickerSearch::results( $term, get_current_user_id(), Access::can_manage() ),
+        ] );
+    }
 
 	public static function search_customers(): never {
 		self::guard_ajax();
