@@ -9,6 +9,9 @@ $bulk = (string) file_get_contents( $root . '/src/Admin/TimeEntryList.php' );
 $handler = (string) file_get_contents( $root . '/src/Admin/TimeEntryBulkEdit.php' );
 $pickers = (string) file_get_contents( $root . '/src/Admin/Pickers.php' );
 $search = (string) file_get_contents( $root . '/src/Time/WorkItemPickerSearch.php' );
+// Inspect the executable method, not its documentation: the docblock
+// names WorkItems::search() solely to explain why it is not called.
+$search_body = strstr( $search, 'public static function results(' ) ?: '';
 $js = (string) file_get_contents( $root . '/assets/time-entry-bulk-edit.js' );
 $integration = (string) file_get_contents( $root . '/tests/integration/WorkTimePickerScalabilityTest.php' );
 
@@ -38,7 +41,7 @@ $checks = [
         && str_contains( $search, 'get_current_user_id() !== $actor_id' )
         && str_contains( $search, '$wpdb->esc_like( $term )' )
         && str_contains( $search, '$wpdb->prepare( $sql, ...$args )' )
-        && ! str_contains( $search, 'WorkItems::search(' ),
+        && '' !== $search_body && ! str_contains( $search_body, 'WorkItems::search(' ),
     'bulk async redraw reinitializes selected item picker' =>
         str_contains( $js, 'window.cbCore?.objectPicker?.init(list());' )
         && str_contains( $js, 'input[name="bulk_work_item_id"]' )
