@@ -58,6 +58,9 @@ final class TimerHud {
                 'failed' => __( 'Timer could not be updated. Please try again.', 'core-blueprint-work' ),
                 'noteSaved' => __( 'Note saved.', 'core-blueprint-work' ),
                 'stopped' => __( 'Timer stopped and Time entry completed.', 'core-blueprint-work' ),
+                'discardNote' => __( 'Discard unsaved note changes?', 'core-blueprint-work' ),
+                'saveBeforeStop' => __( 'Save the note before stopping this timer.', 'core-blueprint-work' ),
+                'syncFailed' => __( 'Timer status could not be refreshed.', 'core-blueprint-work' ),
             ],
         ] );
     }
@@ -119,6 +122,7 @@ final class TimerHud {
                 <p class="cb-work-time-hud-feedback" data-cb-time-hud-feedback role="status" aria-live="polite"></p>
             </div>
         </aside>
+        <div class="cb-work-time-hud-toast" data-cb-time-hud-toast role="status" aria-live="polite" hidden></div>
         <?php
     }
 
