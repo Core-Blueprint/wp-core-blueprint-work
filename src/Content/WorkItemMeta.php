@@ -127,15 +127,78 @@ final class WorkItemMeta {
 		self::write_string( $work_item_id, self::BILLING_DISPOSITION, (string) ( $details['billing_disposition'] ?? '' ) );
 	}
 
-	public static function set_status( int $work_item_id, string $status, int $actor_user_id = 0 ): void {
-		update_post_meta( $work_item_id, self::STATUS, sanitize_key( $status ) );
-		if ( WorkItemStatus::COMPLETED === $status ) {
-			update_post_meta( $work_item_id, self::COMPLETED_AT, current_time( 'mysql', true ) );
-			self::write_id( $work_item_id, self::COMPLETED_BY, max( 0, $actor_user_id ) );
-			return;
+	/**
+	 * Persist a validated transition while its caller holds the Work Item row lock.
+	 * The optional previous raw value provides a metadata compare-and-swap guard.
+	 * Callers must roll back the surrounding transaction on false.
+	 */
+	public static function set_status( int $work_item_id, string $status, int $actor_user_id = 0, ?string $previous_raw = null ): bool {
+		$status = sanitize_key( $status );
+		if ( ! WorkItemStatus::is_valid( $status ) ) {
+			return false;
 		}
-		delete_post_meta( $work_item_id, self::COMPLETED_AT );
-		delete_post_meta( $work_item_id, self::COMPLETED_BY );
+		if ( null !== $previous_raw && (string) get_post_meta( $work_item_id, self::STATUS, true ) !== $previous_raw ) {
+			return false;
+		}
+		if ( false === update_post_meta( $work_item_id, self::STATUS, $status, $previous_raw ?? '' ) ) {
+			return false;
+		}
+		if ( WorkItemStatus::COMPLETED === $status ) {
+			if ( false === update_post_meta( $work_item_id, self::COMPLETED_AT, current_time( 'mysql', true ) ) ) {
+				return false;
+			}
+			if ( $actor_user_id > 0 && false === update_post_meta( $work_item_id, self::COMPLETED_BY, $actor_user_id ) ) {
+				return false;
+			}
+			if ( $actor_user_id <= 0 ) {
+				delete_post_meta( $work_item_id, self::COMPLETED_BY );
+			}
+		} else {
+			delete_post_meta( $work_item_id, self::COMPLETED_AT );
+			delete_post_meta( $work_item_id, self::COMPLETED_BY );
+		}
+
+		wp_cache_delete( $work_item_id, 'post_meta' );
+		$actual = self::get( $work_item_id );
+		return $actual['status'] === $status
+			&& ( WorkItemStatus::COMPLETED === $status
+				? null !== $actual['completed_at'] && ( $actor_user_id <= 0 || $actor_user_id === $actual['completed_by'] )
+				: null === $actual['completed_at'] && null === $actual['completed_by'] );
+	}
+
+	/**
+	 * Verifies every Work-owned detail after an attempted write. A failed WordPress
+	 * metadata call cannot be mistaken for success simply because it returned void.
+	 *
+	 * @param array<string,mixed> $details Normalized WorkItems::normalize_write output.
+	 */
+	public static function details_match( int $work_item_id, array $details ): bool {
+		wp_cache_delete( $work_item_id, 'post_meta' );
+		$actual = self::get( $work_item_id );
+		foreach ( [
+			'work_context',
+			'customer_provider',
+			'customer_type',
+			'customer_id',
+			'project_id',
+			'service_id',
+			'work_type_id',
+			'priority',
+			'estimated_minutes',
+			'scheduled_on',
+			'due_on',
+			'billing_disposition',
+		] as $key ) {
+			$expected = $details[ $key ] ?? null;
+			if ( in_array( $key, [ 'project_id', 'service_id', 'work_type_id', 'estimated_minutes' ], true ) ) {
+				if ( (int) $expected !== (int) ( $actual[ $key ] ?? 0 ) ) {
+					return false;
+				}
+			} elseif ( (string) ( $expected ?? '' ) !== (string) ( $actual[ $key ] ?? '' ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static function ensure_status( int $work_item_id ): void {
