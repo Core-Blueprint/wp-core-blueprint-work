@@ -120,19 +120,6 @@ php "$ROOT/tests/runtime-smoke.php"
 php "$ROOT/tests/missing-base-smoke.php"
 php "$ROOT/tests/requirements-contract-smoke.php"
 
-FIRST_DIST="$(mktemp -d)"
-SECOND_DIST="$(mktemp -d)"
-trap 'rm -rf "$FIRST_DIST" "$SECOND_DIST"' EXIT
-
-CB_RELEASE_DIST="$FIRST_DIST" "$ROOT/tools/build-release" >/dev/null
-CB_RELEASE_DIST="$SECOND_DIST" "$ROOT/tools/build-release" >/dev/null
-
-FIRST_ZIP="$FIRST_DIST/core-blueprint-work.zip"
-SECOND_ZIP="$SECOND_DIST/core-blueprint-work.zip"
-FIRST_SHA="$(sha256sum "$FIRST_ZIP" | awk '{print $1}')"
-SECOND_SHA="$(sha256sum "$SECOND_ZIP" | awk '{print $1}')"
-
-[[ "$FIRST_SHA" == "$SECOND_SHA" ]] || fail "deterministic package SHA mismatch: $FIRST_SHA != $SECOND_SHA"
-cmp -s "$FIRST_ZIP" "$SECOND_ZIP" || fail "deterministic package bytes differ"
-
+# Archive determinism belongs to Level 3 (build-release). Calling the
+# builder from Level 1 would recursively invoke mandatory integration.
 echo "Core Blueprint Work local checks passed."
