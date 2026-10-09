@@ -52,29 +52,48 @@
   status. Bulk Work Item changes remain bounded and per-item; no
   global all-or-nothing bulk promise is made.
 
-## Tests
+## Handbook-conformant validation and evidence
 
-1. Mandatory standalone `php tests/work-item-mutation-golden-smoke.php`
-   checks root transaction commit, ambient savepoint behavior,
-   abort/rollback and source contract wiring.
-2. Optional **real local WordPress MariaDB PHPUnit**:
-   `phpunit -c tests/phpunit-work-item-mutation.xml.dist`.
-   Requires existing Base/WordPress test bootstrap and strict local
-   `wordpress_test` MariaDB at `127.0.0.1:3307`.
-   The first fixture uses connection-local temporary InnoDB child tables;
-   a CHECK constraint injects an assignment failure, proving Work-owned
-   post/meta rollback within PHPUnit's ambient transaction.
-   The second fixture
-   `tests/integration/WorkItemTwoConnectionCasIntegrationTest.php`
-   uses two independent sessions against one uniquely named,
-   cleanup-guarded shared InnoDB table to model a stale competing
-   status/completion update. This models the SQL CAS predicate but does
-   not directly run WordPress `update_post_meta()` in two sessions.
-3. Existing Board, Calendar, Quick Edit, Time CAS, billing, translation
-   and full Work tests should be rerun unchanged on candidate.
-4. Run `./tools/build-release`, `unzip -tqq`,
-   `sha256sum dist/core-blueprint-work.zip` and
+The A1 fix requires real WordPress/MariaDB validation. Work previously
+depended on manually supplied Base PHPunit paths, contrary to the
+approved First-Party Validation Standard. The A1 branch now implements:
+
+1. **Level 1:** `./tools/check`. Includes warning-failing A1 source
+   regression, Quick Edit/Board/bulk tests, shell syntax checks and a
+   dedicated integration-runner conformance regression.
+2. **Level 2:** `./tools/check-integration`. Work provisions a unique
+   `/tmp/core-blueprint-tests/core-blueprint-work/run.XXXXXXXX/` WordPress
+   7.0 (optionally 7.1) + matching wp-phpunit, stages the current Base
+   checkout and Work source, then runs the full Time/A1 WordPress suite
+   with the Base vendor PHPUnit. Only the dedicated disposable
+   `core_blueprint_work_test` DB on local `cb-base-test-db` is reset.
+   Work does not touch the Base `wordpress_test` database.
+   Any fixture error, skip or incomplete test blocks the gate.
+3. **Level 3:** `./tools/build-release` independently reruns Level 1
+   **and** Level 2 before a customer ZIP can be emitted. Archive entries
+   are sorted, normalized, independently regenerated and byte-compared.
+4. **Independent artifact:** `unzip -tqq dist/core-blueprint-work.zip`,
+   `sha256sum dist/core-blueprint-work.zip`, and
    `(cd dist && sha256sum -c core-blueprint-work.zip.sha256)`.
+5. **Field:** Board stale-drag, Table/List status conflict, Quick Edit
+   details+status, Gutenberg editor and completion/reopen. Separate
+   operator merge approval remains mandatory.
+
+The opt-in A1 XML and the full Time/A1 integration XML now share the
+product-owned bootstrap. One A1 test intentionally injects an assignment
+CHECK constraint failure to prove Work-owned rollback; a second A1
+fixture uses two independent MariaDB sessions on a uniquely named
+shared test-only table. It models the SQL CAS predicate and does not
+directly execute concurrent WordPress HTTP requests. Time CAS fixtures
+are included without relaxing their original invariants.
+
+The established Base checkout must contain Composer-locked PHPUnit
+9.6.36. The runner verifies exact local Base and Work source state,
+logs both source SHAs, reuses only the established MariaDB helper,
+serializes Work runs through `flock`, and rejects unsafe environment
+overrides. No arbitrary local path exploration or manual PHPUnit
+bootstrap export is part of the canonical operator workflow.
+
 
 **Evidence state:** Remote source review and GitHub branch ancestry
 verified. No local PHP lint, WordPress/MariaDB integration execution,
