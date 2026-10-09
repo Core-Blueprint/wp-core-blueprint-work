@@ -52,7 +52,7 @@ const promoteCalendarClose = (body, closeLabel) => {
 	const controls = document.createElement('div');
 	controls.className = 'cb-work-calendar-modal__header-actions';
 
-	// Reuse Base's working Close action, not a second manual dialog.close().
+	// Reuse Base's working Close action, not a second manual close path.
 	// Keep the Close name visible to assistive technology.
 	close.className = 'cb-work-calendar-modal__close';
 	close.setAttribute('aria-label', closeLabel);
