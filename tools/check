@@ -47,6 +47,9 @@ if [[ -d "$ROOT/assets" ]]; then
 	done < <(find "$ROOT/assets" -type f -name '*.js' -print0)
 fi
 
+bash -n "$ROOT/tools/check-integration"
+bash -n "$ROOT/tools/build-release"
+php "$ROOT/tests/integration-gate-contract-smoke.php"
 php "$ROOT/tests/source-conformance.php"
 php "$ROOT/tests/settings-hub-smoke.php"
 php "$ROOT/tests/admin-navigation-smoke.php"
