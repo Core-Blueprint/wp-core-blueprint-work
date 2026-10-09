@@ -59,12 +59,17 @@
    abort/rollback and source contract wiring.
 2. Optional **real local WordPress MariaDB PHPUnit**:
    `phpunit -c tests/phpunit-work-item-mutation.xml.dist`.
-   Requires existing Base/WordPress test bootstrap and `wordpress_test`
-   or equivalent local test database. Uses connection-local temporary
-   InnoDB child tables; a CHECK constraint injects an assignment failure
-   and tests rollback of WordPress post/meta within PHPUnit's ambient
-   transaction. Verifies stale source status rejection, completion/reopen
-   invariants, combined edit/status mutation and savepoints.
+   Requires existing Base/WordPress test bootstrap and strict local
+   `wordpress_test` MariaDB at `127.0.0.1:3307`.
+   The first fixture uses connection-local temporary InnoDB child tables;
+   a CHECK constraint injects an assignment failure, proving Work-owned
+   post/meta rollback within PHPUnit's ambient transaction.
+   The second fixture
+   `tests/integration/WorkItemTwoConnectionCasIntegrationTest.php`
+   uses two independent sessions against one uniquely named,
+   cleanup-guarded shared InnoDB table to model a stale competing
+   status/completion update. This models the SQL CAS predicate but does
+   not directly run WordPress `update_post_meta()` in two sessions.
 3. Existing Board, Calendar, Quick Edit, Time CAS, billing, translation
    and full Work tests should be rerun unchanged on candidate.
 4. Run `./tools/build-release`, `unzip -tqq`,
