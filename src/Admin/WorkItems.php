@@ -93,6 +93,7 @@ final class WorkItems {
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME );
 		?>
+		<input type="hidden" name="cb_work_item_expected_status" value="<?php echo esc_attr( $status ); ?>">
 		<table class="form-table" role="presentation">
 			<tbody>
 			<tr data-cb-work-context-row>
