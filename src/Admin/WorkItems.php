@@ -241,7 +241,13 @@ final class WorkItems {
 		$status = isset( $_POST['cb_work_item_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['cb_work_item_status'] ) ) : '';
 		$from   = is_array( $current ) ? (string) ( $current['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
 
-		if ( ! WorkItemRepository::save_editor( $post_id, $input ) ) {
+		if ( ! WorkItemRepository::save_editor(
+			$post_id,
+			$input,
+			'' !== $status && $status !== $from ? $status : null,
+			get_current_user_id(),
+			$from
+		) ) {
 			return;
 		}
 
@@ -251,7 +257,7 @@ final class WorkItems {
 			[ 'work_item_id' => $post_id ]
 		);
 
-		if ( '' !== $status && $status !== $from && WorkItemRepository::transition_status( $post_id, $status, get_current_user_id() ) ) {
+		if ( '' !== $status && $status !== $from ) {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $post_id, 'from' => $from, 'to' => $status ] );
 		}
 	}
