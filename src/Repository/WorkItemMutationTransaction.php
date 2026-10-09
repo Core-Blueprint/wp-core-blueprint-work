@@ -8,24 +8,32 @@ use CB\Work\Content\PostTypes;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Serializes one Work Item mutation through the canonical WordPress posts row.
+ * Serializes a Work Item's WordPress post/meta and Work-owned child-row writes.
  *
- * The Work-owned assignments table and standard WordPress posts/postmeta tables
- * must use a transactional storage engine. Do not nest START TRANSACTION calls:
- * MySQL implicitly commits an active transaction when a new one is started.
- * No side-effecting Work lifecycle hooks are fired until after run() commits.
+ * Standard WordPress and Work tables must be transactional (InnoDB). When a
+ * caller already owns a transaction, a SAVEPOINT preserves its ownership;
+ * a nested START TRANSACTION would otherwise silently COMMIT the caller.
+ * In the savepoint case the caller still owns the final transaction commit.
  */
 final class WorkItemMutationTransaction {
-	/**
-	 * @param callable():bool $mutation Work-owned DB writes; no external side effects.
-	 */
+	private static int $savepoint_sequence = 0;
+
+	/** @param callable():bool $mutation Work-owned database writes only. */
 	public static function run( int $work_item_id, callable $mutation ): bool {
 		if ( $work_item_id <= 0 ) {
 			return false;
 		}
 
 		global $wpdb;
-		if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+		$in_transaction = $wpdb->get_var( 'SELECT @@in_transaction' );
+		if ( null === $in_transaction ) {
+			return false;
+		}
+
+		$nested = (int) $in_transaction > 0;
+		$savepoint = $nested ? 'cb_work_a1_' . ++self::$savepoint_sequence : '';
+		$begin = $nested ? 'SAVEPOINT ' . $savepoint : 'START TRANSACTION';
+		if ( false === $wpdb->query( $begin ) ) {
 			return false;
 		}
 
@@ -38,36 +46,45 @@ final class WorkItemMutationTransaction {
 			ARRAY_A
 		);
 		if ( ! is_array( $locked ) || (int) $locked['ID'] !== $work_item_id ) {
-			$wpdb->query( 'ROLLBACK' );
+			self::rollback( $nested, $savepoint );
 			self::invalidate( $work_item_id );
 			return false;
 		}
 
-		// Refresh the post and meta snapshots *after* acquiring the row lock.
 		self::invalidate( $work_item_id );
-
 		try {
 			$successful = true === $mutation();
 		} catch ( \Throwable $exception ) {
-			$wpdb->query( 'ROLLBACK' );
+			self::rollback( $nested, $savepoint );
 			self::invalidate( $work_item_id );
 			throw $exception;
 		}
 
 		if ( ! $successful ) {
-			$wpdb->query( 'ROLLBACK' );
+			self::rollback( $nested, $savepoint );
 			self::invalidate( $work_item_id );
 			return false;
 		}
 
-		if ( false === $wpdb->query( 'COMMIT' ) ) {
-			$wpdb->query( 'ROLLBACK' );
+		$finish = $nested ? 'RELEASE SAVEPOINT ' . $savepoint : 'COMMIT';
+		if ( false === $wpdb->query( $finish ) ) {
+			self::rollback( $nested, $savepoint );
 			self::invalidate( $work_item_id );
 			return false;
 		}
 
 		self::invalidate( $work_item_id );
 		return true;
+	}
+
+	private static function rollback( bool $nested, string $savepoint ): void {
+		global $wpdb;
+		if ( $nested ) {
+			$wpdb->query( 'ROLLBACK TO SAVEPOINT ' . $savepoint );
+			$wpdb->query( 'RELEASE SAVEPOINT ' . $savepoint );
+			return;
+		}
+		$wpdb->query( 'ROLLBACK' );
 	}
 
 	private static function invalidate( int $work_item_id ): void {
