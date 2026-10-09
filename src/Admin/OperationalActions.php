@@ -28,7 +28,10 @@ final class OperationalActions {
 		$status = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( (string) $_POST['status'] ) ) : '';
 		$item = WorkItems::get( $id );
 		$from = is_array( $item ) ? (string) ( $item['status'] ?? '' ) : '';
-		if ( $id > 0 && WorkItems::transition_status( $id, $status, get_current_user_id() ) ) {
+		$expected = isset( $_POST['expected_status'] ) && is_scalar( $_POST['expected_status'] )
+			? sanitize_key( (string) wp_unslash( $_POST['expected_status'] ) )
+			: $from;
+		if ( $id > 0 && $expected === $from && WorkItems::transition_status( $id, $status, get_current_user_id(), $expected ) ) {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $id, 'from' => $from, 'to' => $status ] );
 			self::redirect_work_items( 'work-item-transitioned' );
 		}
@@ -47,7 +50,7 @@ final class OperationalActions {
 		foreach ( $ids as $id ) {
 			$item = WorkItems::get( $id );
 			$from = is_array( $item ) ? (string) ( $item['status'] ?? '' ) : '';
-			if ( WorkItems::transition_status( $id, $status, $actor ) ) {
+			if ( WorkItems::transition_status( $id, $status, $actor, $from ) ) {
 				Audit::record(
 					Events::WORK_ITEM_STATUS_CHANGED,
 					'notice',
@@ -74,7 +77,13 @@ final class OperationalActions {
 			$id <= 0
 			|| ! is_array( $current )
 			|| ( '' !== $status && $status !== $from && ! WorkItemStatus::can_transition( $from, $status ) )
-			|| ! WorkItems::update( $id, $input )
+			|| ! WorkItems::update(
+				$id,
+				$input,
+				'' !== $status && $status !== $from ? $status : null,
+				get_current_user_id(),
+				$from
+			)
 		) {
 			self::redirect_work_items( 'work-item-update-invalid' );
 		}
@@ -82,9 +91,6 @@ final class OperationalActions {
 		Audit::record( Events::WORK_ITEM_UPDATED, 'notice', [ 'work_item_id' => $id, 'quick_edit' => true ] );
 
 		if ( '' !== $status && $status !== $from ) {
-			if ( ! WorkItems::transition_status( $id, $status, get_current_user_id() ) ) {
-				self::redirect_work_items( 'work-item-update-invalid' );
-			}
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $id, 'from' => $from, 'to' => $status, 'quick_edit' => true ] );
 		}
 
