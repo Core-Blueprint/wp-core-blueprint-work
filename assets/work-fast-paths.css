@@ -1,4 +1,5 @@
-/* Core Blueprint Work — focus presets and keyboard hints. */
+/* Core Blueprint Work - shared focus presets for Table/List/Board/Calendar.
+ * Colors inherit Base semantic tokens in Light and Dark admin themes. */
 .cb-work-fast-paths {
 	display: flex;
 	align-items: center;
@@ -7,7 +8,8 @@
 	margin: 0 0 var(--cb-space-3);
 }
 
-.cb-work-fast-path {
+.cb-work-items-page--refined .cb-work-fast-path,
+.cb-work-items-page--refined .cb-work-fast-path:visited {
 	display: inline-flex;
 	align-items: center;
 	min-height: 34px;
@@ -16,26 +18,48 @@
 	background: var(--cb-surface-1);
 	border: 1px solid var(--cb-border);
 	border-radius: 999px;
-	color: var(--cb-text);
+	color: var(--cb-text-strong);
 	font-size: var(--cb-fs-sm);
 	font-weight: var(--cb-fw-semibold);
 	text-decoration: none;
 }
 
-.cb-work-fast-path:hover,
-.cb-work-fast-path:focus-visible {
+.cb-work-items-page--refined .cb-work-fast-path:not(.is-current):not([aria-current="page"]):hover {
 	border-color: var(--cb-interactive-border-hover);
+	background: var(--cb-interactive-hover);
 	color: var(--cb-text-strong);
-	background: var(--cb-surface-2);
 }
 
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current,
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:visited,
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:hover,
-body.cb-admin-theme .cb-work-items-page--refined .cb-work-fast-path.is-current:focus-visible {
+/* Match both the server-owned class and accessible selected-state attribute.
+ * A default List sort must not make All appear unselected (PHP owns that). */
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path.is-current,
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path.is-current:visited,
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path.is-current:hover,
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path[aria-current="page"],
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path[aria-current="page"]:visited,
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path[aria-current="page"]:hover {
 	border-color: var(--cb-accent);
-	color: var(--cb-on-accent);
 	background: var(--cb-accent);
+	color: var(--cb-on-accent);
+}
+
+/* Focus remains perceivable whether a preset is active or inactive,
+ * including when hover styling is also applied. */
+body.wp-admin .cb-work-items-page--refined .cb-work-fast-path:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus);
+	outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+	body.wp-admin .cb-work-items-page--refined .cb-work-fast-path[aria-current="page"] {
+		border-color: Highlight;
+		background: Highlight;
+		color: HighlightText;
+	}
+
+	body.wp-admin .cb-work-items-page--refined .cb-work-fast-path:focus-visible {
+		outline-color: Highlight;
+	}
 }
 
 .cb-work-keyboard-hint {
