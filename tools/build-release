@@ -32,6 +32,11 @@ REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\
 [[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
 [[ "$REQUIRED_API" == "1.1" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.1"
 
+# Clear ONLY the canonical Work archive and checksum before validation.
+# Otherwise a failed Level 1/2 gate can leave a stale ZIP that looks current.
+mkdir -p "$DIST"
+rm -f -- "$ZIP" "$SHA_FILE"
+
 # Mandatory handbook gates: Level 1 before Level 2 before customer archive.
 # Required real WordPress/MariaDB tests are never treated as an optional SKIP.
 "$ROOT/tools/check"
