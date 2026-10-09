@@ -25,17 +25,18 @@ $assertions = [
 		&& str_contains( $view, 'name="project_id"' )
 		&& str_contains( $view, 'data-cb-work-auto-submit' ),
 	'Wide viewport uses deliberate aligned regions and an elastic Search field' =>
-		str_contains( $css, '@media screen and (min-width: 1541px)' )
+		str_contains( $css, 'container: cb-work-toolbar / inline-size;' )
+		&& str_contains( $css, '@container cb-work-toolbar (min-width: 1480px)' )
 		&& str_contains( $css, 'grid-template-columns: max-content max-content minmax(0, 1fr);' )
 		&& str_contains( $css, 'justify-content: flex-start;' )
 		&& str_contains( $css, 'flex: 1 1 280px;' )
 		&& str_contains( $css, 'max-width: none;' ),
 	'Tablet desktop wraps Search instead of clipping Table-only controls' =>
-		str_contains( $css, '(min-width: 783px) and (max-width: 1540px)' )
+		str_contains( $css, '@container cb-work-toolbar (min-width: 1100px) and (max-width: 1479px)' )
 		&& str_contains( $css, 'grid-template-columns: max-content minmax(0, 1fr);' )
 		&& str_contains( $css, 'grid-column: 1 / -1;' )
 		&& str_contains( $css, 'border-top: 1px solid var(--cb-work-border);' )
-		&& str_contains( $css, '(min-width: 783px) and (max-width: 1100px)' )
+		&& str_contains( $css, '@container cb-work-toolbar (max-width: 1099px)' )
 		&& str_contains( $css, 'grid-template-columns: minmax(0, 1fr);' )
 		&& str_contains( $refinement, '@media screen and (max-width: 782px)' ),
 	'Table List controls retain their own popup markup and dimensions' =>
