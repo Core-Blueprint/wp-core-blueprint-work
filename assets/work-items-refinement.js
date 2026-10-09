@@ -163,7 +163,10 @@ function statusFromLane( lane, strings ) {
 		}
 		const calendar = page.querySelector( '.cb-work-items-calendar' );
 		const navigation = page.querySelector( '.cb-work-calendar-navigation' );
-		if ( ! calendar || ! navigation || calendar.querySelector( '.card' ) || page.querySelector( '.cb-work-calendar-empty-note' ) ) {
+		// The canonical month renderer uses date-trigger buttons, not legacy
+		// .card elements. Only an actual absence of month date entries can
+		// justify the Calendar empty-state notice.
+		if ( ! calendar || ! navigation || calendar.querySelector( '[data-cb-work-calendar-day-open]' ) || page.querySelector( '.cb-work-calendar-empty-note' ) ) {
 			return;
 		}
 		const note = element( 'p', 'description cb-work-calendar-empty-note', strings.noScheduledThisMonth || 'No scheduled work or deadlines this month.' );
