@@ -64,6 +64,21 @@ $checks = [
         && str_contains( $view, 'WorkItemBoardActions::ACTION' )
         && str_contains( $calendar, 'syncTemplateMove(template, move)' )
         && str_contains( $legacy, 'grid-template-columns: repeat(3, minmax(320px, 1fr));' ),
+    'Day cells keep comfortable inner padding and rounded summary cards' =>
+        str_contains( $style, '.cb-work-items-page--refined .cb-work-calendar-day__trigger {' )
+        && str_contains( $style, 'padding: var(--cb-space-3);' )
+        && str_contains( $style, 'border-radius: var(--cb-radius-md);' ),
+    'Calendar day modal reuses Base Close in header without footer or global Base changes' =>
+        str_contains( $calendar, 'promoteCalendarClose(body, closeLabel);' )
+        && str_contains( $calendar, "body.closest('dialog.cb-core-modal--workspace')" )
+        && str_contains( $calendar, "form?.querySelector('.cb-core-modal__expand-toggle')" )
+        && str_contains( $calendar, "form?.querySelector('.cb-core-modal__actions')" )
+        && str_contains( $calendar, 'controls.append(expand, close);' )
+        && str_contains( $calendar, 'actions.remove();' )
+        && str_contains( $calendar, "dialog.classList.add('cb-work-calendar-modal')" )
+        && str_contains( $style, '.cb-work-calendar-modal__header-actions {' )
+        && str_contains( $style, '.cb-work-calendar-modal__close {' )
+        && ! str_contains( $calendar, 'dialog.close(' ),
     'Calendar-only CSS opt-in follows existing refinement stylesheet' =>
         str_contains( $assets, 'if ( WorkItemViewState::VIEW_CALENDAR === WorkItemViewPreferences::resolve_request_view(' )
         && str_contains( $assets, 'self::enqueue_calendar_assets();' )
