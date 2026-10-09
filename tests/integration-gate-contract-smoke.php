@@ -43,16 +43,7 @@ $checks = [
 		&& strpos( $builder, 'bash "$ROOT/tools/check-integration"' ) < strpos( $builder, 'TMP="$(mktemp -d)"' ),
 	'Runner contains one complete Docker port check and one Work lifecycle' =>
 		substr_count( $runner, 'grep -Eq' ) === 1
-		&& str_contains( $runner, "grep -Eq '(^|:)3307
-];
-foreach ( $checks as $name => $passed ) {
-	if ( ! $passed ) {
-		fwrite( STDERR, "Work integration conformance failed: {$name}\n" );
-		exit( 1 );
-	}
-}
-echo "Work Handbook Level 2 integration contract smoke passed.\n";
- <<< \"\$PORT\" || fail" )
+		&& str_contains( $runner, 'cb-base-test-db does not expose host port 3307.' )
 		&& substr_count( $runner, 'RUN_DIR="$(mktemp -d' ) === 1
 		&& substr_count( $runner, 'DROP DATABASE IF EXISTS' ) === 1
 		&& substr_count( $runner, 'Core Blueprint Work Level 2 integration: PASS' ) === 1,
