@@ -293,7 +293,9 @@ final class Operations {
 		$today   = current_time( 'Y-m-d' );
 		$overdue = wp_date( 'Y-m-d', strtotime( $today . ' -1 day' ) );
 
-		// Presets must use canonical explicit filter state, not each view's\n		// different default sort (List defaults to title, others to workload).\n		$has_other_filters = '' !== (string) $state['search']
+		// Presets must use canonical explicit filter state, not each view's
+		// different default sort (List defaults to title, others to workload).
+		$has_other_filters = '' !== (string) $state['search']
 			|| '' !== (string) $state['priority']
 			|| (int) $state['project_id'] > 0
 			|| (int) $state['service_id'] > 0
