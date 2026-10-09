@@ -85,6 +85,16 @@
 	color: var(--cb-work-text-strong);
 }
 
+/* The daily Work Item summary needs true internal breathing room.
+ * Use a page-scoped selector to override WordPress button-link resets. */
+.cb-work-items-page--refined .cb-work-calendar-day__trigger {
+	box-sizing: border-box;
+	min-width: 0;
+	padding: var(--cb-space-3);
+	gap: var(--cb-space-1);
+	border-radius: var(--cb-radius-md);
+}
+
 .cb-work-items-page--refined .cb-work-calendar-day__trigger:focus-visible {
 	outline: 2px solid var(--cb-accent);
 	outline-offset: 2px;
@@ -164,6 +174,67 @@
 	.cb-work-day-modal .cb-work-day-board__viewport {
 		padding-inline-end: var(--cb-space-2);
 	}
+}
+
+/* Only the Work Calendar dialog receives this header treatment. The
+ * original Base dismiss button is moved, not replaced, preserving Base's
+ * settled Promise, Escape and return-focus behavior. */
+dialog.cb-core-modal.cb-work-calendar-modal .cb-core-modal__title {
+	padding-inline-end: 112px;
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__header-actions {
+	position: absolute;
+	inset-block-start: var(--cb-space-4);
+	inset-inline-end: var(--cb-space-4);
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: var(--cb-space-1);
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__header-actions .cb-core-modal__expand-toggle {
+	position: static;
+	inset: auto;
+	flex: 0 0 32px;
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__close {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 32px;
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	min-height: 32px;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	border-radius: var(--cb-radius-sm);
+	background: transparent;
+	color: var(--cb-text-muted);
+	box-shadow: none;
+	cursor: pointer;
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__close:hover {
+	background: var(--cb-interactive-hover);
+	color: var(--cb-text-strong);
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__close:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus);
+	outline-offset: 2px;
+}
+
+dialog.cb-core-modal.cb-work-calendar-modal .cb-work-calendar-modal__close .dashicons {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	line-height: 20px;
+	pointer-events: none;
 }
 
 /* Reduced-motion users keep the hover affordance without card movement. */
