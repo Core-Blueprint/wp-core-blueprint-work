@@ -55,6 +55,9 @@ $repo = (string) file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $meta = (string) file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $board = (string) file_get_contents( $root . '/src/Admin/WorkItemBoardActions.php' );
 $client = (string) file_get_contents( $root . '/assets/work-items-reorder.js' );
+$admin_actions = (string) file_get_contents( $root . '/src/Admin/OperationalActions.php' );
+$editor = (string) file_get_contents( $root . '/src/Admin/WorkItems.php' );
+$operations = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
 $checks = [
 	'status uses locked transaction and expected snapshot' =>
 		str_contains( $repo, 'WorkItemMutationTransaction::run( $id' )
@@ -75,6 +78,15 @@ $checks = [
 		str_contains( $client, "body.set('expected_status', card.dataset.cbWorkStatus || '')" )
 		&& str_contains( $board, "'expected_status'" )
 		&& str_contains( $board, '409' ),
+	'Quick Edit and Gutenberg combine status with Work-owned details' =>
+		str_contains( $admin_actions, 'WorkItems::update(' )
+		&& str_contains( $admin_actions, '$expected' )
+		&& ! str_contains( $admin_actions, "WorkItems::transition_status( $id, $status, get_current_user_id() )" )
+		&& str_contains( $editor, 'WorkItemRepository::save_editor(' )
+		&& str_contains( $editor, 'cb_work_item_expected_status' )
+		&& ! str_contains( $editor, 'WorkItemRepository::transition_status(' ),
+	'Board, Table and List actions supply initial source status' =>
+		substr_count( $operations, 'name="expected_status"' ) >= 4,
 ];
 
 foreach ( $checks as $message => $passed ) {
