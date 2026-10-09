@@ -58,7 +58,7 @@ $client = (string) file_get_contents( $root . '/assets/work-items-reorder.js' );
 $checks = [
 	'status uses locked transaction and expected snapshot' =>
 		str_contains( $repo, 'WorkItemMutationTransaction::run( $id' )
-		&& str_contains( $repo, '$expected_from !== $from' )
+		&& str_contains( $repo, '$from !== $expected_from' )
 		&& str_contains( $repo, 'WorkItemMeta::set_status( $id, $to, $actor_user_id, $previous_raw )' ),
 	'completion metadata is verified inside transaction' =>
 		str_contains( $meta, 'public static function set_status(' )
@@ -105,7 +105,7 @@ if ( ! WorkItemMutationTransaction::run( 123, static fn(): bool => true )
 $wpdb = new WorkMutationFakeDatabase();
 $wpdb->in_transaction = 1;
 if ( WorkItemMutationTransaction::run( 123, static fn(): bool => false )
-	|| ! str_starts_with( $wpdb->queries[2], 'ROLLBACK TO SAVEPOINT cb_work_a1_' ) ) {
+	|| ! str_starts_with( $wpdb->queries[1], 'ROLLBACK TO SAVEPOINT cb_work_a1_' ) ) {
 	throw new RuntimeException( 'Failed nested mutation must roll back its savepoint.' );
 }
 
