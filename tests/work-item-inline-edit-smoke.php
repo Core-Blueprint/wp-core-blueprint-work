@@ -13,11 +13,15 @@ $checks = [
 		&& str_contains( $actions, "admin_post_cb_work_bulk_edit_work_items" )
 		&& str_contains( $actions, 'self::guard( \'cb_work_quick_edit_work_item_\' . $id )' )
 		&& str_contains( $actions, "self::guard( 'cb_work_bulk_edit_work_items' )" ),
-	'Quick Edit delegates field writes to canonical WorkItems update and status to canonical transitions' => str_contains( $actions, 'WorkItems::update( $id, $input )' )
+	'Quick Edit atomically delegates details and status through the canonical guarded WorkItems update' =>
+		str_contains( $actions, 'WorkItems::update(' )
 		&& str_contains( $actions, 'WorkItemStatus::can_transition( $from, $status )' )
-		&& str_contains( $actions, 'WorkItems::transition_status( $id, $status, get_current_user_id() )' )
+		&& str_contains( $actions, '$expected !== $from' )
+		&& str_contains( $actions, "Events::WORK_ITEM_STATUS_CHANGED" )
 		&& str_contains( $actions, "Events::WORK_ITEM_UPDATED" )
-		&& str_contains( $actions, "'quick_edit' => true" ),
+		&& str_contains( $actions, "'quick_edit' => true" )
+		&& ! str_contains( $actions, 'WorkItems::transition_status( $id, $status, get_current_user_id() )' )
+		&& str_contains( $operations, 'name="expected_status"' ),
 	'Bulk Edit is bounded, partial-field only and audit-observable' => str_contains( $actions, 'return array_slice( $ids, 0, 100 )' )
 		&& str_contains( $actions, "'__keep' !== \$priority" )
 		&& str_contains( $actions, "isset( \$_POST['apply_due'] )" )
