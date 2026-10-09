@@ -83,11 +83,18 @@ final class WorkItemTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
 
 		// A wins. B's action still carries the same old 'planned' snapshot.
 		$finished_at = gmdate( 'Y-m-d H:i:s' );
-		$cas = static fn( wpdb $db, string $from, string $to, ?string $at, ?int $actor ): int|false =>
-			$db->query( $db->prepare(
-				'UPDATE ' . $table . ' SET status = %s, completed_at = %s, completed_by = %d WHERE id = %d AND status = %s',
-				$to, $at, $actor ?? 0, 1, $from
+		$cas = static function ( wpdb $db, string $from, string $to, ?string $at, ?int $actor ) use ( $table ): int|false {
+			if ( 'completed' === $to && null !== $at && null !== $actor ) {
+				return $db->query( $db->prepare(
+					'UPDATE ' . $table . ' SET status = %s, completed_at = %s, completed_by = %d WHERE id = %d AND status = %s',
+					$to, $at, $actor, 1, $from
+				) );
+			}
+			return $db->query( $db->prepare(
+				'UPDATE ' . $table . ' SET status = %s, completed_at = NULL, completed_by = NULL WHERE id = %d AND status = %s',
+				$to, 1, $from
 			) );
+		};
 		self::assertSame( 1, $cas( $a, $first['status'], 'completed', $finished_at, 101 ) );
 		self::assertSame( 0, $cas( $b, $second['status'], 'blocked', null, null ) );
 		$after = $read( $b );
@@ -100,6 +107,6 @@ final class WorkItemTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
 		$reopened = $read( $a );
 		self::assertSame( 'planned', $reopened['status'] );
 		self::assertNull( $reopened['completed_at'] );
-		self::assertSame( '0', (string) $reopened['completed_by'] );
+		self::assertNull( $reopened['completed_by'] );
 	}
 }
