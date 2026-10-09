@@ -98,7 +98,13 @@ docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -uroot \
 printf 'Work integration: source %s; Base %s; WordPress %s; MariaDB %s / %s\n' \
   "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE_SOURCE" rev-parse HEAD)" \
   "$WP_VERSION" "$DB_HOST" "$DB_NAME"
+# A green PHPUnit exit code alone does not prove a clean WordPress boot.
+# WordPress' wpdb error renderer can print a database error while tests pass.
 "$BASE_SOURCE/vendor/bin/phpunit" \
   -c "$ROOT/tests/phpunit-time-cas.xml.dist" \
-  --do-not-cache-result --fail-on-skipped --fail-on-incomplete
+  --do-not-cache-result --fail-on-skipped --fail-on-incomplete 2>&1 |
+  tee "$RUN_DIR/phpunit-output.log"
+if grep -Eq 'WordPress database error|class="wpdberror"|<strong>WordPress database error' "$RUN_DIR/phpunit-output.log"; then
+  fail "WordPress emitted a database error despite the PHPUnit result."
+fi
 printf 'Core Blueprint Work Level 2 integration: PASS\n'
