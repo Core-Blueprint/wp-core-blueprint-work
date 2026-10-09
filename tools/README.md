@@ -1,24 +1,91 @@
-# Core Blueprint Work — local launch gates
+# Core Blueprint Work: local Golden validation and release
 
-GitHub Actions are not part of the launch evidence path for Work.
+This repository follows the approved Core Blueprint Engineering Handbook
+First-Party Validation v1 and First-Party Local Integration Runbook.
 
-Run release evidence only from the exact candidate SHA in a clean local checkout with PHP 8.4+, WP-CLI i18n, gettext, Node, zip/unzip and sha256sum available.
+All execution belongs to **one exact Git SHA** and never authorizes a merge,
+CI/Actions execution, publication, or production deployment.
 
-## Required order
+## Canonical operator steps
 
-1. Ensure the canonical translation sources exist and are reviewed:
-   - `languages/core-blueprint-work.pot`
-   - `languages/core-blueprint-work-nl_NL.po`
-   - `languages/core-blueprint-work-de_DE.po`
-   - `languages/core-blueprint-work-fr_FR.po`
-   - `languages/core-blueprint-work-es_ES.po`
-   - `languages/core-blueprint-work-it_IT.po`
-   - `languages/core-blueprint-work-pt_PT.po`
-2. Run `tools/i18n/check`.
-3. Run `tools/check` for PHP/JS lint and the complete isolated regression suite.
-4. Run `tools/build-release`.
-5. Preserve the emitted ZIP SHA-256, remove the generated `build/` directory, and run `tools/build-release` again from the same exact Git SHA.
-6. The two ZIP files must be byte-identical and their SHA-256 values must match exactly.
-7. Only that exact package may proceed to Chris staging.
+```bash
+cd ~/Downloads/wp-core-blueprint-work
+git status --short
+git rev-parse HEAD
 
-`tools/build-release` packages only the runtime allowlist under the canonical `core-blueprint-work/` root and generates MO files from the reviewed PO sources during release staging. Development-only paths such as `.github`, `tests`, `tools`, `docs`, `vendor`, `node_modules`, `build` and `dist` are rejected from the ZIP.
+./tools/check
+./tools/check-integration
+./tools/build-release
+
+unzip -tqq dist/core-blueprint-work.zip
+sha256sum dist/core-blueprint-work.zip
+(cd dist && sha256sum -c core-blueprint-work.zip.sha256)
+```
+
+- **Level 1** `tools/check`: PHP/JavaScript syntax, all Work-owned source
+  regressions, six translation catalogs, source-level integration-runner
+  conformance. It is read-only on release-visible source; it **does not**
+  invoke the release builder.
+- **Level 2** `tools/check-integration`: provisions disposable WordPress
+  7.0 + matching wp-phpunit under
+  `/tmp/core-blueprint-tests/core-blueprint-work/run.XXXXXXXX/`,
+  stages Base and Work, and executes all Work-owned WordPress/MariaDB
+  integration fixtures using Base's locked PHPUnit toolchain. Mandatory
+  skip/incomplete/error -> nonzero.
+- **Level 3** `tools/build-release`: **reruns Level 1 and Level 2**
+  before customer packaging. Builds `dist/core-blueprint-work.zip`
+  and its SHA-256 sidecar; reproduces and byte-compares the normalized
+  archive independently. An unavailable integration gate is **BLOCKED**,
+  never silently accepted.
+- **Field acceptance**: operator test install of the exact artifact and
+  Work A1 affected flows; separate explicit merge GO required.
+
+## Integration infrastructure and safety
+
+The canonical local baseline is PHP 8.4+, WordPress 7.0 (optional 7.1)
+and the already provisioned Docker container `cb-base-test-db`
+(MariaDB 10.11.19, localhost `127.0.0.1:3307`).
+
+Only the isolated `core_blueprint_work_test` database is reset for Work.
+It is **disposable** and must not contain business, customer, staging or
+production data. The runner refuses other DB names, external hosts,
+unexpected container images and arbitrary temporary roots. A product
+lock serializes runs sharing this database. Base's `wordpress_test`
+database is never reset by the Work runner.
+
+The runner normally needs **no manually exported**
+`WP_CORE_DIR`, `WP_TESTS_DIR`, `WP_DB_NAME`, `WP_DB_HOST`
+or `CB_PLUGIN_FILE`. It requires the established local Base checkout
+at `~/Downloads/wp-core-blueprint` with its Composer-locked
+`vendor/bin/phpunit` already installed. Advanced overrides:
+
+```text
+CB_TEST_WP_VERSION=7.0|7.1
+CB_TEST_BASE_SOURCE=/absolute/path/to/pinned/base-checkout
+```
+
+The canonical Work test root and local DB host/user/password are fixed
+during this Golden hardening phase to prevent accidental destructive
+configuration. The runner downloads only pinned WordPress and
+wp-phpunit version pairs; it does not clone unknown Base sources.
+
+The Level 2 runner's temporary runtime and its tables are not part of
+the customer ZIP. If interrupted, an abandoned
+`/tmp/core-blueprint-tests/core-blueprint-work/run.*` directory may
+need careful operator cleanup; never indiscriminately wipe `/tmp`.
+
+## Translation and package boundaries
+
+The six required source locales are nl_NL, de_DE, fr_FR, es_ES, it_IT
+and pt_PT. Reviewed PO source is read-only for release validation;
+MO files are generated in temporary customer staging.
+
+The release builder packages only Work runtime files under
+`core-blueprint-work/` and fails on development-only paths such as
+`.github`, `tests`, `tools`, `docs`, `vendor`, `build` and
+`dist`. SHA-256 must match the `.sha256` sidecar.
+
+**Current A1 branch state:** Level 2 source contract is implemented,
+but real WordPress/MariaDB execution, complete releasebuild and field
+acceptance are pending operator evidence. Do not label Product Golden
+PASS until these gates actually succeed.
