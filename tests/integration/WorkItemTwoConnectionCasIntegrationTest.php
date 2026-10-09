@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * It models the status/meta compare-and-swap predicate on one shared InnoDB
  * row; it does NOT claim to execute WordPress' update_post_meta() in parallel.
- * Only the local Docker wordpress_test database is permitted. Unlike a
+ * Only the local Docker core_blueprint_work_test database is permitted. Unlike a
  * TEMPORARY table, the uniquely named fixture is visible to TWO connections.
  */
 final class WorkItemTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
@@ -16,9 +16,9 @@ final class WorkItemTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
 	private bool $owns_table = false;
 
 	public function set_up(): void {
-		if ( ! defined( 'DB_NAME' ) || 'wordpress_test' !== (string) DB_NAME
+		if ( ! defined( 'DB_NAME' ) || 'core_blueprint_work_test' !== (string) DB_NAME
 			|| ! defined( 'DB_HOST' ) || '127.0.0.1:3307' !== (string) DB_HOST ) {
-			self::fail( 'Work A1 two-connection fixture requires local wordpress_test at 127.0.0.1:3307.' );
+			self::fail( 'Work A1 two-connection fixture requires local core_blueprint_work_test at 127.0.0.1:3307.' );
 		}
 		parent::set_up();
 	}
