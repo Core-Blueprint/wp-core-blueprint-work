@@ -31,6 +31,43 @@ const syncTemplateMove = (template, move) => {
 	refreshTemplateCounts(template);
 };
 
+/**
+ * Calendar-only presentation: move Base's existing dismiss action next
+ * to the workspace expand/restore control. Keep the actual Base button and
+ * its click handler so resolution, Escape, and focus restoration are owned
+ * by Base. Fail gracefully if a future Base version changes the markup.
+ */
+const promoteCalendarClose = (body, closeLabel) => {
+	const dialog = body.closest('dialog.cb-core-modal--workspace');
+	const form = dialog?.querySelector('.cb-core-modal__form');
+	const expand = form?.querySelector('.cb-core-modal__expand-toggle');
+	const actions = form?.querySelector('.cb-core-modal__actions');
+	const buttons = actions?.querySelectorAll('button');
+	if (!(dialog instanceof HTMLDialogElement) || !(form instanceof HTMLElement)
+		|| !(expand instanceof HTMLButtonElement) || buttons?.length !== 1) return;
+
+	const close = buttons[0];
+	if (!(close instanceof HTMLButtonElement)) return;
+
+	const controls = document.createElement('div');
+	controls.className = 'cb-work-calendar-modal__header-actions';
+
+	// Reuse Base's working Close action, not a second manual dialog.close().
+	// Keep the Close name visible to assistive technology.
+	close.className = 'cb-work-calendar-modal__close';
+	close.setAttribute('aria-label', closeLabel);
+	close.title = closeLabel;
+	const icon = document.createElement('span');
+	icon.className = 'dashicons dashicons-no-alt';
+	icon.setAttribute('aria-hidden', 'true');
+	close.replaceChildren(icon);
+
+	controls.append(expand, close);
+	form.insertBefore(controls, form.querySelector('.cb-core-modal__body'));
+	actions.remove();
+	dialog.classList.add('cb-work-calendar-modal');
+};
+
 const openDayModal = (trigger) => {
 	const calendar = trigger.closest('[data-cb-work-calendar]');
 	const templateId = String(trigger.dataset.templateId || '');
@@ -42,14 +79,16 @@ const openDayModal = (trigger) => {
 	const body = template.content.firstElementChild?.cloneNode(true);
 	if (!(body instanceof HTMLElement)) return;
 
+	const closeLabel = String(calendar?.dataset.closeLabel || 'Close');
 	const pending = modal.show({
 		title: String(trigger.dataset.modalTitle || ''),
 		body,
 		dismissOnly: true,
-		confirmLabel: String(calendar?.dataset.closeLabel || 'Close'),
+		confirmLabel: closeLabel,
 		size: 'workspace',
 		expandable: true,
 	});
+	promoteCalendarClose(body, closeLabel);
 
 	const board = body.querySelector('[data-cb-work-board-reorder]');
 	if (board instanceof HTMLElement) {
