@@ -1831,6 +1831,7 @@ final class Operations {
 			<input type="hidden" name="action" value="cb_work_transition_work_item">
 			<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
 			<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
+			<input type="hidden" name="expected_status" value="<?php echo esc_attr( $from ); ?>">
 			<?php foreach ( $return_args as $key => $value ) : ?>
 				<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 			<?php endforeach; ?>
@@ -1853,6 +1854,7 @@ final class Operations {
 			<input type="hidden" name="action" value="cb_work_transition_work_item">
 			<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
 			<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
+			<input type="hidden" name="expected_status" value="<?php echo esc_attr( $from ); ?>">
 			<?php foreach ( $return_args as $key => $value ) : ?>
 				<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 			<?php endforeach; ?>
@@ -1873,6 +1875,7 @@ final class Operations {
 				<input type="hidden" name="action" value="cb_work_transition_work_item">
 				<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $item['id'] ); ?>">
 				<input type="hidden" name="status" value="<?php echo esc_attr( $to ); ?>">
+				<input type="hidden" name="expected_status" value="<?php echo esc_attr( $from ); ?>">
 				<?php foreach ( $return_args as $key => $value ) : ?>
 					<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 				<?php endforeach; ?>
