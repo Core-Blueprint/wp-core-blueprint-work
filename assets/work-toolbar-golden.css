@@ -4,11 +4,17 @@
  * All rules are restricted to the Work Items workspace.
  */
 
+.cb-work-items-page--refined .cb-work-toolbar {
+	/* React to the actual WordPress content width, not a browser width
+	 * that may include the admin menu/sidebar. */
+	container: cb-work-toolbar / inline-size;
+}
+
 /* Desktop: three intentional regions, with Search filling the space that
  * used to be a dead gap between More filters and the right-hand controls.
  * The Search leading edge stays aligned between the four views; optional
  * Table/List actions consume space from its right edge, not its start. */
-@media screen and (min-width: 1541px) {
+@container cb-work-toolbar (min-width: 1480px) {
 	.cb-work-items-page--refined .cb-work-toolbar__row {
 		grid-template-columns: max-content max-content minmax(0, 1fr);
 		gap: var(--cb-space-3);
@@ -22,7 +28,7 @@
 /* Compact desktop and tablet: avoid compressing Search behind Table-only
  * controls. Preserve the first-row view switcher and primary filter order,
  * then grant Search a deliberate full second row. */
-@media screen and (min-width: 783px) and (max-width: 1540px) {
+@container cb-work-toolbar (min-width: 1100px) and (max-width: 1479px) {
 	.cb-work-items-page--refined .cb-work-toolbar__row {
 		grid-template-columns: max-content minmax(0, 1fr);
 	}
@@ -35,7 +41,7 @@
 	}
 }
 
-@media screen and (min-width: 783px) and (max-width: 1100px) {
+@container cb-work-toolbar (max-width: 1099px) {
 	/* At narrow admin widths the WordPress sidebar also consumes space.
 	 * Keep head, filters and Search as separate full-width regions. */
 	.cb-work-items-page--refined .cb-work-toolbar__row {
