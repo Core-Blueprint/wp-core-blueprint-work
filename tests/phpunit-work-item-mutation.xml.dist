@@ -3,6 +3,7 @@
     <testsuites>
         <testsuite name="work-item-mutation-a1">
             <file>integration/WorkItemMutationIntegrationTest.php</file>
+            <file>integration/WorkItemTwoConnectionCasIntegrationTest.php</file>
         </testsuite>
     </testsuites>
 </phpunit>
