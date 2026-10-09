@@ -386,6 +386,7 @@ const persistBoardTransition = async (root, card, targetStatus) => {
 	body.set('nonce', root.dataset.nonce || '');
 	body.set('work_item_id', card.dataset.cbWorkItemId || '');
 	body.set('status', targetStatus);
+	body.set('expected_status', card.dataset.cbWorkStatus || '');
 
 	const response = await fetch(root.dataset.ajaxUrl || '', {
 		method: 'POST',
