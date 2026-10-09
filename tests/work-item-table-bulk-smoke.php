@@ -11,7 +11,7 @@ $checks = [
 		&& str_contains( $actions, "admin_post_cb_work_bulk_transition_work_items" )
 		&& str_contains( $actions, "self::guard( 'cb_work_bulk_transition_work_items' )" ),
 	'bulk transition input is bounded and delegates to the canonical transition contract' => str_contains( $actions, 'array_slice( $ids, 0, 100 )' )
-		&& str_contains( $actions, 'WorkItems::transition_status( $id, $status, $actor )' )
+		&& str_contains( $actions, 'WorkItems::transition_status( $id, $status, $actor, $from )' )
 		&& str_contains( $actions, "Events::WORK_ITEM_STATUS_CHANGED" )
 		&& str_contains( $actions, "'bulk' => true" ),
 	'bulk transition returns through canonical Work Item view state' => str_contains( $actions, 'self::redirect_work_items( $updated > 0 ? \'work-item-transitioned\' : \'work-item-transition-invalid\' )' )
