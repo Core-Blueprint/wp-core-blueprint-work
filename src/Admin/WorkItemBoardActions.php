@@ -31,7 +31,7 @@ final class WorkItemBoardActions {
 		$item         = WorkItems::get( $work_item_id );
 
 		if ( null !== $expected && ! WorkItemStatus::is_valid( $expected ) ) {
-			wp_send_json_error( [ 'message' => __( 'The expected Work Item status is invalid.', 'core-blueprint-work' ) ], 400 );
+			wp_send_json_error( [ 'message' => __( 'The Work Item move is invalid.', 'core-blueprint-work' ) ], 400 );
 		}
 
 		if ( null === $item || ! WorkItemStatus::is_valid( $target ) ) {
@@ -40,14 +40,14 @@ final class WorkItemBoardActions {
 
 		$from = (string) $item['status'];
 		if ( null !== $expected && $expected !== $from ) {
-			wp_send_json_error( [ 'message' => __( 'The Work Item was changed elsewhere. Reload and try again.', 'core-blueprint-work' ) ], 409 );
+			wp_send_json_error( [ 'message' => __( 'That Work Item status transition is not allowed.', 'core-blueprint-work' ) ], 409 );
 		}
 		if ( ! WorkItemStatus::can_transition( $from, $target ) ) {
 			wp_send_json_error( [ 'message' => __( 'That Work Item status transition is not allowed.', 'core-blueprint-work' ) ], 409 );
 		}
 
 		if ( ! WorkItems::transition_status( $work_item_id, $target, get_current_user_id(), $expected ?? $from ) ) {
-			wp_send_json_error( [ 'message' => __( 'The Work Item status could not be saved or was changed elsewhere. Reload and try again.', 'core-blueprint-work' ) ], 409 );
+			wp_send_json_error( [ 'message' => __( 'The Work Item status could not be updated.', 'core-blueprint-work' ) ], 409 );
 		}
 
 		wp_send_json_success( [
