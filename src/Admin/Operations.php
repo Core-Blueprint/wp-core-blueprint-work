@@ -293,18 +293,18 @@ final class Operations {
 		$today   = current_time( 'Y-m-d' );
 		$overdue = wp_date( 'Y-m-d', strtotime( $today . ' -1 day' ) );
 
-		$has_other_filters = '' !== (string) $state['search']
+		// Presets must use canonical explicit filter state, not each view's\n		// different default sort (List defaults to title, others to workload).\n		$has_other_filters = '' !== (string) $state['search']
 			|| '' !== (string) $state['priority']
 			|| (int) $state['project_id'] > 0
 			|| (int) $state['service_id'] > 0
 			|| (int) $state['work_type_id'] > 0
 			|| '' !== (string) $state['work_context']
 			|| '' !== (string) $state['billing']
-			|| null !== ( $state['query']['customer'] ?? null )
+			|| '' !== (string) $state['customer']
 			|| '' !== (string) $state['scheduled_from']
 			|| '' !== (string) $state['scheduled_to']
 			|| '' !== (string) $state['due_from']
-			|| WorkItemQuery::SORT_WORKLOAD !== (string) $state['sort'];
+			|| ! empty( $state['sort_explicit'] );
 
 		$status      = (string) $state['status'];
 		$assignee_id = (int) $state['assignee_id'];
@@ -327,7 +327,7 @@ final class Operations {
 			$links[] = [
 				'label'   => __( 'My work', 'core-blueprint-work' ),
 				'url'     => self::work_items_url( $base + [ 'status' => 'active', 'assignee_id' => $user_id ] ),
-				'current' => ! $has_other_filters && 'active' === $status && $assignee_id === $user_id,
+				'current' => ! $has_other_filters && 'active' === $status && $assignee_id === $user_id && '' === $due_to,
 			];
 		}
 		$links[] = [
@@ -338,12 +338,12 @@ final class Operations {
 		$links[] = [
 			'label'   => __( 'Blocked', 'core-blueprint-work' ),
 			'url'     => self::work_items_url( $base + [ 'status' => WorkItemStatus::BLOCKED ] ),
-			'current' => ! $has_other_filters && WorkItemStatus::BLOCKED === $status,
+			'current' => ! $has_other_filters && WorkItemStatus::BLOCKED === $status && 0 === $assignee_id && '' === $due_to,
 		];
 		$links[] = [
 			'label'   => __( 'Overdue', 'core-blueprint-work' ),
 			'url'     => self::work_items_url( $base + [ 'status' => 'active', 'due_to' => $overdue ] ),
-			'current' => ! $has_other_filters && 'active' === $status && $overdue === $due_to,
+			'current' => ! $has_other_filters && 'active' === $status && 0 === $assignee_id && $overdue === $due_to,
 		];
 		?>
 		<nav class="cb-work-fast-paths" aria-label="<?php esc_attr_e( 'Focus views', 'core-blueprint-work' ); ?>">
