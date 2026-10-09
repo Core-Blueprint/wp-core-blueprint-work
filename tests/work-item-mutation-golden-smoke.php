@@ -5,6 +5,14 @@ declare(strict_types=1);
 define( 'ABSPATH', '/tmp/cb-work-a1/' );
 define( 'ARRAY_A', 'ARRAY_A' );
 
+// Golden smoke must never print PASS after producing PHP warnings/notices.
+set_error_handler(
+	static function ( int $severity, string $message, string $file, int $line ): never {
+		throw new ErrorException( $message, 0, $severity, $file, $line );
+	},
+	E_WARNING | E_NOTICE | E_USER_WARNING | E_USER_NOTICE
+);
+
 require dirname( __DIR__ ) . '/src/Content/PostTypes.php';
 require dirname( __DIR__ ) . '/src/Repository/WorkItemMutationTransaction.php';
 
