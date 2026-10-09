@@ -237,11 +237,15 @@ final class WorkItems {
 	}
 
 	/** @param array<string,mixed> $input */
-	public static function update( int $id, array $input ): bool {
+	public static function update( int $id, array $input, ?string $transition_to = null, int $actor_user_id = 0, ?string $expected_from = null ): bool {
 		$current = null;
-		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, &$current ): bool {
+		$transitioned_from = null;
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, $transition_to, $actor_user_id, $expected_from, &$current, &$transitioned_from ): bool {
 			$current = self::get( $id );
-			if ( null === $current || ! self::schema_ready() ) {
+			if ( null === $current || ! self::schema_ready() || ( null !== $expected_from && (string) $current['status'] !== $expected_from ) ) {
+				return false;
+			}
+			if ( null !== $transition_to && ! WorkItemStatus::can_transition( (string) $current['status'], sanitize_key( $transition_to ) ) ) {
 				return false;
 			}
 			$normalized = self::normalize_write( $input, $current );
@@ -266,6 +270,13 @@ final class WorkItems {
 			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
 				return false;
 			}
+			if ( null !== $transition_to ) {
+				$previous_raw = (string) get_post_meta( $id, WorkItemMeta::STATUS, true );
+				if ( ! WorkItemMeta::set_status( $id, sanitize_key( $transition_to ), $actor_user_id, $previous_raw ) ) {
+					return false;
+				}
+				$transitioned_from = (string) $current['status'];
+			}
 			if ( ! WorkItemMeta::is_initialized( $id ) ) {
 				WorkItemMeta::mark_initialized( $id );
 				if ( ! WorkItemMeta::is_initialized( $id ) ) {
@@ -279,6 +290,9 @@ final class WorkItems {
 		}
 
 		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+		if ( null !== $transitioned_from ) {
+			do_action( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
+		}
 		return true;
 	}
 
@@ -288,12 +302,16 @@ final class WorkItems {
 	 *
 	 * @param array<string,mixed> $input
 	 */
-	public static function save_editor( int $id, array $input ): bool {
+	public static function save_editor( int $id, array $input, ?string $transition_to = null, int $actor_user_id = 0, ?string $expected_from = null ): bool {
 		$current = null;
 		$was_initialized = false;
-		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, &$current, &$was_initialized ): bool {
+		$transitioned_from = null;
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, $transition_to, $actor_user_id, $expected_from, &$current, &$was_initialized, &$transitioned_from ): bool {
 			$current = self::get( $id );
-			if ( null === $current || ! self::schema_ready() ) {
+			if ( null === $current || ! self::schema_ready() || ( null !== $expected_from && (string) $current['status'] !== $expected_from ) ) {
+				return false;
+			}
+			if ( null !== $transition_to && ! WorkItemStatus::can_transition( (string) $current['status'], sanitize_key( $transition_to ) ) ) {
 				return false;
 			}
 			$normalized = self::normalize_write( $input, $current );
@@ -310,6 +328,13 @@ final class WorkItems {
 			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
 				return false;
 			}
+			if ( null !== $transition_to ) {
+				$previous_raw = (string) get_post_meta( $id, WorkItemMeta::STATUS, true );
+				if ( ! WorkItemMeta::set_status( $id, sanitize_key( $transition_to ), $actor_user_id, $previous_raw ) ) {
+					return false;
+				}
+				$transitioned_from = (string) $current['status'];
+			}
 			if ( ! $was_initialized ) {
 				WorkItemMeta::mark_initialized( $id );
 				if ( ! WorkItemMeta::is_initialized( $id ) ) {
@@ -323,9 +348,12 @@ final class WorkItems {
 		}
 		if ( ! $was_initialized ) {
 			do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
-			return true;
+		} else {
+			do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
 		}
-		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+		if ( null !== $transitioned_from ) {
+			do_action( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
+		}
 		return true;
 	}
 
