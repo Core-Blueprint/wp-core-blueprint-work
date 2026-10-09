@@ -14,7 +14,7 @@ fail() {
   exit 1
 }
 
-for command_name in php python3 wp msgfmt node zip unzip sha256sum find sort touch git; do
+for command_name in php python3 wp msgfmt node zip unzip sha256sum find sort touch git cmp docker curl tar; do
   command -v "$command_name" >/dev/null 2>&1 || fail "required release command is unavailable: $command_name"
 done
 
@@ -32,8 +32,10 @@ REQUIRED_API="$(php -r '$s=file_get_contents($argv[1]); preg_match("/define\\(\\
 [[ "$REQUIRES_PLUGINS" == "core-blueprint" ]] || fail "Requires Plugins must be exactly core-blueprint"
 [[ "$REQUIRED_API" == "1.1" ]] || fail "CB_WORK_REQUIRED_API must be exactly 1.1"
 
-# Overall source/regression validation is owned by tools/check.
-# This builder validates the release artifact itself and must remain independently callable.
+# Mandatory handbook gates: Level 1 before Level 2 before customer archive.
+# Required real WordPress/MariaDB tests are never treated as an optional SKIP.
+"$ROOT/tools/check"
+bash "$ROOT/tools/check-integration"
 
 [[ -d "$ROOT/languages" ]] || fail "languages directory is missing; generate and review the canonical Work catalogs first"
 [[ -f "$ROOT/languages/core-blueprint-work.pot" ]] || fail "canonical Work POT is missing"
@@ -120,6 +122,15 @@ PACKAGED_VERSION="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\
 PACKAGED_REQUIRES="$(php -r '$s=file_get_contents($argv[1]); preg_match("/^\\s*\\*\\s*Requires Plugins:\\s*([^\\r\\n]+)/m", $s, $m); echo trim($m[1] ?? "");' "$PACKAGED_MAIN")"
 [[ "$PACKAGED_VERSION" == "$VERSION" ]] || fail "packaged version drift"
 [[ "$PACKAGED_REQUIRES" == "core-blueprint" ]] || fail "packaged Requires Plugins drift"
+
+# Build the same sorted normalized archive independently and compare bytes.
+# Level 1 no longer calls this builder, avoiding recursive validation gates.
+SECOND_ZIP="$TMP/verify-second.zip"
+(
+  cd "$STAGE_PARENT"
+  zip -X -q "$SECOND_ZIP" -@ < "$FILE_LIST"
+)
+cmp -s "$ZIP" "$SECOND_ZIP" || fail "second archive differs from the customer ZIP"
 
 SHA="$(sha256sum "$ZIP" | awk '{print $1}')"
 printf '%s  %s\n' "$SHA" "$(basename "$ZIP")" > "$SHA_FILE"
