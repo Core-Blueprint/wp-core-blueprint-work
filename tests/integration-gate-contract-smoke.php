@@ -29,6 +29,10 @@ $checks = [
 		&& str_contains( $bootstrap, 'CB_TEST_BASE_PLUGIN_FILE' )
 		&& str_contains( $bootstrap, 'CB_TEST_WORK_PLUGIN_FILE' )
 		&& str_contains( $bootstrap, 'wp-tests-config.php' )
+		&& str_contains( $bootstrap, '\CoreBlueprint\Core\Core::activate();' )
+		&& str_contains( $bootstrap, '\CoreBlueprint\Core\DB::audit_log_table()' )
+		&& str_contains( $bootstrap, '}, 2 );' )
+		&& str_contains( $bootstrap, 'Base activation failed to provision its audit log' )
 		&& str_contains( $xml, 'bootstrap="phpunit-work-bootstrap.php"' ),
 	'WordPress test configuration refuses foreign databases' =>
 		str_contains( $config, "'core_blueprint_work_test' !== \$db_name" )
@@ -50,6 +54,12 @@ $checks = [
 	'Failed Level 1 or Level 2 cannot leave a stale Work ZIP' =>
 		str_contains( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' )
 		&& strpos( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' ) < strpos( $builder, '"$ROOT/tools/check"' ),
+	'WordPress database errors must fail Level 2 even if PHPUnit reports OK' =>
+		str_contains( $runner, 'set -euo pipefail' )
+		&& str_contains( $runner, 'tee "$RUN_DIR/phpunit-output.log"' )
+		&& str_contains( $runner, 'grep -Eq' )
+		&& str_contains( $runner, 'WordPress database error' )
+		&& str_contains( $runner, 'fail "WordPress emitted a database error' ),
 	'Level 1 syntax-checks but never executes the customer release builder' =>
 		str_contains( $check, 'bash -n "$ROOT/tools/build-release"' )
 		&& ! str_contains( $check, 'bash "$ROOT/tools/build-release"' )
