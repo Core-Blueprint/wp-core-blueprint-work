@@ -22,7 +22,7 @@ DB_USER="${CB_TEST_DB_USER:-root}"
 DB_PASSWORD="${CB_TEST_DB_PASSWORD:-root}"
 [[ "$DB_HOST" == "127.0.0.1:3307" && "$DB_USER" == "root" && "$DB_PASSWORD" == "root" ]] ||
   fail "This A1 integration runner is restricted to the canonical local Docker database."
-for command_name in docker curl tar php git; do
+for command_name in docker curl tar php git flock; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Missing command: $command_name"
 done
 
@@ -38,6 +38,9 @@ docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -uroot \
   -e 'SELECT 1' >/dev/null || fail "Local MariaDB connection failed."
 
 mkdir -p "$TEST_ROOT"
+# Serialise runs for this product before resetting its named test database.
+exec 9>"$TEST_ROOT/.integration.lock"
+flock -x 9 || fail "Could not lock the Work test database."
 RUN_DIR="$(mktemp -d "$TEST_ROOT/run.XXXXXXXX")"
 [[ "$RUN_DIR" == "$TEST_ROOT"/run.* ]] || fail "Unexpected integration run path."
 cleanup() {
