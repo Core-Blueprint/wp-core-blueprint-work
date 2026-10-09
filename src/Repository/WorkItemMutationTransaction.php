@@ -43,8 +43,8 @@ final class WorkItemMutationTransaction {
 			return false;
 		}
 
-		// Refresh the read snapshot *after* acquiring the shared row lock.
-		wp_cache_delete( $work_item_id, 'post_meta' );
+		// Refresh the post and meta snapshots *after* acquiring the row lock.
+		self::invalidate( $work_item_id );
 
 		try {
 			$successful = true === $mutation();
