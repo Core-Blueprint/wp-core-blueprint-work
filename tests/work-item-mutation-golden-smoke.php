@@ -81,7 +81,7 @@ $checks = [
 	'Quick Edit and Gutenberg combine status with Work-owned details' =>
 		str_contains( $admin_actions, 'WorkItems::update(' )
 		&& str_contains( $admin_actions, '$expected' )
-		&& ! str_contains( $admin_actions, "WorkItems::transition_status( $id, $status, get_current_user_id() )" )
+		&& ! str_contains( $admin_actions, 'WorkItems::transition_status( $id, $status, get_current_user_id() )' )
 		&& str_contains( $editor, 'WorkItemRepository::save_editor(' )
 		&& str_contains( $editor, 'cb_work_item_expected_status' )
 		&& ! str_contains( $editor, 'WorkItemRepository::transition_status(' ),
