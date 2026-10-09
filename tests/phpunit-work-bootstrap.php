@@ -31,5 +31,24 @@ tests_add_filter( 'pre_wp_mail', static fn(): bool => true );
 tests_add_filter( 'muplugins_loaded', static function () use ( $base_plugin, $work_plugin ): void {
 	require_once $base_plugin;
 	require_once $work_plugin;
+
+	// Match the canonical Base PHPUnit activation lifecycle exactly.
+	// Fresh wp-phpunit databases lack Base's first-install schema; loading
+	// the plugin entrypoint alone does NOT install its audit log table.
+	// Activation must precede plugins_loaded permission/schema observers.
+	add_action( 'plugins_loaded', static function (): void {
+		\CoreBlueprint\Core\Core::activate();
+
+		global $wpdb;
+		$audit_table = \CoreBlueprint\Core\DB::audit_log_table();
+		$installed = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $audit_table ) )
+		);
+		if ( $installed !== $audit_table || '' !== (string) $wpdb->last_error ) {
+			throw new RuntimeException(
+				'Base activation failed to provision its audit log in the isolated Work test database.'
+			);
+		}
+	}, 2 );
 } );
 require_once $tests_dir . '/includes/bootstrap.php';
