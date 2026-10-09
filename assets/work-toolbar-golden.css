@@ -1,0 +1,104 @@
+/*
+ * Work CV-G-003: stable command bar and action hierarchy.
+ * Work owns this composition; Base keeps native controls and theme tokens.
+ * All rules are restricted to the Work Items workspace.
+ */
+
+/* Desktop: three intentional regions, with Search filling the space that
+ * used to be a dead gap between More filters and the right-hand controls.
+ * The Search leading edge stays aligned between the four views; optional
+ * Table/List actions consume space from its right edge, not its start. */
+@media screen and (min-width: 1541px) {
+	.cb-work-items-page--refined .cb-work-toolbar__row {
+		grid-template-columns: max-content max-content minmax(0, 1fr);
+		gap: var(--cb-space-3);
+	}
+
+	.cb-work-items-page--refined .cb-work-toolbar__search {
+		justify-content: flex-start;
+	}
+}
+
+/* Compact desktop and tablet: avoid compressing Search behind Table-only
+ * controls. Preserve the first-row view switcher and primary filter order,
+ * then grant Search a deliberate full second row. */
+@media screen and (min-width: 783px) and (max-width: 1540px) {
+	.cb-work-items-page--refined .cb-work-toolbar__row {
+		grid-template-columns: max-content minmax(0, 1fr);
+	}
+
+	.cb-work-items-page--refined .cb-work-toolbar__search {
+		grid-column: 1 / -1;
+		justify-content: flex-start;
+		padding-top: var(--cb-space-3);
+		border-top: 1px solid var(--cb-work-border);
+	}
+}
+
+@media screen and (min-width: 783px) {
+	.cb-work-items-page--refined .cb-work-toolbar__primary {
+		flex-wrap: wrap;
+	}
+
+	.cb-work-items-page--refined .cb-work-toolbar__search {
+		min-width: 0;
+	}
+
+	.cb-work-items-page--refined .cb-work-search-field {
+		flex: 1 1 280px;
+		min-width: 0;
+	}
+
+	.cb-work-items-page--refined .cb-work-search-field input[type="search"] {
+		width: 100%;
+		min-width: 0;
+		max-width: none;
+	}
+
+	/* Keep the Table and List preference controls at a predictable size
+	 * while the Search input uses the remaining available width. */
+	.cb-work-items-page--refined .cb-work-list-display,
+	.cb-work-items-page--refined .cb-work-table-display,
+	.cb-work-items-page--refined .cb-work-columns-toggle {
+		flex: 0 0 auto;
+	}
+}
+
+/* Secondary actions should not compete with the selected focus chip or
+ * with Add Work Item. Neutral surfaces and borders follow Base tokens. */
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-view-preferences__trigger,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-more-filters-toggle,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-list-display__toggle,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-table-display__toggle,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-columns-toggle,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-calendar-navigation__controls .button {
+	background: var(--cb-surface-1);
+	border-color: var(--cb-border);
+	color: var(--cb-text-strong);
+	box-shadow: none;
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-view-preferences__trigger:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-more-filters-toggle:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-list-display__toggle:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-table-display__toggle:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-columns-toggle:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-calendar-navigation__controls .button:hover,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button[aria-expanded="true"] {
+	background: var(--cb-interactive-hover);
+	border-color: var(--cb-interactive-border-hover);
+	color: var(--cb-text-strong);
+}
+
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-view-preferences__trigger:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-more-filters-toggle:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-list-display__toggle:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-table-display__toggle:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-toolbar .button.cb-work-columns-toggle:focus-visible,
+body.cb-admin-theme .cb-work-items-page--refined .cb-work-calendar-navigation__controls .button:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus);
+	outline-offset: 2px;
+}
+
+/* Mobile keeps the established single-column Work toolbar layout and
+ * full-width native controls; no grid changes below 783px. */
