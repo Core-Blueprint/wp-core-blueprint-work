@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="phpunit-time-bootstrap.php" colors="true" beStrictAboutTestsThatDoNotTestAnything="true" failOnRisky="true">
+<phpunit bootstrap="phpunit-work-bootstrap.php" colors="true" beStrictAboutTestsThatDoNotTestAnything="true" failOnRisky="true">
     <testsuites>
         <testsuite name="work-item-mutation-a1">
             <file>integration/WorkItemMutationIntegrationTest.php</file>
