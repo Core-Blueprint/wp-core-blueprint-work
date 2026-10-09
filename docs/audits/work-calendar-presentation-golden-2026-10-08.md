@@ -1,7 +1,7 @@
 # Work Calendar | Final UI/UX Golden Candidate
 
 Date: 2026-10-08  
-State: **CANDIDATE / local regression and browser acceptance pending**  
+State: **POLISH CANDIDATE / updated local regression and visual re-acceptance pending**  
 Repository: `Core-Blueprint/wp-core-blueprint-work`  
 Branch: `feature/work-calendar-presentation-golden-v1`  
 Base: accepted Work `main` `93a10cc74aa984bad46954b5803bc5123f1ee0e4`
@@ -75,6 +75,43 @@ Work Item workflows, nonce boundaries and status persistence unchanged.
 7. **Other Work views:** Table, List, Board and Time must show no layout
    change from this calendar-only stylesheet.
 
+## Operator feedback and follow-up polish (2026-10-09)
+
+The operator confirmed the preceding Calendar candidate stable after:
+PHP syntax PASS, Calendar presentation/day-modal/state smokes PASS,
+all six locale i18n catalogs and full canonical Work suite PASS,
+releasebuild and ZIP checksum PASS. Validated preceding artifact:
+`71e68f77ba1dfc3246ff13369d20860b29e6927111247f28085c956eddd0fb62`.
+
+Two visual issues remain and are addressed on **the same canonical feature
+branch**, without changing Base:
+
+1. The clickable Work Items summary inside each month-day cell receives
+   explicit internal `var(--cb-space-3)` padding, `var(--cb-space-1)` gap
+   and `var(--cb-radius-md)` radius. Scoped selector overrides the
+   WordPress button-link reset, not global day cells or other views.
+2. Only the Calendar's Base workspace dialog promotes its **existing**
+   dismiss-only Close button from the footer to a two-control header group,
+   ordered Expand/Restore at left, icon Close at far right. The empty
+   footer action menu is removed from the DOM. Close retains Base's
+   actual event handler, modal promise resolution, Escape and focus
+   restoration. Unknown Base markup falls back to its original footer.
+   Local Calendar-only CSS aligns the buttons and reserves title space,
+   including visible keyboard focus and localized Close accessible name.
+
+`tests/work-calendar-modal-header-runtime.js` executes the real Calendar
+JS in a dependency-free fake DOM to check that the exact Base button is
+relocated without losing its prior listener, that the footer disappears,
+and that unfamiliar Base markup fails safely. The script is wired into
+`./tools/check`; the presentation smoke also guards the padding/radius,
+and this Calendar-only modal treatment.
+
+**Follow-up candidate is not yet locally validated**. Required gates:
+focused PHP/Node smokes, all six locales, `./tools/check`, the complete
+release ZIP and checksum, then visual acceptance of both screenshot
+corrections in the WordPress Light/Dark Calendar. **No merge without
+explicit new operator GO.**
+
 ## Candidate reconciliation
 
 A second experimental implementation
@@ -104,6 +141,7 @@ php -l src/Admin/Assets.php
 php -l tests/work-calendar-presentation-smoke.php
 
 php tests/work-calendar-presentation-smoke.php
+node tests/work-calendar-modal-header-runtime.js
 php tests/work-item-calendar-reorder-smoke.php
 php tests/work-items-ux-refinement-smoke.php
 
@@ -122,9 +160,11 @@ than `git switch --track`.
 
 ## Merge and product readiness gate
 
-This is source-side work. **No local PHP, i18n, JS, browser or build PASS
-has yet been recorded for this branch**. Await operator outputs,
-WordPress Calendar browser acceptance, and an explicit merge GO.
+The original Calendar candidate passed local PHP/i18n/Work release
+checks and received stable WordPress operator feedback; two screenshot
+polishes were subsequently requested. **This updated polish candidate
+still requires fresh local tests, ZIP checksum, visual re-acceptance,
+and an explicit merge GO.**
 Do not merge, deploy, publish, or run CI autonomously.
 
 The remaining cross-view theme/filter/keyboard polish and final Work
