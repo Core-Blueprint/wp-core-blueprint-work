@@ -33,18 +33,21 @@ Added `assets/work-toolbar-golden.css`, a Work-only scoped stylesheet
 enqueued after the existing refinement stylesheet using an explicit
 WP enqueue dependency, behind the Work Items screen context.
 
-- **Wide desktop (1541px+ viewport):** three intentional columns
+- **Wide Work container (1480px+ available content width):** three intentional columns
   `max-content max-content minmax(0,1fr)`. Search begins at a common
   horizontal anchor and flexes to fill the available third region.
   Table/List settings retain fixed width **after** Search.
-- **Compact desktop (1101..1540px):** view/filters first row, Search
+- **Medium Work container (1100..1479px content width):** view/filters first row, Search
   spans a deliberate second row. Avoid squeezing Search beneath
   Table-only controls.
-- **Narrow WordPress admin (783..1100px):** stack the three toolbar
+- **Narrow Work container (below 1100px content width):** stack the three toolbar
   regions, so admin sidebar width does not force horizontal clipping.
-- **Mobile (782px and below):** preserve already accepted responsive
-  single-column layout from Work refinement; new grid declarations
-  do not apply.
+- **Mobile (viewport 782px and below):** preserve already accepted
+  mobile field sizing and grid controls from Work refinement. The
+  container-only layout keeps the same single-column composition.
+- CSS container queries target the Work toolbar's own inline size.
+  A wide browser with a visible WordPress admin sidebar therefore
+  receives the correct compact layout when its content is narrower.
 - **Light and Dark:** restyle *only* Work Items utility actions
   (view preferences, More filters, Table/List display, Columns and
   Calendar previous/today/next month) using Base semantic tokens
