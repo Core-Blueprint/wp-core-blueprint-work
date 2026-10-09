@@ -37,6 +37,15 @@ $checks = [
 		&& str_contains( $board, 'data-cb-core-reorder-list=' )
 		&& str_contains( $board, 'data-cb-core-reorder-item=' )
 		&& str_contains( $board, 'data-cb-core-reorder-handle' ),
+	'All Board lane headings reserve equal shortcut space at desktop and mobile sizes' =>
+		str_contains( $css, '> .cb-work-board__lane > .hndle {' )
+		&& str_contains( $css, 'box-sizing: border-box;' )
+		&& str_contains( $css, 'align-items: center;' )
+		&& 1 === substr_count( $css, 'min-height: calc(32px + var(--cb-space-3) + var(--cb-space-3) + 1px);' )
+		&& str_contains( $css, '@media screen and (max-width: 782px)' )
+		&& 1 === substr_count( $css, 'min-height: calc(40px + var(--cb-space-3) + var(--cb-space-3) + 1px);' )
+		&& str_contains( $css, 'min-width: 40px;' )
+		&& str_contains( $css, 'min-height: 40px;' ),
 	'Empty lane density follows live hidden state without removing drop destinations' =>
 		str_contains( $css, ':has(> .cb-work-board__list > [data-cb-work-board-empty]:not([hidden]))' )
 		&& str_contains( $css, 'min-height: 104px;' )
