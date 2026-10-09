@@ -35,11 +35,11 @@ final class WorkTimeTwoConnectionCasIntegrationTest extends WP_UnitTestCase {
         // Stronger than the default WordPress PHPUnit naming convention: this
         // opt-in fixture is ONLY for our confirmed local Docker database.
         if ( ! defined( 'DB_NAME' )
-            || 'wordpress_test' !== (string) DB_NAME
+            || 'core_blueprint_work_test' !== (string) DB_NAME
             || ! defined( 'DB_HOST' )
             || '127.0.0.1:3307' !== (string) DB_HOST
         ) {
-            self::fail( 'WT-G-006 requires local wordpress_test at 127.0.0.1:3307.' );
+            self::fail( 'WT-G-006 requires local core_blueprint_work_test at 127.0.0.1:3307.' );
         }
         parent::set_up();
     }
