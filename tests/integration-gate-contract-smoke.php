@@ -50,8 +50,10 @@ $checks = [
 	'Failed Level 1 or Level 2 cannot leave a stale Work ZIP' =>
 		str_contains( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' )
 		&& strpos( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' ) < strpos( $builder, '"$ROOT/tools/check"' ),
-	'Level 1 never recursively invokes the customer release builder' =>
-		! str_contains( $check, '"$ROOT/tools/build-release"' )
+	'Level 1 syntax-checks but never executes the customer release builder' =>
+		str_contains( $check, 'bash -n "$ROOT/tools/build-release"' )
+		&& ! str_contains( $check, 'bash "$ROOT/tools/build-release"' )
+		&& ! preg_match( '/^[ \\t]*"\\$ROOT\\/tools\\/build-release"(?:[ \\t]|$)/m', $check )
 		&& str_contains( $builder, 'SECOND_ZIP=' ),
 ];
 foreach ( $checks as $name => $passed ) {
