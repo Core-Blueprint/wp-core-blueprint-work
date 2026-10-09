@@ -25,6 +25,11 @@ DB_PASSWORD="${CB_TEST_DB_PASSWORD:-root}"
 for command_name in docker curl tar php git flock; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Missing command: $command_name"
 done
+# Source authority: do not silently stage uncommitted, tracked edits.
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+  fail "Work source contains uncommitted tracked changes."
+git -C "$BASE_SOURCE" diff --quiet && git -C "$BASE_SOURCE" diff --cached --quiet ||
+  fail "Base source contains uncommitted tracked changes."
 
 # No new containers, and never reset a database outside the exact Work-only name.
 docker inspect cb-base-test-db >/dev/null 2>&1 ||
@@ -37,6 +42,7 @@ docker start cb-base-test-db >/dev/null 2>&1 || fail "Could not start existing c
 docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -uroot \
   -e 'SELECT 1' >/dev/null || fail "Local MariaDB connection failed."
 
+[[ ! -L "$TEST_ROOT" ]] || fail "Work test root must not be a symbolic link."
 mkdir -p "$TEST_ROOT"
 # Serialise runs for this product before resetting its named test database.
 exec 9>"$TEST_ROOT/.integration.lock"
