@@ -119,6 +119,31 @@ final class WorkItemMutationIntegrationTest extends WP_UnitTestCase {
 		self::assertSame( [], WorkItems::assignments( $item_id ) );
 	}
 
+
+	public function test_details_and_status_are_one_mutation_and_stale_combination_fails_closed(): void {
+		$item_id = $this->seed_work_item();
+
+		self::assertTrue( WorkItems::update(
+			$item_id,
+			[ 'priority' => 'high' ],
+			WorkItemStatus::BLOCKED,
+			0,
+			WorkItemStatus::PLANNED
+		) );
+		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
+		self::assertSame( WorkItemStatus::BLOCKED, get_post_meta( $item_id, WorkItemMeta::STATUS, true ) );
+
+		self::assertFalse( WorkItems::update(
+			$item_id,
+			[ 'priority' => 'urgent' ],
+			WorkItemStatus::COMPLETED,
+			0,
+			WorkItemStatus::PLANNED
+		), 'Stale status must reject the entire details-and-status mutation.' );
+		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
+		self::assertSame( WorkItemStatus::BLOCKED, get_post_meta( $item_id, WorkItemMeta::STATUS, true ) );
+	}
+
 	private function seed_work_item(): int {
 		$id = self::factory()->post->create( [
 			'post_type'   => PostTypes::WORK_ITEM,
