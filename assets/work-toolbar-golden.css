@@ -35,6 +35,20 @@
 	}
 }
 
+@media screen and (min-width: 783px) and (max-width: 1100px) {
+	/* At narrow admin widths the WordPress sidebar also consumes space.
+	 * Keep head, filters and Search as separate full-width regions. */
+	.cb-work-items-page--refined .cb-work-toolbar__row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.cb-work-items-page--refined .cb-work-toolbar__head,
+	.cb-work-items-page--refined .cb-work-toolbar__primary,
+	.cb-work-items-page--refined .cb-work-toolbar__search {
+		grid-column: 1;
+	}
+}
+
 @media screen and (min-width: 783px) {
 	.cb-work-items-page--refined .cb-work-toolbar__primary {
 		flex-wrap: wrap;
