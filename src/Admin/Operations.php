@@ -1035,6 +1035,7 @@ final class Operations {
 				<form class="cb-work-inline-editor cb-work-quick-editor" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="cb_work_quick_edit_work_item">
 					<input type="hidden" name="work_item_id" value="<?php echo esc_attr( (string) $id ); ?>">
+					<input type="hidden" name="expected_status" value="<?php echo esc_attr( $status ); ?>">
 					<?php foreach ( $return_args as $key => $value ) : ?>
 						<input type="hidden" name="return_state[<?php echo esc_attr( (string) $key ); ?>]" value="<?php echo esc_attr( (string) $value ); ?>">
 					<?php endforeach; ?>
