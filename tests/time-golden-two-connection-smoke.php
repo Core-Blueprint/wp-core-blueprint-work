@@ -13,7 +13,7 @@ $config = (string) file_get_contents( $root . '/tests/phpunit-time-cas.xml.dist'
 
 $checks = [
     'opt-in local-only DB gate before fixture setup' =>
-        str_contains( $integration, "'wordpress_test' !== (string) DB_NAME" )
+        str_contains( $integration, "'core_blueprint_work_test' !== (string) DB_NAME" )
         && str_contains( $integration, "'127.0.0.1:3307' !== (string) DB_HOST" )
         && str_contains( $integration, 'parent::set_up();' ),
     'two distinct WordPress DB connections and server-side connection identifiers' =>
