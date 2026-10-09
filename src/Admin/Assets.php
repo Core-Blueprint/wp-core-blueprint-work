@@ -21,6 +21,7 @@ final class Assets {
 	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
 	private const QUICK_ADD_STYLE_HANDLE   = 'cb-work-quick-add';
 	private const FAST_PATH_STYLE_HANDLE   = 'cb-work-fast-paths';
+	private const TOOLBAR_GOLDEN_STYLE_HANDLE = 'cb-work-toolbar-golden';
 	private const REFINEMENT_STYLE_HANDLE  = 'cb-work-items-refinement';
 	private const SCRIPT_HANDLE            = 'cb-work-admin';
 	private const QUICK_ADD_SCRIPT_HANDLE  = 'cb-work-quick-add';
@@ -63,6 +64,7 @@ final class Assets {
 		\CoreBlueprint\Core\UI\Assets::enqueue_segmented_control();
 		self::enqueue_refinement_assets();
 		self::enqueue_fast_path_assets();
+		self::enqueue_toolbar_golden_style();
 		self::enqueue_reorder_assets();
 		self::enqueue_view_preferences_assets();
 		if ( WorkItemViewState::VIEW_CALENDAR === WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() ) ) {
@@ -338,6 +340,17 @@ final class Assets {
 			[ '@cb-core/modal', '@cb-work/work-items-reorder' ],
 			$version
 		);
+	}
+
+	/** CV-G-003 Work-only toolbar composition, after accepted Refinement CSS. */
+	private static function enqueue_toolbar_golden_style(): void {
+		$file = CB_WORK_DIR . 'assets/work-toolbar-golden.css';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
+		wp_enqueue_style( self::TOOLBAR_GOLDEN_STYLE_HANDLE, CB_WORK_URL . 'assets/work-toolbar-golden.css', [ self::REFINEMENT_STYLE_HANDLE ], $version );
 	}
 
 	private static function enqueue_fast_path_assets(): void {
