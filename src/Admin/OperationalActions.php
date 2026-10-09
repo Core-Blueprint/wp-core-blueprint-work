@@ -72,9 +72,13 @@ final class OperationalActions {
 		$input   = isset( $_POST['work_item'] ) && is_array( $_POST['work_item'] ) ? wp_unslash( $_POST['work_item'] ) : [];
 		$status  = isset( $_POST['status'] ) ? sanitize_key( wp_unslash( (string) $_POST['status'] ) ) : '';
 		$from    = is_array( $current ) ? (string) ( $current['status'] ?? '' ) : '';
+		$expected = isset( $_POST['expected_status'] ) && is_scalar( $_POST['expected_status'] )
+			? sanitize_key( (string) wp_unslash( $_POST['expected_status'] ) )
+			: $from;
 
 		if (
-			$id <= 0
+			$expected !== $from
+			|| $id <= 0
 			|| ! is_array( $current )
 			|| ( '' !== $status && $status !== $from && ! WorkItemStatus::can_transition( $from, $status ) )
 			|| ! WorkItems::update(
@@ -82,7 +86,7 @@ final class OperationalActions {
 				$input,
 				'' !== $status && $status !== $from ? $status : null,
 				get_current_user_id(),
-				$from
+				$expected
 			)
 		) {
 			self::redirect_work_items( 'work-item-update-invalid' );
