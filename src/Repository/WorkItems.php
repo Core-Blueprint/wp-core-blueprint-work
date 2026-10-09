@@ -238,61 +238,90 @@ final class WorkItems {
 
 	/** @param array<string,mixed> $input */
 	public static function update( int $id, array $input ): bool {
-		$current = self::get( $id );
-		if ( null === $current || ! self::schema_ready() ) {
-			return false;
-		}
-		$normalized = self::normalize_write( $input, $current );
-		if ( null === $normalized ) {
+		$current = null;
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, &$current ): bool {
+			$current = self::get( $id );
+			if ( null === $current || ! self::schema_ready() ) {
+				return false;
+			}
+			$normalized = self::normalize_write( $input, $current );
+			if ( null === $normalized ) {
+				return false;
+			}
+
+			$result = wp_update_post( [
+				'ID'           => $id,
+				'post_title'   => $normalized['title'],
+				'post_content' => wp_kses_post( $normalized['description'] ),
+			], true );
+			if ( is_wp_error( $result ) || $result <= 0 ) {
+				return false;
+			}
+
+			WorkItemMeta::save_details( $id, $normalized );
+			if ( ! WorkItemMeta::details_match( $id, $normalized ) ) {
+				return false;
+			}
+			WorkItemMeta::ensure_status( $id );
+			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
+				return false;
+			}
+			if ( ! WorkItemMeta::is_initialized( $id ) ) {
+				WorkItemMeta::mark_initialized( $id );
+				if ( ! WorkItemMeta::is_initialized( $id ) ) {
+					return false;
+				}
+			}
+			return true;
+		} );
+		if ( ! $updated ) {
 			return false;
 		}
 
-		$result = wp_update_post( [
-			'ID'           => $id,
-			'post_title'   => $normalized['title'],
-			'post_content' => wp_kses_post( $normalized['description'] ),
-		], true );
-		if ( is_wp_error( $result ) || $result <= 0 ) {
-			return false;
-		}
-
-		WorkItemMeta::save_details( $id, $normalized );
-		WorkItemMeta::ensure_status( $id );
-		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
-			return false;
-		}
-		if ( ! WorkItemMeta::is_initialized( $id ) ) {
-			WorkItemMeta::mark_initialized( $id );
-		}
 		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
 		return true;
 	}
 
 	/**
-	 * Persists Work Item meta-box values after WordPress has already saved the
-	 * Gutenberg title/content for the canonical CPT object.
+	 * Persists only the Work-owned editor meta/assignment subset atomically.
+	 * WordPress has already saved Gutenberg title/content before this hook.
 	 *
 	 * @param array<string,mixed> $input
 	 */
 	public static function save_editor( int $id, array $input ): bool {
-		$current = self::get( $id );
-		if ( null === $current || ! self::schema_ready() ) {
-			return false;
-		}
-		$normalized = self::normalize_write( $input, $current );
-		if ( null === $normalized ) {
-			return false;
-		}
+		$current = null;
+		$was_initialized = false;
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, &$current, &$was_initialized ): bool {
+			$current = self::get( $id );
+			if ( null === $current || ! self::schema_ready() ) {
+				return false;
+			}
+			$normalized = self::normalize_write( $input, $current );
+			if ( null === $normalized ) {
+				return false;
+			}
 
-		$was_initialized = WorkItemMeta::is_initialized( $id );
-		WorkItemMeta::save_details( $id, $normalized );
-		WorkItemMeta::ensure_status( $id );
-		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'] ) ) {
+			$was_initialized = WorkItemMeta::is_initialized( $id );
+			WorkItemMeta::save_details( $id, $normalized );
+			if ( ! WorkItemMeta::details_match( $id, $normalized ) ) {
+				return false;
+			}
+			WorkItemMeta::ensure_status( $id );
+			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
+				return false;
+			}
+			if ( ! $was_initialized ) {
+				WorkItemMeta::mark_initialized( $id );
+				if ( ! WorkItemMeta::is_initialized( $id ) ) {
+					return false;
+				}
+			}
+			return true;
+		} );
+		if ( ! $updated ) {
 			return false;
 		}
-
 		if ( ! $was_initialized ) {
-			WorkItemMeta::mark_initialized( $id );
 			do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
 			return true;
 		}
@@ -326,17 +355,35 @@ final class WorkItems {
 		return $updated;
 	}
 
-	public static function transition_status( int $id, string $to, int $actor_user_id = 0 ): bool {
-		$item = self::get( $id );
-		$to   = sanitize_key( $to );
-		if ( null === $item || ! WorkItemStatus::is_valid( $to ) ) {
+	/**
+	 * The expected source status is optional for compatibility with legacy
+	 * server-side consumers; UI transports should send it to reject stale moves.
+	 * Callers receive false for invalid, stale or failed persistence.
+	 */
+	public static function transition_status( int $id, string $to, int $actor_user_id = 0, ?string $expected_from = null ): bool {
+		$to = sanitize_key( $to );
+		if ( ! WorkItemStatus::is_valid( $to ) ) {
 			return false;
 		}
-		$from = (string) $item['status'];
-		if ( ! WorkItemStatus::can_transition( $from, $to ) ) {
+		$from = '';
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $to, $actor_user_id, $expected_from, &$from ): bool {
+			$item = self::get( $id );
+			if ( null === $item ) {
+				return false;
+			}
+			$from = (string) $item['status'];
+			if ( null !== $expected_from && $from !== $expected_from ) {
+				return false;
+			}
+			if ( ! WorkItemStatus::can_transition( $from, $to ) ) {
+				return false;
+			}
+			$previous_raw = (string) get_post_meta( $id, WorkItemMeta::STATUS, true );
+			return WorkItemMeta::set_status( $id, $to, $actor_user_id, $previous_raw );
+		} );
+		if ( ! $updated ) {
 			return false;
 		}
-		WorkItemMeta::set_status( $id, $to, $actor_user_id );
 		do_action( 'cb_work_work_item_status_changed', $id, $from, $to, self::get( $id ) );
 		return true;
 	}
@@ -373,12 +420,22 @@ final class WorkItems {
 		if ( null === $user_ids ) {
 			return false;
 		}
+		return WorkItemMutationTransaction::run(
+			$work_item_id,
+			static fn(): bool => self::write_assignments( $work_item_id, $user_ids )
+		);
+	}
 
+	/**
+	 * Low-level assignment writes. Caller MUST hold the post-row transaction
+	 * lock; nested START TRANSACTION would implicitly commit the outer write.
+	 *
+	 * @param int[] $user_ids Already normalized and validated.
+	 */
+	private static function write_assignments( int $work_item_id, array $user_ids ): bool {
 		global $wpdb;
-		$wpdb->query( 'START TRANSACTION' );
 		$deleted = $wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
 		if ( false === $deleted ) {
-			$wpdb->query( 'ROLLBACK' );
 			return false;
 		}
 		$now = current_time( 'mysql', true );
@@ -389,11 +446,9 @@ final class WorkItems {
 				[ '%d', '%d', '%s' ]
 			);
 			if ( false === $ok ) {
-				$wpdb->query( 'ROLLBACK' );
 				return false;
 			}
 		}
-		$wpdb->query( 'COMMIT' );
 		return true;
 	}
 
