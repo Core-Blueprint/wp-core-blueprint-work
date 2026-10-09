@@ -46,7 +46,34 @@ $checks = [
 		&& strpos( $builder, '"$ROOT/tools/check"' ) < strpos( $builder, 'bash "$ROOT/tools/check-integration"' )
 		&& strpos( $builder, 'bash "$ROOT/tools/check-integration"' ) < strpos( $builder, 'TMP="$(mktemp -d)"' ),
 	'Runner contains one complete Docker port check and one Work lifecycle' =>
-		substr_count( $runner, 'grep -Eq' ) === 1
+		substr_count( $runner, "grep -Eq '(^|:)3307
+		&& str_contains( $runner, 'cb-base-test-db does not expose host port 3307.' )
+		&& substr_count( $runner, 'RUN_DIR="$(mktemp -d' ) === 1
+		&& substr_count( $runner, 'DROP DATABASE IF EXISTS' ) === 1
+		&& substr_count( $runner, 'Core Blueprint Work Level 2 integration: PASS' ) === 1,
+	'Failed Level 1 or Level 2 cannot leave a stale Work ZIP' =>
+		str_contains( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' )
+		&& strpos( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' ) < strpos( $builder, '"$ROOT/tools/check"' ),
+	'WordPress database errors must fail Level 2 even if PHPUnit reports OK' =>
+		str_contains( $runner, 'set -euo pipefail' )
+		&& str_contains( $runner, 'tee "$RUN_DIR/phpunit-output.log"' )
+		&& str_contains( $runner, 'grep -Eq' )
+		&& str_contains( $runner, 'WordPress database error' )
+		&& str_contains( $runner, 'fail "WordPress emitted a database error' ),
+	'Level 1 syntax-checks but never executes the customer release builder' =>
+		str_contains( $check, 'bash -n "$ROOT/tools/build-release"' )
+		&& ! str_contains( $check, 'bash "$ROOT/tools/build-release"' )
+		&& ! preg_match( '/^[ \\t]*"\\$ROOT\\/tools\\/build-release"(?:[ \\t]|$)/m', $check )
+		&& str_contains( $builder, 'SECOND_ZIP=' ),
+];
+foreach ( $checks as $name => $passed ) {
+	if ( ! $passed ) {
+		fwrite( STDERR, "Work integration conformance failed: {$name}\n" );
+		exit( 1 );
+	}
+}
+echo "Work Handbook Level 2 integration contract smoke passed.\n";
+" ) === 1
 		&& str_contains( $runner, 'cb-base-test-db does not expose host port 3307.' )
 		&& substr_count( $runner, 'RUN_DIR="$(mktemp -d' ) === 1
 		&& substr_count( $runner, 'DROP DATABASE IF EXISTS' ) === 1
