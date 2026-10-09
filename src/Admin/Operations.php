@@ -1639,9 +1639,24 @@ final class Operations {
 		>
 			<?php foreach ( $lanes as $status => $lane_items ) :
 				$lane_label = self::humanize( (string) $status );
+				// Only long, creatable lanes need a shortcut before their cards.
+				$show_header_add = count( $lane_items ) >= 8
+					&& in_array( (string) $status, WorkItemStatus::active(), true );
 				?>
 				<section class="postbox cb-work-board__lane" data-cb-work-status-lane="<?php echo esc_attr( (string) $status ); ?>">
-					<h2 class="hndle"><span><?php echo esc_html( $lane_label ); ?> <span class="count">(<?php echo esc_html( (string) count( $lane_items ) ); ?>)</span></span></h2>
+					<h2 class="hndle">
+						<span id="cb-work-board-lane-label-<?php echo esc_attr( (string) $status ); ?>"><?php echo esc_html( $lane_label ); ?> <span class="count">(<?php echo esc_html( (string) count( $lane_items ) ); ?>)</span></span>
+						<?php if ( $show_header_add ) : ?>
+							<a
+								class="cb-work-board__header-add"
+								href="<?php echo esc_url( Menu::new_work_item_url( $lane_project_id, (string) $status ) ); ?>"
+								data-cb-work-quick-status-label="<?php echo esc_attr( $lane_label ); ?>"
+								aria-label="<?php esc_attr_e( 'Add Work Item', 'core-blueprint-work' ); ?>"
+								aria-describedby="cb-work-board-lane-label-<?php echo esc_attr( (string) $status ); ?>"
+								title="<?php esc_attr_e( 'Add Work Item', 'core-blueprint-work' ); ?>"
+							><span aria-hidden="true">+</span></a>
+						<?php endif; ?>
+					</h2>
 					<div
 						class="inside cb-work-board__list"
 						data-cb-core-reorder-list="<?php echo esc_attr( (string) $status ); ?>"
