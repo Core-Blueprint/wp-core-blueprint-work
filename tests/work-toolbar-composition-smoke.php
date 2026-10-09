@@ -35,6 +35,8 @@ $assertions = [
 		&& str_contains( $css, 'grid-template-columns: max-content minmax(0, 1fr);' )
 		&& str_contains( $css, 'grid-column: 1 / -1;' )
 		&& str_contains( $css, 'border-top: 1px solid var(--cb-work-border);' )
+		&& str_contains( $css, '(min-width: 783px) and (max-width: 1100px)' )
+		&& str_contains( $css, 'grid-template-columns: minmax(0, 1fr);' )
 		&& str_contains( $refinement, '@media screen and (max-width: 782px)' ),
 	'Table List controls retain their own popup markup and dimensions' =>
 		str_contains( $view, 'data-cb-work-list-display-toggle' )
