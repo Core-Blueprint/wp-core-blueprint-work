@@ -12,6 +12,9 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--cb-space-2);
+	box-sizing: border-box;
+	/* Match the tallest shortcut without letting one lane grow alone. */
+	min-height: calc(32px + var(--cb-space-3) + var(--cb-space-3) + 1px);
 }
 
 .cb-work-items-page--refined .cb-work-items-kanban.cb-work-board > .cb-work-board__lane > .hndle > span {
@@ -70,6 +73,10 @@
 }
 
 @media screen and (max-width: 782px) {
+	.cb-work-items-page--refined .cb-work-items-kanban.cb-work-board > .cb-work-board__lane > .hndle {
+		min-height: calc(40px + var(--cb-space-3) + var(--cb-space-3) + 1px);
+	}
+
 	.cb-work-items-page--refined .cb-work-items-kanban.cb-work-board .cb-work-board__header-add {
 		min-width: 40px;
 		min-height: 40px;
