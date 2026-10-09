@@ -240,13 +240,19 @@ final class WorkItems {
 
 		$status = isset( $_POST['cb_work_item_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['cb_work_item_status'] ) ) : '';
 		$from   = is_array( $current ) ? (string) ( $current['status'] ?? WorkItemStatus::PLANNED ) : WorkItemStatus::PLANNED;
+		$expected = isset( $_POST['cb_work_item_expected_status'] ) && is_scalar( $_POST['cb_work_item_expected_status'] )
+			? sanitize_key( (string) wp_unslash( $_POST['cb_work_item_expected_status'] ) )
+			: $from;
+		if ( $expected !== $from ) {
+			return;
+		}
 
 		if ( ! WorkItemRepository::save_editor(
 			$post_id,
 			$input,
 			'' !== $status && $status !== $from ? $status : null,
 			get_current_user_id(),
-			$from
+			$expected
 		) ) {
 			return;
 		}
