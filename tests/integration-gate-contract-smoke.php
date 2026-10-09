@@ -41,6 +41,24 @@ $checks = [
 		&& str_contains( $builder, 'bash "$ROOT/tools/check-integration"' )
 		&& strpos( $builder, '"$ROOT/tools/check"' ) < strpos( $builder, 'bash "$ROOT/tools/check-integration"' )
 		&& strpos( $builder, 'bash "$ROOT/tools/check-integration"' ) < strpos( $builder, 'TMP="$(mktemp -d)"' ),
+	'Runner contains one complete Docker port check and one Work lifecycle' =>
+		substr_count( $runner, 'grep -Eq' ) === 1
+		&& str_contains( $runner, "grep -Eq '(^|:)3307
+];
+foreach ( $checks as $name => $passed ) {
+	if ( ! $passed ) {
+		fwrite( STDERR, "Work integration conformance failed: {$name}\n" );
+		exit( 1 );
+	}
+}
+echo "Work Handbook Level 2 integration contract smoke passed.\n";
+ <<< \"\$PORT\" || fail" )
+		&& substr_count( $runner, 'RUN_DIR="$(mktemp -d' ) === 1
+		&& substr_count( $runner, 'DROP DATABASE IF EXISTS' ) === 1
+		&& substr_count( $runner, 'Core Blueprint Work Level 2 integration: PASS' ) === 1,
+	'Failed Level 1 or Level 2 cannot leave a stale Work ZIP' =>
+		str_contains( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' )
+		&& strpos( $builder, 'rm -f -- "$ZIP" "$SHA_FILE"' ) < strpos( $builder, '"$ROOT/tools/check"' ),
 	'Level 1 never recursively invokes the customer release builder' =>
 		! str_contains( $check, '"$ROOT/tools/build-release"' )
 		&& str_contains( $builder, 'SECOND_ZIP=' ),
