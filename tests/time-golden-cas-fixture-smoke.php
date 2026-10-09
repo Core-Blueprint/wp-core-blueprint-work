@@ -12,10 +12,9 @@ $bulk = (string) file_get_contents( $root . '/src/Admin/TimeEntryBulkEdit.php' )
 $check = (string) file_get_contents( $root . '/tools/check' );
 
 $checks = [
-    'reuse the established Base WordPress PHPUnit bootstrap' =>
-        str_contains( $bootstrap, "'CB_BASE_SOURCE_DIR'" )
-        && str_contains( $bootstrap, "'/tests/bootstrap.php'" )
-        && str_contains( $xml, 'bootstrap="phpunit-time-bootstrap.php"' )
+    'use the canonical product-isolated Work PHPUnit bootstrap' =>
+        str_contains( $bootstrap, "'/phpunit-work-bootstrap.php'" )
+        && str_contains( $xml, 'bootstrap="phpunit-work-bootstrap.php"' )
         && str_contains( $integration, 'extends WP_UnitTestCase' ),
     'guard local PHPUnit test database' =>
         str_contains( $integration, "defined( 'DB_NAME' )" )
@@ -34,9 +33,10 @@ $checks = [
         strpos( $bulk, 'foreach ( $ids as $id )' ) < strpos( $bulk, 'foreach ( $updates as $change )' )
         && str_contains( $bulk, 'TimeEntries::update_completed(' )
         && str_contains( $bulk, "'time-bulk-partial'" ),
-    'integration is optional, not auto-run or packaged' =>
+    'integration remains outside Level 1 and is mandatory in Level 2' =>
         ! str_contains( $check, 'phpunit-time-cas.xml.dist' )
-        && ! str_contains( $check, 'WorkTimeCasIntegrationTest.php' ),
+        && ! str_contains( $check, 'WorkTimeCasIntegrationTest.php' )
+        && str_contains( (string) file_get_contents( $root . '/tools/check-integration' ), 'phpunit-time-cas.xml.dist' ),
 ];
 foreach ( $checks as $name => $passed ) {
     if ( ! $passed ) {
