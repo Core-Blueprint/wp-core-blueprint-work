@@ -12,6 +12,7 @@ $checks = [
 	'Work settings use the canonical extension identity' => str_contains( $page, 'SettingsRegistry::register' ) && str_contains( $page, 'Suite::EXTENSION_ID' ),
 	'Work settings are grouped under Business' => str_contains( $page, 'SettingsRegistry::GROUP_BUSINESS' ),
 	'Work settings retain semantic Base component requirements' => str_contains( $page, "'panels'" ) && str_contains( $page, "'notices'" ) && str_contains( $page, "'fields'" ) && str_contains( $page, "'form-controls'" ),
+	'Work settings use public button semantics instead of Base-only actions' => str_contains( $page, "'buttons'" ) && ! str_contains( $page, "'actions'" ) && ! str_contains( $page, 'cb-core-actions' ) && str_contains( $page, '<p class="submit">' ),
 	'Work provider body does not redraw the Core Admin shell' => ! str_contains( $page, '<div class="wrap' ) && ! str_contains( $page, '<h1 class="cb-core-title"' ) && ! str_contains( $page, 'cb-core-intro' ),
 	'Work no longer registers a legacy Core Admin page' => ! str_contains( $page, 'cb_core_register_pages' ) && ! str_contains( $page, 'PageRegistry' ) && ! str_contains( $page, "core-blueprint-work-settings" ),
 	'VAT redirects use the canonical provider URL and preserve notice state' => str_contains( $taxActions, 'Page::settings_url(' ) && str_contains( $taxActions, "'cb-work-notice'" ) && ! str_contains( $taxActions, 'Page::SLUG' ),
