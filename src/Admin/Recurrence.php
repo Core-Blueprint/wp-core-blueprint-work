@@ -53,6 +53,7 @@ final class Recurrence {
 				'inactiveDescription' => __( 'Automatic generation paused', 'core-blueprint-work' ),
                 'minuteUnit' => __( 'min', 'core-blueprint-work' ),
 				'deleteConfirm' => __( 'Delete this Recurring Work rule permanently? This cannot be undone.', 'core-blueprint-work' ),
+				'deleteAriaLabel' => __( 'Delete rule: %s', 'core-blueprint-work' ),
 			] );
 		}
 
