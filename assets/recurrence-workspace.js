@@ -98,6 +98,8 @@
                 if (!response.ok || !result.success) throw new Error(result.data?.message || config.error);
                 const label = row.querySelector('[data-cb-rule-title]');
                 if (label) label.textContent = result.data.title;
+                const deleteButton = row.querySelector('[data-cb-delete-recurrence] button[type="submit"]');
+                if (deleteButton) deleteButton.setAttribute('aria-label', config.deleteAriaLabel.replace('%s', result.data.title));
                 if (new URLSearchParams(window.location.search).get('cb_sort') === 'title') {
                     window.location.reload();
                     return;
