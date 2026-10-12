@@ -175,6 +175,12 @@ $checks = [
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
 		&& str_contains( $recurrence, 'self::schedule_label( $configured )' ),
+	'Unused inactive rules offer confirmed deletion while historical rules remain protected' => str_contains( $recurrence, 'data-cb-delete-recurrence' )
+		&& str_contains( $recurrence, 'if ( 0 === $count )' )
+		&& str_contains( $script, 'window.confirm(config.deleteConfirm)' )
+		&& str_contains( $script, 'deleteForm.hidden = result.data.active;' )
+		&& str_contains( $script, 'config.deleteAriaLabel.replace' )
+		&& str_contains( $styles, '.cb-work-recurrence-delete-form[hidden]' ),
 	'Generator remains an explicit governed action in diagnostics' => str_contains( $recurrence, 'cb-work-recurrence-diagnostics' )
 		&& str_contains( $recurrence, 'cb_work_run_recurrence_generator' )
 		&& str_contains( $recurrence, "wp_nonce_field( 'cb_work_run_recurrence_generator' )" ),
