@@ -28,6 +28,7 @@ final class Events {
 	public const WORK_TYPE_STATUS_CHANGED       = 'work.type.status.changed';
 	public const RECURRENCE_RULE_CREATED        = 'work.recurrence.rule.created';
 	public const RECURRENCE_RULE_UPDATED        = 'work.recurrence.rule.updated';
+	public const RECURRENCE_RULE_DELETED        = 'work.recurrence.rule.deleted';
 	public const RECURRENCE_RULE_STATUS_CHANGED = 'work.recurrence.rule.status.changed';
 	public const RECURRENCE_ITEM_GENERATED      = 'work.recurrence.item.generated';
 	public const RECURRENCE_GENERATION_FAILED   = 'work.recurrence.generation.failed';
@@ -63,6 +64,7 @@ final class Events {
 			self::WORK_TYPE_STATUS_CHANGED       => [ __( 'Work Type status changed', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_RULE_CREATED        => [ __( 'Recurring Work rule created', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_RULE_UPDATED        => [ __( 'Recurring Work rule updated', 'core-blueprint-work' ), 'general' ],
+			self::RECURRENCE_RULE_DELETED        => [ __( 'Recurring Work rule deleted', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_RULE_STATUS_CHANGED => [ __( 'Recurring Work rule status changed', 'core-blueprint-work' ), 'general' ],
 			self::RECURRENCE_ITEM_GENERATED      => [ __( 'Recurring Work Item generated', 'core-blueprint-work' ), 'maintenance' ],
 			self::RECURRENCE_GENERATION_FAILED   => [ __( 'Recurring Work generation failed', 'core-blueprint-work' ), 'maintenance' ],
