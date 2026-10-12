@@ -168,6 +168,45 @@ final class RecurrenceRules {
 		return true;
 	}
 
+	/**
+	 * Permanently deletes only an inactive rule without any occurrence history.
+	 * The rule row is locked while verifying the guard and deleting assignments,
+	 * so activation and removal cannot race on the same database row.
+	 */
+	public static function delete_draft( int $id ): bool {
+		if ( ! self::schema_ready() || $id <= 0 ) {
+			return false;
+		}
+		global $wpdb;
+		if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+			return false;
+		}
+		$rule = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT id, is_active FROM ' . Schema::recurrence_rules_table() . ' WHERE id = %d FOR UPDATE', $id ),
+			ARRAY_A
+		);
+		$has_history = (bool) $wpdb->get_var(
+			$wpdb->prepare( 'SELECT 1 FROM ' . Schema::recurrence_occurrences_table() . ' WHERE rule_id = %d LIMIT 1', $id )
+		);
+		if ( ! is_array( $rule ) || 0 !== (int) $rule['is_active'] || $has_history ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		$assignments_deleted = $wpdb->delete( Schema::recurrence_assignments_table(), [ 'rule_id' => $id ], [ '%d' ] );
+		$rule_deleted = false !== $assignments_deleted
+			? $wpdb->delete( Schema::recurrence_rules_table(), [ 'id' => $id, 'is_active' => 0 ], [ '%d', '%d' ] )
+			: false;
+		if ( 1 !== $rule_deleted ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		if ( false === $wpdb->query( 'COMMIT' ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			return false;
+		}
+		return true;
+	}
+
 	/** @return int[] */
 	public static function assignments( int $rule_id ): array {
 		if ( ! self::schema_ready() || $rule_id <= 0 ) {
