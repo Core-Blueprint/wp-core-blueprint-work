@@ -2614,3 +2614,22 @@ msgstr "Sostituisci la nota"
 
 msgid "Clear note"
 msgstr "Cancella la nota"
+
+msgid "Delete this Recurring Work rule permanently? This cannot be undone."
+msgstr "Eliminare definitivamente questa regola di lavoro ricorrente? L'operazione non può essere annullata."
+
+#, php-format
+msgid "Delete rule: %s"
+msgstr "Elimina regola: %s"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Recurring Work rule deleted."
+msgstr "Regola di lavoro ricorrente eliminata."
+
+msgid "Only inactive rules without occurrence history can be deleted."
+msgstr "È possibile eliminare solo le regole inattive senza cronologia delle occorrenze."
+
+msgid "Recurring Work rule deleted"
+msgstr "Regola di lavoro ricorrente eliminata"
