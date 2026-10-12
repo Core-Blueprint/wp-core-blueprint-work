@@ -212,6 +212,15 @@
 	white-space: nowrap;
 }
 
+.cb-work-recurrence-list .cb-work-recurrence-delete-form {
+	display: inline-block;
+	margin-left: 4px;
+}
+
+.cb-work-recurrence-list .cb-work-recurrence-delete-form[hidden] {
+	display: none;
+}
+
 .cb-work-recurrence-rule-description,
 .cb-work-recurrence-context-kind {
 	display: block;
