@@ -2611,3 +2611,22 @@ msgstr "Notitie vervangen"
 
 msgid "Clear note"
 msgstr "Notitie wissen"
+
+msgid "Delete this Recurring Work rule permanently? This cannot be undone."
+msgstr "Deze regel voor terugkerend werk definitief verwijderen? Dit kan niet ongedaan worden gemaakt."
+
+#, php-format
+msgid "Delete rule: %s"
+msgstr "Regel verwijderen: %s"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Recurring Work rule deleted."
+msgstr "Regel voor terugkerend werk verwijderd."
+
+msgid "Only inactive rules without occurrence history can be deleted."
+msgstr "Alleen inactieve regels zonder uitvoeringsgeschiedenis kunnen worden verwijderd."
+
+msgid "Recurring Work rule deleted"
+msgstr "Regel voor terugkerend werk verwijderd"
