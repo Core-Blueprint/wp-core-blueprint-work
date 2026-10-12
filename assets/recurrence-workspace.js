@@ -14,6 +14,12 @@
         });
     });
 
+    document.querySelectorAll('[data-cb-delete-recurrence]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(config.deleteConfirm)) event.preventDefault();
+        });
+    });
+
     document.querySelectorAll('[data-cb-inline-toggle]').forEach((form) => {
         const row = form.closest('[data-cb-rule-row]');
         const button = form.querySelector('button[type="submit"]');
@@ -45,6 +51,8 @@
                 badge.classList.toggle('cb-work-recurrence-status--inactive', !result.data.active);
                 button.textContent = result.data.action;
                 activeInput.value = result.data.active ? '0' : '1';
+                const deleteForm = row.querySelector('[data-cb-delete-recurrence]');
+                if (deleteForm) deleteForm.hidden = result.data.active;
                 if (result.data.active) button.removeAttribute('data-cb-work-confirm');
                 else button.setAttribute('data-cb-work-confirm', '');
                 const filter = new URLSearchParams(window.location.search).get('cb_status');
