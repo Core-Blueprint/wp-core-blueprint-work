@@ -16,6 +16,7 @@ final class RecurrenceActions {
 	public static function init(): void {
 		add_action( 'admin_post_cb_work_create_recurrence_rule', [ self::class, 'create' ] );
 		add_action( 'admin_post_cb_work_update_recurrence_rule', [ self::class, 'update' ] );
+		add_action( 'admin_post_cb_work_delete_recurrence_rule', [ self::class, 'delete' ] );
 		add_action( 'admin_post_cb_work_toggle_recurrence_rule', [ self::class, 'toggle' ] );
 		add_action( 'admin_post_cb_work_run_recurrence_generator', [ self::class, 'run_generator' ] );
 		add_action( 'wp_ajax_cb_work_quick_edit_recurrence_rule', [ self::class, 'quick_edit' ] );
@@ -56,6 +57,17 @@ final class RecurrenceActions {
 		}
 		Audit::record( Events::RECURRENCE_RULE_UPDATED, 'notice', [ 'rule_id' => $rule_id ] );
 		self::redirect( 'recurrence-updated', [ 'rule_id' => $rule_id ] );
+	}
+
+	/** Deletes only unused inactive rules; generated history is never cascaded. */
+	public static function delete(): never {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		self::guard( 'cb_work_delete_recurrence_rule_' . $rule_id );
+		if ( ! RecurrenceRules::delete_draft( $rule_id ) ) {
+			self::redirect( 'recurrence-delete-blocked' );
+		}
+		Audit::record( Events::RECURRENCE_RULE_DELETED, 'notice', [ 'rule_id' => $rule_id, 'actor_user_id' => get_current_user_id() ] );
+		self::redirect( 'recurrence-deleted' );
 	}
 
 	public static function toggle(): never {
