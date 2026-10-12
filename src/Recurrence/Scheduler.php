@@ -70,11 +70,15 @@ final class Scheduler {
 			self::process_rule( $rule_id, $today, $actor_user_id, $source, $stats );
 		}
 
-		Audit::record( Events::RECURRENCE_GENERATOR_RUN, 'notice', [
-			'source' => $source,
-			'actor_user_id' => max( 0, $actor_user_id ),
-			...$stats,
-		] );
+		// Cron has no user-facing work to report when every rule is idle.
+		// Keep explicit manual runs and meaningful automatic passes auditable.
+		if ( 'cron' !== $source || $stats['rules'] > 0 ) {
+			Audit::record( Events::RECURRENCE_GENERATOR_RUN, 'notice', [
+				'source' => $source,
+				'actor_user_id' => max( 0, $actor_user_id ),
+				...$stats,
+			] );
+		}
 		return $stats;
 	}
 
