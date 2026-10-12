@@ -2626,3 +2626,22 @@ msgstr ""
 #: src/Admin/TimeEntryList.php
 msgid "Clear note"
 msgstr ""
+
+msgid "Delete this Recurring Work rule permanently? This cannot be undone."
+msgstr ""
+
+#, php-format
+msgid "Delete rule: %s"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Recurring Work rule deleted."
+msgstr ""
+
+msgid "Only inactive rules without occurrence history can be deleted."
+msgstr ""
+
+msgid "Recurring Work rule deleted"
+msgstr ""
