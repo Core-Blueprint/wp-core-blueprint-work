@@ -9,7 +9,8 @@ $script      = file_get_contents( $root . '/assets/work-items-refinement.js' );
 $css         = file_get_contents( $root . '/assets/work-items-refinement.css' );
 $operations  = file_get_contents( $root . '/src/Admin/Operations.php' );
 $table_renderer = file_get_contents( $root . '/src/Admin/WorkItemTableRenderer.php' );
-$operations = is_string( $operations ) && is_string( $table_renderer ) ? $operations . "\n" . $table_renderer : false;
+$list_renderer = file_get_contents( $root . '/src/Admin/WorkItemListRenderer.php' );
+$operations = is_string( $operations ) && is_string( $table_renderer ) && is_string( $list_renderer ) ? $operations . "\n" . $table_renderer . "\n" . $list_renderer : false;
 $calendar    = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 $adminScript = file_get_contents( $root . '/assets/work-admin.js' );
 $adminCss    = file_get_contents( $root . '/assets/work-admin.css' );
@@ -113,12 +114,12 @@ refinement_assert(
 	'Primary filters auto-apply and compact icon controls preserve a functional command bar.'
 );
 
-$list_start = strpos( $operations, 'private static function render_work_item_list(' );
-$list_end   = false === $list_start ? false : strpos( $operations, 'private static function render_work_item_kanban(', $list_start );
-$list_source = false !== $list_start && false !== $list_end ? substr( $operations, $list_start, $list_end - $list_start ) : '';
+$list_source = is_string( $list_renderer ) ? $list_renderer : '';
 
 refinement_assert(
 	'' !== $list_source
+	&& str_contains( $list_source, 'private static function render_work_item_list(' )
+	&& ! str_contains( $list_source, 'private static function render_work_item_kanban(' )
 	&& str_contains( $list_source, 'cb-work-items-list--golden' )
 	&& str_contains( $list_source, 'data-cb-work-list-item' )
 	&& str_contains( $list_source, 'StateBadge::render' )
