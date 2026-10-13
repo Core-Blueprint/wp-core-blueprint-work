@@ -212,6 +212,26 @@ final class WorkItemQueryScalabilityIntegrationTest extends WP_UnitTestCase {
 				. ' (post_date,post_date_gmt,post_modified,post_modified_gmt,post_title,post_type,post_status)'
 				. ' VALUES ' . implode( ', ', $holders );
 			self::assertSame( $batch, $wpdb->query( $wpdb->prepare( $sql, ...$params ) ) );
+
+			// Bulk INNOdb auto-increment allocates consecutive IDs within
+			// one multi-row insert. Seed representative status/due metadata,
+			// not merely 25k empty fallback rows.
+			$first_id = (int) $wpdb->insert_id;
+			self::assertGreaterThan( 0, $first_id );
+			$meta_holders = [];
+			$meta_params = [];
+			$status_values = [ 'planned', 'in_progress', 'completed' ];
+			for ( $i = 0; $i < $batch; $i++ ) {
+				$item_id = $first_id + $i;
+				$meta_holders[] = '(%d,%s,%s),(%d,%s,%s)';
+				array_push( $meta_params,
+					$item_id, WorkItemMeta::STATUS, $status_values[ ( $done + $i ) % 3 ],
+					$item_id, WorkItemMeta::DUE_ON, '2026-11-' . str_pad( (string) ( 1 + ( $done + $i ) % 28 ), 2, '0', STR_PAD_LEFT )
+				);
+			}
+			$meta_sql = 'INSERT INTO ' . $wpdb->postmeta
+				. ' (post_id,meta_key,meta_value) VALUES ' . implode( ', ', $meta_holders );
+			self::assertSame( $batch * 2, $wpdb->query( $wpdb->prepare( $meta_sql, ...$meta_params ) ) );
 		}
 		$bench = [];
 		foreach ( [
