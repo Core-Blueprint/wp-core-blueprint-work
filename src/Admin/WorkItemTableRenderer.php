@@ -3,17 +3,10 @@ declare(strict_types=1);
 
 namespace CB\Work\Admin;
 
-use CB\Work\Capabilities;
-use CB\Work\Database\Schema;
 use CB\Work\Domain\BillingDisposition;
-use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
-use CB\Work\Integration\CRMCustomers;
-use CB\Work\PublicApi\Services;
 use CB\Work\Query\WorkItemQuery;
-use CB\Work\Repository\Projects;
-use CB\Work\Repository\WorkItems;
 use CB\Work\Repository\WorkTypes;
 use CoreBlueprint\Core\UI\StateBadge;
 
