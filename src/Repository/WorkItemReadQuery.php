@@ -68,12 +68,25 @@ final class WorkItemReadQuery {
 		add_filter( 'posts_clauses', $clauses_filter, 20, 2 );
 		try {
 			$query = new \WP_Query( $args );
+			$total = max( 0, (int) $query->found_posts );
+
+			// WP_Query::set_found_posts() skips FOUND_ROWS when a paged
+			// query returns no IDs. Preserve the old contract: an out-of-
+			// range page still reports the real total/page count. Retry
+			// one bounded first-page ID, never load the full matchset.
+			if ( $page > 1 && [] === (array) $query->posts && 0 === $total ) {
+				$count_args = $args;
+				$count_args['paged'] = 1;
+				$count_args['posts_per_page'] = 1;
+				$count_query = new \WP_Query( $count_args );
+				$total = max( 0, (int) $count_query->found_posts );
+			}
 		} finally {
 			remove_filter( 'posts_clauses', $clauses_filter, 20 );
 		}
 
 		$ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $query->posts ) ) ) );
-		return [ 'ids' => $ids, 'total' => max( 0, (int) $query->found_posts ) ];
+		return [ 'ids' => $ids, 'total' => $total ];
 	}
 
 	/**
