@@ -45,8 +45,8 @@ namespace {
 				<=> ( $GLOBALS['cb_work_d2_meta'][ $b ]['_status'] === 'in_progress' ? 0 : 1 )
 				?: $b <=> $a
 			);
-			$this->found_posts = count( $ids );
 			$this->posts = array_slice( $ids, ( (int) ( $args['paged'] ?? 1 ) - 1 ) * (int) $args['posts_per_page'], (int) $args['posts_per_page'] );
+			$this->found_posts = [] === $this->posts ? 0 : count( $ids );
 		}
 		public function get( string $name ): mixed { return $this->query_vars[ $name ] ?? null; }
 	}
