@@ -32,7 +32,7 @@ namespace {
 		public function __construct( array $args ) {
 			$this->query_vars = $args;
 			$GLOBALS['cb_work_d2_last_query_args'] = $args;
-			$clauses = apply_filters( 'posts_clauses', [ 'join' => '', 'distinct' => '', 'orderby' => '' ], $this );
+			$clauses = apply_filters( 'posts_clauses', [ 'join' => '', 'distinct' => '', 'orderby' => '', 'groupby' => '' ], $this );
 			$GLOBALS['cb_work_d2_last_clauses'] = $clauses;
 			$ids = $GLOBALS['cb_work_d2_query_ids'];
 			if ( str_contains( $clauses['join'], 'cb_work_a2_assigned' ) ) {
@@ -376,7 +376,7 @@ namespace {
 	assert_true( ! isset( $args['post__in'] ), 'assignee membership is never materialized as an unbounded PHP ID array.' );
 	assert_true( 1 === $args['posts_per_page'] && 1 === $args['paged'] && false === $args['no_found_rows'], 'WordPress SQL limits and total rows are applied before hydration.' );
 	assert_true( str_contains( $GLOBALS['cb_work_d2_last_clauses']['join'], 'cb_work_a2_assigned' ), 'assignee filter is handled as a scoped SQL join.' );
-	assert_true( 'DISTINCT' === $GLOBALS['cb_work_d2_last_clauses']['distinct'], 'OR/duplicate meta rows cannot duplicate page records.' );
+	assert_true( 'wp_posts.ID' === $GLOBALS['cb_work_d2_last_clauses']['groupby'] && '' === $GLOBALS['cb_work_d2_last_clauses']['distinct'], 'SQL grouping prevents duplicate Work Items without SELECT DISTINCT ORDER BY incompatibilities.' );
 	assert_true( str_contains( $GLOBALS['cb_work_d2_last_clauses']['orderby'], 'in_progress' ), 'workload order runs in SQL before paging.' );
 	assert_true( [] === ( $GLOBALS['cb_work_d2_filters']['posts_clauses'][20] ?? [] ), 'scoped Work clauses hook is removed after query completion.' );
 	assert_true( isset( $args['meta_query'] ) && is_array( $args['meta_query'] ), 'canonical metadata filters are combined in one WP query.' );
