@@ -39,7 +39,16 @@ Table/Quick Edit selectors are verified as well.
 
 Existing Table preferences, Table bulk, Quick Edit and cross-view
 source-smoke fixtures are updated to inspect the **combined**
-Operations shell and Work-owned Table renderer source. This is a
+Operations shell and Work-owned Table renderer source.
+An additional A1 mutation smoke still assumed all four expected-source-status
+fields were textually present in the Operations file. Since Table Quick Edit
+now contributes its field from the new renderer, the A1 test was corrected
+to require **at least three** occurrences in Operations, **at least one**
+in the extracted Table, and **at least four across both**; all transaction,
+locking and CAS assertions remain mandatory. The initial operator Level 1
+run reached this old location-only assertion and stopped; targeted G0/Table
+checks had already passed. Level 1/2/3 **must be rerun** after this test-only
+repair before accepting or installing any new package. This is a
 source-fixture adaptation to a new file boundary, not a relaxed
 assertion. Existing Board/List/Calendar source checks remain intact.
 
@@ -54,6 +63,7 @@ git rev-parse HEAD
 php -l src/Admin/Operations.php
 php -l src/Admin/WorkItemTableRenderer.php
 php tests/work-admin-renderer-g0-smoke.php
+php tests/work-item-mutation-golden-smoke.php
 php tests/work-item-table-preferences-smoke.php
 php tests/work-item-table-bulk-smoke.php
 php tests/work-item-inline-edit-smoke.php
