@@ -5,6 +5,7 @@ namespace CB\Work;
 
 use CB\Work\Database\Schema;
 use CB\Work\Recurrence\Scheduler;
+use CB\Work\Governance\WorkEventOutbox;
 use CB\Work\Support\Requirements;
 
 defined( 'ABSPATH' ) || exit;
@@ -24,6 +25,7 @@ final class Lifecycle {
 
 	public static function deactivate(): void {
 		Scheduler::deactivate();
+		WorkEventOutbox::deactivate();
 		// Persistent Work data and capabilities are deliberately preserved.
 	}
 

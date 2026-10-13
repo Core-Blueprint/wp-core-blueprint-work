@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Repository;
 
+use CB\Work\Governance\DeferredEvents;
+
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\ProjectMeta;
 
@@ -90,7 +92,7 @@ final class Projects {
 		}
 
 		ProjectMeta::mark_initialized( $post_id );
-		do_action( 'cb_work_project_created', $post_id, self::get( $post_id ) );
+		DeferredEvents::lifecycle( 'cb_work_project_created', $post_id, self::get( $post_id ) );
 		return $post_id;
 	}
 
@@ -131,7 +133,7 @@ final class Projects {
 		if ( ! ProjectMeta::is_initialized( $id ) ) {
 			ProjectMeta::mark_initialized( $id );
 		}
-		do_action( 'cb_work_project_updated', $id, self::get( $id ), $current );
+		DeferredEvents::lifecycle( 'cb_work_project_updated', $id, self::get( $id ), $current );
 		return true;
 	}
 

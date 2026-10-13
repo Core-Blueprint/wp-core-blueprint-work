@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\PublicApi;
 
-use CoreBlueprint\Core\Governance\Audit;
+use CB\Work\Governance\DeferredEvents;
 use CB\Work\Capabilities;
 use CB\Work\Governance\Events;
 use CB\Work\Repository\Projects as ProjectRepository;
@@ -31,7 +31,7 @@ final class ProjectActions {
 			return new \WP_Error( 'work_project_unavailable' );
 		}
 
-		Audit::record( Events::PROJECT_CREATED, 'notice', [
+		DeferredEvents::audit( Events::PROJECT_CREATED, 'notice', [
 			'project_id'    => $project_id,
 			'actor_user_id' => get_current_user_id(),
 			'channel'       => 'public_api',
@@ -60,7 +60,7 @@ final class ProjectActions {
 			return new \WP_Error( 'work_project_unavailable' );
 		}
 
-		Audit::record( Events::PROJECT_UPDATED, 'notice', [
+		DeferredEvents::audit( Events::PROJECT_UPDATED, 'notice', [
 			'project_id'    => $project_id,
 			'actor_user_id' => get_current_user_id(),
 			'channel'       => 'public_api',

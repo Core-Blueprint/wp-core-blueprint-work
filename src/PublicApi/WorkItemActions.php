@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace CB\Work\PublicApi;
 
-use CoreBlueprint\Core\Governance\Audit;
+use CB\Work\Governance\DeferredEvents;
 use CB\Work\Capabilities;
 use CB\Work\Governance\Events;
 use CB\Work\Repository\WorkItemRelations;
@@ -43,7 +43,7 @@ final class WorkItemActions {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
 
-		Audit::record( Events::WORK_ITEM_CREATED, 'notice', [
+		DeferredEvents::audit( Events::WORK_ITEM_CREATED, 'notice', [
 			'work_item_id' => $work_item_id,
 			'actor_user_id' => get_current_user_id(),
 			'channel' => 'public_api',
@@ -122,13 +122,13 @@ final class WorkItemActions {
 		}
 
 		if ( 'created' === $outcome ) {
-			Audit::record( Events::WORK_ITEM_CREATED, 'notice', [
+			DeferredEvents::audit( Events::WORK_ITEM_CREATED, 'notice', [
 				'work_item_id' => $work_item_id,
 				'actor_user_id' => get_current_user_id(),
 				'channel' => 'public_api_source',
 			] );
 		}
-		Audit::record( Events::WORK_ITEM_SOURCE_ATTACHED, 'notice', [
+		DeferredEvents::audit( Events::WORK_ITEM_SOURCE_ATTACHED, 'notice', [
 			'work_item_id' => $work_item_id,
 			'source_identity_id' => $source_id,
 			'provider' => $source['provider'],
@@ -156,7 +156,7 @@ final class WorkItemActions {
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
-		Audit::record( Events::WORK_ITEM_UPDATED, 'notice', [
+		DeferredEvents::audit( Events::WORK_ITEM_UPDATED, 'notice', [
 			'work_item_id' => $work_item_id,
 			'actor_user_id' => get_current_user_id(),
 			'channel' => 'public_api',
@@ -182,7 +182,7 @@ final class WorkItemActions {
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
-		Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [
+		DeferredEvents::audit( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [
 			'work_item_id' => $work_item_id,
 			'from' => $from,
 			'to' => (string) $item['status'],
@@ -224,7 +224,7 @@ final class WorkItemActions {
 		if ( null === $item ) {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
-		Audit::record( Events::WORK_ITEM_RELATION_ADDED, 'notice', [
+		DeferredEvents::audit( Events::WORK_ITEM_RELATION_ADDED, 'notice', [
 			'work_item_id' => $work_item_id,
 			'provider' => $relation['provider'],
 			'relation_type' => $relation['type'],

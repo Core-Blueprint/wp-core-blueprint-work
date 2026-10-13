@@ -56,7 +56,7 @@ if ( $fixtureValid ) {
 
 $checks = [
 	'Work schema 2.0 owns portable identity registry' =>
-		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.0'" )
+		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.1'" )
 		&& str_contains( $schema, "'cb_work_portable_identities'" )
 		&& str_contains( $schema, 'UNIQUE KEY entity_local (entity_type,local_id)' )
 		&& str_contains( $schema, 'UNIQUE KEY portable_key (portable_key)' ),

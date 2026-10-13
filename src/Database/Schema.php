@@ -34,6 +34,7 @@ final class Schema {
 				[ self::class, 'time_entries_table' ],
 				[ self::class, 'active_timers_table' ],
 				[ self::class, 'portable_identities_table' ],
+				[ self::class, 'outbox_table' ],
 			],
 			'install'    => [ self::class, 'install' ],
 		] );
@@ -107,6 +108,11 @@ final class Schema {
 	public static function portable_identities_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_portable_identities';
+	}
+
+	public static function outbox_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_bundle_event_outbox';
 	}
 
 	public static function install(): bool {
@@ -332,6 +338,23 @@ final class Schema {
 			UNIQUE KEY entity_local (entity_type,local_id),
 			UNIQUE KEY portable_key (portable_key),
 			KEY entity_type (entity_type)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::outbox_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			event_key char(36) NOT NULL,
+			event_kind varchar(16) NOT NULL,
+			event_name varchar(128) NOT NULL,
+			payload longtext NOT NULL,
+			state varchar(16) NOT NULL DEFAULT 'pending',
+			attempts smallint unsigned NOT NULL DEFAULT 0,
+			claimed_at datetime NULL,
+			delivered_at datetime NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY event_key (event_key),
+			KEY state_claimed (state,claimed_at),
+			KEY state_delivered (state,delivered_at)
 		) {$charset};" );
 
 		self::backfill_work_contexts();

@@ -7,6 +7,7 @@ use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
 use CB\Work\Integration\DataExchange\ProjectBundleEntity;
+use CB\Work\Governance\WorkEventOutbox;
 use CB\Work\Repository\PortableIdentities;
 use CoreBlueprint\Core\DataExchange\Foundation;
 
@@ -17,6 +18,16 @@ use CoreBlueprint\Core\DataExchange\Foundation;
 final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 	/** @var string[] */
 	private array $temporary_tables = [];
+	private int $emitted_work_lifecycle = 0;
+	private int $emitted_work_audits = 0;
+
+	private const WORK_SUCCESS_HOOKS = [
+		'cb_work_project_created',
+		'cb_work_project_updated',
+		'cb_work_work_item_created',
+		'cb_work_work_item_updated',
+		'cb_work_work_item_status_changed',
+	];
 
 	public function set_up(): void {
 		if ( ! defined( 'DB_NAME' ) || 'core_blueprint_work_test' !== (string) DB_NAME
@@ -55,6 +66,20 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		self::assertTrue( current_user_can( Capabilities::MANAGE ), 'Approved administrator must hold the real Work capability.' );
 
 		$tables = [
+
+			Schema::outbox_table() => '(
+				id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				event_key char(36) NOT NULL,
+				event_kind varchar(16) NOT NULL,
+				event_name varchar(128) NOT NULL,
+				payload longtext NOT NULL,
+				state varchar(16) NOT NULL DEFAULT "pending",
+				attempts smallint unsigned NOT NULL DEFAULT 0,
+				claimed_at datetime NULL,
+				delivered_at datetime NULL,
+				created_at datetime NOT NULL,
+				UNIQUE KEY event_key (event_key)
+			) ENGINE=InnoDB',
 			Schema::portable_identities_table() => '(
 				id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 				entity_type varchar(32) NOT NULL,
@@ -90,6 +115,11 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 				billing_disposition varchar(32) NOT NULL
 			) ENGINE=InnoDB',
 		];
+		foreach ( self::WORK_SUCCESS_HOOKS as $hook ) {
+			add_action( $hook, [ $this, 'count_work_lifecycle' ], 10, 5 );
+		}
+		add_action( 'core_blueprint_audit_log_written', [ $this, 'count_work_audit' ], 10, 4 );
+
 		foreach ( $tables as $name => $definition ) {
 			self::assertNotFalse( $wpdb->query( 'CREATE TEMPORARY TABLE ' . $name . ' ' . $definition ) );
 			$this->temporary_tables[] = $name;
@@ -97,6 +127,10 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 	}
 
 	public function tear_down(): void {
+		foreach ( self::WORK_SUCCESS_HOOKS as $hook ) {
+			remove_action( $hook, [ $this, 'count_work_lifecycle' ], 10 );
+		}
+		remove_action( 'core_blueprint_audit_log_written', [ $this, 'count_work_audit' ], 10 );
 		global $wpdb;
 		foreach ( array_reverse( $this->temporary_tables ) as $name ) {
 			$wpdb->query( 'DROP TEMPORARY TABLE IF EXISTS ' . $name );
@@ -128,6 +162,7 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		self::assertWPError( $result );
 		self::assertSame( 'work_project_bundle_apply_failed', $result->get_error_code() );
 		self::assertSame( 2, $writes );
+		$this->assert_no_new_published_bundle_events();
 		self::assertSame( 0, PortableIdentities::local_id( PortableIdentities::PROJECT, $record['portable_key'] ) );
 		foreach ( $record['work_items'] as $item ) {
 			self::assertSame( 0, PortableIdentities::local_id( PortableIdentities::WORK_ITEM, $item['portable_key'] ) );
@@ -145,6 +180,10 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		self::assertIsArray( $fresh );
 		self::assertSame( Foundation::OP_CREATE, $fresh['operation'] );
 		self::assertIsArray( $entity->apply_import( $fresh ) );
+		self::assertGreaterThan( 0, $this->outbox_count() );
+		self::assertSame( 0, WorkEventOutbox::drain(), 'Never deliver before the PHPUnit outer transaction commits.' );
+		self::assertSame( 0, $this->emitted_work_lifecycle );
+		self::assertSame( 0, $this->emitted_work_audits );
 		$project_id = PortableIdentities::local_id( PortableIdentities::PROJECT, $record['portable_key'] );
 		self::assertGreaterThan( 0, $project_id );
 		foreach ( $record['work_items'] as $item ) {
@@ -173,6 +212,7 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 
 		global $wpdb;
 		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
+		$before_outbox_count = $this->outbox_count();
 		$writes = 0;
 		$fail = static function ( array $data ) use ( &$writes ): array {
 			if ( PostTypes::WORK_ITEM === ( $data['post_type'] ?? '' ) && str_starts_with( (string) ( $data['post_title'] ?? '' ), 'Modified' ) && ++$writes === 2 ) {
@@ -188,6 +228,9 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		}
 		self::assertWPError( $result );
 		self::assertSame( 2, $writes );
+		self::assertSame( $before_outbox_count, $this->outbox_count(), 'Failed UPDATE must not persist new success events.' );
+		self::assertSame( 0, $this->emitted_work_lifecycle, 'Failed UPDATE must not emit Work lifecycle events.' );
+		self::assertSame( 0, $this->emitted_work_audits, 'Failed UPDATE must not emit a Base audit success callback.' );
 		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ), 'Import must not commit the PHPUnit transaction.' );
 		self::assertSame( 'Project Bundle Fixture', get_post( $project_id )->post_title );
 		self::assertSame( 'Work Item 1', get_post( $first_id )->post_title );
@@ -201,6 +244,29 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		self::assertSame( 'Modified first item', get_post( $first_id )->post_title );
 		self::assertSame( 'high', get_post_meta( $first_id, WorkItemMeta::PRIORITY, true ) );
 		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
+	}
+
+
+	private function outbox_count(): int {
+		global $wpdb;
+		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Schema::outbox_table() );
+	}
+
+	private function assert_no_new_published_bundle_events(): void {
+		self::assertSame( 0, $this->outbox_count(), 'Rolled-back bundle must have no pending success events.' );
+		self::assertSame( 0, $this->emitted_work_lifecycle, 'Rolled-back bundle must not publish Work success hooks.' );
+		self::assertSame( 0, $this->emitted_work_audits, 'Rolled-back bundle must not publish Base success audit callbacks.' );
+	}
+
+	public function count_work_lifecycle(): void {
+		$this->emitted_work_lifecycle++;
+	}
+
+	public function count_work_audit( int $id, string $event_type ): void {
+		unset( $id );
+		if ( str_starts_with( $event_type, 'work_' ) ) {
+			$this->emitted_work_audits++;
+		}
 	}
 
 	/** @return array<string,mixed> */

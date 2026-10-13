@@ -30,6 +30,7 @@ use CB\Work\Content\ProjectMeta;
 use CB\Work\Content\ServicePricing as ServicePricingDomain;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Governance\Events;
+use CB\Work\Governance\WorkEventOutbox;
 use CB\Work\Recurrence\Scheduler;
 use CB\Work\Repository\PortableIdentities;
 use CB\Work\Repository\WorkItemSources;
@@ -48,6 +49,7 @@ final class Plugin {
 
 		Capabilities::init();
 		Events::init();
+		WorkEventOutbox::init();
 		PostTypes::init();
 		ProjectMeta::init();
 		WorkItemMeta::init();

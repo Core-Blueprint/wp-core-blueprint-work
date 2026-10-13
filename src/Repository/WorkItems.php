@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace CB\Work\Repository;
 
+use CB\Work\Governance\DeferredEvents;
+
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
@@ -207,7 +209,7 @@ final class WorkItems {
 		}
 
 		WorkItemMeta::mark_initialized( $post_id );
-		do_action( 'cb_work_work_item_created', $post_id, self::get( $post_id ) );
+		DeferredEvents::lifecycle( 'cb_work_work_item_created', $post_id, self::get( $post_id ) );
 		return $post_id;
 	}
 
@@ -264,9 +266,9 @@ final class WorkItems {
 			return false;
 		}
 
-		do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+		DeferredEvents::lifecycle( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
 		if ( null !== $transitioned_from ) {
-			do_action( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
+			DeferredEvents::lifecycle( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
 		}
 		return true;
 	}
@@ -322,12 +324,12 @@ final class WorkItems {
 			return false;
 		}
 		if ( ! $was_initialized ) {
-			do_action( 'cb_work_work_item_created', $id, self::get( $id ) );
+			DeferredEvents::lifecycle( 'cb_work_work_item_created', $id, self::get( $id ) );
 		} else {
-			do_action( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
+			DeferredEvents::lifecycle( 'cb_work_work_item_updated', $id, self::get( $id ), $current );
 		}
 		if ( null !== $transitioned_from ) {
-			do_action( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
+			DeferredEvents::lifecycle( 'cb_work_work_item_status_changed', $id, $transitioned_from, sanitize_key( (string) $transition_to ), self::get( $id ) );
 		}
 		return true;
 	}
@@ -387,7 +389,7 @@ final class WorkItems {
 		if ( ! $updated ) {
 			return false;
 		}
-		do_action( 'cb_work_work_item_status_changed', $id, $from, $to, self::get( $id ) );
+		DeferredEvents::lifecycle( 'cb_work_work_item_status_changed', $id, $from, $to, self::get( $id ) );
 		return true;
 	}
 

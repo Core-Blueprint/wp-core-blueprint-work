@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\Integration\DataExchange;
 
 use CB\Work\Database\Schema;
+use CB\Work\Governance\DeferredEvents;
 use CoreBlueprint\Core\DB;
 use WP_Error;
 
@@ -48,18 +49,37 @@ final class ProjectBundleTransaction {
 			}
 		};
 
+		DeferredEvents::begin();
 		try {
 			$result = $mutation( $touch );
 		} catch ( \Throwable $exception ) {
 			unset( $exception );
+			DeferredEvents::cancel();
 			self::rollback( $nested, $savepoint );
 			self::invalidate( $touched );
 			return new WP_Error( 'work_project_bundle_apply_failed' );
 		}
 		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
+			DeferredEvents::cancel();
 			self::rollback( $nested, $savepoint );
 			self::invalidate( $touched );
 			return is_wp_error( $result ) ? $result : new WP_Error( 'work_project_bundle_apply_contract' );
+		}
+
+		// Queue Work-owned events under this transaction; releasing a savepoint
+		// is never sufficient to publish to outside observers.
+		try {
+			$queued = DeferredEvents::finish();
+		} catch ( \Throwable $exception ) {
+			unset( $exception );
+			DeferredEvents::cancel();
+			$queued = false;
+		}
+		if ( ! $queued ) {
+			DeferredEvents::cancel();
+			self::rollback( $nested, $savepoint );
+			self::invalidate( $touched );
+			return new WP_Error( 'work_project_bundle_outbox_write_failed' );
 		}
 
 		$finish = $nested ? 'RELEASE SAVEPOINT ' . $savepoint : 'COMMIT';
@@ -85,6 +105,7 @@ final class ProjectBundleTransaction {
 			Schema::assignments_table(),
 			Schema::relations_table(),
 			Schema::recurrence_rules_table(),
+			Schema::outbox_table(),
 			DB::audit_log_table(),
 		];
 		foreach ( $tables as $table ) {
