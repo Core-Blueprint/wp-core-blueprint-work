@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * A2: bounded, deterministic WordPress reads.
  *
  * Keep meta filtering in WP_Query (and its usual hooks). Only the canonical
- * sort, assignment membership and DISTINCT are added for this specific query.
+ * sort, assignment membership and ID grouping are added for this query.
  * No full matching-ID list is brought back to PHP before pagination.
  */
 final class WorkItemReadQuery {
@@ -56,9 +56,11 @@ final class WorkItemReadQuery {
 				);
 			}
 
-			// WP meta filters may join the same post more than once (OR/date
-			// branches or legacy duplicate postmeta). One Work Item per page.
-			$clauses['distinct'] = 'DISTINCT';
+			// WP meta filters may join a post more than once (OR/date
+			// branches or legacy duplicate postmeta). GROUP BY ID avoids
+			// MySQL 8 SELECT DISTINCT / ORDER BY expression restrictions.
+			$clauses['groupby'] = $wpdb->posts . '.ID';
+			$clauses['distinct'] = '';
 			$clauses['orderby']  = self::orderby_sql( (string) $criteria['sort'] );
 			return $clauses;
 		};
