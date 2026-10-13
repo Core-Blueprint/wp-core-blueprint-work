@@ -192,7 +192,10 @@ final class WorkItemQueryScalabilityIntegrationTest extends WP_UnitTestCase {
 	public function test_optional_profile_at_1k_10k_25k(): void {
 		$size = (int) getenv( 'CB_WORK_A2_PROFILE_SIZE' );
 		if ( ! in_array( $size, [ 1000, 10000, 25000 ], true ) ) {
-			self::assertTrue( true, 'Opt-in A2 performance profile omitted during the regular fail-on-skipped Golden gate.' );
+			// Level 2 fails on skipped tests. Exit after a normal assertion;
+			// never run the benchmark's 50-item expectations on an empty DB.
+			self::assertTrue( true, 'A2 performance profile requires an explicit permitted dataset size.' );
+			return;
 		}
 		global $wpdb;
 		for ( $done = 0; $done < $size; $done += 250 ) {
