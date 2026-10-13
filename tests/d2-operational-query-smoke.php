@@ -26,20 +26,34 @@ namespace {
 		/** @var int[] */
 		public array $posts = [];
 		public int $found_posts = 0;
+		private array $query_vars;
 
 		/** @param array<string,mixed> $args */
 		public function __construct( array $args ) {
+			$this->query_vars = $args;
 			$GLOBALS['cb_work_d2_last_query_args'] = $args;
+			$clauses = apply_filters( 'posts_clauses', [ 'join' => '', 'distinct' => '', 'orderby' => '' ], $this );
+			$GLOBALS['cb_work_d2_last_clauses'] = $clauses;
 			$ids = $GLOBALS['cb_work_d2_query_ids'];
-			if ( isset( $args['post__in'] ) && is_array( $args['post__in'] ) ) {
-				$ids = array_values( array_intersect( $ids, array_map( 'intval', $args['post__in'] ) ) );
+			if ( str_contains( $clauses['join'], 'cb_work_a2_assigned' ) ) {
+				$ids = array_values( array_intersect( $ids, [ 3, 1 ] ) );
 			}
-			$this->posts = $ids;
+			// Mimic the expected SQL workload order for this tiny fixture,
+			// including the ID tie break, before LIMIT/OFFSET.
+			usort( $ids, static fn( int $a, int $b ): int =>
+				( $GLOBALS['cb_work_d2_meta'][ $a ]['_status'] === 'in_progress' ? 0 : 1 )
+				<=> ( $GLOBALS['cb_work_d2_meta'][ $b ]['_status'] === 'in_progress' ? 0 : 1 )
+				?: $b <=> $a
+			);
 			$this->found_posts = count( $ids );
+			$this->posts = array_slice( $ids, ( (int) ( $args['paged'] ?? 1 ) - 1 ) * (int) $args['posts_per_page'], (int) $args['posts_per_page'] );
 		}
+		public function get( string $name ): mixed { return $this->query_vars[ $name ] ?? null; }
 	}
 
 	final class CB_Work_D2_Wpdb {
+		public string $posts = 'wp_posts';
+		public string $postmeta = 'wp_postmeta';
 		public function prepare( string $sql, mixed ...$args ): string {
 			unset( $args );
 			return $sql;
@@ -58,7 +72,10 @@ namespace {
 
 		/** @return array<int,array<string,mixed>> */
 		public function get_results( string $sql, mixed $output = null ): array {
-			unset( $sql, $output );
+			unset( $output );
+			if ( str_contains( $sql, 'SELECT work_item_id, user_id FROM' ) ) {
+				return [ [ 'work_item_id' => 3, 'user_id' => 7 ] ];
+			}
 			return [];
 		}
 	}
@@ -120,6 +137,27 @@ namespace {
 	function absint( mixed $value ): int { return abs( (int) $value ); }
 	function get_option( string $key, mixed $default = false ): mixed { unset( $key, $default ); return '1.3'; }
 	function update_meta_cache( string $type, array $ids ): bool { unset( $type, $ids ); return true; }
+	function _prime_post_caches( array $ids, bool $terms = true, bool $meta = true ): void { unset( $ids, $terms, $meta ); }
+	$GLOBALS['cb_work_d2_filters'] = [];
+	function add_filter( string $tag, callable $callback, int $priority = 10, int $args = 1 ): void {
+		unset( $args );
+		$GLOBALS['cb_work_d2_filters'][ $tag ][ $priority ][] = $callback;
+	}
+	function remove_filter( string $tag, callable $callback, int $priority = 10 ): void {
+		$GLOBALS['cb_work_d2_filters'][ $tag ][ $priority ] = array_values( array_filter(
+			$GLOBALS['cb_work_d2_filters'][ $tag ][ $priority ] ?? [],
+			static fn( callable $candidate ): bool => $candidate !== $callback
+		) );
+	}
+	function apply_filters( string $tag, mixed $value, mixed ...$args ): mixed {
+		foreach ( $GLOBALS['cb_work_d2_filters'][ $tag ] ?? [] as $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				$value = $callback( $value, ...$args );
+			}
+		}
+		return $value;
+	}
+	
 	function get_post( int $id ): ?WP_Post { return $GLOBALS['cb_work_d2_posts'][ $id ] ?? null; }
 	function get_post_meta( int $id, string $key, bool $single = false ): mixed {
 		unset( $single );
@@ -244,6 +282,7 @@ namespace CB\Work\Admin {
 namespace {
 	require dirname( __DIR__ ) . '/src/Query/WorkItemQuery.php';
 	require dirname( __DIR__ ) . '/src/Admin/WorkItemViewState.php';
+	require dirname( __DIR__ ) . '/src/Repository/WorkItemReadQuery.php';
 	require dirname( __DIR__ ) . '/src/Repository/WorkItems.php';
 
 	$criteria = \CB\Work\Query\WorkItemQuery::normalize( [
@@ -334,7 +373,12 @@ namespace {
 
 	$args = $GLOBALS['cb_work_d2_last_query_args'];
 	assert_true( 'Gamma' === ( $args['s'] ?? '' ), 'text search reaches the canonical WP query.' );
-	assert_true( [ 3, 1 ] === ( $args['post__in'] ?? [] ), 'assignee filter resolves through the Work-owned assignment table.' );
+	assert_true( ! isset( $args['post__in'] ), 'assignee membership is never materialized as an unbounded PHP ID array.' );
+	assert_true( 1 === $args['posts_per_page'] && 1 === $args['paged'] && false === $args['no_found_rows'], 'WordPress SQL limits and total rows are applied before hydration.' );
+	assert_true( str_contains( $GLOBALS['cb_work_d2_last_clauses']['join'], 'cb_work_a2_assigned' ), 'assignee filter is handled as a scoped SQL join.' );
+	assert_true( 'DISTINCT' === $GLOBALS['cb_work_d2_last_clauses']['distinct'], 'OR/duplicate meta rows cannot duplicate page records.' );
+	assert_true( str_contains( $GLOBALS['cb_work_d2_last_clauses']['orderby'], 'in_progress' ), 'workload order runs in SQL before paging.' );
+	assert_true( [] === ( $GLOBALS['cb_work_d2_filters']['posts_clauses'][20] ?? [] ), 'scoped Work clauses hook is removed after query completion.' );
 	assert_true( isset( $args['meta_query'] ) && is_array( $args['meta_query'] ), 'canonical metadata filters are combined in one WP query.' );
 	$serialized_filters = serialize( $args['meta_query'] );
 	foreach ( [ '_status', '_priority', '_project', '_service', '_type', '_billing', '_context', '_customer_provider', '_customer_type', '_customer_id', '_scheduled', '_due' ] as $key ) {
@@ -362,7 +406,7 @@ namespace {
 	);
 	assert_true( is_string( $source ) && str_contains( $source, 'public static function search(' ), 'repository exposes one internal canonical operational search engine.' );
 	assert_true( substr_count( $source, 'self::search(' ) >= 2, 'legacy all/project helpers are thin wrappers over the canonical engine.' );
-	assert_true( str_contains( $source, "array_slice( \$ids" ) && str_contains( $source, 'self::hydrate( $post )' ), 'engine paginates the matchset before full Work Item hydration.' );
+	assert_true( str_contains( $source, 'WorkItemReadQuery::page(' ) && str_contains( $source, 'WorkItemReadQuery::prime_page(' ) && str_contains( $source, 'WorkItemReadQuery::related_page(' ), 'engine pages in SQL and primes only matching Work Item page data.' );
 
 	echo "D2 operational query smoke passed.\n";
 }
