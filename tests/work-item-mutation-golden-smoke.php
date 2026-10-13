@@ -66,6 +66,7 @@ $client = (string) file_get_contents( $root . '/assets/work-items-reorder.js' );
 $admin_actions = (string) file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 $editor = (string) file_get_contents( $root . '/src/Admin/WorkItems.php' );
 $operations = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
+$table_renderer = (string) file_get_contents( $root . '/src/Admin/WorkItemTableRenderer.php' );
 $checks = [
 	'status uses locked transaction and expected snapshot' =>
 		str_contains( $repo, 'WorkItemMutationTransaction::run( $id' )
@@ -94,7 +95,9 @@ $checks = [
 		&& str_contains( $editor, 'cb_work_item_expected_status' )
 		&& ! str_contains( $editor, 'WorkItemRepository::transition_status(' ),
 	'Board, Table and List actions supply initial source status' =>
-		substr_count( $operations, 'name="expected_status"' ) >= 4,
+		substr_count( $operations, 'name="expected_status"' ) >= 3
+		&& substr_count( $table_renderer, 'name="expected_status"' ) >= 1
+		&& substr_count( $operations, 'name="expected_status"' ) + substr_count( $table_renderer, 'name="expected_status"' ) >= 4,
 ];
 
 foreach ( $checks as $message => $passed ) {
