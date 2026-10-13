@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 $root       = dirname( __DIR__ );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$table_renderer = file_get_contents( $root . '/src/Admin/WorkItemTableRenderer.php' );
+$operations = is_string( $operations ) && is_string( $table_renderer ) ? $operations . "\n" . $table_renderer : false;
 $actions    = file_get_contents( $root . '/src/Admin/OperationalActions.php' );
 $script     = file_get_contents( $root . '/assets/work-admin.js' );
 $css        = file_get_contents( $root . '/assets/work-items-refinement.css' );
