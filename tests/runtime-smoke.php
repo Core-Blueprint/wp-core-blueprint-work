@@ -166,7 +166,11 @@ namespace {
 	assert_true( '2.1' === CB_WORK_SCHEMA_VERSION, 'Launch candidate exposes schema version 2.1.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 14 === count( $schema['tables'] ?? [] ), 'Work schema declares VAT, Work Types, Work Item child tables, billing readiness, recurrence, Time and portable identity tables; Projects and Work Items remain CPT-backed.' );
+	assert_true( 15 === count( $schema['tables'] ?? [] ), 'Work schema declares its 15 canonical tables, including the bundle event outbox; Projects and Work Items remain CPT-backed.' );
+	assert_true(
+		in_array( [ \CB\Work\Database\Schema::class, 'outbox_table' ], $schema['tables'], true ),
+		'Work registers the B3.1 event outbox table through Base SchemaRegistry.'
+	);
 	assert_true( \CB\Work\Plugin::is_booted(), 'Product runtime boots after Base signal.' );
 
 	do_action( 'init' );
@@ -194,6 +198,8 @@ namespace {
 	assert_true( isset( \CoreBlueprint\Core\Governance\EventRegistry::$events['work.time.timer.started'] ), 'Timer governance event registers.' );
 	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ] ), 'Recurring Work hourly scheduler is registered during runtime init.' );
 	assert_true( 'hourly' === $GLOBALS['cron'][ \CB\Work\Recurrence\Scheduler::HOOK ]['recurrence'], 'Recurring Work scheduler uses the hourly WordPress cron recurrence.' );
+	assert_true( isset( $GLOBALS['cron'][ \CB\Work\Governance\WorkEventOutbox::HOOK ] ), 'Commit-aware Work outbox has an independent cron drain.' );
+	assert_true( 'cb_work_five_minutes' === $GLOBALS['cron'][ \CB\Work\Governance\WorkEventOutbox::HOOK ]['recurrence'], 'Work outbox uses its bounded five-minute recurrence.' );
 
 	do_action( 'admin_menu' );
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
