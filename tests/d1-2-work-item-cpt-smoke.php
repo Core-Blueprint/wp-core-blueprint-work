@@ -8,6 +8,7 @@ $rest = file_get_contents( $root . '/src/Content/WorkItemRestController.php' );
 $repo = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $admin = file_get_contents( $root . '/src/Admin/WorkItems.php' );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
+$boardRenderer = file_get_contents( $root . '/src/Admin/WorkItemBoardRenderer.php' );
 $projects = file_get_contents( $root . '/src/Admin/Projects.php' );
 $menu = file_get_contents( $root . '/src/Admin/Menu.php' );
 $schema = file_get_contents( $root . '/src/Database/Schema.php' );
@@ -28,7 +29,7 @@ $checks = [
 	'canonical schema install contains no destructive legacy cleanup path' => ! str_contains( $schema, 'DROP TABLE IF EXISTS' ) && ! str_contains( $schema, 'DELETE FROM' ),
 	'Gutenberg Work Item editor owns the human details UX' => str_contains( $admin, 'add_meta_boxes_' ) && str_contains( $admin, "__( 'Work Item Details'" ) && str_contains( $admin, 'Pickers::customer' ) && str_contains( $admin, 'Pickers::assignees' ),
 	'operational status remains separate from WordPress publish state' => str_contains( $admin, "'Operational status'" ) && str_contains( $admin, 'WorkItemStatus::transitions_from' ) && str_contains( strtolower( $arch ), 'publishing state is editor persistence state' ),
-	'global Work Items remains the canonical operational workspace' => str_contains( $operations, 'render_work_items' ) && str_contains( $operations, 'Menu::new_work_item_url' ) && str_contains( $operations, 'Menu::edit_work_item_url' ) && ! str_contains( $operations, 'render_work_item_form' ),
+	'global Work Items remains the canonical operational workspace' => str_contains( $operations, 'render_work_items' ) && str_contains( $operations, 'Menu::new_work_item_url' ) && is_string( $boardRenderer ) && str_contains( $boardRenderer, 'Menu::edit_work_item_url' ) && ! str_contains( $operations, 'render_work_item_form' ),
 	'Project context creates and opens native Work Item editor' => str_contains( $projects, 'Menu::new_work_item_url( $project_id )' ) && str_contains( $projects, 'Menu::edit_work_item_url' ),
 	'Work menu stays selected while native Work Item editor is open' => str_contains( $menu, 'PostTypes::WORK_ITEM === (string) $screen->post_type' ) && str_contains( $menu, 'CONTEXT_WORK_ITEMS' ),
 	'raw integration metadata stays out of normal Work Item editor' => ! str_contains( $admin, 'source_provider' ) && ! str_contains( $admin, 'source_type' ) && ! str_contains( $admin, 'source_id' ),
