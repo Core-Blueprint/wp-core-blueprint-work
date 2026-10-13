@@ -96,7 +96,7 @@ final class WorkItemQueryScalabilityIntegrationTest extends WP_UnitTestCase {
 			self::assertSame( 2, $page['per_page'] );
 		}
 		self::assertCount( 3, $requests, 'Capture only the three bounded ID queries.' );
-		self::assertStringContainsString( 'DISTINCT', $requests[0] );
+		self::assertStringContainsString( 'GROUP BY', $requests[0] );
 		self::assertMatchesRegularExpression( '/LIMIT\s+0\s*,\s*2\b/i', $requests[0] );
 		self::assertMatchesRegularExpression( '/LIMIT\s+2\s*,\s*2\b/i', $requests[1] );
 		self::assertStringContainsString( 'cb_work_a2_sortmeta', $requests[0] );
