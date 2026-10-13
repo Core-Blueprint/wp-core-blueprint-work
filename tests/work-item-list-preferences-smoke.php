@@ -44,6 +44,8 @@ namespace {
 
 	$plugin     = file_get_contents( dirname( __DIR__ ) . '/src/Plugin.php' );
 	$operations = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Operations.php' );
+	$list_renderer = file_get_contents( dirname( __DIR__ ) . '/src/Admin/WorkItemListRenderer.php' );
+	$operations = is_string( $operations ) && is_string( $list_renderer ) ? $operations . "\n" . $list_renderer : false;
 	$presentation = file_get_contents( dirname( __DIR__ ) . '/assets/work-admin.js' );
 	$operations_js = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-reorder.js' );
 	$css          = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-refinement.css' );
