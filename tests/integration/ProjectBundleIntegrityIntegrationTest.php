@@ -35,6 +35,25 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 		( new WP_User( $user_id ) )->add_cap( Capabilities::MANAGE );
 		wp_set_current_user( $user_id );
 
+		// Base's Privileged Access Guard requires a signed approval for newly
+		// created administrators. Exercise the real governance boundary rather
+		// than bypassing user_has_cap or weakening Work's authorization.
+		$user = wp_get_current_user();
+		self::assertInstanceOf( WP_User::class, $user );
+		self::assertTrue( \CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::is_privileged( $user ) );
+		if ( \CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::enforces_approval() ) {
+			self::assertFalse(
+				current_user_can( Capabilities::MANAGE ),
+				'An unapproved administrator must not manage Work during enforcement.'
+			);
+		}
+		self::assertTrue(
+			\CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::approve( $user, $user_id, 'work_b31_integration' ),
+			'The isolated test administrator must receive a valid Base-signed approval.'
+		);
+		self::assertTrue( \CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::is_approved( $user ) );
+		self::assertTrue( current_user_can( Capabilities::MANAGE ), 'Approved administrator must hold the real Work capability.' );
+
 		$tables = [
 			Schema::portable_identities_table() => '(
 				id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
