@@ -52,6 +52,26 @@ repair before accepting or installing any new package. This is a
 source-fixture adaptation to a new file boundary, not a relaxed
 assertion. Existing Board/List/Calendar source checks remain intact.
 
+## Isolated runtime fixture (second Level 1 gate, 2026-10-13)
+
+The first rerun on the post-A1-test-fix candidate passed A1, G0, other
+smokes and Work Item view preferences, but Level 1 halted when
+`tests/work-cross-view-filter-state-runtime.php` directly included
+`Operations.php` without registering the WordPress/Work autoloader:
+`Trait "CB\\Work\\Admin\\WorkItemTableRenderer" not found`.
+
+This **isolated test fixture**, not WordPress production bootstrap, owns
+that direct require. The narrow test-only fix loads
+`src/Admin/WorkItemTableRenderer.php` **before** the Operations host in
+the isolated runtime fixture, matching the dependency required for a
+direct include. In the normal plugin, the `CB\\Work\\` autoloader
+already resolves the trait by its namespaced file path.
+
+**No runtime code, G0 source reconstruction, Work/Base integration
+contracts or external behavior changed** in this fix.
+The failure and its isolation are confirmed from the source/test stack;
+the full Level 1/2/3 and ZIP must still be rerun before acceptance.
+
 ## Operator gate
 
 ```bash
@@ -63,6 +83,7 @@ git rev-parse HEAD
 php -l src/Admin/Operations.php
 php -l src/Admin/WorkItemTableRenderer.php
 php tests/work-admin-renderer-g0-smoke.php
+php tests/work-cross-view-filter-state-runtime.php
 php tests/work-item-mutation-golden-smoke.php
 php tests/work-item-table-preferences-smoke.php
 php tests/work-item-table-bulk-smoke.php
