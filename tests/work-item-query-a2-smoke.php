@@ -24,7 +24,8 @@ $checks = [
 		&& str_contains( $read, 'cb_work_a2_assigned' )
 		&& str_contains( $read, 'cb_work_a2_scope' )
 		&& str_contains( $read, 'remove_filter( ' )
-		&& str_contains( $read, "'distinct'] = 'DISTINCT'" ),
+		&& str_contains( $read, "'groupby'] = \$wpdb->posts . '.ID'" )
+		&& str_contains( $read, "'distinct'] = ''" ),
 	'Five canonical sorting contracts run in SQL before LIMIT' =>
 		str_contains( $read, 'WorkItemQuery::SORT_TITLE' )
 		&& str_contains( $read, 'WorkItemQuery::SORT_UPDATED' )
