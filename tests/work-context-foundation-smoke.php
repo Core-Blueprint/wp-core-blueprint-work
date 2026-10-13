@@ -29,8 +29,8 @@ $checks = [
 		&& str_contains( $domain, "public const CUSTOMER = 'customer';" )
 		&& str_contains( $domain, 'return [ self::INTERNAL, self::CUSTOMER ];' ),
 
-	'Work context foundation uses schema 2.0' =>
-		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.0'" ),
+	'Work context foundation uses schema 2.1' =>
+		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.1'" ),
 
 	'Projects and Work Items persist Work context as owned post meta' =>
 		str_contains( $projectMeta, "_cb_work_project_context" )
