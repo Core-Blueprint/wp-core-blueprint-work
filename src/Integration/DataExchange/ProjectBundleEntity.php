@@ -177,51 +177,66 @@ final class ProjectBundleEntity implements EntityInterface {
 		if ( Foundation::OP_SKIP === $operation ) {
 			return [ 'reference' => self::reference( $record['portable_key'] ) ];
 		}
-
-		$project_id = PortableIdentities::local_id( PortableIdentities::PROJECT, $record['portable_key'] );
-		$created_project = false;
-		if ( $project_id <= 0 ) {
-			if ( Foundation::OP_CREATE !== $operation ) {
-				return new WP_Error( 'work_project_bundle_apply_contract' );
-			}
-			$project = ProjectActions::create( self::project_input( $record ) );
-			if ( is_wp_error( $project ) ) {
-				return $project;
-			}
-			$project_id = (int) $project['id'];
-			$created_project = true;
-			$claimed = PortableIdentities::claim( PortableIdentities::PROJECT, $project_id, $record['portable_key'] );
-			if ( is_wp_error( $claimed ) ) {
-				wp_delete_post( $project_id, true );
-				return $claimed;
-			}
-		} else {
-			if ( Foundation::OP_UPDATE !== $operation ) {
-				return new WP_Error( 'work_project_bundle_apply_contract' );
-			}
-			$project = Projects::get( $project_id );
-			if ( null === $project ) {
-				return new WP_Error( 'work_project_bundle_project_unavailable' );
-			}
-			if ( ! self::same_project( $project, $record ) ) {
-				$project = ProjectActions::update( $project_id, self::project_input( $record ) );
-				if ( is_wp_error( $project ) ) {
-					return $project;
-				}
-			}
+		if ( ! in_array( $operation, [ Foundation::OP_CREATE, Foundation::OP_UPDATE ], true ) ) {
+			return new WP_Error( 'work_project_bundle_apply_contract' );
 		}
 
-		foreach ( $record['work_items'] as $item_record ) {
-			$result = self::apply_item( $project_id, $item_record );
-			if ( is_wp_error( $result ) ) {
-				if ( $created_project && 0 === WorkItemRepository::count_for_project( $project_id ) ) {
-					wp_delete_post( $project_id, true );
+		// One Project bundle is one database-state mutation. Base still owns
+		// the intentionally independent, fail-stop multi-record envelope.
+		return ProjectBundleTransaction::run(
+			static function ( callable $touch ) use ( $record, $operation ): array|WP_Error {
+				$project_id = PortableIdentities::local_id( PortableIdentities::PROJECT, $record['portable_key'] );
+				if ( $project_id <= 0 ) {
+					if ( Foundation::OP_CREATE !== $operation ) {
+						return new WP_Error( 'work_project_bundle_apply_contract' );
+					}
+					$project = ProjectActions::create( self::project_input( $record ) );
+					if ( is_wp_error( $project ) ) {
+						return $project;
+					}
+					$project_id = (int) $project['id'];
+					$touch( $project_id );
+					$claimed = PortableIdentities::claim( PortableIdentities::PROJECT, $project_id, $record['portable_key'] );
+					if ( is_wp_error( $claimed ) ) {
+						return $claimed;
+					}
+				} else {
+					if ( Foundation::OP_UPDATE !== $operation ) {
+						return new WP_Error( 'work_project_bundle_apply_contract' );
+					}
+					global $wpdb;
+					$locked = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_type = %s AND post_status NOT IN ('trash', 'auto-draft') FOR UPDATE",
+							$project_id,
+							\CB\Work\Content\PostTypes::PROJECT
+						)
+					);
+					if ( (int) $locked !== $project_id ) {
+						return new WP_Error( 'work_project_bundle_project_unavailable' );
+					}
+					$project = Projects::get( $project_id );
+					if ( null === $project || WorkContext::INTERNAL !== (string) $project['work_context'] ) {
+						return new WP_Error( 'work_project_bundle_project_unavailable' );
+					}
+					$touch( $project_id );
+					if ( ! self::same_project( $project, $record ) ) {
+						$project = ProjectActions::update( $project_id, self::project_input( $record ) );
+						if ( is_wp_error( $project ) ) {
+							return $project;
+						}
+					}
 				}
-				return $result;
-			}
-		}
 
-		return [ 'reference' => self::reference( $record['portable_key'] ) ];
+				foreach ( $record['work_items'] as $item_record ) {
+					$result = self::apply_item( $project_id, $item_record, $touch );
+					if ( is_wp_error( $result ) ) {
+						return $result;
+					}
+				}
+				return [ 'reference' => self::reference( $record['portable_key'] ) ];
+			}
+		);
 	}
 
 	/** @param array<string,mixed> $record @return array<string,mixed>|WP_Error */
@@ -323,7 +338,7 @@ final class ProjectBundleEntity implements EntityInterface {
 	}
 
 	/** @param array<string,mixed> $record */
-	private static function apply_item( int $project_id, array $record ): array|WP_Error {
+	private static function apply_item( int $project_id, array $record, callable $touch ): array|WP_Error {
 		$work_item_id = PortableIdentities::local_id( PortableIdentities::WORK_ITEM, $record['portable_key'] );
 		$input = [
 			'title'             => $record['title'],
@@ -341,12 +356,14 @@ final class ProjectBundleEntity implements EntityInterface {
 				return $item;
 			}
 			$work_item_id = (int) $item['id'];
+			$touch( $work_item_id );
 			$claimed = PortableIdentities::claim( PortableIdentities::WORK_ITEM, $work_item_id, $record['portable_key'] );
 			if ( is_wp_error( $claimed ) ) {
 				wp_delete_post( $work_item_id, true );
 				return $claimed;
 			}
 		} else {
+			$touch( $work_item_id );
 			$current = WorkItems::get( $work_item_id );
 			if ( null === $current || (int) $current['project_id'] !== $project_id || ! in_array( (string) $current['status'], WorkItemStatus::active(), true ) ) {
 				return new WP_Error( 'work_project_bundle_item_identity_collision' );
