@@ -4,7 +4,7 @@ declare(strict_types=1);
 // CV-G-004: keep Board efficiency isolated from accepted Base Reorder,
 // Calendar day-board rendering and the authorized status transition model.
 $root = dirname( __DIR__ );
-$php  = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
+$php  = (string) file_get_contents( $root . '/src/Admin/WorkItemBoardRenderer.php' );
 $css  = (string) file_get_contents( $root . '/assets/work-board-efficiency-golden.css' );
 $assets = (string) file_get_contents( $root . '/src/Admin/Assets.php' );
 $reorder = (string) file_get_contents( $root . '/assets/work-items-reorder.js' );

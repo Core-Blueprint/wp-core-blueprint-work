@@ -10,7 +10,8 @@ $css         = file_get_contents( $root . '/assets/work-items-refinement.css' );
 $operations  = file_get_contents( $root . '/src/Admin/Operations.php' );
 $table_renderer = file_get_contents( $root . '/src/Admin/WorkItemTableRenderer.php' );
 $list_renderer = file_get_contents( $root . '/src/Admin/WorkItemListRenderer.php' );
-$operations = is_string( $operations ) && is_string( $table_renderer ) && is_string( $list_renderer ) ? $operations . "\n" . $table_renderer . "\n" . $list_renderer : false;
+$board_renderer = file_get_contents( $root . '/src/Admin/WorkItemBoardRenderer.php' );
+$operations = is_string( $operations ) && is_string( $table_renderer ) && is_string( $list_renderer ) && is_string( $board_renderer ) ? $operations . "\n" . $table_renderer . "\n" . $list_renderer . "\n" . $board_renderer : false;
 $calendar    = file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 $adminScript = file_get_contents( $root . '/assets/work-admin.js' );
 $adminCss    = file_get_contents( $root . '/assets/work-admin.css' );
@@ -213,9 +214,8 @@ refinement_assert(
 	'Quick Edit and Bulk Edit stay server-rendered, multi-assignee aware and progressively enhanced.'
 );
 
-$board_start = strpos( $operations, 'private static function render_work_item_kanban(' );
-$board_end   = false === $board_start ? false : strpos( $operations, 'private static function render_work_item_calendar(', $board_start );
-$board_source = false !== $board_start && false !== $board_end ? substr( $operations, $board_start, $board_end - $board_start ) : '';
+$board_start  = is_string( $board_renderer ) ? strpos( $board_renderer, 'private static function render_work_item_kanban(' ) : false;
+$board_source = false !== $board_start ? substr( $board_renderer, $board_start ) : '';
 
 refinement_assert(
 	'' !== $board_source
