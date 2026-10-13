@@ -95,7 +95,7 @@ final class WorkItemQueryScalabilityIntegrationTest extends WP_UnitTestCase {
 			self::assertSame( 2, $page['pages'] );
 			self::assertSame( 2, $page['per_page'] );
 		}
-		self::assertCount( 3, $requests, 'Capture only the three bounded ID queries.' );
+		self::assertCount( 4, $requests, 'Out-of-range WP_Query needs one additional bounded first-page count probe.' );
 		self::assertStringContainsString( 'GROUP BY', $requests[0] );
 		self::assertMatchesRegularExpression( '/LIMIT\s+0\s*,\s*2\b/i', $requests[0] );
 		self::assertMatchesRegularExpression( '/LIMIT\s+2\s*,\s*2\b/i', $requests[1] );
