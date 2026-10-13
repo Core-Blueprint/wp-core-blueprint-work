@@ -63,6 +63,8 @@ namespace {
 	}
 
 	$operations = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Operations.php' );
+$table_renderer = file_get_contents( dirname( __DIR__ ) . '/src/Admin/WorkItemTableRenderer.php' );
+$operations = is_string( $operations ) && is_string( $table_renderer ) ? $operations . "\n" . $table_renderer : false;
 	$assets     = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Assets.php' );
 	$module     = file_get_contents( dirname( __DIR__ ) . '/assets/work-items-reorder.js' );
 	$css        = file_get_contents( dirname( __DIR__ ) . '/assets/work-admin.css' );
