@@ -33,7 +33,7 @@ final class Page {
 				'capability'  => Capabilities::MANAGE,
 				'renderer'    => [ self::class, 'render' ],
 				'requirements' => [
-					'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'actions', 'badges', 'empty-state' ],
+					'components' => [ 'panels', 'notices', 'fields', 'form-controls', 'buttons', 'badges', 'empty-state' ],
 				],
 			]
 		);
@@ -98,7 +98,7 @@ final class Page {
 		<section class="cb-core-panel" id="configured-vat-rates">
 			<h2><?php esc_html_e( 'Configured VAT rates', 'core-blueprint-work' ); ?></h2>
 			<?php if ( TaxRateDataExchange::available() ) : ?>
-				<p class="cb-core-actions">
+				<p class="submit">
 					<a class="button button-secondary" href="<?php echo esc_url( TaxRateDataExchange::import_url() ); ?>"><?php esc_html_e( 'Import VAT rates', 'core-blueprint-work' ); ?></a>
 					<a class="button button-secondary" href="<?php echo esc_url( TaxRateDataExchange::export_url() ); ?>"><?php esc_html_e( 'Export VAT rates', 'core-blueprint-work' ); ?></a>
 				</p>
