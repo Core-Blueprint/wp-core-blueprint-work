@@ -1,5 +1,18 @@
 # Work B3.1 | Project Bundle Database Integrity | implementation candidate
 
+## B3.1 Golden integration expansion | isolated acceptance tests awaiting operator run (2026-10-13)
+
+The previous **operator-validated candidate** at Work HEAD c73de7cd919264027137eefcf14aaf4ca7462372 has **Level 1/2/3 PASS**, 19 PHPUnit tests / 944 assertions, and local ZIP SHA-256 3d92968d5e2261f69acf170cb7c321be0bfe61eba1ac9a91f5b4ea81f98b2afc. The operator also reports Work **stable on the existing sandbox**. The sandbox-installed artifact checksum was not independently reported. That stability is operational evidence; it does not prove the following database Golden guarantees.
+
+**This further Golden candidate is TEST-ONLY, UNVALIDATED.** New ProjectBundleGoldenAcceptanceIntegrationTest must exercise the real, disposable core_blueprint_work_test and exactly cbworktests_ prefix, with no outer PHPUnit-owned transaction and the incoming autocommit mode restored:
+1. Seed an existing Work Type row; simulate installed schema **2.0** with all Work data preserved but without the 2.1 outbox table; run **Base's actual DB::reconcile_registered_schema()**. Verify marker **2.1**, new InnoDB table, unique event key, claim/delivery indexes, all critical columns, surviving old Work Type, idempotent second reconciliation. Reject populated outbox deletion even in the disposable database.
+2. Use separate real wpdb connections against the same isolated database. Enqueue within a transaction/savepoint and assert the second connection sees **zero** before outer commit and after rollback. Commit a second event; verify it becomes visible and the **second connection** can invoke the actual outbox drain once with the stable event key. Preserve the production guard refusing dispatch inside the first connection's open transaction.
+3. Extend existing isolated outbox delivery tests: malformed event at attempt 11 reaches bounded attempt **12** and remains inspectable without being retried indefinitely; a claimed processing row is not stolen before lease expiry, but is recovered and acknowledged after the lease expires; delivered records are not normally replayed.
+
+**Limits and authorization:** Schema upgrade tests operate only on the canonical disposable WP integration database, not the sandbox or production. B3.1 remains *at-least-once*, not exactly-once across crashes; downstream consumers must honor stable event keys for durable idempotency. Base audit callback and non-Work native WordPress save/postmeta hooks cannot be rolled back as external effects. WP-Cron on traffic-dependent WordPress hosts can be delayed; backlog and terminal errors need operator inspection (no privileged WordPress UI created in this patch). Nothing here authorizes a Work-main merge, CI/Actions, or another deployment. Test code changes require **fresh** full Level 1/2/3 validation and a **new artifact checksum**; the above SHA applies only to the older Work HEAD.
+
+---
+
 **Date:** 2026-10-13  
 **Baseline:** Work `main` `9009577ab962025dbe43ad33ee94239b2864c044`  
 **Branch:** `feature/work-project-bundle-integrity-golden-b3-1-v1`  

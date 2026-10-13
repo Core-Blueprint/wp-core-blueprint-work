@@ -13,6 +13,7 @@ $projectApi = file_get_contents( $root . '/src/PublicApi/ProjectActions.php' );
 $itemApi = file_get_contents( $root . '/src/PublicApi/WorkItemActions.php' );
 $integration = file_get_contents( $root . '/tests/integration/ProjectBundleIntegrityIntegrationTest.php' );
 $deliveryIntegration = file_get_contents( $root . '/tests/integration/ProjectBundleOutboxDeliveryIntegrationTest.php' );
+$golden = file_get_contents( $root . '/tests/integration/ProjectBundleGoldenAcceptanceIntegrationTest.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 
 $checks = [
@@ -51,6 +52,21 @@ $checks = [
 		&& str_contains( $deliveryIntegration, 'SET SESSION autocommit = 1' )
 		&& str_contains( $deliveryIntegration, 'SET SESSION autocommit = 0' )
 		&& str_contains( $deliveryIntegration, 'autocommit_changed' ),
+	'Golden acceptance uses Base migration and independent committed InnoDB connection' =>
+		is_string( $golden )
+		&& str_contains( $golden, "DB_NAME !== 'core_blueprint_work_test'" )
+		&& str_contains( $golden, "'cbworktests_'" )
+		&& str_contains( $golden, 'DB::reconcile_registered_schema(' )
+		&& str_contains( $golden, "update_option( Schema::OPTION, '2.0' )" )
+		&& str_contains( $golden, 'new wpdb(' )
+		&& str_contains( $golden, 'SELECT CONNECTION_ID()' )
+		&& str_contains( $golden, 'RELEASE SAVEPOINT cb_work_b31_accept' )
+		&& str_contains( $golden, 'WorkEventOutbox::drain()' ),
+	'Golden retry acceptance covers claim recovery and terminal failures' =>
+		is_string( $deliveryIntegration )
+		&& str_contains( $deliveryIntegration, 'test_processing_claim_recovers_only_after_lease_expires' )
+		&& str_contains( $deliveryIntegration, 'test_exhausted_failed_events_remain_inspectable_and_are_not_republished' )
+		&& str_contains( $deliveryIntegration, 'decode_jsonexception' ),
 	'negative integration assertions guard Work hooks, Base callbacks and savepoints' =>
 		is_string( $integration ) && str_contains( $integration, 'assert_no_new_published_bundle_events' )
 		&& str_contains( $integration, 'emitted_work_lifecycle' )

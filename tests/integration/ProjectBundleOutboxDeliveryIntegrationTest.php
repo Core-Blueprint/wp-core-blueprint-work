@@ -155,6 +155,69 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 		self::assertSame( 0, WorkEventOutbox::drain() );
 	}
 
+	public function test_exhausted_failed_events_remain_inspectable_and_are_not_republished(): void {
+		global $wpdb;
+		$event_key = wp_generate_uuid4();
+		self::assertSame( 1, $wpdb->insert( $this->table, [
+			'event_key' => $event_key,
+			'event_kind' => 'lifecycle',
+			'event_name' => 'cb_work_project_created',
+			'payload' => '{invalid-json',
+			'state' => 'pending',
+			'attempts' => 11,
+			'created_at' => current_time( 'mysql', true ),
+		], [ '%s', '%s', '%s', '%s', '%s', '%d', '%s' ] ) );
+
+		self::assertSame( 0, WorkEventOutbox::drain(), 'Malformed event must never be published.' );
+		$record = $wpdb->get_row( $wpdb->prepare(
+			'SELECT state, attempts, last_error_code FROM %i WHERE event_key = %s',
+			$this->table, $event_key
+		), ARRAY_A );
+		self::assertIsArray( $record );
+		self::assertSame( 'pending', $record['state'], 'Retain terminal failures for operator inspection.' );
+		self::assertSame( 12, (int) $record['attempts'] );
+		self::assertSame( 'decode_jsonexception', $record['last_error_code'],
+			'Failure diagnostic must not contain event payload or exception message.' );
+
+		self::assertSame( 0, WorkEventOutbox::drain(), 'Attempt cap must stop automatic replays.' );
+		self::assertSame( 12, (int) $wpdb->get_var( $wpdb->prepare(
+			'SELECT attempts FROM %i WHERE event_key = %s', $this->table, $event_key
+		) ) );
+		self::assertSame( 0, $this->work_hooks );
+	}
+
+	public function test_processing_claim_recovers_only_after_lease_expires(): void {
+		global $wpdb;
+		$key = wp_generate_uuid4();
+		$payload = wp_json_encode( [ 'args' => [ 7005, [ 'id' => 7005 ] ] ] );
+		self::assertIsString( $payload );
+		self::assertSame( 1, $wpdb->insert( $this->table, [
+			'event_key' => $key,
+			'event_kind' => 'lifecycle',
+			'event_name' => 'cb_work_project_created',
+			'payload' => $payload,
+			'state' => 'processing',
+			'attempts' => 1,
+			'claimed_at' => current_time( 'mysql', true ),
+			'created_at' => current_time( 'mysql', true ),
+		], [ '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s' ] ) );
+
+		self::assertSame( 0, WorkEventOutbox::drain(), 'Fresh worker lease must never be stolen.' );
+		self::assertSame( 0, $this->work_hooks );
+
+		$expired = gmdate( 'Y-m-d H:i:s', time() - 900 );
+		self::assertSame( 1, $wpdb->update( $this->table, [
+			'claimed_at' => $expired,
+		], [ 'event_key' => $key ], [ '%s' ], [ '%s' ] ) );
+		self::assertSame( 1, WorkEventOutbox::drain(), $this->delivery_diagnostics() );
+		self::assertSame( 1, $this->work_hooks );
+		self::assertSame( [ $key ], $this->delivered_keys );
+		self::assertSame( 2, (int) $wpdb->get_var( $wpdb->prepare(
+			'SELECT attempts FROM %i WHERE event_key = %s', $this->table, $key
+		) ) );
+		self::assertSame( 0, WorkEventOutbox::drain(), 'Acknowledged lease replay must be idempotent in normal execution.' );
+	}
+
 	private function queue_project_events( int $id ): void {
 		DeferredEvents::begin();
 		DeferredEvents::audit( Events::PROJECT_CREATED, 'notice', [
