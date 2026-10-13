@@ -12,6 +12,8 @@ use CB\Work\Governance\WorkEventOutbox;
  */
 final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framework\TestCase {
 	private mixed $previous_schema = null;
+	private int $previous_autocommit = 1;
+	private bool $autocommit_changed = false;
 	private string $table = '';
 	private int $work_hooks = 0;
 	private int $work_audits = 0;
@@ -26,6 +28,22 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 		}
 		global $wpdb;
 		self::assertSame( 0, (int) $wpdb->get_var( 'SELECT @@in_transaction' ), 'This delivery fixture may not use the PHPUnit outer transaction.' );
+
+		// The WordPress PHPUnit WP_UnitTestCase harness sets autocommit=0 and
+		// does not reset it during tear_down(). Under that mode even a SELECT
+		// after COMMIT can begin a new implicit transaction, correctly causing
+		// the production worker to refuse dispatch. This standalone delivery
+		// fixture must restore normal WordPress autocommit=1 on its isolated
+		// connection, then restore the incoming mode on tearDown().
+		$autocommit = $wpdb->get_var( 'SELECT @@autocommit' );
+		self::assertContains( (int) $autocommit, [ 0, 1 ], 'Readable MariaDB autocommit state is required.' );
+		$this->previous_autocommit = (int) $autocommit;
+		if ( 0 === $this->previous_autocommit ) {
+			self::assertNotFalse( $wpdb->query( 'SET SESSION autocommit = 1' ) );
+			$this->autocommit_changed = true;
+		}
+		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@autocommit' ), 'Event dispatch fixture must run in ordinary WordPress autocommit mode.' );
+		self::assertSame( 0, (int) $wpdb->get_var( 'SELECT @@in_transaction' ), 'Delivery fixture must not inherit an outer transaction.' );
 		$this->table = Schema::outbox_table();
 		$created = $wpdb->query( 'CREATE TEMPORARY TABLE ' . $this->table . ' (
 			id bigint unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -63,6 +81,14 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 			delete_option( Schema::OPTION );
 		} else {
 			update_option( Schema::OPTION, $this->previous_schema );
+		}
+		// Never leave the global WordPress test DB connection in a different
+		// transaction policy for the next PHPUnit case.
+		if ( $this->autocommit_changed ) {
+			self::assertSame( 0, (int) $wpdb->get_var( 'SELECT @@in_transaction' ), 'Fixture cleanup must leave no pending transaction.' );
+			self::assertNotFalse( $wpdb->query( 'SET SESSION autocommit = 0' ) );
+			self::assertSame( 0, (int) $wpdb->get_var( 'SELECT @@autocommit' ) );
+			$this->autocommit_changed = false;
 		}
 		parent::tearDown();
 	}

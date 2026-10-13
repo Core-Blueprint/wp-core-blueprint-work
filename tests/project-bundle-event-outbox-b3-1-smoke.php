@@ -12,6 +12,7 @@ $items = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $projectApi = file_get_contents( $root . '/src/PublicApi/ProjectActions.php' );
 $itemApi = file_get_contents( $root . '/src/PublicApi/WorkItemActions.php' );
 $integration = file_get_contents( $root . '/tests/integration/ProjectBundleIntegrityIntegrationTest.php' );
+$deliveryIntegration = file_get_contents( $root . '/tests/integration/ProjectBundleOutboxDeliveryIntegrationTest.php' );
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 
 $checks = [
@@ -44,6 +45,12 @@ $checks = [
 		&& str_contains( $outbox, 'MAX_ATTEMPTS' )
 		&& str_contains( $outbox, 'outbox_event_key' )
 		&& is_string( $plugin ) && str_contains( $plugin, 'WorkEventOutbox::init();' ),
+	'isolated delivery fixture restores the inherited WordPress PHPUnit autocommit mode' =>
+		is_string( $deliveryIntegration )
+		&& str_contains( $deliveryIntegration, 'SELECT @@autocommit' )
+		&& str_contains( $deliveryIntegration, 'SET SESSION autocommit = 1' )
+		&& str_contains( $deliveryIntegration, 'SET SESSION autocommit = 0' )
+		&& str_contains( $deliveryIntegration, 'autocommit_changed' ),
 	'negative integration assertions guard Work hooks, Base callbacks and savepoints' =>
 		is_string( $integration ) && str_contains( $integration, 'assert_no_new_published_bundle_events' )
 		&& str_contains( $integration, 'emitted_work_lifecycle' )
