@@ -99,6 +99,7 @@ namespace {
 	require dirname( __DIR__ ) . '/src/Admin/WorkItemViewState.php';
 	// Isolated test has no plugin autoloader: load the Table trait before its host.
 	require dirname( __DIR__ ) . '/src/Admin/WorkItemTableRenderer.php';
+	require dirname( __DIR__ ) . '/src/Admin/WorkItemListRenderer.php';
 	require dirname( __DIR__ ) . '/src/Admin/Operations.php';
 
 	$render = new \ReflectionMethod( \CB\Work\Admin\Operations::class, 'render_work_item_focus_views' );
