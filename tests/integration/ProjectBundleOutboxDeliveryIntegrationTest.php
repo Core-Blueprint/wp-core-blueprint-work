@@ -81,7 +81,7 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 
 	public function test_outer_rollback_erases_events_and_commit_allows_single_delivery(): void {
 		global $wpdb;
-		self::assertSame( 1, $wpdb->query( 'START TRANSACTION' ) === false ? 0 : 1 );
+		self::assertNotFalse( $wpdb->query( 'START TRANSACTION' ) );
 		$this->queue_project_events( 7001 );
 		self::assertSame( 0, WorkEventOutbox::drain(), 'A savepoint release is not an external commit.' );
 		self::assertNotFalse( $wpdb->query( 'ROLLBACK' ) );
