@@ -42,6 +42,9 @@ $checks = [
 		&& str_contains( $repo, 'WorkItemReadQuery::related_page( $page_ids, self::schema_ready() )' )
 		&& str_contains( $read, '_prime_post_caches(' )
 		&& str_contains( $read, 'WHERE work_item_id IN (' ),
+	'Optional profile exits before dataset assertions when not explicitly enabled' =>
+		str_contains( $fixtures, "if ( ! in_array( \$size, [ 1000, 10000, 25000 ], true ) ) {" )
+		&& (bool) preg_match( '/if \\( ! in_array\\( \\$size,.*?\\) \\) \\{[^}]*?return;/s', $fixtures ),
 	'MariaDB integration covers paging, sorts, assignment, counts and 1k/10k/25k' =>
 		str_contains( $fixtures, 'test_bounded_workload_paging_total_and_out_of_range_page' )
 		&& str_contains( $fixtures, 'test_sort_modes_keep_stable_id_ties_and_filters' )
