@@ -124,18 +124,22 @@ final class WorkEventOutbox {
 			if ( 1 !== $claimed ) {
 				continue;
 			}
+			$stage = 'decode';
 			try {
 				$payload = json_decode( (string) $row['payload'], true, 512, JSON_THROW_ON_ERROR );
 				if ( ! is_array( $payload ) ) {
 					throw new \UnexpectedValueException( 'Invalid outbox payload.' );
 				}
 				if ( 'audit' === $row['event_kind'] ) {
+					$stage = 'audit';
 					$context = (array) ( $payload['context'] ?? [] );
 					$context['outbox_event_key'] = (string) $row['event_key'];
 					if ( ! Audit::record( (string) $row['event_name'], (string) ( $payload['severity'] ?? 'notice' ), $context ) ) {
+						$stage = 'audit_refused';
 						throw new \RuntimeException( 'Base refused an outbox audit event.' );
 					}
 				} elseif ( 'lifecycle' === $row['event_kind'] ) {
+					$stage = 'lifecycle';
 					$args = $payload['args'] ?? null;
 					if ( ! is_array( $args ) ) {
 						throw new \UnexpectedValueException( 'Invalid outbox lifecycle arguments.' );
@@ -144,15 +148,24 @@ final class WorkEventOutbox {
 				} else {
 					throw new \UnexpectedValueException( 'Invalid outbox event kind.' );
 				}
-				$wpdb->update( $table, [
+				$stage = 'acknowledge';
+				$acknowledged = $wpdb->update( $table, [
 					'state' => 'delivered',
 					'delivered_at' => current_time( 'mysql', true ),
-				], [ 'id' => $id, 'state' => 'processing' ], [ '%s', '%s' ], [ '%d', '%s' ] );
+					'last_error_code' => '',
+				], [ 'id' => $id, 'state' => 'processing' ], [ '%s', '%s', '%s' ], [ '%d', '%s' ] );
+				if ( 1 !== $acknowledged ) {
+					throw new \RuntimeException( 'Outbox acknowledgement could not be persisted.' );
+				}
 				$delivered++;
 			} catch ( \Throwable $exception ) {
-				unset( $exception );
-				// Retain pending event for bounded retry or operator inspection.
-				$wpdb->update( $table, [ 'state' => 'pending' ], [ 'id' => $id, 'state' => 'processing' ], [ '%s' ], [ '%d', '%s' ] );
+				// Save only a bounded stage and throwable class. Never log messages,
+				// SQL, subscriber payloads or other user-controlled sensitive data.
+				$error_code = substr( sanitize_key( $stage . '_' . ( new \ReflectionClass( $exception ) )->getShortName() ), 0, 80 );
+				$wpdb->update( $table, [
+					'state' => 'pending',
+					'last_error_code' => $error_code,
+				], [ 'id' => $id, 'state' => 'processing' ], [ '%s', '%s' ], [ '%d', '%s' ] );
 			}
 		}
 		// Bounded, independent retention of successfully published deliveries.

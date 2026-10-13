@@ -33,6 +33,11 @@ $checks = [
 		&& is_string( $projects ) && is_string( $items )
 		&& str_contains( $projects, "DeferredEvents::lifecycle( 'cb_work_project_created'" )
 		&& str_contains( $items, "DeferredEvents::lifecycle( 'cb_work_work_item_created'" ),
+	'outbox retains bounded failure codes and acknowledges each delivery durably' =>
+		is_string( $outbox ) && str_contains( $outbox, 'last_error_code' )
+		&& str_contains( $outbox, "\$stage = 'audit_refused'" )
+		&& str_contains( $outbox, '1 !== $acknowledged' )
+		&& str_contains( $schema, 'last_error_code varchar(80)' ),
 	'outbox refuses dispatch in caller-owned transactions and publishes via cron' =>
 		is_string( $outbox ) && str_contains( $outbox, 'SELECT @@in_transaction' )
 		&& str_contains( $outbox, 'public static function drain(): int' )

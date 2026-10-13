@@ -35,6 +35,7 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 			payload longtext NOT NULL,
 			state varchar(16) NOT NULL DEFAULT "pending",
 			attempts smallint unsigned NOT NULL DEFAULT 0,
+			last_error_code varchar(80) NOT NULL DEFAULT "",
 			claimed_at datetime NULL,
 			delivered_at datetime NULL,
 			created_at datetime NOT NULL,
@@ -93,7 +94,10 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 		$this->queue_project_events( 7002 );
 		self::assertNotFalse( $wpdb->query( 'COMMIT' ) );
 		self::assertSame( 2, $this->outbox_rows() );
-		self::assertSame( 2, WorkEventOutbox::drain() );
+		self::assertSame( 0, (int) $wpdb->get_var( 'SELECT @@in_transaction' ), 'Outer COMMIT must close its transaction.' );
+		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ), 'Delivery requires a schema-ready Work environment.' );
+		$delivered = WorkEventOutbox::drain();
+		self::assertSame( 2, $delivered, $this->delivery_diagnostics() );
 		self::assertSame( 1, $this->work_hooks );
 		self::assertSame( 1, $this->work_audits );
 		self::assertCount( 1, $this->delivered_keys );
@@ -118,7 +122,8 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 		}
 		self::assertSame( 0, $this->work_hooks );
 		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT attempts FROM ' . $this->table . ' LIMIT 1' ) );
-		self::assertSame( 1, WorkEventOutbox::drain() );
+		$delivered = WorkEventOutbox::drain();
+		self::assertSame( 1, $delivered, $this->delivery_diagnostics() );
 		self::assertSame( 1, $this->work_hooks );
 		self::assertCount( 1, $this->delivered_keys );
 		self::assertSame( 0, WorkEventOutbox::drain() );
@@ -131,6 +136,12 @@ final class ProjectBundleOutboxDeliveryIntegrationTest extends \PHPUnit\Framewor
 		] );
 		DeferredEvents::lifecycle( 'cb_work_project_created', $id, [ 'id' => $id ] );
 		self::assertTrue( DeferredEvents::finish() );
+	}
+
+	private function delivery_diagnostics(): string {
+		global $wpdb;
+		$rows = $wpdb->get_results( 'SELECT event_name, state, attempts, last_error_code FROM ' . $this->table . ' ORDER BY id', ARRAY_A );
+		return 'Work outbox delivery: ' . ( wp_json_encode( $rows ) ?: 'unavailable' ) . '; db_error=' . (string) $wpdb->last_error;
 	}
 
 	private function outbox_rows(): int {

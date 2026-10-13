@@ -75,6 +75,7 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 				payload longtext NOT NULL,
 				state varchar(16) NOT NULL DEFAULT "pending",
 				attempts smallint unsigned NOT NULL DEFAULT 0,
+				last_error_code varchar(80) NOT NULL DEFAULT "",
 				claimed_at datetime NULL,
 				delivered_at datetime NULL,
 				created_at datetime NOT NULL,
