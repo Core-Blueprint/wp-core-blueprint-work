@@ -1,5 +1,33 @@
 # Core Blueprint Work | A2 Query Scalability Golden Candidate (2026-10-13)
 
+## First local validation and targeted repair (2026-10-13)
+
+**Operator tested initial source** `ec3d1f62c6010d97d422fe6e55eb73544d373f6a`:
+- PHP syntax on new query, repository and A2 integration test: **PASS**.
+- D2 operational fixture and A2 Query Golden source smoke: **PASS**.
+- Full `./tools/check` Level 1: **PASS**, including existing
+  Calendar, Board, Time and A1 mutation regressions.
+- WordPress 7.0 / MariaDB 10.11.19 Level 2: **15 tests,
+  828 assertions, one failure** in
+  `WorkItemQueryScalabilityIntegrationTest::test_optional_profile_at_1k_10k_25k`.
+  The four normal A2 behavior tests completed; failure occurred because
+  the disabled benchmark made no Work Items but omitted the early
+  `return` and proceeded to assert a 50-row benchmark page.
+- The fail-fast operator shell stopped **before** Level 3 build.
+  Thus **no A2 ZIP or checksum accepted** from this initial run.
+
+**Repair:** the optional benchmark now returns after its non-skipped
+placeholder assertion unless `CB_WORK_A2_PROFILE_SIZE` is explicitly
+1000, 10000 or 25000. The source Golden smoke additionally guards the
+early-return contract. This change is **test-only**; Work runtime/SQL,
+Calendar and Base files were not changed.
+
+**New candidate HEAD:** `11505f849c360564c357714567d7c8760a999340`.
+**Level 1/2/3 on repaired HEAD remain PENDING**. Next operator gate
+must re-run `./tools/check`, `./tools/check-integration`,
+`./tools/build-release`, then `unzip -tqq` and SHA sidecar verification.
+Run optional large datasets separately after normal Level 1/2/3 pass.
+
 **Finding:** W-GA-001 (P1) from Product Golden Audit.  
 **Base:** Work `main` `e25a816cee581be0e413f4f255b207bb22949020` (A1 CLOSED).  
 **Feature:** `feature/work-query-scalability-golden-a2-v1`.  
