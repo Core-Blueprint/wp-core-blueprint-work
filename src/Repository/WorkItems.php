@@ -57,20 +57,21 @@ final class WorkItems {
 		$page     = (int) $criteria['page'];
 		$per_page = (int) $criteria['per_page'];
 
+		// Assignee membership is resolved by a scoped SQL join, never by
+		// loading every assigned Work Item ID into PHP.
+		if ( (int) $criteria['assignee_id'] > 0 && ! self::schema_ready() ) {
+			return self::empty_search_result( $page, $per_page );
+		}
 		$args = [
 			'post_type'              => PostTypes::WORK_ITEM,
 			'post_status'            => self::managed_post_statuses(),
-			'posts_per_page'         => -1,
-			'fields'                 => 'ids',
 			'ignore_sticky_posts'    => true,
-			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 		];
 		if ( '' !== $criteria['search'] ) {
 			$args['s'] = $criteria['search'];
 		}
-
 		$meta_query = self::query_meta_filters( $criteria );
 		if ( [] !== $meta_query ) {
 			$args['meta_query'] = count( $meta_query ) > 1
@@ -78,31 +79,23 @@ final class WorkItems {
 				: $meta_query;
 		}
 
-		if ( (int) $criteria['assignee_id'] > 0 ) {
-			$assigned_ids = self::assigned_work_item_ids( (int) $criteria['assignee_id'] );
-			if ( [] === $assigned_ids ) {
-				return self::empty_search_result( $page, $per_page );
-			}
-			$args['post__in'] = $assigned_ids;
-		}
+		$page_result = WorkItemReadQuery::page( $args, $criteria );
+		$page_ids    = $page_result['ids'];
+		$total       = $page_result['total'];
+		$pages       = (int) ceil( $total / $per_page );
 
-		$query = new \WP_Query( $args );
-		$ids   = array_values( array_unique( array_filter( array_map( 'absint', $query->posts ) ) ) );
-		if ( [] === $ids ) {
-			return self::empty_search_result( $page, $per_page );
-		}
-
-		update_meta_cache( 'post', $ids );
-		self::sort_query_ids( $ids, (string) $criteria['sort'] );
-
-		$total     = count( $ids );
-		$pages     = (int) ceil( $total / $per_page );
-		$page_ids  = array_slice( $ids, ( $page - 1 ) * $per_page, $per_page );
-		$items     = [];
+		// Prime only the requested page and load Work-owned links in batches.
+		WorkItemReadQuery::prime_page( $page_ids );
+		$related = WorkItemReadQuery::related_page( $page_ids, self::schema_ready() );
+		$items   = [];
 		foreach ( $page_ids as $post_id ) {
 			$post = get_post( $post_id );
 			if ( $post instanceof \WP_Post && PostTypes::WORK_ITEM === $post->post_type ) {
-				$items[] = self::hydrate( $post );
+				$items[] = self::hydrate(
+					$post,
+					$related['assignments'][ $post_id ] ?? [],
+					$related['relations'][ $post_id ] ?? []
+				);
 			}
 		}
 
@@ -167,25 +160,7 @@ final class WorkItems {
 
 	/** @return array<string,int> */
 	public static function counts_by_status(): array {
-		$counts = array_fill_keys( WorkItemStatus::all(), 0 );
-		$query = new \WP_Query( [
-			'post_type'              => PostTypes::WORK_ITEM,
-			'post_status'            => self::managed_post_statuses(),
-			'posts_per_page'         => -1,
-			'fields'                 => 'ids',
-			'no_found_rows'          => true,
-			'ignore_sticky_posts'    => true,
-			'update_post_meta_cache' => true,
-			'update_post_term_cache' => false,
-		] );
-		foreach ( $query->posts as $post_id ) {
-			$status = sanitize_key( (string) get_post_meta( (int) $post_id, WorkItemMeta::STATUS, true ) );
-			if ( ! WorkItemStatus::is_valid( $status ) ) {
-				$status = WorkItemStatus::PLANNED;
-			}
-			$counts[ $status ]++;
-		}
-		return $counts;
+		return WorkItemReadQuery::counts_by_status();
 	}
 
 	/**
@@ -582,68 +557,6 @@ final class WorkItems {
 		return $filters;
 	}
 
-	/** @return int[] */
-	private static function assigned_work_item_ids( int $user_id ): array {
-		if ( $user_id <= 0 || ! self::schema_ready() ) {
-			return [];
-		}
-		global $wpdb;
-		$ids = $wpdb->get_col(
-			$wpdb->prepare( 'SELECT work_item_id FROM ' . Schema::assignments_table() . ' WHERE user_id = %d ORDER BY work_item_id ASC', $user_id )
-		);
-		return is_array( $ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) : [];
-	}
-
-	/** @param int[] $ids */
-	private static function sort_query_ids( array &$ids, string $sort ): void {
-		usort( $ids, static function ( int $a, int $b ) use ( $sort ): int {
-			if ( WorkItemQuery::SORT_TITLE === $sort ) {
-				$a_post = get_post( $a );
-				$b_post = get_post( $b );
-				$by_title = strcasecmp(
-					$a_post instanceof \WP_Post ? (string) $a_post->post_title : '',
-					$b_post instanceof \WP_Post ? (string) $b_post->post_title : ''
-				);
-				return 0 !== $by_title ? $by_title : $a <=> $b;
-			}
-			if ( WorkItemQuery::SORT_UPDATED === $sort ) {
-				$a_post = get_post( $a );
-				$b_post = get_post( $b );
-				$a_updated = $a_post instanceof \WP_Post ? (string) $a_post->post_modified_gmt : '';
-				$b_updated = $b_post instanceof \WP_Post ? (string) $b_post->post_modified_gmt : '';
-				return $a_updated !== $b_updated ? strcmp( $b_updated, $a_updated ) : $b <=> $a;
-			}
-
-			$key = WorkItemQuery::SORT_SCHEDULED === $sort ? WorkItemMeta::SCHEDULED_ON : WorkItemMeta::DUE_ON;
-			if ( WorkItemQuery::SORT_DUE === $sort || WorkItemQuery::SORT_SCHEDULED === $sort ) {
-				$a_date = (string) get_post_meta( $a, $key, true );
-				$b_date = (string) get_post_meta( $b, $key, true );
-				$a_date = '' !== $a_date ? $a_date : '9999-12-31';
-				$b_date = '' !== $b_date ? $b_date : '9999-12-31';
-				return $a_date !== $b_date ? strcmp( $a_date, $b_date ) : $b <=> $a;
-			}
-
-			$a_status = sanitize_key( (string) get_post_meta( $a, WorkItemMeta::STATUS, true ) );
-			$b_status = sanitize_key( (string) get_post_meta( $b, WorkItemMeta::STATUS, true ) );
-			if ( ! WorkItemStatus::is_valid( $a_status ) ) {
-				$a_status = WorkItemStatus::PLANNED;
-			}
-			if ( ! WorkItemStatus::is_valid( $b_status ) ) {
-				$b_status = WorkItemStatus::PLANNED;
-			}
-			$rank   = [ WorkItemStatus::IN_PROGRESS => 0, WorkItemStatus::PLANNED => 1 ];
-			$a_rank = $rank[ $a_status ] ?? 2;
-			$b_rank = $rank[ $b_status ] ?? 2;
-			if ( $a_rank !== $b_rank ) {
-				return $a_rank <=> $b_rank;
-			}
-			$a_due = (string) get_post_meta( $a, WorkItemMeta::DUE_ON, true );
-			$b_due = (string) get_post_meta( $b, WorkItemMeta::DUE_ON, true );
-			$a_due = '' !== $a_due ? $a_due : '9999-12-31';
-			$b_due = '' !== $b_due ? $b_due : '9999-12-31';
-			return $a_due !== $b_due ? strcmp( $a_due, $b_due ) : $b <=> $a;
-		} );
-	}
 
 	/** @return array{items:array<int,array<string,mixed>>,total:int,page:int,per_page:int,pages:int} */
 	private static function empty_search_result( int $page, int $per_page ): array {
@@ -749,7 +662,7 @@ final class WorkItems {
 	}
 
 	/** @return array<string,mixed> */
-	private static function hydrate( \WP_Post $post ): array {
+	private static function hydrate( \WP_Post $post, ?array $assigned = null, ?array $links = null ): array {
 		$meta = WorkItemMeta::get( (int) $post->ID );
 		return [
 			'id'                  => (int) $post->ID,
@@ -774,8 +687,8 @@ final class WorkItems {
 			'created_by'          => (int) $post->post_author,
 			'created_at'          => (string) $post->post_date_gmt,
 			'updated_at'          => (string) $post->post_modified_gmt,
-			'assigned_user_ids'   => self::assignments( (int) $post->ID ),
-			'relations'           => self::relations( (int) $post->ID ),
+			'assigned_user_ids'   => $assigned ?? self::assignments( (int) $post->ID ),
+			'relations'           => $links ?? self::relations( (int) $post->ID ),
 		];
 	}
 
