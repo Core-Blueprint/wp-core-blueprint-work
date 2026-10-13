@@ -45,6 +45,12 @@ $checks = [
 		&& str_contains( $builder, 'bash "$ROOT/tools/check-integration"' )
 		&& strpos( $builder, '"$ROOT/tools/check"' ) < strpos( $builder, 'bash "$ROOT/tools/check-integration"' )
 		&& strpos( $builder, 'bash "$ROOT/tools/check-integration"' ) < strpos( $builder, 'TMP="$(mktemp -d)"' ),
+	'MariaDB readiness is bounded and verified before any Work DB reset' =>
+		str_contains( $runner, 'for (( attempt = 1; attempt <= 45; attempt++ )); do' )
+		&& str_contains( $runner, 'DB_READY=1' )
+		&& str_contains( $runner, 'Canonical MariaDB not ready after 45s' )
+		&& str_contains( $runner, 'docker logs --tail=80 cb-base-test-db' )
+		&& strpos( $runner, 'DB_READY=0' ) < strpos( $runner, 'DROP DATABASE IF EXISTS' ),
 	'Runner contains one complete Docker port check and one Work lifecycle' =>
 		substr_count( $runner, 'grep -Eq' ) === 2
 		&& str_contains( $runner, 'cb-base-test-db does not expose host port 3307.' )
