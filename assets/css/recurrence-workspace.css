@@ -246,10 +246,12 @@
 }
 
 .cb-work-recurrence-diagnostics {
-	margin: 0 0 20px;
-	padding: 12px 16px;
-	border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
-	border-radius: 6px;
+	/* Keep operational diagnostics visually separate from the rules table. */
+	margin: var(--cb-space-6, 24px) 0 var(--cb-space-5, 20px);
+	padding: var(--cb-space-3, 12px) var(--cb-space-4, 16px);
+	border: 1px solid var(--cb-border, color-mix(in srgb, currentColor 16%, transparent));
+	border-radius: var(--cb-radius-md, 8px);
+	background: var(--cb-surface-1, transparent);
 }
 
 .cb-work-recurrence-diagnostics summary {
