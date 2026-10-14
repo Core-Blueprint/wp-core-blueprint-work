@@ -9,10 +9,34 @@ $frontend = file_get_contents( $root . '/src/Frontend/Actions/WorkItems.php' );
 $public = file_get_contents( $root . '/src/PublicApi/WorkItemActions.php' );
 $read = file_get_contents( $root . '/src/Repository/WorkItems.php' );
 $gate = file_get_contents( $root . '/tools/check' );
+/**
+ * Validate transaction ownership at the method boundary. A strict total count
+ * would block safely adding more guarded repository operations in the future.
+ */
+$uses_transaction = static function ( string $source, string $method ): bool {
+	$signature = 'public static function ' . $method . '(';
+	$start = strpos( $source, $signature );
+	if ( false === $start ) {
+		return false;
+	}
+	$end = strpos( $source, "\n\t}", $start );
+	return false !== $end
+		&& str_contains( substr( $source, $start, $end - $start ), 'WorkSqlTransaction::run(' );
+};
+
 $checks = [
 	'B3.2 uses existing transaction state and savepoints' => str_contains( $tx, 'SELECT @@in_transaction' ) && str_contains( $tx, "'SAVEPOINT '" ) && str_contains( $tx, "'ROLLBACK TO SAVEPOINT '" ),
 	'B3.2 checks the finish statement' => str_contains( $tx, 'false === $wpdb->query( $finish )' ),
-	'B3.2 recurrence transactions are delegated and never unconditionally commit' => substr_count( $recurrence, 'WorkSqlTransaction::run(' ) === 2 && ! str_contains( $recurrence, "'START TRANSACTION'" ) && ! str_contains( $recurrence, "'COMMIT'" ),
+	'B3.2 recurrence create and update retain transaction ownership' =>
+		$uses_transaction( $recurrence, 'create' )
+		&& $uses_transaction( $recurrence, 'update' )
+		&& ! str_contains( $recurrence, "'START TRANSACTION'" )
+		&& ! str_contains( $recurrence, "'COMMIT'" ),
+	'New recurrence lifecycle operations preserve shared transaction ownership' =>
+		$uses_transaction( $recurrence, 'trash' )
+		&& $uses_transaction( $recurrence, 'restore' )
+		&& $uses_transaction( $recurrence, 'delete_permanently' )
+		&& $uses_transaction( $recurrence, 'reserve_next_occurrence' ),
 	'B3.2 billing critical multirow writes use transaction ownership' => substr_count( $billing, 'WorkSqlTransaction::run(' ) === 2 && ! str_contains( $billing, "'START TRANSACTION'" ) && ! str_contains( $billing, "'COMMIT'" ),
 	'B3.2 frontend requires client expected status and reports conflict' => str_contains( $frontend, "'work_transition_precondition_required'" ) && str_contains( $frontend, "'work_transition_conflict'" ) && str_contains( $frontend, '$expected_from' ),
 	'B3.2 public PHP action carries expected source into locked repository' => str_contains( $public, '$expected_from ?? $from' ),
