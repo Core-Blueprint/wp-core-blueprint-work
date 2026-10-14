@@ -61,7 +61,9 @@ final class Recurrence {
 		self::guard();
 		$edit_id = isset( $_GET['rule_id'] ) ? absint( $_GET['rule_id'] ) : 0;
 		$rule    = $edit_id > 0 ? RecurrenceRules::get( $edit_id ) : null;
-		$editing = is_array( $rule );
+		$editing = is_array( $rule ) && empty( $rule['is_trashed'] );
+		$trash_view = isset( $_GET['cb_view'] ) && 'trash' === sanitize_key( (string) wp_unslash( $_GET['cb_view'] ) );
+		$deleting = is_array( $rule ) && ! empty( $rule['is_trashed'] ) && isset( $_GET['mode'] ) && 'delete' === sanitize_key( (string) wp_unslash( $_GET['mode'] ) );
 		$show_editor = $editing || ( isset( $_GET['mode'] ) && 'add' === sanitize_key( (string) wp_unslash( $_GET['mode'] ) ) );
 		$locked  = $editing && RecurrenceOccurrences::count_for_rule( $edit_id ) > 0;
 
@@ -76,6 +78,7 @@ final class Recurrence {
 		$filter_direction = isset( $_GET['cb_dir'] ) && 'desc' === sanitize_key( (string) wp_unslash( $_GET['cb_dir'] ) ) ? 'desc' : 'asc';
 		$filter_page = isset( $_GET['cb_page'] ) ? max( 1, absint( $_GET['cb_page'] ) ) : 1;
 		$list_args = array_filter( [
+			'cb_view' => $trash_view ? 'trash' : '',
 			'cb_search' => $filter_search,
 			'cb_status' => $filter_status,
 			'cb_context' => $filter_context,
@@ -86,7 +89,7 @@ final class Recurrence {
 		$listing = $show_editor ? [ 'rows' => [], 'total' => 0, 'page' => 1, 'pages' => 1, 'per_page' => 25 ] : RecurrenceRules::search_page( [
 			'search' => $filter_search, 'status' => $filter_status, 'context' => $filter_context,
 			'project_id' => $filter_project, 'sort' => $filter_sort,
-			'direction' => $filter_direction, 'page' => $filter_page,
+			'direction' => $filter_direction, 'page' => $filter_page, 'trash' => $trash_view,
 		] );
 		$rules = $listing['rows'];
 		$project_titles = [];
@@ -131,6 +134,31 @@ final class Recurrence {
 			<?php return; ?>
 			<?php endif; ?>
 
+			<?php if ( $deleting ) : ?>
+			<section class="cb-work-recurrence-section cb-work-recurrence-delete-confirmation">
+				<h2><?php esc_html_e( 'Delete Recurring Work Rule Permanently', 'core-blueprint-work' ); ?></h2>
+				<p><strong><?php echo esc_html( (string) $rule['title'] ); ?></strong></p>
+				<?php if ( RecurrenceOccurrences::count_for_rule( $edit_id ) > 0 ) : ?>
+					<p><?php esc_html_e( 'This rule has occurrence history. Permanent deletion is blocked to preserve generated Work Items and their provenance. You can keep it in Trash.', 'core-blueprint-work' ); ?></p>
+				<?php else : ?>
+					<p><?php esc_html_e( 'This permanently removes the rule and its assignments. It cannot be undone.', 'core-blueprint-work' ); ?></p>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="cb_work_delete_recurrence_rule">
+						<input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $edit_id ); ?>">
+						<?php wp_nonce_field( 'cb_work_delete_recurrence_rule_' . $edit_id ); ?>
+						<label class="cb-work-recurrence-delete-confirm"><input type="checkbox" name="confirm_permanent" value="1" required> <?php esc_html_e( 'I understand that this permanent deletion cannot be undone.', 'core-blueprint-work' ); ?></label>
+						<div class="cb-work-recurrence-delete-actions">
+							<button type="submit" class="button button-secondary"><?php esc_html_e( 'Delete Permanently', 'core-blueprint-work' ); ?></button>
+							<a class="button" href="<?php echo esc_url( self::url( [ 'cb_view' => 'trash' ] ) ); ?>"><?php esc_html_e( 'Cancel', 'core-blueprint-work' ); ?></a>
+						</div>
+					</form>
+				<?php endif; ?>
+				<a href="<?php echo esc_url( self::url( [ 'cb_view' => 'trash' ] ) ); ?>"><?php esc_html_e( 'Back to Trash', 'core-blueprint-work' ); ?></a>
+			</section>
+			</div>
+			<?php return; ?>
+			<?php endif; ?>
+
 			<?php if ( $show_editor ) : ?>
 			<div class="cb-work-recurrence-editor">
 				<h2><?php echo esc_html( $editing ? __( 'Edit Recurring Work Rule', 'core-blueprint-work' ) : __( 'Add Recurring Work Rule', 'core-blueprint-work' ) ); ?></h2>
@@ -151,6 +179,12 @@ final class Recurrence {
 							<input type="hidden" name="active" value="<?php echo $active ? '0' : '1'; ?>">
 							<?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $edit_id ); ?>
 							<button class="button button-secondary" type="submit" <?php if ( ! $active ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo $active ? esc_html__( 'Deactivate', 'core-blueprint-work' ) : esc_html__( 'Activate', 'core-blueprint-work' ); ?></button>
+						</form>
+						<form class="cb-work-recurrence-inline-form" data-cb-recurrence-trash method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="cb_work_trash_recurrence_rule">
+							<input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $edit_id ); ?>">
+							<?php wp_nonce_field( 'cb_work_trash_recurrence_rule_' . $edit_id ); ?>
+							<button type="submit" class="button button-secondary"><?php esc_html_e( 'Move to Trash', 'core-blueprint-work' ); ?></button>
 						</form>
 						<?php endif; ?>
 					</div>
@@ -277,8 +311,10 @@ final class Recurrence {
 			<?php else : ?>
 			<div class="cb-work-recurrence-list">
 			<h2><?php esc_html_e( 'Recurring Work Rules', 'core-blueprint-work' ); ?></h2>
+			<nav class="cb-work-recurrence-views" aria-label="<?php esc_attr_e( 'Rule views', 'core-blueprint-work' ); ?>"><a class="button <?php echo $trash_view ? '' : 'button-primary'; ?>" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'All Rules', 'core-blueprint-work' ); ?></a><a class="button <?php echo $trash_view ? 'button-primary' : ''; ?>" href="<?php echo esc_url( self::url( [ 'cb_view' => 'trash' ] ) ); ?>"><?php esc_html_e( 'Trash', 'core-blueprint-work' ); ?></a></nav>
 			<form class="cb-work-recurrence-filterbar" method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" role="search">
 				<input type="hidden" name="page" value="<?php echo esc_attr( Menu::RECURRENCE_SLUG ); ?>">
+				<?php if ( $trash_view ) : ?><input type="hidden" name="cb_view" value="trash"><?php endif; ?>
 				<label><span><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span><input type="search" name="cb_search" value="<?php echo esc_attr( $filter_search ); ?>" placeholder="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>"></label>
 				<label><span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span><select name="cb_status"><option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option><option value="active" <?php selected( $filter_status, 'active' ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option><option value="inactive" <?php selected( $filter_status, 'inactive' ); ?>><?php esc_html_e( 'Inactive', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></span><select name="cb_context"><option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option><option value="internal" <?php selected( $filter_context, 'internal' ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option><option value="customer" <?php selected( $filter_context, 'customer' ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option></select></label>
@@ -288,7 +324,7 @@ final class Recurrence {
 
 
 			<?php if ( [] === $rules ) : ?>
-				<div class="cb-work-recurrence-empty"><h3><?php esc_html_e( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3>
+				<div class="cb-work-recurrence-empty"><h3><?php echo $trash_view ? esc_html__( 'Trash is empty.', 'core-blueprint-work' ) : esc_html__( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3>
 				<?php if ( '' !== $filter_search || '' !== $filter_status || '' !== $filter_context || 0 !== $filter_project ) : ?>
 				<p><?php esc_html_e( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ); ?></p><a class="button button-secondary" href="<?php echo esc_url( self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
 				<?php else : ?><a class="button button-primary" href="<?php echo esc_url( self::url( [ 'mode' => 'add' ] ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
@@ -308,7 +344,18 @@ final class Recurrence {
 						<td><?php echo esc_html( null === $configured['next_occurrence_on'] ? __( 'Complete', 'core-blueprint-work' ) : mysql2date( get_option( 'date_format' ), (string) $configured['next_occurrence_on'] . ' 12:00:00' ) ); ?></td>
 						<td><?php echo esc_html( (string) $count ); ?></td>
 						<td><span data-cb-rule-status class="cb-work-recurrence-status <?php echo ! empty( $configured['is_active'] ) ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo ! empty( $configured['is_active'] ) ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span></td>
-						<td><a class="button button-small" href="<?php echo esc_url( self::url( [ 'rule_id' => $configured_id ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a> <button type="button" class="button button-small" data-cb-quick-edit-trigger aria-expanded="false" aria-controls="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>"><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></button> <form data-cb-inline-toggle method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block"><input type="hidden" name="action" value="cb_work_toggle_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><input type="hidden" name="active" value="<?php echo empty( $configured['is_active'] ) ? '1' : '0'; ?>"><?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit" <?php if ( empty( $configured['is_active'] ) ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo empty( $configured['is_active'] ) ? esc_html__( 'Activate', 'core-blueprint-work' ) : esc_html__( 'Deactivate', 'core-blueprint-work' ); ?></button></form></td>
+						<td><?php if ( $trash_view ) : ?>
+							<form class="cb-work-recurrence-inline-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<input type="hidden" name="action" value="cb_work_restore_recurrence_rule">
+								<input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>">
+								<?php wp_nonce_field( 'cb_work_restore_recurrence_rule_' . $configured_id ); ?>
+								<button class="button button-small" type="submit"><?php esc_html_e( 'Restore', 'core-blueprint-work' ); ?></button>
+							</form>
+							<?php if ( 0 === $count ) : ?><a class="button button-small" href="<?php echo esc_url( self::url( [ 'cb_view' => 'trash', 'mode' => 'delete', 'rule_id' => $configured_id ] ) ); ?>"><?php esc_html_e( 'Delete Permanently', 'core-blueprint-work' ); ?></a><?php endif; ?>
+						<?php else : ?>
+						<td><a class="button button-small" href="<?php echo esc_url( self::url( [ 'rule_id' => $configured_id ] ) ); ?>"><?php esc_html_e( 'Edit', 'core-blueprint-work' ); ?></a> <button type="button" class="button button-small" data-cb-quick-edit-trigger aria-expanded="false" aria-controls="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>"><?php esc_html_e( 'Quick Edit', 'core-blueprint-work' ); ?></button> <form data-cb-inline-toggle method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="cb-work-recurrence-inline-form"><input type="hidden" name="action" value="cb_work_toggle_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><input type="hidden" name="active" value="<?php echo empty( $configured['is_active'] ) ? '1' : '0'; ?>"><?php wp_nonce_field( 'cb_work_toggle_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit" <?php if ( empty( $configured['is_active'] ) ) : ?>data-cb-work-confirm<?php endif; ?>><?php echo empty( $configured['is_active'] ) ? esc_html__( 'Activate', 'core-blueprint-work' ) : esc_html__( 'Deactivate', 'core-blueprint-work' ); ?></button></form>
+							<form class="cb-work-recurrence-inline-form" data-cb-recurrence-trash method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="cb_work_trash_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><?php wp_nonce_field( 'cb_work_trash_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit"><?php esc_html_e( 'Move to Trash', 'core-blueprint-work' ); ?></button></form>
+						<?php endif; ?></td>
 					</tr>
 					<tr id="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>" class="cb-work-recurrence-quick-row" hidden data-cb-quick-edit-row>
 						<td colspan="7">
@@ -331,7 +378,7 @@ final class Recurrence {
 			/* translators: %s: next WordPress cron timestamp, or a not-scheduled label. */
 			echo esc_html( sprintf( __( 'Generator hook: hourly. Next WordPress cron timestamp: %s', 'core-blueprint-work' ), self::next_cron_label() ) );
 			?></p>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="cb-work-recurrence-generator-form">
 				<input type="hidden" name="action" value="cb_work_run_recurrence_generator">
 				<?php wp_nonce_field( 'cb_work_run_recurrence_generator' ); ?>
 				<?php submit_button( __( 'Run Generator Now', 'core-blueprint-work' ), 'secondary', 'submit', false ); ?>
@@ -410,6 +457,11 @@ final class Recurrence {
 			'recurrence-created'        => [ 'success', __( 'Recurring Work rule created.', 'core-blueprint-work' ) ],
 			'recurrence-updated'        => [ 'success', __( 'Recurring Work rule updated.', 'core-blueprint-work' ) ],
 			'recurrence-status-updated' => [ 'success', __( 'Recurring Work rule status updated.', 'core-blueprint-work' ) ],
+			'recurrence-trashed' => [ 'success', __( 'Recurring Work rule moved to Trash.', 'core-blueprint-work' ) ],
+			'recurrence-restored' => [ 'success', __( 'Recurring Work rule restored as inactive.', 'core-blueprint-work' ) ],
+			'recurrence-deleted' => [ 'success', __( 'Recurring Work rule permanently deleted.', 'core-blueprint-work' ) ],
+			'recurrence-delete-blocked' => [ 'error', __( 'Permanent deletion is unavailable when occurrence history exists or confirmation is missing.', 'core-blueprint-work' ) ],
+			'recurrence-lifecycle-failed' => [ 'error', __( 'The requested Recurring Work lifecycle action could not be completed.', 'core-blueprint-work' ) ],
 			'recurrence-invalid'        => [ 'error', __( 'The Recurring Work rule could not be saved. Check the supplied values and whether its schedule is already locked by history.', 'core-blueprint-work' ) ],
 			'recurrence-run'            => [ 'success', __( 'Recurring Work generator finished.', 'core-blueprint-work' ) ],
 		];
