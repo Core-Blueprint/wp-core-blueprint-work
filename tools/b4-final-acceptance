@@ -39,7 +39,7 @@ if errors or messages:
     for error in errors[:15]:
         print(f"  {error}")
     sys.exit(1)
-print("B4 PHPStan calibrated level 2: PASS (0 errors)")
+print("B4 PHPStan level 2: PASS (0 unignored errors; 1 precisely counted immutable G0 PHPDoc exception)")
 PY
 
 echo '=== B4 WPCS SECURITY MONITOR (NOT A ZERO-WARNING GATE) ==='
