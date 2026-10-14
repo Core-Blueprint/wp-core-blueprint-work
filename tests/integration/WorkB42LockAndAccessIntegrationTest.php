@@ -138,4 +138,78 @@ final class WorkB42LockAndAccessIntegrationTest extends WP_UnitTestCase {
 			remove_filter( 'cb_work_frontend_can_read', $allow, 10 );
 		}
 	}
+
+	/** Real admin-post handler guards must reject an invalid nonce before mutation. */
+	public function test_manager_with_invalid_nonce_cannot_mutate_work(): void {
+		$actor = self::factory()->user->create( [ 'role' => 'subscriber' ] );
+		( new WP_User( $actor ) )->add_cap( Capabilities::MANAGE );
+		wp_set_current_user( $actor );
+		self::assertTrue( current_user_can( Capabilities::MANAGE ) );
+
+		$before_post = $_POST;
+		$before_request = $_REQUEST;
+		$die = static fn(): callable => static function (): never {
+			throw new RuntimeException( 'b42_nonce_rejected' );
+		};
+		add_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+
+		try {
+			$_POST = [
+				'_wpnonce' => 'invalid-work-b42-nonce',
+				'rule_id' => '987654',
+				'work_item_id' => '987654',
+				'status' => 'completed',
+			];
+			$_REQUEST = $_POST;
+			foreach ( [
+				[ \CB\Work\Admin\RecurrenceActions::class, 'trash' ],
+				[ \CB\Work\Admin\OperationalActions::class, 'transition_work_item' ],
+				[ \CB\Work\Admin\TaxRateActions::class, 'add' ],
+			] as $handler ) {
+				try {
+					call_user_func( $handler );
+					self::fail( 'Admin mutation continued past invalid nonce: ' . $handler[1] );
+				} catch ( RuntimeException $exception ) {
+					self::assertSame( 'b42_nonce_rejected', $exception->getMessage() );
+				}
+			}
+		} finally {
+			remove_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+			$_POST = $before_post;
+			$_REQUEST = $before_request;
+		}
+	}
+
+	/** Guest and subscriber should fail capability checks before action effects. */
+	public function test_unprivileged_admin_post_mutations_fail_closed(): void {
+		$before_post = $_POST;
+		$before_request = $_REQUEST;
+		$die = static fn(): callable => static function (): never {
+			throw new RuntimeException( 'b42_unauthorized' );
+		};
+		add_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+		try {
+			$_POST = [ '_wpnonce' => 'invalid', 'rule_id' => '12345', 'work_item_id' => '12345' ];
+			$_REQUEST = $_POST;
+			foreach ( [ 0, self::factory()->user->create( [ 'role' => 'subscriber' ] ) ] as $actor ) {
+				wp_set_current_user( $actor );
+				self::assertFalse( current_user_can( Capabilities::MANAGE ) );
+				foreach ( [
+					[ \CB\Work\Admin\RecurrenceActions::class, 'trash' ],
+					[ \CB\Work\Admin\OperationalActions::class, 'transition_work_item' ],
+				] as $handler ) {
+					try {
+						call_user_func( $handler );
+						self::fail( 'Unauthorized mutation proceeded: ' . $handler[1] );
+					} catch ( RuntimeException $exception ) {
+						self::assertSame( 'b42_unauthorized', $exception->getMessage() );
+					}
+				}
+			}
+		} finally {
+			remove_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+			$_POST = $before_post;
+			$_REQUEST = $before_request;
+		}
+	}
 }
