@@ -2616,3 +2616,69 @@ msgstr "Substituir a nota"
 
 msgid "Clear note"
 msgstr "Limpar nota"
+
+msgid "Move this rule to Trash? Generated Work Items and history will be preserved."
+msgstr "Mover esta regra para o lixo? Os itens de trabalho gerados e o respetivo histórico serão preservados."
+
+msgid "Delete Recurring Work Rule Permanently"
+msgstr "Eliminar permanentemente a regra de trabalho recorrente"
+
+msgid "This rule has occurrence history. Permanent deletion is blocked to preserve generated Work Items and their provenance. You can keep it in Trash."
+msgstr "Esta regra tem um histórico de ocorrências. A eliminação permanente está bloqueada para preservar os itens de trabalho gerados e a sua origem. Pode mantê-la no lixo."
+
+msgid "This permanently removes the rule and its assignments. It cannot be undone."
+msgstr "Esta ação elimina permanentemente a regra e as suas atribuições. Não pode ser anulada."
+
+msgid "I understand that this permanent deletion cannot be undone."
+msgstr "Compreendo que esta eliminação permanente não pode ser anulada."
+
+msgid "Delete Permanently"
+msgstr "Eliminar permanentemente"
+
+msgid "Back to Trash"
+msgstr "Voltar ao lixo"
+
+msgid "Move to Trash"
+msgstr "Mover para o lixo"
+
+msgid "Rule views"
+msgstr "Vistas de regras"
+
+msgid "All Rules"
+msgstr "Todas as regras"
+
+msgid "Trash"
+msgstr "Lixo"
+
+msgid "Trash is empty."
+msgstr "O lixo está vazio."
+
+msgid "Trashed"
+msgstr "No lixo"
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "Recurring Work rule moved to Trash."
+msgstr "Regra de trabalho recorrente movida para o lixo."
+
+msgid "Recurring Work rule restored as inactive."
+msgstr "Regra de trabalho recorrente restaurada como inativa."
+
+msgid "Recurring Work rule permanently deleted."
+msgstr "Regra de trabalho recorrente eliminada permanentemente."
+
+msgid "Permanent deletion is unavailable when occurrence history exists or confirmation is missing."
+msgstr "A eliminação permanente não está disponível quando existe histórico de ocorrências ou falta confirmação."
+
+msgid "The requested Recurring Work lifecycle action could not be completed."
+msgstr "Não foi possível concluir a ação pedida para o ciclo de vida do trabalho recorrente."
+
+msgid "Recurring Work rule moved to Trash"
+msgstr "Regra de trabalho recorrente movida para o lixo"
+
+msgid "Recurring Work rule restored"
+msgstr "Regra de trabalho recorrente restaurada"
+
+msgid "Recurring Work rule deleted permanently"
+msgstr "Regra de trabalho recorrente eliminada permanentemente"
