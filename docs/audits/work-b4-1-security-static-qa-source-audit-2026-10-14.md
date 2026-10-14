@@ -96,3 +96,17 @@ The operator updated the audit branch to `675aa3faa7e3cbf6d02bb3fe3b056740a4cec5
 The attempted PHPCS `--sniffs=WordPress.Security` was **invalid**: this option requires full sniff identifiers, not a category, and no security audit happened in that run. **Assistant command mistake**, not Work source behavior. The audit branch now includes `tools/audit-b4-security`, a **read-only isolated-local** runner that discovers the installed `WordPress/Sniffs/Security/*Sniff.php` files (including output escaping, nonce verification, sanitized inputs, safe redirects and plugin menu validation), builds explicit `WordPress.Security.Name` sniff codes, and runs WPCS with report output in the external QA workbench. The patched runner has not yet been executed by the operator: WPCS Security findings remain **PENDING**.
 
 Next: operator fetches new audit branch SHA, runs `bash -n tools/audit-b4-security`, then `bash tools/audit-b4-security`, and provides the full source-category report. Do **not** auto-fix 3,816 PHPCS warnings, install extra packages, or declare B4 finished. B4.2 runtime fixes need separate GO; Work main unchanged.
+
+## Operator WPCS Security result and detail drill-down (2026-10-14)
+
+Operator ran `bash tools/audit-b4-security` on Work audit branch `cd550532f5844cd8caab789059062502de4d2395`. The scanner discovered five installed WPCS WordPress.Security sniff groups: EscapeOutput, NonceVerification, PluginMenuSlug, SafeRedirect and ValidatedSanitizedInput. **The invocation worked** and returned:
+- **109** `Nonce verification missing`.
+- **78** `Nonce verification recommended`.
+- **44** `Escape output output not escaped`.
+- **231** aggregate sniff violations across 3 source categories, PHPCS exit 1.
+- Tracked Work source unchanged, only `?? dist/`.
+
+These are **pattern matches, not 231 confirmed security vulnerabilities**. A source spot check confirms capability checks and central `self::guard()` plus `check_admin_referer()` on each main mutating handler in `src/Admin/RecurrenceActions.php` and `src/Admin/OperationalActions.php`; `src/Admin/TimeActions.php` similarly guards admin posts, and `ProjectDataExchange.php` verifies AJAX capability and `check_ajax_referer`. WPCS source-scanning can report input read before following transitive guard analysis, and read-only filters do not necessarily need CSRF tokens. Nevertheless **each distinct mutation route must be checked manually** and representative output-escaping findings inspected in the actual sink/context before reclassifying.
+
+Added **read-only** `tools/audit-b4-security-detail`: reruns the five **real installed** sniff codes with PHPCS JSON output to the external QA workbench `reports/work-security-detail.json`, then prints each exact sniff identifier with 3 location examples, top 20 offending files and counts. It does not install tools, suppress warnings, auto-fix source or change the WordPress release. **Await the operator's local detail result** before any B4.2 remediation scope or security clearance. B4.1 remains SECURITY TRIAGE OPEN; no runtime fixes authorized.
+
