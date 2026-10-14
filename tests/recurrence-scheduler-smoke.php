@@ -35,7 +35,19 @@ $checks = [
 	'generator failures and runs are governed' => str_contains( $scheduler, 'Events::RECURRENCE_GENERATION_FAILED' ) && str_contains( $scheduler, 'Events::RECURRENCE_GENERATOR_RUN' ) && str_contains( $events, 'work.recurrence.generation.failed' ) && str_contains( $events, 'work.recurrence.generator.run' ),
 	'Recurring Work is an operational Work submenu' => str_contains( $menu, 'RECURRENCE_SLUG' ) && str_contains( $menu, "__( 'Recurring Work'" ) && str_contains( $menu, 'CONTEXT_RECURRENCE' ),
 	'admin schedule identity locks after occurrence history exists' => str_contains( $admin, 'RecurrenceOccurrences::count_for_rule' ) && str_contains( $admin, 'Frequency, interval, start date and end date are locked' ),
-	'admin exposes create edit toggle and run-now but no delete action' => str_contains( $actions, 'cb_work_create_recurrence_rule' ) && str_contains( $actions, 'cb_work_update_recurrence_rule' ) && str_contains( $actions, 'cb_work_toggle_recurrence_rule' ) && str_contains( $actions, 'cb_work_run_recurrence_generator' ) && ! str_contains( strtolower( $actions ), 'delete' ),
+		'admin retains create, edit, toggle and run-now alongside governed lifecycle' =>
+		str_contains( $actions, 'cb_work_create_recurrence_rule' )
+		&& str_contains( $actions, 'cb_work_update_recurrence_rule' )
+		&& str_contains( $actions, 'cb_work_toggle_recurrence_rule' )
+		&& str_contains( $actions, 'cb_work_run_recurrence_generator' )
+		&& str_contains( $actions, 'admin_post_cb_work_trash_recurrence_rule' )
+		&& str_contains( $actions, 'admin_post_cb_work_restore_recurrence_rule' )
+		&& str_contains( $actions, 'admin_post_cb_work_delete_recurrence_rule' )
+		&& str_contains( $actions, "self::guard( 'cb_work_trash_recurrence_rule_' . \$rule_id )" )
+		&& str_contains( $actions, "self::guard( 'cb_work_restore_recurrence_rule_' . \$rule_id )" )
+		&& str_contains( $actions, "self::guard( 'cb_work_delete_recurrence_rule_' . \$rule_id )" )
+		&& str_contains( $actions, "isset( \$_POST['confirm_permanent'] )" )
+		&& str_contains( $rules, 'self::has_occurrences( $id )' ),
 	'admin mutations are capability and nonce gated' => str_contains( $actions, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $actions, 'check_admin_referer( $nonce_action )' ),
 	'customer selection reuses CRM public transport contract' => str_contains( $actions, 'CRMCustomers::reference( $identifier )' ) && ! str_contains( $actions, 'CB\\CRM\\Repository' ) && ! str_contains( $actions, 'cb_crm_' ),
 	'Recurring Work reuses Base Object Picker for customer and assignees' => str_contains( $admin, 'Pickers::customer' ) && str_contains( $admin, 'Pickers::assignees' ) && str_contains( $pickers, 'Menu::RECURRENCE_SLUG' ),
