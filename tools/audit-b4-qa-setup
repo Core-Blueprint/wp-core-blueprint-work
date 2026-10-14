@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# B4 audit-only local QA toolchain. Installs only into a sibling directory.
+# Running this script downloads Composer packages: execute only with operator GO.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+BASE="$HOME/Downloads/wp-core-blueprint"
+
+fail() { printf 'B4 QA setup STOP: %s\n' "$*" >&2; exit 1; }
+
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] \
+    || fail "Work must be on the isolated B4 audit branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet \
+    || fail "Work tracked source is dirty."
+[[ -d "$BASE/src" ]] || fail "Canonical Base checkout missing at $BASE"
+command -v php >/dev/null 2>&1 && command -v composer >/dev/null 2>&1 \
+    || fail "PHP and Composer must already be installed."
+php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);' \
+    || fail "PHP 8.4+ is required."
+[[ ! -L "$QA" ]] || fail "QA target must not be a symbolic link."
+case "$QA/" in "$ROOT/"*|"$BASE/"*) fail "QA folder must be outside Work and Base.";; esac
+
+# Avoid overwriting any independently maintained QA toolchain or lockfile.
+[[ ! -e "$QA/composer.json" && ! -e "$QA/composer.lock" ]] \
+    || fail "QA manifest/lock already exists. Review it; never overwrite silently."
+
+mkdir -p "$QA"
+cat > "$QA/composer.json" <<'JSON'
+{
+  "name": "core-blueprint/local-qa-tools",
+  "description": "Local-only static QA workbench, deliberately outside WordPress plugin repositories",
+  "type": "project",
+  "require-dev": {
+    "phpstan/phpstan": "2.2.14",
+    "szepeviktor/phpstan-wordpress": "2.0.4",
+    "php-stubs/wordpress-stubs": "7.0.1",
+    "squizlabs/php_codesniffer": "3.13.5",
+    "wp-coding-standards/wpcs": "3.4.1"
+  },
+  "config": {
+    "allow-plugins": false,
+    "sort-packages": true
+  },
+  "minimum-stability": "stable"
+}
+JSON
+
+echo '=== Composer install isolated in QA directory (network/package downloads approved) ==='
+COMPOSER_NO_INTERACTION=1 composer --working-dir="$QA" install \
+    --no-plugins --no-scripts --prefer-dist --no-progress --no-interaction
+
+PHPSTAN="$QA/vendor/bin/phpstan"
+PHPCS="$QA/vendor/bin/phpcs"
+[[ -x "$PHPSTAN" && -x "$PHPCS" ]] || fail "Required QA binaries missing after install."
+
+# WPCS normally registers via a Composer plugin. Avoid executing plugins and
+# register only these explicitly trusted, locally installed standards instead.
+"$PHPCS" --config-set installed_paths \
+    "$QA/vendor/wp-coding-standards/wpcs,$QA/vendor/phpcsstandards/phpcsutils,$QA/vendor/phpcsstandards/phpcsextra"
+"$PHPCS" -i | grep -Fq 'WordPress-Extra' || fail "WPCS was not registered."
+
+mkdir -p "$QA/var/phpstan" "$QA/reports"
+cat > "$QA/phpstan.neon" <<NEON
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+parameters:
+    level: 2
+    paths:
+        - "$ROOT/src"
+        - "$ROOT/core-blueprint-work.php"
+    scanDirectories:
+        - "$BASE/src"
+    tmpDir: "$QA/var/phpstan"
+NEON
+
+echo '=== Tool versions ==='
+"$PHPSTAN" --version
+"$PHPCS" --version
+echo '=== Registered PHP_CodeSniffer standards ==='
+"$PHPCS" -i
+echo '=== Locked direct dependencies ==='
+composer --working-dir="$QA" show --locked --direct --no-ansi
+echo "QA directory: $QA"
+echo 'B4 QA TOOLCHAIN INSTALLED; STATIC ANALYSIS NOT YET RUN.'
