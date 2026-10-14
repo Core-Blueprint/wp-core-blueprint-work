@@ -18,7 +18,7 @@ $operations = $read( 'src/Admin/Operations.php' );
 $phpunit = $read( 'tests/integration/WorkB42LockAndAccessIntegrationTest.php' );
 
 $locked_start = strpos( $scheduler, 'WorkSqlTransaction::run(' );
-$row_lock = strpos( $scheduler, "'SELECT id FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" );
+$row_lock = strpos( $scheduler, "'SELECT id, is_active, trashed_at, created_by FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" );
 $gate = strpos( $scheduler, "\$claimed['claim_token'] !== \$token" );
 $create = strpos( $scheduler, 'WorkItems::create( $input )' );
 $attach = strpos( $scheduler, 'RecurrenceOccurrences::attach_work_item( $occurrence_id, $created_id, $token )' );
@@ -32,7 +32,7 @@ $checks = [
 		&& $gate < $create && $create < $attach && $attach < $closure_end,
 	'permanent Trash mutation retains its own database row lock' =>
 		str_contains( $trash, 'public static function trash(' )
-		&& str_contains( $trash, "'SELECT id FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" ),
+		&& str_contains( $trash, "'SELECT id, is_active, trashed_at, created_by FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" ),
 	'claim token must be checked immediately before creating the Work Item' =>
 		str_contains( $scheduler, "(string) \$claimed['claim_token'] !== \$token" ),
 	'failed transaction returns without a post-Trash creation attempt' =>
