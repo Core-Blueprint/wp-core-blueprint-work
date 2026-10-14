@@ -9,6 +9,8 @@ $projectMeta = file_get_contents( $root . '/src/Content/ProjectMeta.php' );
 $workItemMeta = file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $projects = file_get_contents( $root . '/src/Repository/Projects.php' );
 $workItems = file_get_contents( $root . '/src/Repository/WorkItems.php' );
+$workItemLinks = file_get_contents( $root . '/src/Repository/WorkItemLinks.php' );
+$workItemShape = file_get_contents( $root . '/src/Repository/WorkItemShape.php' );
 
 $checks = [
 	'current Work schema is 2.1 after bundle event outbox' => str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.1'" ),
@@ -25,8 +27,8 @@ $checks = [
 	'completion metadata remains separate from billing classification' => str_contains( $workItemMeta, '_cb_work_item_completed_at' ) && str_contains( $workItemMeta, '_cb_work_item_billing_disposition' ),
 	'default Work Types seed idempotently by stable code' => str_contains( $schema, 'seed_default_work_types' ) && str_contains( $schema, "'development'    => 'Development'" ),
 	'Project repository remains WordPress-native' => ! str_contains( $projects, 'Schema::' ) && ! str_contains( $projects, '$wpdb' ),
-	'Work Item repository uses WordPress post storage plus relational child tables' => str_contains( $workItems, 'PostTypes::WORK_ITEM' ) && str_contains( $workItems, 'wp_insert_post(' ) && str_contains( $workItems, 'Schema::assignments_table()' ) && ! str_contains( $workItems, 'Schema::work_items_table' ),
-	'Work Item creation validates optional Project Service and Work Type references' => str_contains( $workItems, 'Projects::get' ) && str_contains( $workItems, 'Services::get' ) && str_contains( $workItems, 'WorkTypes::get' ),
+	'Work Item repository uses WordPress post storage plus relational child tables' => str_contains( $workItems, 'PostTypes::WORK_ITEM' ) && str_contains( $workItems, 'wp_insert_post(' ) && str_contains( $workItems, 'WorkItemLinks::replace_assignments(' ) && str_contains( $workItemLinks, 'Schema::assignments_table()' ) && str_contains( $workItemLinks, 'Schema::relations_table()' ) && ! str_contains( $workItems . $workItemLinks, 'Schema::work_items_table' ),
+	'Work Item creation validates optional Project Service and Work Type references' => str_contains( $workItems, 'WorkItemShape::normalize_write(' ) && str_contains( $workItemShape, 'Projects::get' ) && str_contains( $workItemShape, 'Services::get' ) && str_contains( $workItemShape, 'WorkTypes::get' ),
 	'Work Item lifecycle emits public post-persistence hooks' => str_contains( $workItems, "DeferredEvents::lifecycle( 'cb_work_work_item_created'" ) && str_contains( $workItems, "DeferredEvents::lifecycle( 'cb_work_work_item_updated'" ) && str_contains( $workItems, "DeferredEvents::lifecycle( 'cb_work_work_item_status_changed'" ),
 	'recurrence schema stores first-class Work context' => str_contains( $schema, "work_context varchar(16) NOT NULL DEFAULT ''" ) && str_contains( $schema, 'KEY work_context (work_context)' ),
 	'context migration backfills only customer-linked legacy records' => str_contains( $schema, 'backfill_work_contexts' ) && str_contains( $schema, 'WorkContext::CUSTOMER' ) && str_contains( $schema, 'backfill_post_context' ),
