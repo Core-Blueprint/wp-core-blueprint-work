@@ -148,17 +148,20 @@ final class Scheduler {
 					static function () use ( $rule_id, $occurrence_id, $token ): int {
 						global $wpdb;
 						$table = Schema::recurrence_rules_table();
-						$locked = $wpdb->get_var( $wpdb->prepare(
-							'SELECT id FROM ' . $table . ' WHERE id = %d FOR UPDATE',
+						// Use the locking read as the authoritative status: a
+						// subsequent ordinary SELECT can see an old REPEATABLE READ
+						// snapshot when the caller already owns a transaction.
+						$locked = $wpdb->get_row( $wpdb->prepare(
+							'SELECT id, is_active, trashed_at, created_by FROM ' . $table . ' WHERE id = %d FOR UPDATE',
 							$rule_id
-						) );
-						if ( (int) $locked !== $rule_id || '' !== (string) $wpdb->last_error ) {
+						), ARRAY_A );
+						if ( ! is_array( $locked ) || (int) $locked['id'] !== $rule_id
+							|| 1 !== (int) $locked['is_active'] || null !== $locked['trashed_at']
+							|| '' !== (string) $wpdb->last_error ) {
 							return 0;
 						}
-						$fresh_rule = RecurrenceRules::get( $rule_id );
 						$claimed = RecurrenceOccurrences::get( $occurrence_id );
-						if ( null === $fresh_rule || empty( $fresh_rule['is_active'] ) || ! empty( $fresh_rule['is_trashed'] )
-							|| null === $claimed || (int) $claimed['rule_id'] !== $rule_id
+						if ( null === $claimed || (int) $claimed['rule_id'] !== $rule_id
 							|| (int) $claimed['work_item_id'] > 0 || (string) $claimed['claim_token'] !== $token ) {
 							return 0;
 						}
@@ -166,7 +169,7 @@ final class Scheduler {
 						if ( null === $input ) {
 							return 0;
 						}
-						$input['created_by'] = max( 0, (int) ( $fresh_rule['created_by'] ?? 0 ) );
+						$input['created_by'] = max( 0, (int) $locked['created_by'] );
 						$created_id = WorkItems::create( $input );
 						if ( $created_id <= 0 || ! RecurrenceOccurrences::attach_work_item( $occurrence_id, $created_id, $token ) ) {
 							return 0;
