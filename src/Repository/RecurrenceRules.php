@@ -793,14 +793,16 @@ final class RecurrenceRules {
 	}
 
 	private static function has_occurrences( int $rule_id ): bool {
+		// This predicate protects immutable schedule identity and permanent
+		// deletion. Missing schema or a failed ledger query MUST fail closed.
 		if ( ! self::schema_ready() || $rule_id <= 0 ) {
-			return false;
+			return true;
 		}
 		global $wpdb;
 		$exists = $wpdb->get_var(
 			$wpdb->prepare( 'SELECT id FROM ' . Schema::recurrence_occurrences_table() . ' WHERE rule_id = %d LIMIT 1', $rule_id )
 		);
-		return (bool) $exists;
+		return '' !== (string) $wpdb->last_error || (bool) $exists;
 	}
 
 	private static function valid_date( string $value ): bool {
