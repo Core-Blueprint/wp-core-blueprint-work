@@ -6,6 +6,7 @@ namespace {
 	$GLOBALS['hooks'] = [];
 	$GLOBALS['deactivated_plugins'] = [];
 	$GLOBALS['wp_die_args'] = null;
+	$GLOBALS['esc_url_inputs'] = [];
 
 	function add_action( string $hook, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool {
 		$GLOBALS['hooks'][ $hook ][ $priority ][] = [ $callback, $accepted_args ];
@@ -35,6 +36,12 @@ namespace {
 	function did_action( string $hook ): int { return 0; }
 	function doing_action( ?string $hook = null ): bool { return false; }
 	function admin_url( string $path = '' ): string { return 'https://example.test/wp-admin/' . ltrim( $path, '/' ); }
+	// WordPress' URL escaping is available even when Base is absent. The
+	// source hardening must be exercised, not bypassed by a missing test stub.
+	function esc_url( string $url ): string {
+		$GLOBALS['esc_url_inputs'][] = $url;
+		return htmlspecialchars( $url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' );
+	}
 	function deactivate_plugins( $plugins ): void { $GLOBALS['deactivated_plugins'][] = $plugins; }
 	function wp_die( $message = '', $title = '', $args = [] ): void {
 		$GLOBALS['wp_die_args'] = is_array( $args ) ? $args : [];
@@ -67,6 +74,7 @@ namespace {
 	assert_true( [ CB_WORK_BASENAME ] === $GLOBALS['deactivated_plugins'], 'Failed activation must explicitly deactivate Work before terminating.' );
 	assert_true( is_array( $GLOBALS['wp_die_args'] ), 'Failed activation must pass explicit wp_die arguments.' );
 	assert_true( 'https://example.test/wp-admin/plugins.php' === ( $GLOBALS['wp_die_args']['link_url'] ?? '' ), 'Failed activation must return to the canonical Plugins screen.' );
+	assert_true( [ 'https://example.test/wp-admin/plugins.php' ] === $GLOBALS['esc_url_inputs'], 'Failed activation must explicitly escape the canonical Plugins URL.' );
 	assert_true( 'Plugins' === ( $GLOBALS['wp_die_args']['link_text'] ?? '' ), 'Failed activation must label the canonical Plugins link.' );
 	assert_true( ! isset( $GLOBALS['wp_die_args']['back_link'] ), 'Failed activation must not use browser-history back navigation.' );
 
