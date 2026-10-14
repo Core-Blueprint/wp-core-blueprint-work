@@ -6,9 +6,11 @@ namespace CB\Work\Recurrence;
 use CoreBlueprint\Core\Governance\Audit;
 use CB\Work\Domain\RecurrenceSchedule;
 use CB\Work\Governance\Events;
+use CB\Work\Database\Schema;
 use CB\Work\Repository\RecurrenceOccurrences;
 use CB\Work\Repository\RecurrenceRules;
 use CB\Work\Repository\WorkItems;
+use CB\Work\Repository\WorkSqlTransaction;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -138,24 +140,53 @@ final class Scheduler {
 			}
 			$recovered = $linked_work_item_id > 0;
 			if ( ! $recovered ) {
-				$input = RecurrenceRules::occurrence_work_item_input( $occurrence_id );
-				if ( null === $input ) {
-					RecurrenceOccurrences::release( $occurrence_id, $token, 'Occurrence could not be projected to a Work Item.' );
-					self::failure( $rule_id, $occurrence_id, 'Occurrence could not be projected to a Work Item.', $source, $stats );
-					return;
-				}
-				$input['created_by'] = max( 0, (int) ( $rule['created_by'] ?? 0 ) );
-				$linked_work_item_id = WorkItems::create( $input );
+				// Serialize with RecurrenceRules::trash() on the SAME rule row.
+				// Claiming an occurrence is not sufficient: Trash can otherwise
+				// commit between the active-state check and wp_insert_post().
+				// This scoped transaction also atomically attaches the provenance.
+				$linked_work_item_id = WorkSqlTransaction::run(
+					static function () use ( $rule_id, $occurrence_id, $token ): int {
+						global $wpdb;
+						$table = Schema::recurrence_rules_table();
+						$locked = $wpdb->get_var( $wpdb->prepare(
+							'SELECT id FROM ' . $table . ' WHERE id = %d FOR UPDATE',
+							$rule_id
+						) );
+						if ( (int) $locked !== $rule_id || '' !== (string) $wpdb->last_error ) {
+							return 0;
+						}
+						$fresh_rule = RecurrenceRules::get( $rule_id );
+						$claimed = RecurrenceOccurrences::get( $occurrence_id );
+						if ( null === $fresh_rule || empty( $fresh_rule['is_active'] ) || ! empty( $fresh_rule['is_trashed'] )
+							|| null === $claimed || (int) $claimed['rule_id'] !== $rule_id
+							|| (int) $claimed['work_item_id'] > 0 || (string) $claimed['claim_token'] !== $token ) {
+							return 0;
+						}
+						$input = RecurrenceRules::occurrence_work_item_input( $occurrence_id );
+						if ( null === $input ) {
+							return 0;
+						}
+						$input['created_by'] = max( 0, (int) ( $fresh_rule['created_by'] ?? 0 ) );
+						$created_id = WorkItems::create( $input );
+						if ( $created_id <= 0 || ! RecurrenceOccurrences::attach_work_item( $occurrence_id, $created_id, $token ) ) {
+							return 0;
+						}
+						return $created_id;
+					},
+					0
+				);
 				if ( $linked_work_item_id <= 0 ) {
-					RecurrenceOccurrences::release( $occurrence_id, $token, 'Canonical Work Item creation failed.' );
-					self::failure( $rule_id, $occurrence_id, 'Canonical Work Item creation failed.', $source, $stats );
+					RecurrenceOccurrences::release( $occurrence_id, $token );
+					$after = RecurrenceRules::get( $rule_id );
+					if ( null === $after || empty( $after['is_active'] ) || ! empty( $after['is_trashed'] ) ) {
+						return;
+					}
+					self::failure( $rule_id, $occurrence_id, 'Canonical Work Item creation or atomic attachment failed.', $source, $stats );
 					return;
 				}
-			}
-
-			if ( ! RecurrenceOccurrences::attach_work_item( $occurrence_id, $linked_work_item_id, $token ) ) {
-				RecurrenceOccurrences::release( $occurrence_id, $token, 'Work Item could not be attached to the occurrence ledger.' );
-				self::failure( $rule_id, $occurrence_id, 'Work Item could not be attached to the occurrence ledger.', $source, $stats );
+			} elseif ( ! RecurrenceOccurrences::attach_work_item( $occurrence_id, $linked_work_item_id, $token ) ) {
+				RecurrenceOccurrences::release( $occurrence_id, $token, 'Recovered Work Item could not be attached to the ledger.' );
+				self::failure( $rule_id, $occurrence_id, 'Recovered Work Item could not be attached to the ledger.', $source, $stats );
 				return;
 			}
 
