@@ -14,6 +14,14 @@
         });
     });
 
+    document.querySelectorAll('[data-cb-recurrence-trash]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(config.trashConfirm || 'Move this rule to Trash?')) {
+                event.preventDefault();
+            }
+        });
+    });
+
     document.querySelectorAll('[data-cb-inline-toggle]').forEach((form) => {
         const row = form.closest('[data-cb-rule-row]');
         const button = form.querySelector('button[type="submit"]');
