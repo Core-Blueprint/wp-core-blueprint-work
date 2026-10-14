@@ -21,9 +21,7 @@ final class RecurrenceRules {
 		global $wpdb;
 		$limit = max( 1, min( 500, $limit ) );
 		$sql   = 'SELECT * FROM ' . Schema::recurrence_rules_table();
-		if ( $active_only ) {
-			$sql .= ' WHERE is_active = 1';
-		}
+		$sql .= $active_only ? ' WHERE is_active = 1 AND trashed_at IS NULL' : ' WHERE trashed_at IS NULL';
 		$sql .= ' ORDER BY is_active DESC, next_occurrence_on IS NULL ASC, next_occurrence_on ASC, id ASC LIMIT ' . $limit;
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
 		if ( ! is_array( $rows ) ) {
@@ -48,7 +46,7 @@ final class RecurrenceRules {
 		}
 		global $wpdb;
 		$table = Schema::recurrence_rules_table();
-		$where = [];
+		$where = [ ! empty( $filters['trash'] ) ? 'trashed_at IS NOT NULL' : 'trashed_at IS NULL' ];
 		$params = [];
 		$search = trim( (string) ( $filters['search'] ?? '' ) );
 		if ( '' !== $search ) {
@@ -145,7 +143,7 @@ final class RecurrenceRules {
 				return false;
 			}
 			$current = self::get( $id );
-			$normalized = null === $current ? null : self::normalize_write( $input, $current );
+			$normalized = null === $current || ! empty( $current['is_trashed'] ) ? null : self::normalize_write( $input, $current );
 			if ( null === $normalized ) {
 				return false;
 			}
@@ -158,6 +156,108 @@ final class RecurrenceRules {
 				[ '%d' ]
 			);
 			return false !== $updated && ( ! $normalized['assignments_changed'] || self::replace_assignments( $id, $normalized['assignments'] ) );
+		}, false );
+	}
+
+	/**
+	 * Soft trash always pauses generation; the rule, assignments and ledger
+	 * remain intact, so historical Work Items and audit history remain intact.
+	 */
+	public static function trash( int $id, int $actor_user_id ): bool {
+		if ( $id <= 0 || $actor_user_id <= 0 || ! self::schema_ready() ) {
+			return false;
+		}
+		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id ): bool {
+			global $wpdb;
+			$table = Schema::recurrence_rules_table();
+			$locked = $wpdb->get_var( $wpdb->prepare(
+				'SELECT id FROM ' . $table . ' WHERE id = %d FOR UPDATE', $id
+			) );
+			if ( (int) $locked !== $id ) {
+				return false;
+			}
+			$rule = self::get( $id );
+			if ( null === $rule || ! empty( $rule['is_trashed'] ) ) {
+				return false;
+			}
+			$updated = $wpdb->update(
+				$table,
+				[
+					'is_active' => 0,
+					'trashed_at' => current_time( 'mysql', true ),
+					'trashed_by' => $actor_user_id,
+					'updated_by' => $actor_user_id,
+					'updated_at' => current_time( 'mysql', true ),
+				],
+				[ 'id' => $id ],
+				[ '%d', '%s', '%d', '%d', '%s' ],
+				[ '%d' ]
+			);
+			return 1 === $updated;
+		}, false );
+	}
+
+	/** Restoring a rule is intentionally always inactive. */
+	public static function restore( int $id, int $actor_user_id ): bool {
+		if ( $id <= 0 || $actor_user_id <= 0 || ! self::schema_ready() ) {
+			return false;
+		}
+		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id ): bool {
+			global $wpdb;
+			$table = Schema::recurrence_rules_table();
+			$locked = $wpdb->get_var( $wpdb->prepare(
+				'SELECT id FROM ' . $table . ' WHERE id = %d FOR UPDATE', $id
+			) );
+			if ( (int) $locked !== $id ) {
+				return false;
+			}
+			$rule = self::get( $id );
+			if ( null === $rule || empty( $rule['is_trashed'] ) ) {
+				return false;
+			}
+			return 1 === $wpdb->update(
+				$table,
+				[
+					'is_active' => 0,
+					'trashed_at' => null,
+					'trashed_by' => 0,
+					'updated_by' => $actor_user_id,
+					'updated_at' => current_time( 'mysql', true ),
+				],
+				[ 'id' => $id ],
+				[ '%d', '%s', '%d', '%d', '%s' ],
+				[ '%d' ]
+			);
+		}, false );
+	}
+
+	/**
+	 * Permanent deletion is only allowed for trashed rules without ANY
+	 * occurrence ledger rows. Never cascade into generated Work Items.
+	 * Lock ordering serializes with generator reservation.
+	 */
+	public static function delete_permanently( int $id ): bool {
+		if ( $id <= 0 || ! self::schema_ready() ) {
+			return false;
+		}
+		return WorkSqlTransaction::run( static function () use ( $id ): bool {
+			global $wpdb;
+			$table = Schema::recurrence_rules_table();
+			$locked = $wpdb->get_var( $wpdb->prepare(
+				'SELECT id FROM ' . $table . ' WHERE id = %d FOR UPDATE', $id
+			) );
+			if ( (int) $locked !== $id ) {
+				return false;
+			}
+			$rule = self::get( $id );
+			if ( null === $rule || empty( $rule['is_trashed'] ) || self::has_occurrences( $id ) ) {
+				return false;
+			}
+			$removed = $wpdb->delete( Schema::recurrence_assignments_table(), [ 'rule_id' => $id ], [ '%d' ] );
+			if ( false === $removed ) {
+				return false;
+			}
+			return 1 === $wpdb->delete( $table, [ 'id' => $id ], [ '%d' ] );
 		}, false );
 	}
 
@@ -187,7 +287,7 @@ final class RecurrenceRules {
 		$limit = max( 1, min( 500, $limit ) );
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . Schema::recurrence_rules_table() . ' WHERE is_active = 1 AND next_occurrence_on IS NOT NULL AND next_occurrence_on <= DATE_ADD(%s, INTERVAL create_ahead_days DAY) ORDER BY next_occurrence_on ASC, id ASC LIMIT %d',
+				'SELECT * FROM ' . Schema::recurrence_rules_table() . ' WHERE is_active = 1 AND trashed_at IS NULL AND next_occurrence_on IS NOT NULL AND next_occurrence_on <= DATE_ADD(%s, INTERVAL create_ahead_days DAY) ORDER BY next_occurrence_on ASC, id ASC LIMIT %d',
 				$today_on,
 				$limit
 			),
@@ -205,23 +305,34 @@ final class RecurrenceRules {
 	 * A zero return means nothing was reserved by this caller.
 	 */
 	public static function reserve_next_occurrence( int $rule_id ): int {
-		$rule = self::get( $rule_id );
-		if ( null === $rule || ! $rule['is_active'] || null === $rule['next_occurrence_on'] ) {
+		if ( $rule_id <= 0 || ! self::schema_ready() ) {
 			return 0;
 		}
-		global $wpdb;
-		$ok = $wpdb->insert(
-			Schema::recurrence_occurrences_table(),
-			[
-				'rule_id'       => $rule_id,
-				'occurrence_on' => $rule['next_occurrence_on'],
-				'work_item_id'  => 0,
-				'created_at'    => current_time( 'mysql', true ),
-				'generated_at'  => null,
-			],
-			[ '%d', '%s', '%d', '%s', '%s' ]
-		);
-		return false === $ok ? 0 : (int) $wpdb->insert_id;
+		return WorkSqlTransaction::run( static function () use ( $rule_id ): int {
+			global $wpdb;
+			$locked = $wpdb->get_var( $wpdb->prepare(
+				'SELECT id FROM ' . Schema::recurrence_rules_table() . ' WHERE id = %d FOR UPDATE', $rule_id
+			) );
+			if ( (int) $locked !== $rule_id ) {
+				return 0;
+			}
+			$rule = self::get( $rule_id );
+			if ( null === $rule || ! $rule['is_active'] || ! empty( $rule['is_trashed'] ) || null === $rule['next_occurrence_on'] ) {
+				return 0;
+			}
+			$ok = $wpdb->insert(
+				Schema::recurrence_occurrences_table(),
+				[
+					'rule_id'       => $rule_id,
+					'occurrence_on' => $rule['next_occurrence_on'],
+					'work_item_id'  => 0,
+					'created_at'    => current_time( 'mysql', true ),
+					'generated_at'  => null,
+				],
+				[ '%d', '%s', '%d', '%s', '%s' ]
+			);
+			return false === $ok ? 0 : (int) $wpdb->insert_id;
+		}, 0 );
 	}
 
 	/** @return array<string,mixed>|null */
@@ -658,6 +769,9 @@ final class RecurrenceRules {
 			'create_ahead_days'    => (int) $row['create_ahead_days'],
 			'due_offset_days'      => (int) $row['due_offset_days'],
 			'is_active'            => (bool) $row['is_active'],
+			'is_trashed'           => null !== ( $row['trashed_at'] ?? null ),
+			'trashed_at'           => $row['trashed_at'] ?? null,
+			'trashed_by'           => (int) ( $row['trashed_by'] ?? 0 ),
 			'created_by'           => (int) $row['created_by'],
 			'updated_by'           => (int) $row['updated_by'],
 			'created_at'           => (string) $row['created_at'],
