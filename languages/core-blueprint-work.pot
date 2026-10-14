@@ -2626,3 +2626,69 @@ msgstr ""
 #: src/Admin/TimeEntryList.php
 msgid "Clear note"
 msgstr ""
+
+msgid "Move this rule to Trash? Generated Work Items and history will be preserved."
+msgstr ""
+
+msgid "Delete Recurring Work Rule Permanently"
+msgstr ""
+
+msgid "This rule has occurrence history. Permanent deletion is blocked to preserve generated Work Items and their provenance. You can keep it in Trash."
+msgstr ""
+
+msgid "This permanently removes the rule and its assignments. It cannot be undone."
+msgstr ""
+
+msgid "I understand that this permanent deletion cannot be undone."
+msgstr ""
+
+msgid "Delete Permanently"
+msgstr ""
+
+msgid "Back to Trash"
+msgstr ""
+
+msgid "Move to Trash"
+msgstr ""
+
+msgid "Rule views"
+msgstr ""
+
+msgid "All Rules"
+msgstr ""
+
+msgid "Trash"
+msgstr ""
+
+msgid "Trash is empty."
+msgstr ""
+
+msgid "Trashed"
+msgstr ""
+
+msgid "Restore"
+msgstr ""
+
+msgid "Recurring Work rule moved to Trash."
+msgstr ""
+
+msgid "Recurring Work rule restored as inactive."
+msgstr ""
+
+msgid "Recurring Work rule permanently deleted."
+msgstr ""
+
+msgid "Permanent deletion is unavailable when occurrence history exists or confirmation is missing."
+msgstr ""
+
+msgid "The requested Recurring Work lifecycle action could not be completed."
+msgstr ""
+
+msgid "Recurring Work rule moved to Trash"
+msgstr ""
+
+msgid "Recurring Work rule restored"
+msgstr ""
+
+msgid "Recurring Work rule deleted permanently"
+msgstr ""
