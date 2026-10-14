@@ -60,6 +60,7 @@ function wp_cache_delete( int $id, string $group ): bool {
 
 $root = dirname( __DIR__ );
 $repo = (string) file_get_contents( $root . '/src/Repository/WorkItems.php' );
+$links = (string) file_get_contents( $root . '/src/Repository/WorkItemLinks.php' );
 $meta = (string) file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $board = (string) file_get_contents( $root . '/src/Admin/WorkItemBoardActions.php' );
 $client = (string) file_get_contents( $root . '/assets/work-items-reorder.js' );
@@ -81,8 +82,10 @@ $checks = [
 		str_contains( $repo, 'WorkItemMeta::details_match( $id, $normalized )' )
 		&& str_contains( $meta, 'function details_match(' ),
 	'assignments never begin a nested SQL transaction' =>
-		str_contains( $repo, 'private static function write_assignments(' )
-		&& ! str_contains( $repo, "\$wpdb->query( 'START TRANSACTION' )" ),
+		str_contains( $links, 'public static function write_assignments(' )
+		&& str_contains( $repo, 'WorkItemLinks::write_assignments( $id' )
+		&& str_contains( $links, 'WorkItemMutationTransaction::run(' )
+		&& ! str_contains( $repo . $links, "\$wpdb->query( 'START TRANSACTION' )" ),
 	'Board posts snapshot and rejects stale requests' =>
 		str_contains( $client, "body.set('expected_status', card.dataset.cbWorkStatus || '')" )
 		&& str_contains( $board, "'expected_status'" )
