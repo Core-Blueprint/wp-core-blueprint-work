@@ -7,7 +7,7 @@ REPORT="$QA/reports"
 PHPCS="$QA/vendor/bin/phpcs"
 SECURITY_DIR="$QA/vendor/wp-coding-standards/wpcs/WordPress/Sniffs/Security"
 fail() { printf "B4 SECURITY AUDIT STOP: %s\n" "$*" >&2; exit 2; }
-[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || fail "Wrong branch."
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" || "$(git -C "$ROOT" branch --show-current)" == "feature/work-b4-2-security-final-golden-v1" ]] || fail "Wrong branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Tracked Work source is dirty."
 [[ -x "$PHPCS" && -d "$SECURITY_DIR" ]] || fail "Isolated WPCS tools unavailable."
 mapfile -t sniffs < <(find "$SECURITY_DIR" -maxdepth 1 -type f -name "*Sniff.php" -printf "%f\n" | sed -e "s/Sniff.php$//" -e "s/^/WordPress.Security./" | LC_ALL=C sort)
