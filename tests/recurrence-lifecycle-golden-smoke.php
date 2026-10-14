@@ -36,6 +36,8 @@ $checks = [
 		&& str_contains( $repo, 'empty( $rule[\'is_trashed\'] ) || self::has_occurrences( $id )' )
 		&& str_contains( $repo, '$wpdb->delete( Schema::recurrence_assignments_table()' )
 		&& ! str_contains( substr( $repo, strpos( $repo, 'public static function delete_permanently(' ), 1600 ), 'wp_delete_post(' ),
+	'Ledger history lookup fails closed on SQL errors' => str_contains( $repo, "return '' !== (string) \$wpdb->last_error || (bool) \$exists;" )
+		&& str_contains( $repo, 'private static function has_occurrences(' ),
 	'Generator rejects Trash before and after claiming occurrences' =>
 		str_contains( $scheduler, '! empty( $rule[\'is_trashed\'] )' )
 		&& str_contains( $scheduler, '$current_rule = RecurrenceRules::get( $rule_id );' )
