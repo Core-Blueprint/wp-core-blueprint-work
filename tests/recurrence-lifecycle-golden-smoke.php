@@ -33,13 +33,13 @@ $checks = [
 		&& str_contains( $repo, "'is_active' => 0" ),
 	'Permanent delete protects occurrence ledger and never deletes Work Items' =>
 		str_contains( $repo, 'public static function delete_permanently(' )
-		&& str_contains( $repo, "empty( $rule['is_trashed'] ) || self::has_occurrences( $id )" )
+		&& str_contains( $repo, 'empty( $rule[\'is_trashed\'] ) || self::has_occurrences( $id )' )
 		&& str_contains( $repo, '$wpdb->delete( Schema::recurrence_assignments_table()' )
 		&& ! str_contains( substr( $repo, strpos( $repo, 'public static function delete_permanently(' ), 1600 ), 'wp_delete_post(' ),
 	'Generator rejects Trash before and after claiming occurrences' =>
-		str_contains( $scheduler, "! empty( $rule['is_trashed'] )" )
+		str_contains( $scheduler, '! empty( $rule[\'is_trashed\'] )' )
 		&& str_contains( $scheduler, '$current_rule = RecurrenceRules::get( $rule_id );' )
-		&& str_contains( $scheduler, "RecurrenceOccurrences::release( $occurrence_id, $token )" ),
+		&& str_contains( $scheduler, 'RecurrenceOccurrences::release( $occurrence_id, $token )' ),
 	'Admin POST actions enforce capability nonce and explicit permanent confirmation' =>
 		str_contains( $actions, 'admin_post_cb_work_trash_recurrence_rule' )
 		&& str_contains( $actions, 'admin_post_cb_work_restore_recurrence_rule' )
@@ -47,7 +47,7 @@ $checks = [
 		&& str_contains( $actions, "self::guard( 'cb_work_trash_recurrence_rule_' . $rule_id )" )
 		&& str_contains( $actions, "self::guard( 'cb_work_restore_recurrence_rule_' . $rule_id )" )
 		&& str_contains( $actions, "self::guard( 'cb_work_delete_recurrence_rule_' . $rule_id )" )
-		&& str_contains( $actions, "isset( $_POST['confirm_permanent'] )" ),
+		&& str_contains( $actions, 'isset( $_POST[\'confirm_permanent\'] )' ),
 	'Admin has Trash view, Restore and confirmed Delete including no-JS checkbox' =>
 		str_contains( $admin, "'cb_view' => 'trash'" )
 		&& str_contains( $admin, 'cb_work_trash_recurrence_rule' )
