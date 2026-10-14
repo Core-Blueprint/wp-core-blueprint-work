@@ -18,6 +18,13 @@ command -v php >/dev/null 2>&1 && command -v composer >/dev/null 2>&1 \
     || fail "PHP and Composer must already be installed."
 php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);' \
     || fail "PHP 8.4+ is required."
+
+# Composer/WPCS require XML and tokenization support. Preflight before writing
+# the manifest so missing packages never leave an ambiguous partial workbench.
+for extension in filter libxml tokenizer xmlreader xmlwriter simplexml; do
+    php -r 'exit(extension_loaded($argv[1]) ? 0 : 1);' "$extension" \
+        || fail "Missing PHP extension: $extension (required for WPCS/PHPCS)."
+done
 [[ ! -L "$QA" ]] || fail "QA target must not be a symbolic link."
 case "$QA/" in "$ROOT/"*|"$BASE/"*) fail "QA folder must be outside Work and Base.";; esac
 
