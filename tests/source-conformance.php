@@ -39,6 +39,8 @@ $required = [
 	'src/Admin/ProjectWorkspace.php',
 	'src/Integration/DataExchange/ProjectBundleEntity.php',
 	'src/Repository/PortableIdentities.php',
+	'src/Repository/WorkItemLinks.php',
+	'src/Repository/WorkItemShape.php',
 	'src/Admin/DailyOverview.php',
 	'src/Admin/QuickAdd.php',
 	'assets/work-workspace.css',
