@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Audit-only calibration: define Work's known bootstrap symbols in PHPStan process.
+# No Work runtime/Composer dependencies are changed. No network actions.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+OUT="$QA/reports/work-phpstan-calibrated.json"
+fail() { printf "B4 PHPSTAN CALIBRATION STOP: %s\n" "$*" >&2; exit 2; }
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || fail "Wrong Work branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Tracked Work tree is dirty."
+[[ -x "$QA/vendor/bin/phpstan" && -f "$QA/phpstan.neon" && -f "$QA/composer.lock" ]] || fail "Approved QA workbench missing."
+[[ ! -L "$QA" ]] || fail "QA workbench is a symbolic link."
+for symbol in CB_WORK_VERSION CB_WORK_SCHEMA_VERSION CB_WORK_MIN_PHP CB_WORK_REQUIRED_API CB_WORK_FILE CB_WORK_DIR CB_WORK_URL CB_WORK_BASENAME; do
+    grep -Fq "define( '$symbol'," "$ROOT/core-blueprint-work.php" || fail "Bootstrap definition missing: $symbol"
+done
+mkdir -p "$QA/stubs" "$QA/reports"
+[[ ! -L "$QA/stubs/work-runtime-constants.php" && ! -L "$QA/phpstan-b4.neon" ]] || fail "Refuse to overwrite symlink."
+cat > "$QA/stubs/work-runtime-constants.php" <<'PHP'
+<?php
+declare(strict_types=1);
+// PHPStan-process-only shadow declarations of constants from the Work bootstrap.
+// These are never included by WordPress and never shipped with Work.
+defined('CB_WORK_VERSION') || define('CB_WORK_VERSION', '1.0.0-rc1');
+defined('CB_WORK_SCHEMA_VERSION') || define('CB_WORK_SCHEMA_VERSION', '2.2');
+defined('CB_WORK_MIN_PHP') || define('CB_WORK_MIN_PHP', '8.4');
+defined('CB_WORK_REQUIRED_API') || define('CB_WORK_REQUIRED_API', '1.1');
+defined('CB_WORK_FILE') || define('CB_WORK_FILE', dirname(__DIR__, 2) . '/wp-core-blueprint-work/core-blueprint-work.php');
+defined('CB_WORK_DIR') || define('CB_WORK_DIR', dirname(__DIR__, 2) . '/wp-core-blueprint-work/');
+defined('CB_WORK_URL') || define('CB_WORK_URL', '/core-blueprint-work/');
+defined('CB_WORK_BASENAME') || define('CB_WORK_BASENAME', 'core-blueprint-work/core-blueprint-work.php');
+PHP
+cat > "$QA/phpstan-b4.neon" <<NEON
+includes:
+    - phpstan.neon
+parameters:
+    bootstrapFiles:
+        - "$QA/stubs/work-runtime-constants.php"
+NEON
+echo "=== Work audit source ==="
+git -C "$ROOT" rev-parse HEAD
+echo "=== Pinned QA composer.lock ==="
+sha256sum "$QA/composer.lock"
+echo "=== PHPStan with external-only Work constant definitions ==="
+set +e
+"$QA/vendor/bin/phpstan" analyse --configuration="$QA/phpstan-b4.neon" --no-progress --memory-limit=2G --error-format=json > "$OUT" 2> "$QA/reports/work-phpstan-calibrated-stderr.txt"
+stan_exit=$?
+set -e
+python3 - "$OUT" <<'PY'
+import collections, json, pathlib, sys
+p = pathlib.Path(sys.argv[1])
+try:
+    data = json.loads(p.read_text(encoding="utf-8"))
+except (OSError, ValueError) as exc:
+    raise SystemExit(f"STOP: PHPStan returned no valid JSON report: {exc}")
+counts = collections.Counter()
+examples = {}
+for name, file_data in data.get("files", {}).items():
+    for msg in file_data.get("messages", []):
+        key = msg.get("identifier") or "unclassified"
+        counts[key] += 1
+        examples.setdefault(key, (name, msg.get("line"), msg.get("message")))
+print("=== Calibrated PHPStan identifier counts ===")
+for key, count in counts.most_common():
+    name, line, message = examples[key]
+    print(f"{count:>4}  {key}: {name}:{line}: {message[:140]}")
+print(f"TOTAL categorized: {sum(counts.values())}")
+print(f"General errors: {len(data.get('errors', []))}")
+print("Note: analysis bootstrap is external only; remaining errors need review.")
+PY
+printf "PHPStan analyzer exit=%s\n" "$stan_exit"
+printf "Report: %s\n" "$OUT"
+git -C "$ROOT" status --short
