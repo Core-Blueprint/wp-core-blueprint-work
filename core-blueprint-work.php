@@ -45,8 +45,8 @@ if ( version_compare( PHP_VERSION, CB_WORK_MIN_PHP, '<' ) ) {
 			esc_html( sprintf( 'PHP %1$s or newer is required. This server runs PHP %2$s.', CB_WORK_MIN_PHP, PHP_VERSION ) ),
 			esc_html( 'Core Blueprint requirements not met' ),
 			[
-				'link_url'  => admin_url( 'plugins.php' ),
-				'link_text' => __( 'Plugins', 'core-blueprint-work' ),
+				'link_url'  => esc_url( admin_url( 'plugins.php' ) ),
+				'link_text' => esc_html__( 'Plugins', 'core-blueprint-work' ),
 			]
 		);
 	} );
