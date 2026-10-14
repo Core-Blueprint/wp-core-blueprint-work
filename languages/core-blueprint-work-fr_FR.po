@@ -2626,3 +2626,69 @@ msgstr "Remplacer la note"
 
 msgid "Clear note"
 msgstr "Effacer la note"
+
+msgid "Move this rule to Trash? Generated Work Items and history will be preserved."
+msgstr "Déplacer cette règle vers la corbeille ? Les éléments de travail générés et leur historique seront conservés."
+
+msgid "Delete Recurring Work Rule Permanently"
+msgstr "Supprimer définitivement la règle de travail récurrent"
+
+msgid "This rule has occurrence history. Permanent deletion is blocked to preserve generated Work Items and their provenance. You can keep it in Trash."
+msgstr "Cette règle possède un historique d’occurrences. La suppression définitive est bloquée afin de préserver les éléments de travail générés et leur provenance. Vous pouvez la conserver dans la corbeille."
+
+msgid "This permanently removes the rule and its assignments. It cannot be undone."
+msgstr "Cette action supprime définitivement la règle et ses attributions. Elle est irréversible."
+
+msgid "I understand that this permanent deletion cannot be undone."
+msgstr "Je comprends que cette suppression définitive est irréversible."
+
+msgid "Delete Permanently"
+msgstr "Supprimer définitivement"
+
+msgid "Back to Trash"
+msgstr "Retour à la corbeille"
+
+msgid "Move to Trash"
+msgstr "Mettre à la corbeille"
+
+msgid "Rule views"
+msgstr "Vues des règles"
+
+msgid "All Rules"
+msgstr "Toutes les règles"
+
+msgid "Trash"
+msgstr "Corbeille"
+
+msgid "Trash is empty."
+msgstr "La corbeille est vide."
+
+msgid "Trashed"
+msgstr "Dans la corbeille"
+
+msgid "Restore"
+msgstr "Restaurer"
+
+msgid "Recurring Work rule moved to Trash."
+msgstr "Règle de travail récurrent déplacée vers la corbeille."
+
+msgid "Recurring Work rule restored as inactive."
+msgstr "Règle de travail récurrent restaurée à l’état inactif."
+
+msgid "Recurring Work rule permanently deleted."
+msgstr "Règle de travail récurrent supprimée définitivement."
+
+msgid "Permanent deletion is unavailable when occurrence history exists or confirmation is missing."
+msgstr "La suppression définitive est impossible s’il existe un historique d’occurrences ou si la confirmation manque."
+
+msgid "The requested Recurring Work lifecycle action could not be completed."
+msgstr "L’action demandée sur le cycle de vie du travail récurrent n’a pas pu être effectuée."
+
+msgid "Recurring Work rule moved to Trash"
+msgstr "Règle de travail récurrent déplacée vers la corbeille"
+
+msgid "Recurring Work rule restored"
+msgstr "Règle de travail récurrent restaurée"
+
+msgid "Recurring Work rule deleted permanently"
+msgstr "Règle de travail récurrent supprimée définitivement"
