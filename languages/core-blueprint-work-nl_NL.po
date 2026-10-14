@@ -2611,3 +2611,69 @@ msgstr "Notitie vervangen"
 
 msgid "Clear note"
 msgstr "Notitie wissen"
+
+msgid "Move this rule to Trash? Generated Work Items and history will be preserved."
+msgstr "Deze regel naar de prullenbak verplaatsen? Gegenereerde werkitems en historie blijven behouden."
+
+msgid "Delete Recurring Work Rule Permanently"
+msgstr "Regel voor terugkerend werk definitief verwijderen"
+
+msgid "This rule has occurrence history. Permanent deletion is blocked to preserve generated Work Items and their provenance. You can keep it in Trash."
+msgstr "Deze regel heeft uitvoeringshistorie. Definitief verwijderen is geblokkeerd om gegenereerde werkitems en hun herkomst te behouden. Je kunt de regel in de prullenbak laten staan."
+
+msgid "This permanently removes the rule and its assignments. It cannot be undone."
+msgstr "Hiermee verwijder je de regel en de toewijzingen definitief. Dit kan niet ongedaan worden gemaakt."
+
+msgid "I understand that this permanent deletion cannot be undone."
+msgstr "Ik begrijp dat deze definitieve verwijdering niet ongedaan kan worden gemaakt."
+
+msgid "Delete Permanently"
+msgstr "Definitief verwijderen"
+
+msgid "Back to Trash"
+msgstr "Terug naar prullenbak"
+
+msgid "Move to Trash"
+msgstr "Naar prullenbak"
+
+msgid "Rule views"
+msgstr "Regelweergaven"
+
+msgid "All Rules"
+msgstr "Alle regels"
+
+msgid "Trash"
+msgstr "Prullenbak"
+
+msgid "Trash is empty."
+msgstr "De prullenbak is leeg."
+
+msgid "Trashed"
+msgstr "In prullenbak"
+
+msgid "Restore"
+msgstr "Herstellen"
+
+msgid "Recurring Work rule moved to Trash."
+msgstr "Regel voor terugkerend werk verplaatst naar de prullenbak."
+
+msgid "Recurring Work rule restored as inactive."
+msgstr "Regel voor terugkerend werk hersteld als inactief."
+
+msgid "Recurring Work rule permanently deleted."
+msgstr "Regel voor terugkerend werk definitief verwijderd."
+
+msgid "Permanent deletion is unavailable when occurrence history exists or confirmation is missing."
+msgstr "Definitief verwijderen is niet mogelijk zolang uitvoeringshistorie bestaat of een bevestiging ontbreekt."
+
+msgid "The requested Recurring Work lifecycle action could not be completed."
+msgstr "De aangevraagde actie voor terugkerend werk kon niet worden voltooid."
+
+msgid "Recurring Work rule moved to Trash"
+msgstr "Regel voor terugkerend werk naar prullenbak verplaatst"
+
+msgid "Recurring Work rule restored"
+msgstr "Regel voor terugkerend werk hersteld"
+
+msgid "Recurring Work rule deleted permanently"
+msgstr "Regel voor terugkerend werk definitief verwijderd"
