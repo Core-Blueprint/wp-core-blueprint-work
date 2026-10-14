@@ -6,6 +6,8 @@ $postTypes = file_get_contents( $root . '/src/Content/PostTypes.php' );
 $meta = file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $rest = file_get_contents( $root . '/src/Content/WorkItemRestController.php' );
 $repo = file_get_contents( $root . '/src/Repository/WorkItems.php' );
+$shape = file_get_contents( $root . '/src/Repository/WorkItemShape.php' );
+$links = file_get_contents( $root . '/src/Repository/WorkItemLinks.php' );
 $admin = file_get_contents( $root . '/src/Admin/WorkItems.php' );
 $operations = file_get_contents( $root . '/src/Admin/Operations.php' );
 $boardRenderer = file_get_contents( $root . '/src/Admin/WorkItemBoardRenderer.php' );
@@ -20,10 +22,10 @@ $checks = [
 	'Work Item REST reads require Work management capability' => str_contains( $rest, 'current_user_can( Capabilities::MANAGE )' ) && str_contains( $rest, 'get_items_permissions_check' ) && str_contains( $rest, 'get_item_permissions_check' ),
 	'Work Item state is registered Work-owned post meta' => str_contains( $meta, 'register_post_meta( PostTypes::WORK_ITEM' ) && str_contains( $meta, '_cb_work_item_project_id' ) && str_contains( $meta, '_cb_work_item_status' ) && str_contains( $meta, '_cb_work_item_billing_disposition' ),
 	'Work Item repository is CPT-backed' => str_contains( $repo, 'new \\WP_Query' ) && str_contains( $repo, 'get_post( $id )' ) && str_contains( $repo, 'wp_insert_post(' ) && str_contains( $repo, 'wp_update_post(' ) && ! str_contains( $repo, 'Schema::work_items_table' ),
-	'Work Item repository validates Project Service and Work Type references' => str_contains( $repo, 'Projects::get( $project_id )' ) && str_contains( $repo, 'Services::get( $service_id )' ) && str_contains( $repo, 'WorkTypes::get( $work_type_id )' ),
-	'projectless Work Items remain supported' => str_contains( $repo, "'project_id'          => \$project_id" ) && str_contains( $meta, 'self::write_id( $work_item_id, self::PROJECT_ID' ),
-	'Project customer may still be inherited' => str_contains( $repo, "\$project['customer_provider']" ) && str_contains( $repo, "'customer_provider'   => \$customer['provider']" ),
-	'assignments and integration relations stay relational child rows' => str_contains( $schema, "'cb_work_item_assignments'" ) && str_contains( $schema, "'cb_work_item_relations'" ) && str_contains( $repo, 'Schema::assignments_table()' ) && str_contains( $repo, 'Schema::relations_table()' ),
+	'Work Item repository validates Project Service and Work Type references' => str_contains( $shape, 'Projects::get( $project_id )' ) && str_contains( $shape, 'Services::get( $service_id )' ) && str_contains( $shape, 'WorkTypes::get( $work_type_id )' ),
+	'projectless Work Items remain supported' => str_contains( $shape, "'project_id'          => \$project_id" ) && str_contains( $meta, 'self::write_id( $work_item_id, self::PROJECT_ID' ),
+	'Project customer may still be inherited' => str_contains( $shape, "\$project['customer_provider']" ) && str_contains( $shape, "'customer_provider'   => \$customer['provider']" ),
+	'assignments and integration relations stay relational child rows' => str_contains( $schema, "'cb_work_item_assignments'" ) && str_contains( $schema, "'cb_work_item_relations'" ) && str_contains( $links, 'Schema::assignments_table()' ) && str_contains( $links, 'Schema::relations_table()' ),
 	'pre-v1 relational Work Item table is absent from the canonical schema' => ! str_contains( $schema, 'work_items_table' ) && ! str_contains( $schema, "'cb_work_items'" ),
 	'pre-v1 Work Item schema migration code is absent' => ! str_contains( $schema, 'previous_version' ),
 	'canonical schema install contains no destructive legacy cleanup path' => ! str_contains( $schema, 'DROP TABLE IF EXISTS' ) && ! str_contains( $schema, 'DELETE FROM' ),
