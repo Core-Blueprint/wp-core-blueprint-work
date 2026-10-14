@@ -8,7 +8,7 @@ QA="$HOME/Downloads/core-blueprint-qa-tools"
 REPORT="$QA/reports"
 fail() { printf 'B4 STATIC AUDIT STOP: %s\n' "$*" >&2; exit 2; }
 
-[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] \
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" || "$(git -C "$ROOT" branch --show-current)" == "feature/work-b4-2-security-final-golden-v1" ]] \
     || fail "Run only on the B4 source-audit branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet \
     || fail "Tracked Work source contains local changes."
