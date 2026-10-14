@@ -803,3 +803,59 @@
         transition: none;
     }
 }
+
+/* Recurring Work lifecycle: native controls and Base theme ownership. */
+.cb-work-recurrence-views {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2, 8px);
+	margin-bottom: var(--cb-space-4, 16px);
+}
+
+.cb-work-recurrence-inline-form {
+	display: inline-flex;
+	align-items: center;
+	margin: 0 var(--cb-space-2, 8px) 0 0;
+	vertical-align: middle;
+}
+
+.cb-work-recurrence-inline-form:last-child {
+	margin-inline-end: 0;
+}
+
+.cb-work-recurrence-generator-form {
+	margin: var(--cb-space-3, 12px) 0;
+}
+
+.cb-work-recurrence-delete-confirmation {
+	max-width: 780px;
+}
+
+.cb-work-recurrence-delete-confirm {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--cb-space-2, 8px);
+	margin-block: var(--cb-space-4, 16px);
+}
+
+.cb-work-recurrence-delete-confirm input {
+	margin-top: 3px;
+}
+
+.cb-work-recurrence-delete-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--cb-space-2, 8px);
+	margin-bottom: var(--cb-space-3, 12px);
+}
+
+.cb-work-recurrence-activation-actions .cb-work-recurrence-inline-form {
+	margin: 0;
+}
+
+@media (max-width: 680px) {
+	.cb-work-recurrence-inline-form {
+		margin-bottom: var(--cb-space-2, 8px);
+	}
+}
