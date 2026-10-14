@@ -79,6 +79,7 @@ final class WorkItemShape {
 		return [ 'items' => [], 'total' => 0, 'page' => $page, 'per_page' => $per_page, 'pages' => 0 ];
 	}
 
+	/** @return array<string,mixed>|null */
 	public static function normalize_write( array $input, ?array $current = null ): ?array {
 		$title             = sanitize_text_field( (string) ( $input['title'] ?? ( $current['title'] ?? '' ) ) );
 		$description       = (string) ( $input['description'] ?? ( $current['description'] ?? '' ) );
@@ -172,6 +173,7 @@ final class WorkItemShape {
 		];
 	}
 
+	/** @return array<string,mixed> */
 	public static function hydrate( \WP_Post $post, ?array $assigned = null, ?array $links = null ): array {
 		$meta = WorkItemMeta::get( (int) $post->ID );
 		return [
@@ -202,6 +204,11 @@ final class WorkItemShape {
 		];
 	}
 
+	/**
+	 * @param array<string,mixed> $input
+	 * @param array<string,mixed>|null $current
+	 * @return array{provider:string,type:string,id:string}|false
+	 */
 	public static function reference( array $input, string $prefix, ?array $current = null ): array|false {
 		$has_any = array_key_exists( $prefix . 'provider', $input )
 			|| array_key_exists( $prefix . 'type', $input )
