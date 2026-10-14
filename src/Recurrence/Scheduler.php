@@ -142,7 +142,7 @@ final class Scheduler {
 			if ( ! $recovered ) {
 				// Serialize with RecurrenceRules::trash() on the SAME rule row.
 				// Claiming an occurrence is not sufficient: Trash can otherwise
-				// commit between the active-state check and wp_insert_post().
+				// commit between the active-state check and the canonical post insertion.
 				// This scoped transaction also atomically attaches the provenance.
 				$linked_work_item_id = WorkSqlTransaction::run(
 					static function () use ( $rule_id, $occurrence_id, $token ): int {
