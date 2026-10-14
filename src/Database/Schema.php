@@ -269,6 +269,7 @@ final class Schema {
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			KEY active_next (is_active,next_occurrence_on),
+			KEY trash_active_next (trashed_at,is_active,next_occurrence_on),
 			KEY project_id (project_id),
 			KEY service_id (service_id),
 			KEY work_type_id (work_type_id),
