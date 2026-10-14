@@ -17,6 +17,9 @@ final class RecurrenceActions {
 		add_action( 'admin_post_cb_work_create_recurrence_rule', [ self::class, 'create' ] );
 		add_action( 'admin_post_cb_work_update_recurrence_rule', [ self::class, 'update' ] );
 		add_action( 'admin_post_cb_work_toggle_recurrence_rule', [ self::class, 'toggle' ] );
+		add_action( 'admin_post_cb_work_trash_recurrence_rule', [ self::class, 'trash' ] );
+		add_action( 'admin_post_cb_work_restore_recurrence_rule', [ self::class, 'restore' ] );
+		add_action( 'admin_post_cb_work_delete_recurrence_rule', [ self::class, 'delete_permanently' ] );
 		add_action( 'admin_post_cb_work_run_recurrence_generator', [ self::class, 'run_generator' ] );
 		add_action( 'wp_ajax_cb_work_quick_edit_recurrence_rule', [ self::class, 'quick_edit' ] );
 		add_action( 'wp_ajax_cb_work_toggle_recurrence_rule_inline', [ self::class, 'toggle_inline' ] );
@@ -67,6 +70,40 @@ final class RecurrenceActions {
 		}
 		Audit::record( Events::RECURRENCE_RULE_STATUS_CHANGED, 'notice', [ 'rule_id' => $rule_id, 'active' => $active ] );
 		self::redirect( 'recurrence-status-updated' );
+	}
+
+	/** Trash always pauses the rule while retaining all generated history. */
+	public static function trash(): never {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		self::guard( 'cb_work_trash_recurrence_rule_' . $rule_id );
+		if ( ! RecurrenceRules::trash( $rule_id, get_current_user_id() ) ) {
+			self::redirect( 'recurrence-lifecycle-failed' );
+		}
+		Audit::record( Events::RECURRENCE_RULE_TRASHED, 'notice', [ 'rule_id' => $rule_id, 'actor_user_id' => get_current_user_id() ] );
+		self::redirect( 'recurrence-trashed' );
+	}
+
+	/** Restore is intentionally inactive so nothing resumes unexpectedly. */
+	public static function restore(): never {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		self::guard( 'cb_work_restore_recurrence_rule_' . $rule_id );
+		if ( ! RecurrenceRules::restore( $rule_id, get_current_user_id() ) ) {
+			self::redirect( 'recurrence-lifecycle-failed', [ 'cb_view' => 'trash' ] );
+		}
+		Audit::record( Events::RECURRENCE_RULE_RESTORED, 'notice', [ 'rule_id' => $rule_id, 'actor_user_id' => get_current_user_id() ] );
+		self::redirect( 'recurrence-restored' );
+	}
+
+	/** Permanent removal requires an explicit checked confirmation and empty ledger. */
+	public static function delete_permanently(): never {
+		$rule_id = isset( $_POST['rule_id'] ) ? absint( $_POST['rule_id'] ) : 0;
+		self::guard( 'cb_work_delete_recurrence_rule_' . $rule_id );
+		$confirmed = isset( $_POST['confirm_permanent'] ) && '1' === sanitize_text_field( wp_unslash( (string) $_POST['confirm_permanent'] ) );
+		if ( ! $confirmed || ! RecurrenceRules::delete_permanently( $rule_id ) ) {
+			self::redirect( 'recurrence-delete-blocked', [ 'cb_view' => 'trash' ] );
+		}
+		Audit::record( Events::RECURRENCE_RULE_DELETED, 'notice', [ 'rule_id' => $rule_id, 'actor_user_id' => get_current_user_id() ] );
+		self::redirect( 'recurrence-deleted', [ 'cb_view' => 'trash' ] );
 	}
 
 	public static function run_generator(): never {
