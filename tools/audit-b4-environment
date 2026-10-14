@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# B4.1 audit-only environment inventory. Never installs packages, executes CI,
+# changes repository files or contacts external services.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+printf '=== B4.1 LOCAL AUDIT TOOLCHAIN ===\n'
+printf 'Repository: %s\n' "$ROOT"
+printf 'Branch: %s\n' "$(git branch --show-current)"
+printf 'Commit: %s\n' "$(git rev-parse HEAD)"
+printf 'Working tree (dist/ is expected):\n'
+git status --short
+
+if ! command -v php >/dev/null 2>&1; then
+    echo 'BLOCKED: PHP CLI is unavailable.' >&2
+    exit 2
+fi
+php -v | sed -n '1p'
+if ! php -r 'exit(version_compare(PHP_VERSION, "8.4", ">=") ? 0 : 1);'; then
+    echo 'BLOCKED: PHP 8.4+ is required for the Work B4 audit.' >&2
+    exit 2
+fi
+
+find_tool() {
+    local tool="$1"
+    if [[ -x "$ROOT/vendor/bin/$tool" ]]; then
+        printf '%s' "$ROOT/vendor/bin/$tool"
+    elif command -v "$tool" >/dev/null 2>&1; then
+        command -v "$tool"
+    else
+        printf ''
+    fi
+}
+
+missing=0
+for tool in composer phpstan phpcs; do
+    executable="$(find_tool "$tool")"
+    if [[ -z "$executable" ]]; then
+        printf '%s: NOT INSTALLED (no download attempted)\n' "$tool"
+        missing=1
+        continue
+    fi
+    printf '%s: %s\n' "$tool" "$executable"
+    case "$tool" in
+        composer) "$executable" --version --no-ansi ;;
+        phpstan) "$executable" --version ;;
+        phpcs)
+            "$executable" --version
+            printf 'PHPCS installed standards:\n'
+            "$executable" -i
+            ;;
+    esac
+done
+
+printf '\n=== EXISTING WORK REGRESSION CONTRACT ===\n'
+printf 'Level 1: ./tools/check\n'
+printf 'Level 2: ./tools/check-integration\n'
+printf 'Level 3: ./tools/build-release\n'
+printf 'Expected existing integration acceptance: 34 tests, 1187 assertions\n'
+
+if (( missing )); then
+    printf '\nB4 TOOLCHAIN INVENTORY: INCOMPLETE\n'
+    printf 'No static analysis has run. Do not claim B4 static QA PASS.\n'
+    exit 2
+fi
+
+printf '\nB4 TOOLCHAIN INVENTORY: AVAILABLE\n'
+printf 'Inventory is not a PHPStan/PHPCS analysis result.\n'
