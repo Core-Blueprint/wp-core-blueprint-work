@@ -5,7 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 QA="$HOME/Downloads/core-blueprint-qa-tools"
-[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || exit 2
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" || "$(git -C "$ROOT" branch --show-current)" == "feature/work-b4-2-security-final-golden-v1" ]] || exit 2
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || exit 2
 [[ -d "$QA/reports" ]] || exit 2
 
