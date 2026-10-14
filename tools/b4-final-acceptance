@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# One-batch B4.2 acceptance: local analysis -> mandatory Level 1/2/3 -> archive.
+# No CI, no merge, no production access. WordPress/MariaDB test DB is disposable.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+BASE="${CB_TEST_BASE_SOURCE:-$HOME/Downloads/wp-core-blueprint}"
+fail() { echo "B4 FINAL GOLDEN STOP: $*" >&2; exit 1; }
+
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/work-b4-2-security-final-golden-v1" ]] \
+    || fail "Wrong Work branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet \
+    || fail "Tracked Work source has uncommitted changes."
+[[ -x "$QA/vendor/bin/phpstan" && -x "$QA/vendor/bin/phpcs" && -f "$QA/composer.lock" ]] \
+    || fail "Pinned external QA workbench is missing."
+[[ -f "$BASE/core-blueprint.php" ]] || fail "Base source checkout missing."
+mkdir -p "$QA/reports"
+
+echo '=== B4 SOURCE AUTHORITY ==='
+printf 'Work: %s\n' "$(git -C "$ROOT" rev-parse HEAD)"
+printf 'Base: %s\n' "$(git -C "$BASE" rev-parse HEAD)"
+printf 'QA composer.lock: '
+sha256sum "$QA/composer.lock"
+
+echo '=== B4 PHPSTAN CALIBRATION ==='
+bash "$ROOT/tools/audit-b4-phpstan-constants"
+python3 - "$QA/reports/work-phpstan-calibrated.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+data = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+errors = data.get("errors", [])
+messages = [(filename, entry) for filename, details in data.get("files", {}).items() for entry in details.get("messages", [])]
+if errors or messages:
+    print("B4 PHPStan baseline has unresolved errors:")
+    for file, entry in messages[:15]:
+        print(f"  {file}:{entry.get('line', '?')}: {entry.get('message', '')}")
+    for error in errors[:15]:
+        print(f"  {error}")
+    sys.exit(1)
+print("B4 PHPStan calibrated level 2: PASS (0 errors)")
+PY
+
+echo '=== B4 WPCS SECURITY MONITOR (NOT A ZERO-WARNING GATE) ==='
+bash "$ROOT/tools/audit-b4-security"
+echo 'Security source warnings require documented manual adjudication; no blanket suppressions.'
+
+echo '=== B4 MANDATORY LEVEL 1 + 2 + 3 ==='
+# Invokes ./tools/check and check-integration before building, without
+# unnecessarily re-running the two gates twice.
+bash "$ROOT/tools/build-release"
+
+echo '=== B4 ZIP INTEGRITY AND CHECKSUM ==='
+unzip -tqq "$ROOT/dist/core-blueprint-work.zip"
+( cd "$ROOT/dist" && sha256sum -c core-blueprint-work.zip.sha256 )
+sha256sum "$ROOT/dist/core-blueprint-work.zip"
+echo '=== B4 PACKAGE EXCLUSIONS ==='
+if unzip -Z1 "$ROOT/dist/core-blueprint-work.zip" | grep -E '(^|/)(tools|tests|docs|vendor|dist|\.git)(/|$)'; then
+    fail "Development-only paths leaked into release ZIP."
+fi
+echo '=== B4 SOURCE STATUS ==='
+git -C "$ROOT" status --short
+echo 'B4.2 LOCAL FINAL GOLDEN: PASS (sandbox/UI acceptance and separate merge GO still required).'
