@@ -156,13 +156,21 @@ final class RecurrenceLifecycleIntegrationTest extends WP_UnitTestCase {
 		$id = $this->seed( false );
 		self::assertTrue( RecurrenceRules::trash( $id, $this->actor ) );
 		global $wpdb;
-		self::assertNotFalse( $wpdb->query( 'DROP TEMPORARY TABLE IF EXISTS ' . Schema::recurrence_assignments_table() ) );
-		$this->tables = array_values( array_filter( $this->tables, static fn( string $table ): bool => $table !== Schema::recurrence_assignments_table() ) );
+		// Inject a single SQL failure without exposing the persistent schema
+		// from underneath a dropped temporary table.
+		$reject = static function ( string $sql ): string {
+			if ( str_starts_with( ltrim( $sql ), 'DELETE' ) && str_contains( $sql, Schema::recurrence_assignments_table() ) ) {
+				return 'SELECT * FROM cb_work_missing_recurrence_lifecycle_fixture';
+			}
+			return $sql;
+		};
+		add_filter( 'query', $reject );
 		$wpdb->suppress_errors( true );
 		try {
 			self::assertFalse( RecurrenceRules::delete_permanently( $id ) );
 		} finally {
 			$wpdb->suppress_errors( false );
+			remove_filter( 'query', $reject );
 		}
 		self::assertNotNull( RecurrenceRules::get( $id ) );
 		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
