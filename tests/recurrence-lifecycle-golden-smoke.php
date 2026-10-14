@@ -44,9 +44,9 @@ $checks = [
 		str_contains( $actions, 'admin_post_cb_work_trash_recurrence_rule' )
 		&& str_contains( $actions, 'admin_post_cb_work_restore_recurrence_rule' )
 		&& str_contains( $actions, 'admin_post_cb_work_delete_recurrence_rule' )
-		&& str_contains( $actions, "self::guard( 'cb_work_trash_recurrence_rule_' . $rule_id )" )
-		&& str_contains( $actions, "self::guard( 'cb_work_restore_recurrence_rule_' . $rule_id )" )
-		&& str_contains( $actions, "self::guard( 'cb_work_delete_recurrence_rule_' . $rule_id )" )
+		&& str_contains( $actions, 'self::guard( \'cb_work_trash_recurrence_rule_\' . $rule_id )' )
+		&& str_contains( $actions, 'self::guard( \'cb_work_restore_recurrence_rule_\' . $rule_id )' )
+		&& str_contains( $actions, 'self::guard( \'cb_work_delete_recurrence_rule_\' . $rule_id )' )
 		&& str_contains( $actions, 'isset( $_POST[\'confirm_permanent\'] )' ),
 	'Admin has Trash view, Restore and confirmed Delete including no-JS checkbox' =>
 		str_contains( $admin, "'cb_view' => 'trash'" )
