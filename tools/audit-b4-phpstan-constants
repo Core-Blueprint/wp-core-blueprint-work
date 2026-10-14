@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 QA="$HOME/Downloads/core-blueprint-qa-tools"
 OUT="$QA/reports/work-phpstan-calibrated.json"
 fail() { printf "B4 PHPSTAN CALIBRATION STOP: %s\n" "$*" >&2; exit 2; }
-[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || fail "Wrong Work branch."
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" || "$(git -C "$ROOT" branch --show-current)" == "feature/work-b4-2-security-final-golden-v1" ]] || fail "Wrong Work branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Tracked Work tree is dirty."
 [[ -x "$QA/vendor/bin/phpstan" && -f "$QA/phpstan.neon" && -f "$QA/composer.lock" ]] || fail "Approved QA workbench missing."
 [[ ! -L "$QA" ]] || fail "QA workbench is a symbolic link."
