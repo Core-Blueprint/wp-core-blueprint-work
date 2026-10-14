@@ -82,7 +82,7 @@ final class Scheduler {
 	private static function process_rule( int $rule_id, string $today, int $actor_user_id, string $source, array &$stats ): void {
 		for ( $processed = 0; $processed < self::MAX_OCCURRENCES_PER_RULE; $processed++ ) {
 			$rule = RecurrenceRules::get( $rule_id );
-			if ( null === $rule || empty( $rule['is_active'] ) || null === $rule['next_occurrence_on'] ) {
+			if ( null === $rule || empty( $rule['is_active'] ) || ! empty( $rule['is_trashed'] ) || null === $rule['next_occurrence_on'] ) {
 				return;
 			}
 
@@ -130,6 +130,12 @@ final class Scheduler {
 				return;
 			}
 
+			// Revalidate after claim: trash/restore must not silently resurrect generation.
+			$current_rule = RecurrenceRules::get( $rule_id );
+			if ( null === $current_rule || empty( $current_rule['is_active'] ) || ! empty( $current_rule['is_trashed'] ) ) {
+				RecurrenceOccurrences::release( $occurrence_id, $token );
+				return;
+			}
 			$recovered = $linked_work_item_id > 0;
 			if ( ! $recovered ) {
 				$input = RecurrenceRules::occurrence_work_item_input( $occurrence_id );
