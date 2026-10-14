@@ -22,11 +22,11 @@ Close the user-observed gap: the Run Generator Now disclosure touches the preced
 
 ## Test gates, NOT YET EXECUTED
 - New `tests/recurrence-lifecycle-golden-smoke.php` is included in `./tools/check`. It checks schema and guards, no recurrence cascade, Trash UI and 24px scoped design-system spacing.
-- New `tests/integration/RecurrenceLifecycleIntegrationTest.php`: 4 MariaDB tests for trash + inactive restore + scheduler filtering, permanent deletion with assignment cleanup, history preservation, and transactional rollback after injected SQL failure.
+- New `tests/integration/RecurrenceLifecycleIntegrationTest.php`: 5 MariaDB tests for trash + inactive restore + scheduler filtering, permanent deletion with assignment cleanup, history preservation, and transactional rollback after injected SQL failure.
 - Existing Recurrence foundation/workspace/scheduler, B3.2 transaction/CAS, B2 facade and all prior Level 1/2 tests must remain green.
 - **Post-B2-merge Golden** on exact Work main is pending operator output (not an implementation blocker, but must be recorded before declaring B2 closed).
 - Candidate operator sequence: `git fetch origin --prune`, `git switch --track origin/feature/work-recurrence-lifecycle-golden-v1`, verify SHA; `php -l` on touched PHP; `php tests/recurrence-lifecycle-golden-smoke.php`, `./tools/check`, `./tools/check-integration`, `./tools/build-release`, ZIP integrity/sidecar/files/SHA; then sandbox installation and functional acceptance before **separate merge GO**.
-- Expected Level 2 count: 33 tests (previous 29 plus four lifecycle tests), assertions count to be established by real output.
+- Expected Level 2 count: 34 tests (previous 29 plus five lifecycle tests), assertions count to be established by real output.
 - No CI, production deployment or Recurrence feature merge authorized/performed.
 
 ## Sandbox acceptance
@@ -36,3 +36,9 @@ Close the user-observed gap: the Run Generator Now disclosure touches the preced
 - Generated rules with history must remain in Trash; preservation of existing Work Items/Time/Billing/links checked.
 - Generator diagnostics has 24px top gap and consistent borders in Light and Dark.
 - Concurrent generation and a lifecycle mutation should not leave orphan data or allow new reservations for trashed rules; report any in-flight race to resolve before Golden closure.
+
+## Pre-test safety correction
+- History existence predicate now fails closed if schema readiness fails or the occurrence-ledger SQL query returns an error. This prevents unsafe deletion if history cannot be checked. A dedicated fifth MariaDB test injects a history-query error without touching underlying permanent tables.
+- Schema 2.2 adds indexed trash state `KEY trash_active_next (trashed_at,is_active,next_occurrence_on)`.
+- Trash and normal views each retain their own Clear filters destination; the confirmation screen explains deletion refusal when history exists.
+- Expected Level 2 test total: **34**. Source candidate remains untested pending operator Level 1/2/3.
