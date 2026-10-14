@@ -283,6 +283,8 @@ namespace {
 	require dirname( __DIR__ ) . '/src/Query/WorkItemQuery.php';
 	require dirname( __DIR__ ) . '/src/Admin/WorkItemViewState.php';
 	require dirname( __DIR__ ) . '/src/Repository/WorkItemReadQuery.php';
+	require dirname( __DIR__ ) . '/src/Repository/WorkItemLinks.php';
+	require dirname( __DIR__ ) . '/src/Repository/WorkItemShape.php';
 	require dirname( __DIR__ ) . '/src/Repository/WorkItems.php';
 
 	$criteria = \CB\Work\Query\WorkItemQuery::normalize( [
@@ -395,13 +397,14 @@ namespace {
 	assert_true( '2026-10-01' === $calendar_criteria['calendar_from'] && '2026-10-31' === $calendar_criteria['calendar_to'], 'Calendar viewport criteria normalize as bounded dates.' );
 
 	$source = file_get_contents( dirname( __DIR__ ) . '/src/Repository/WorkItems.php' );
+	$shape = file_get_contents( dirname( __DIR__ ) . '/src/Repository/WorkItemShape.php' );
 	assert_true(
 		is_string( $source )
-		&& str_contains( $source, "'relation' => 'OR'" )
-		&& str_contains( $source, 'WorkItemMeta::SCHEDULED_ON' )
-		&& str_contains( $source, 'WorkItemMeta::DUE_ON' )
-		&& str_contains( $source, "\$criteria['calendar_from']" )
-		&& str_contains( $source, "\$criteria['calendar_to']" ),
+		&& str_contains( $shape, "'relation' => 'OR'" )
+		&& str_contains( $shape, 'WorkItemMeta::SCHEDULED_ON' )
+		&& str_contains( $shape, 'WorkItemMeta::DUE_ON' )
+		&& str_contains( $shape, "\$criteria['calendar_from']" )
+		&& str_contains( $shape, "\$criteria['calendar_to']" ),
 		'Calendar viewport query composes scheduled and due ranges through one canonical OR meta query.'
 	);
 	assert_true( is_string( $source ) && str_contains( $source, 'public static function search(' ), 'repository exposes one internal canonical operational search engine.' );
