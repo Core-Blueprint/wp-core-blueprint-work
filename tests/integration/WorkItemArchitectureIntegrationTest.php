@@ -14,6 +14,7 @@ use CB\Work\Repository\WorkItems;
 final class WorkItemArchitectureIntegrationTest extends WP_UnitTestCase {
 	/** @var list<string> */
 	private array $temporary_tables = [];
+	private bool $added_delete_hook = false;
 
 	public function set_up(): void {
 		if ( ! defined( 'DB_NAME' ) || 'core_blueprint_work_test' !== (string) DB_NAME
@@ -25,7 +26,11 @@ final class WorkItemArchitectureIntegrationTest extends WP_UnitTestCase {
 		register_post_type( PostTypes::WORK_ITEM, [ 'public' => false ] );
 		WorkItemMeta::register_meta();
 		update_option( Schema::OPTION, CB_WORK_SCHEMA_VERSION );
-		add_action( 'before_delete_post', [ WorkItems::class, 'before_delete_post' ], 10, 2 );
+		// Preserve existing runtime hooks; only add the facade hook when absent.
+		if ( false === has_action( 'before_delete_post', [ WorkItems::class, 'before_delete_post' ] ) ) {
+			add_action( 'before_delete_post', [ WorkItems::class, 'before_delete_post' ], 10, 2 );
+			$this->added_delete_hook = true;
+		}
 
 		$assignments = Schema::assignments_table();
 		self::assertNotFalse( $wpdb->query( "CREATE TEMPORARY TABLE {$assignments} (
@@ -51,7 +56,10 @@ final class WorkItemArchitectureIntegrationTest extends WP_UnitTestCase {
 
 	public function tear_down(): void {
 		global $wpdb;
-		remove_action( 'before_delete_post', [ WorkItems::class, 'before_delete_post' ], 10 );
+		if ( $this->added_delete_hook ) {
+			remove_action( 'before_delete_post', [ WorkItems::class, 'before_delete_post' ], 10 );
+			$this->added_delete_hook = false;
+		}
 		foreach ( array_reverse( $this->temporary_tables ) as $table ) {
 			$wpdb->query( 'DROP TEMPORARY TABLE IF EXISTS ' . $table );
 		}
