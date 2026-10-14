@@ -244,7 +244,7 @@ final class WorkItems {
 				return false;
 			}
 			WorkItemMeta::ensure_status( $id );
-			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
+			if ( $normalized['assignments_changed'] && ! WorkItemLinks::write_assignments( $id, $normalized['assignments'] ) ) {
 				return false;
 			}
 			if ( null !== $transition_to ) {
@@ -302,7 +302,7 @@ final class WorkItems {
 				return false;
 			}
 			WorkItemMeta::ensure_status( $id );
-			if ( $normalized['assignments_changed'] && ! self::write_assignments( $id, $normalized['assignments'] ) ) {
+			if ( $normalized['assignments_changed'] && ! WorkItemLinks::write_assignments( $id, $normalized['assignments'] ) ) {
 				return false;
 			}
 			if ( null !== $transition_to ) {
@@ -395,40 +395,17 @@ final class WorkItems {
 
 	/** @return int[] */
 	public static function assignments( int $work_item_id ): array {
-		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
-			return [];
-		}
-		global $wpdb;
-		$ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . Schema::assignments_table() . ' WHERE work_item_id = %d ORDER BY user_id ASC', $work_item_id ) );
-		return is_array( $ids ) ? array_values( array_map( 'intval', $ids ) ) : [];
+		return WorkItemLinks::assignments( $work_item_id );
 	}
 
 	/** @return array<int,array<string,mixed>> */
 	public static function relations( int $work_item_id ): array {
-		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
-			return [];
-		}
-		global $wpdb;
-		$rows = $wpdb->get_results(
-			$wpdb->prepare( 'SELECT id, provider, relation_type, external_id, created_at FROM ' . Schema::relations_table() . ' WHERE work_item_id = %d ORDER BY id ASC', $work_item_id ),
-			ARRAY_A
-		);
-		return is_array( $rows ) ? $rows : [];
+		return WorkItemLinks::relations( $work_item_id );
 	}
 
 	/** @param int[] $user_ids */
 	public static function replace_assignments( int $work_item_id, array $user_ids ): bool {
-		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
-			return false;
-		}
-		$user_ids = self::normalize_assignments( $user_ids );
-		if ( null === $user_ids ) {
-			return false;
-		}
-		return WorkItemMutationTransaction::run(
-			$work_item_id,
-			static fn(): bool => self::write_assignments( $work_item_id, $user_ids )
-		);
+		return WorkItemLinks::replace_assignments( $work_item_id, $user_ids );
 	}
 
 	/**
@@ -437,58 +414,14 @@ final class WorkItems {
 	 *
 	 * @param int[] $user_ids Already normalized and validated.
 	 */
-	private static function write_assignments( int $work_item_id, array $user_ids ): bool {
-		global $wpdb;
-		$deleted = $wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
-		if ( false === $deleted ) {
-			return false;
-		}
-		$now = current_time( 'mysql', true );
-		foreach ( $user_ids as $user_id ) {
-			$ok = $wpdb->insert(
-				Schema::assignments_table(),
-				[ 'work_item_id' => $work_item_id, 'user_id' => $user_id, 'assigned_at' => $now ],
-				[ '%d', '%d', '%s' ]
-			);
-			if ( false === $ok ) {
-				return false;
-			}
-		}
-		return true;
-	}
+
 
 	public static function add_relation( int $work_item_id, string $provider, string $relation_type, string $external_id ): bool {
-		if ( ! self::schema_ready() || ! self::exists( $work_item_id ) ) {
-			return false;
-		}
-		$provider      = substr( sanitize_key( $provider ), 0, 64 );
-		$relation_type = substr( sanitize_key( $relation_type ), 0, 64 );
-		$external_id   = substr( sanitize_text_field( $external_id ), 0, 191 );
-		if ( '' === $provider || '' === $relation_type || '' === $external_id ) {
-			return false;
-		}
-		global $wpdb;
-		$ok = $wpdb->insert(
-			Schema::relations_table(),
-			[
-				'work_item_id' => $work_item_id,
-				'provider'     => $provider,
-				'relation_type'=> $relation_type,
-				'external_id'  => $external_id,
-				'created_at'   => current_time( 'mysql', true ),
-			],
-			[ '%d', '%s', '%s', '%s', '%s' ]
-		);
-		return false !== $ok;
+		return WorkItemLinks::add_relation( $work_item_id, $provider, $relation_type, $external_id );
 	}
 
 	public static function purge_links( int $work_item_id ): void {
-		if ( ! self::schema_ready() || $work_item_id <= 0 ) {
-			return;
-		}
-		global $wpdb;
-		$wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
-		$wpdb->delete( Schema::relations_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
+		WorkItemLinks::purge_links( $work_item_id );
 	}
 
 	public static function before_delete_post( int $post_id, \WP_Post $post ): void {
