@@ -23,19 +23,25 @@ The same integration suite adds explicit unauthenticated/subscriber/track-time-d
 ### B4.2b: small correctness hardening
 
 - `src/Lifecycle.php` and `core-blueprint-work.php`: caller escapes `wp_die()` `link_url` with `esc_url()` and localized `link_text` with `esc_html__()`.
-- `src/Admin/Operations.php`: invalid `@param int[] $ids` removed from date-label signature and documented on actual assignment-label signature.
+- `src/Admin/Operations.php`: **intentionally unchanged** after discovering the G0/B1.2 immutable-source Golden hash. Its historical misplaced `@param int[] $ids` remains visible as one precisely measured PHPStan baseline exception, implemented **only in the external QA workbench**. We do not revise renderer source merely to silence static tooling.
 - `src/Governance/WorkEventOutbox.php`: WordPress cron action now uses `drain_cron(): void` adapter while keeping direct `drain(): int` interface and outbox delivery count untouched.
 - No mass PHPCBF fix, static-analysis suppression, UI feature expansion, new WordPress schema or namespace change.
 
 ### B4.2c: final Golden QA
 
 `tools/check` now requires `tests/work-b4-2-security-golden-smoke.php`. The five new WordPress integration methods are discovered by the existing `tests/phpunit-time-cas.xml.dist` suffix convention. `tools/b4-final-acceptance` runs:
-1. External-workbench `tools/audit-b4-phpstan-constants` and requires **0** calibrated PHPStan level 2 errors. This is a minimum static baseline, not a universal security proof.
+1. External-workbench `tools/audit-b4-phpstan-constants` first requires **exactly 1 unfiltered legacy** `parameter.notFound` message at `src/Admin/Operations.php`, then allows **only that one** via a scoped external PHPStan exception with `count: 1`, path, identifier and exact error pattern. The final calibrated scan requires **0 remaining unignored errors**. No plugin source or Golden hash is altered. This is a minimum static baseline, not a universal security proof.
 2. WPCS WordPress.Security reporting without broad disablement. Legacy security sniff warnings require manual documentation; PHPCS is not currently a strict zero-warning gate because it does not resolve centralized guards and pre-escaped Base UI primitives.
 3. `./tools/build-release`, which mandatorily executes Level 1, then Level 2 on WordPress 7.0/MariaDB 10.11.19, then builds deterministic Work `dist/core-blueprint-work.zip`.
 4. ZIP integrity + sidecar verification, disallowed developer paths, source status.
 
 External QA scripts accept the B4.2 feature branch and remain development-only. Release ZIP contains only runtime files. The prior reproducible ZIP SHA `0afe356d899fba6a6aa3b92a15234870eb0078bb2f62580860a958b1b865c155` is **not** the expected new checksum: runtime code changed. Record the new SHA from the actual operator build, never precompute or invent it.
+
+## B4.2 first operator gate and corrective follow-up
+
+The operator fetched feature SHA `723948db90ff4b0d00d083eaef53250118f5cac9` and ran `bash tools/b4-final-acceptance`. PHPStan calibrated **0**, WPCS Security **227** (109 Missing nonce, 78 Recommended, 40 escape, down from 44), initial Level 1 checks passed until **G0 Table/List/Board exact Git-blob reconstruction FAILED** with B1.2 Operations hash `48f9e36cb492de51f77fed4c07381dd23c27e313`. Level 2/Level 3 and release were **not executed** for that candidate.
+
+The feature now restores `src/Admin/Operations.php` **exactly** to main Git blob SHA-1 `92a4814f24b43f96d16e3d96ce61a49ee9f21500`, preserving the original renderer and its immutable acceptance reconstruction. The new Level 1 B4.2 smoke explicitly verifies the legacy annotation remains. Calibrated PHPStan script transparently runs **unfiltered** first, requires exactly one legacy annotation error, then applies a count-1 external scoped exception; final 0 unignored issues is no longer misleadingly claimed as 0 raw errors. Changes since operator first run have **not yet been executed on operator's host**. The updated batch must be rerun before any Golden PASS claim.
 
 ## Source/environment caveat
 
