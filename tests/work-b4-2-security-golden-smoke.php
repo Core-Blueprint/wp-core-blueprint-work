@@ -32,7 +32,7 @@ $checks = [
 		&& $gate < $create && $create < $attach && $attach < $closure_end,
 	'permanent Trash mutation retains its own database row lock' =>
 		str_contains( $trash, 'public static function trash(' )
-		&& str_contains( $trash, 'SELECT id FROM ' . '$table' . ' WHERE id = %d FOR UPDATE' ),
+		&& str_contains( $trash, "'SELECT id FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" ),
 	'claim token must be checked immediately before creating the Work Item' =>
 		str_contains( $scheduler, "(string) \$claimed['claim_token'] !== \$token" ),
 	'failed transaction returns without a post-Trash creation attempt' =>
