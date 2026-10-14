@@ -24,7 +24,7 @@ $checks = [
 		&& substr_count( $repo, 'FOR UPDATE' ) >= 4
 		&& substr_count( $repo, 'WorkSqlTransaction::run(' ) >= 5,
 	'Trashed rules are omitted from normal lists and generator queries' =>
-		str_contains( $repo, "'trashed_at IS NULL'" )
+		str_contains( $repo, "' WHERE trashed_at IS NULL'" )
 		&& str_contains( $repo, "'trashed_at IS NOT NULL'" )
 		&& str_contains( $repo, 'WHERE is_active = 1 AND trashed_at IS NULL' )
 		&& str_contains( $repo, '! empty( $rule[\'is_trashed\'] )' ),
