@@ -64,3 +64,20 @@ Before B4.2 GO, report:
 - Explicit acknowledgement of the strict no-post-Trash-generation acceptance target; if a different in-flight policy is desired, record it before patching.
 
 B4.2 candidate batches (implementation needs separate user GO): (A) deterministic concurrency/authorization tests and high-severity fixes if confirmed, (B) two `wp_die()` argument hardening sites and misplaced PHPDoc, with bounded action callback adapter if justified, (C) retest with isolated PHPStan/WPCS/security audit, Work `./tools/check`, `./tools/check-integration` and `./tools/build-release`, verified ZIP/SHA and sandbox if runtime changes; then separate merge GO and post-merge Golden. Avoid mass PHPCBF rewrite or global WPCS suppressions.
+
+## B4.1 local acceptance reconciled (2026-10-14, latest authority)
+
+Operator executed both new audit scripts from Work audit SHA `d606a742126f32a061d310f148d84ef713853200` with `bash -n` PASS and `?? dist/` only. The isolated QA Composer lock remained SHA-256 `59090ca60483ce091c701071eb0c7327175b7013dd3f5fd96efd3f26df9cd806`.
+
+**Actual PHPStan calibration result:** all **65** `constant.notFound` messages disappeared without editing Work or Base. Calibrated total **2**, comprising exactly **1 `parameter.notFound`** (misplaced `@param $ids` above `Operations::work_item_date_label`) and **1 `return.void`** (WP action registration of integer-returning `WorkEventOutbox::drain()`). No general errors. PHPStan exit 1, so **not a zero-error scan** and not a security certification. PHPStan level 2 remains a limited baseline.
+
+**Actual route inventory:** **46** matching `admin_post_*`, `wp_ajax_*` and `save_post_*` registration expressions. The inventory explicitly warns that dynamic routes and external REST controllers need separate review and that mere existence of a guard token in one source file cannot prove each handler's authorization. The registered routes found here supersede the earlier approximate human count of ~44. No negative-actor HTTP test has been performed under B4.1.
+
+**Actual release revalidation on audit SHA `d606a742126f32a061d310f148d84ef713853200`:**
+- Level 1 source/i18n/runtime/i18n six locales: **PASS**.
+- Level 2 WordPress 7.0, MariaDB 127.0.0.1:3307, PHPUnit 9.6.36: **34 tests / 1,187 assertions PASS**.
+- Level 3 `./tools/build-release`: **PASS**; ZIP integrity and SHA sidecar PASS; exact reproducible Work archive SHA-256 **`0afe356d899fba6a6aa3b92a15234870eb0078bb2f62580860a958b1b865c155`**, identical to previously accepted Work Golden. Git status: **`?? dist/` only**.
+
+**Material Base revision variance:** the newly executed Level 2 reported Base SHA **`98d54ca0760ddbde016ff7c216834f737de53d68`** instead of the previously tested Base SHA **`2bbb695abba4e7bdf9bfb5c95de82e93a65d0c77`**. GitHub verified that these are **diverged development histories** (relative to prior Base: 2 commits ahead / 5 behind), not an in-place fast-forward. The newer checkout commit concerns Template Library tests; Work Level 2 passes against this additional Base branch. The prior Work Golden was independently accepted at the earlier Base SHA. Do **not** claim the new tests reran against the earlier Base snapshot, or change user's active Base checkout. `tools/check-integration` explicitly accepts an alternate `CB_TEST_BASE_SOURCE` with source, vendor/autoload and PHPUnit; an isolated pinned Base worktree can be considered if strict cross-revision verification becomes necessary. No Base checkout/worktree was changed in this B4.1 audit.
+
+**B4.1 disposition: SOURCE AUDIT AND LOCAL CALIBRATION COMPLETE; TEST PLAN PREPARED.** This means reproducible tooling and risks documented, **NOT that Work is certified vulnerability-free**. The 46 endpoint negative-actor checks, WordPress REST/opt-in frontend, high-priority Recurrence-claim/Trash two-connection runtime reproduction, and any fixes are **B4.2 implementation acceptance gates**. B4.2 requires a separate user GO. The scope is risk-weighted and does not include mass PHPCBF style rewrites, broad suppressions, CI execution or production changes. No merge approved.
