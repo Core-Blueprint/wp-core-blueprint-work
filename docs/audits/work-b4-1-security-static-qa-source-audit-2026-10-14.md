@@ -18,6 +18,23 @@ The audit-only `bash tools/audit-b4-environment` command prints exact branch/com
 
 Before an actual tool baseline, decide approved **offline/local** Composer cache/dependency acquisition for PHPStan, WordPress stubs and WordPress Coding Standards; record exact tool versions and standards. Do not install packages, modify global PHP or trigger network activity as part of this approved read-only audit. Avoid blanket ignore rules that conceal safety findings. Future static QA must be reproducible on PHP 8.4 against canonical Base public contracts.
 
+## Operator-confirmed local inventory (2026-10-14)
+
+The operator ran `bash -n tools/audit-b4-environment` (no syntax errors) and `bash tools/audit-b4-environment` from audit branch `e85774da162316f03c365e9592d43b585a4a8d8c`; tree showed only `?? dist/`.
+
+- PHP CLI **8.4.26**, NTS, built 2026-09-24: ready for Work runtime and analysis.
+- Composer **2.7.1**, installed `/usr/bin/composer`, running on PHP 8.4.26. Emits deprecation notice for `E_STRICT` in system Composer Silencer; this is a **tooling compatibility notice**, not a Work code defect or a static-analysis result.
+- PHPStan: **NOT INSTALLED**.
+- PHPCS: **NOT INSTALLED**.
+- Script reports `B4 TOOLCHAIN INVENTORY: INCOMPLETE` (expected missing-dependency exit code 2). No download, dependency installation, external action or static analysis occurred.
+
+**Key repository-specific safety decision:** Work has **no `.gitignore`** and the existing `tools/check` recursively `find`-lints every `*.php` under the Work checkout except `.git`, `dist` and `build`. Installing Composer's `vendor/` inside Work would therefore pollute tracked-status expectations and risk linting third-party dependencies in the canonical Golden suite. **Do not install QA dependencies inside the Work repository or globally.** Place the QA workbench in a separately managed, user-approved path such as `~/Downloads/core-blueprint-qa-tools`; pin versions in that workbench's `composer.lock`, keep binary paths explicit and do not copy `vendor/` into the Work release. Composer dependency retrieval uses external Packagist/GitHub and therefore requires deliberate operator opt-in before running an installation command. Audit/lock versions first; avoid broad Composer plugin allowances. WordPress 7.0 source and Base public PHP symbols must be modeled explicitly in PHPStan.
+
+Proposed staged gates:
+1. **B4.1a COMPLETE:** local inventory, sources and scoped risk register.
+2. **B4.1b NEXT:** user-approved installation of isolated dev tools, then actual PHPStan+PHPCS security baseline, report counts/severities/false positives. No opportunistic code-style mass rewrite.
+3. **B4.2 PENDING:** negative-actor/nonce/REST and deterministic concurrency tests; fix only proven findings under new explicit GO.
+
 ## Focused source review
 
 | ID | Priority | Status | Evidence and required next verification |
