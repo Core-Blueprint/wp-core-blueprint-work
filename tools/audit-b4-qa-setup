@@ -3,7 +3,7 @@
 # Running this script downloads Composer packages: execute only with operator GO.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 QA="$HOME/Downloads/core-blueprint-qa-tools"
 BASE="$HOME/Downloads/wp-core-blueprint"
 
