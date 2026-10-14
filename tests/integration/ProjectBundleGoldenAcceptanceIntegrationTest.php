@@ -69,7 +69,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		remove_action( 'cb_work_project_created', [ $this, 'record_project_event' ], 10 );
 		// If a migration assertion failed after the disposable outbox was
 		// dropped, restore the table using the *real* Base migration path.
-		if ( '2.1' !== (string) get_option( Schema::OPTION ) ) {
+		if ( CB_WORK_SCHEMA_VERSION !== (string) get_option( Schema::OPTION ) ) {
 			update_option( Schema::OPTION, '2.0' );
 		}
 		DB::reconcile_registered_schema( 'core-blueprint-work', true );
@@ -92,7 +92,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		$this->published_keys[] = $event_key;
 	}
 
-	public function test_real_schema_20_to_21_upgrade_preserves_work_data_and_installs_indexed_innodb_outbox(): void {
+	public function test_real_schema_20_to_22_upgrade_preserves_work_data_and_installs_indexed_innodb_outbox(): void {
 		global $wpdb;
 		$table = Schema::outbox_table();
 		self::assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %i', $table ) ),
@@ -110,7 +110,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		self::assertSame( 1, $inserted, 'The pre-existing Work Type must actually persist.' );
 
 		// Simulate the real released 2.0 state: all legacy Work tables
-		// remain, but the new 2.1 event outbox has not yet been created.
+		// remain, but the event outbox introduced by 2.1 is not present.
 		self::assertNotFalse( $wpdb->query( $wpdb->prepare( 'DROP TABLE %i', $table ) ) );
 		update_option( Schema::OPTION, '2.0' );
 		self::assertSame( '2.0', (string) get_option( Schema::OPTION ) );
@@ -119,8 +119,8 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		) ) );
 
 		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', false ),
-			'Production Base SchemaRegistry must complete the 2.0 → 2.1 upgrade.' );
-		self::assertSame( '2.1', (string) get_option( Schema::OPTION ) );
+			'Production Base SchemaRegistry must complete the 2.0 to 2.2 upgrade.' );
+		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ) );
 		self::assertSame( $table, $wpdb->get_var( $wpdb->prepare(
 			'SHOW TABLES LIKE %s', $wpdb->esc_like( $table )
 		) ) );
@@ -144,12 +144,32 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		self::assertCount( 1, $event_keys );
 		self::assertSame( '0', (string) $event_keys[0]['Non_unique'], 'Each outbox event must have an immutable unique key.' );
 
+		// Schema 2.2 must preserve the B3.1 outbox and add recoverable
+		// Recurring Work lifecycle columns without dropping legacy rows.
+		$recurrence = Schema::recurrence_rules_table();
+		$recurrence_columns = $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $recurrence ) );
+		foreach ( [ 'trashed_at', 'trashed_by' ] as $column ) {
+			self::assertContains( $column, $recurrence_columns, 'Recurrence lifecycle migration must add its recoverable trash state.' );
+		}
+		$recurrence_indexes = $wpdb->get_col( $wpdb->prepare( 'SHOW INDEX FROM %i', $recurrence ) );
+		self::assertContains( 'trash_active_next', $recurrence_indexes, 'The bounded recurring generation query must have its lifecycle index.' );
+
+
 		$preserved = $wpdb->get_var( $wpdb->prepare(
 			'SELECT label FROM %i WHERE code = %s', Schema::work_types_table(), $this->sentinel_code
 		) );
 		self::assertSame( 'B3.1 existing Work Type', $preserved, 'Migration must not lose existing Work data.' );
 		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', true ),
 			'Repeated reconciliation must be idempotent.' );
+		self::assertSame( 'B3.1 existing Work Type', $wpdb->get_var( $wpdb->prepare(
+			'SELECT label FROM %i WHERE code = %s', Schema::work_types_table(), $this->sentinel_code
+		) ) );
+
+		// An existing 2.1 installation also advances through Base's
+		// official schema registry to 2.2 without disturbing Work data.
+		update_option( Schema::OPTION, '2.1' );
+		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', false ) );
+		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ) );
 		self::assertSame( 'B3.1 existing Work Type', $wpdb->get_var( $wpdb->prepare(
 			'SELECT label FROM %i WHERE code = %s', Schema::work_types_table(), $this->sentinel_code
 		) ) );
