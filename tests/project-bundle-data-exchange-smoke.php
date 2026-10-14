@@ -55,8 +55,8 @@ if ( $fixtureValid ) {
 }
 
 $checks = [
-	'Work schema 2.1 preserves portable identities and adds bundle outbox' =>
-		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.1'" )
+	'Work schema 2.2 preserves portable identities and retains the bundle outbox' =>
+		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.2'" )
 		&& str_contains( $schema, "'cb_work_portable_identities'" )
 		&& str_contains( $schema, 'UNIQUE KEY entity_local (entity_type,local_id)' )
 		&& str_contains( $schema, 'UNIQUE KEY portable_key (portable_key)' ),
