@@ -8,11 +8,7 @@ use CB\Work\Governance\DeferredEvents;
 use CB\Work\Content\PostTypes;
 use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
-use CB\Work\Domain\BillingDisposition;
-use CB\Work\Domain\WorkContext;
-use CB\Work\Domain\WorkItemPriority;
 use CB\Work\Domain\WorkItemStatus;
-use CB\Work\PublicApi\Services;
 use CB\Work\Query\WorkItemQuery;
 
 defined( 'ABSPATH' ) || exit;
@@ -408,14 +404,6 @@ final class WorkItems {
 		return WorkItemLinks::replace_assignments( $work_item_id, $user_ids );
 	}
 
-	/**
-	 * Low-level assignment writes. Caller MUST hold the post-row transaction
-	 * lock; nested START TRANSACTION would implicitly commit the outer write.
-	 *
-	 * @param int[] $user_ids Already normalized and validated.
-	 */
-
-
 	public static function add_relation( int $work_item_id, string $provider, string $relation_type, string $external_id ): bool {
 		return WorkItemLinks::add_relation( $work_item_id, $provider, $relation_type, $external_id );
 	}
@@ -458,22 +446,7 @@ final class WorkItems {
 		return WorkItemShape::hydrate( $post, $assigned, $links );
 	}
 
-	/**
-	 * @param array<string,mixed>      $input
-	 * @param array<string,mixed>|null $current
-	 * @return array{provider:string,type:string,id:string}|false
-	 */
 
-
-	/** @return int[]|null */
-
-
-
-
-	private static function exists( int $work_item_id ): bool {
-		$post = $work_item_id > 0 ? get_post( $work_item_id ) : null;
-		return $post instanceof \WP_Post && PostTypes::WORK_ITEM === $post->post_type && 'trash' !== $post->post_status;
-	}
 
 	/** @return string[] */
 	private static function managed_post_statuses(): array {
