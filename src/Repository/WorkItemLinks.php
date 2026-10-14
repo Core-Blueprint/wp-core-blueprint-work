@@ -48,6 +48,12 @@ final class WorkItemLinks {
 		);
 	}
 
+	/**
+	 * Low-level child-row writer: caller must hold the Work Item row lock.
+	 * Never begins or commits a transaction independently.
+	 *
+	 * @param int[] $user_ids Already normalized and validated.
+	 */
 	public static function write_assignments( int $work_item_id, array $user_ids ): bool {
 		global $wpdb;
 		$deleted = $wpdb->delete( Schema::assignments_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
@@ -102,6 +108,7 @@ final class WorkItemLinks {
 		$wpdb->delete( Schema::relations_table(), [ 'work_item_id' => $work_item_id ], [ '%d' ] );
 	}
 
+	/** @return int[]|null */
 	public static function normalize_assignments( mixed $raw ): ?array {
 		if ( is_scalar( $raw ) ) {
 			$raw = '' === trim( (string) $raw ) ? [] : explode( ',', (string) $raw );
