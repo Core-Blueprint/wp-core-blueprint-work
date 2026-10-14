@@ -26,7 +26,7 @@ final class WorkEventOutbox {
 
 	public static function init(): void {
 		add_filter( 'cron_schedules', [ self::class, 'intervals' ] );
-		add_action( self::HOOK, [ self::class, 'drain' ] );
+		add_action( self::HOOK, [ self::class, 'drain_cron' ] );
 		add_action( 'init', [ self::class, 'ensure_scheduled' ], 20 );
 		if ( did_action( 'init' ) ) {
 			self::ensure_scheduled();
@@ -87,6 +87,11 @@ final class WorkEventOutbox {
 			}
 		}
 		return true;
+	}
+
+	/** WordPress action adapters must return void; direct drain() callers retain the delivery count. */
+	public static function drain_cron(): void {
+		self::drain();
 	}
 
 	/**
