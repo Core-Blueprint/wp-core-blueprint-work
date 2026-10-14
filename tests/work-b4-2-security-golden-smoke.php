@@ -19,7 +19,7 @@ $phpunit = $read( 'tests/integration/WorkB42LockAndAccessIntegrationTest.php' );
 
 $locked_start = strpos( $scheduler, 'WorkSqlTransaction::run(' );
 $row_lock = strpos( $scheduler, "'SELECT id FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" );
-$gate = strpos( $scheduler, "$claimed['claim_token'] !== $token" );
+$gate = strpos( $scheduler, "\$claimed['claim_token'] !== \$token" );
 $create = strpos( $scheduler, 'WorkItems::create( $input )' );
 $attach = strpos( $scheduler, 'RecurrenceOccurrences::attach_work_item( $occurrence_id, $created_id, $token )' );
 $closure_end = strpos( $scheduler, 'return $created_id;' );
@@ -34,12 +34,12 @@ $checks = [
 		str_contains( $trash, 'public static function trash(' )
 		&& str_contains( $trash, 'SELECT id FROM ' . '$table' . ' WHERE id = %d FOR UPDATE' ),
 	'claim token must be checked immediately before creating the Work Item' =>
-		str_contains( $scheduler, "(string) $claimed['claim_token'] !== $token" ),
+		str_contains( $scheduler, "(string) \$claimed['claim_token'] !== \$token" ),
 	'failed transaction returns without a post-Trash creation attempt' =>
-		str_contains( $scheduler, "empty( $after['is_active'] ) || ! empty( $after['is_trashed'] )" ),
+		str_contains( $scheduler, "empty( \$after['is_active'] ) || ! empty( \$after['is_trashed'] )" ),
 	'WorkSqlTransaction uses savepoints instead of committing parent transactions' =>
-		str_contains( $tx, "'SAVEPOINT ' . $savepoint" )
-		&& str_contains( $tx, "'RELEASE SAVEPOINT ' . $savepoint" ),
+		str_contains( $tx, "'SAVEPOINT ' . \$savepoint" )
+		&& str_contains( $tx, "'RELEASE SAVEPOINT ' . \$savepoint" ),
 	'outbox cron hook adapts int delivery count to void while direct callers retain integer' =>
 		str_contains( $outbox, "add_action( self::HOOK, [ self::class, 'drain_cron' ] )" )
 		&& str_contains( $outbox, 'public static function drain_cron(): void' )
