@@ -152,6 +152,29 @@ final class RecurrenceLifecycleIntegrationTest extends WP_UnitTestCase {
 		self::assertFalse( RecurrenceRules::get( $id )['is_active'] );
 	}
 
+
+	public function test_failed_history_query_blocks_permanent_deletion(): void {
+		$id = $this->seed( false );
+		self::assertTrue( RecurrenceRules::trash( $id, $this->actor ) );
+		$reject = static function ( string $sql ): string {
+			if ( str_contains( $sql, 'SELECT id FROM ' . Schema::recurrence_occurrences_table() . ' WHERE rule_id' ) ) {
+				return 'SELECT * FROM cb_work_missing_recurrence_history_fixture';
+			}
+			return $sql;
+		};
+		global $wpdb;
+		add_filter( 'query', $reject );
+		$wpdb->suppress_errors( true );
+		try {
+			self::assertFalse( RecurrenceRules::delete_permanently( $id ), 'History query errors must fail closed.' );
+		} finally {
+			$wpdb->suppress_errors( false );
+			remove_filter( 'query', $reject );
+		}
+		self::assertNotNull( RecurrenceRules::get( $id ) );
+		self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
+	}
+
 	public function test_broken_assignment_table_rolls_back_permanent_deletion(): void {
 		$id = $this->seed( false );
 		self::assertTrue( RecurrenceRules::trash( $id, $this->actor ) );
