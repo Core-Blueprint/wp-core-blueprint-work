@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# B4 static baseline runner. Read-only against Work and Base source.
+# Results are written only to the isolated QA workbench.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+REPORT="$QA/reports"
+fail() { printf 'B4 STATIC AUDIT STOP: %s\n' "$*" >&2; exit 2; }
+
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] \
+    || fail "Run only on the B4 source-audit branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet \
+    || fail "Tracked Work source contains local changes."
+[[ -f "$QA/composer.lock" && -f "$QA/phpstan.neon" ]] \
+    || fail "Isolated QA toolchain has not yet been installed."
+[[ -x "$QA/vendor/bin/phpstan" && -x "$QA/vendor/bin/phpcs" ]] \
+    || fail "Required QA tools are missing."
+mkdir -p "$REPORT"
+
+printf '=== EXACT WORK AND TOOLCHAIN BASELINE ===\n'
+git -C "$ROOT" rev-parse HEAD
+sha256sum "$QA/composer.lock"
+"$QA/vendor/bin/phpstan" --version
+"$QA/vendor/bin/phpcs" --version
+
+set +e
+"$QA/vendor/bin/phpstan" analyse --configuration="$QA/phpstan.neon" \
+    --no-progress --memory-limit=2G --error-format=table \
+    > "$REPORT/work-phpstan.txt" 2>&1
+stan_status=$?
+
+"$QA/vendor/bin/phpcs" --standard=WordPress-Extra --extensions=php \
+    --report=summary "$ROOT/src" "$ROOT/core-blueprint-work.php" \
+    > "$REPORT/work-phpcs-summary.txt" 2>&1
+cs_status=$?
+set -e
+
+printf '\n=== PHPStan INITIAL BASELINE (last 35 lines) ===\n'
+tail -n 35 "$REPORT/work-phpstan.txt"
+printf '\n=== WPCS INITIAL BASELINE (last 35 lines) ===\n'
+tail -n 35 "$REPORT/work-phpcs-summary.txt"
+printf '\n=== AUDIT COMMAND STATUSES ===\n'
+printf 'phpstan_exit=%s phpcs_exit=%s\n' "$stan_status" "$cs_status"
+printf 'PHPStan report: %s\n' "$REPORT/work-phpstan.txt"
+printf 'WPCS report: %s\n' "$REPORT/work-phpcs-summary.txt"
+echo 'B4 STATIC BASELINE EXECUTED; NONZERO ANALYZER CODES REQUIRE TRIAGE, NOT BLANKET SUPPRESSION.'
