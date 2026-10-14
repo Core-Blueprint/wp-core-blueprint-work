@@ -151,8 +151,9 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		foreach ( [ 'trashed_at', 'trashed_by' ] as $column ) {
 			self::assertContains( $column, $recurrence_columns, 'Recurrence lifecycle migration must add its recoverable trash state.' );
 		}
-		$recurrence_indexes = $wpdb->get_col( $wpdb->prepare( 'SHOW INDEX FROM %i', $recurrence ) );
-		self::assertContains( 'trash_active_next', $recurrence_indexes, 'The bounded recurring generation query must have its lifecycle index.' );
+		$recurrence_indexes = $wpdb->get_results( $wpdb->prepare( 'SHOW INDEX FROM %i', $recurrence ), ARRAY_A );
+		self::assertIsArray( $recurrence_indexes );
+		self::assertContains( 'trash_active_next', array_column( $recurrence_indexes, 'Key_name' ), 'The bounded recurring generation query must have its lifecycle index.' );
 
 
 		$preserved = $wpdb->get_var( $wpdb->prepare(
