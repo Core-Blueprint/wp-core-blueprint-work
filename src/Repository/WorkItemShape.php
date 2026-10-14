@@ -202,7 +202,7 @@ final class WorkItemShape {
 		];
 	}
 
-	private static function reference( array $input, string $prefix, ?array $current = null ): array|false {
+	public static function reference( array $input, string $prefix, ?array $current = null ): array|false {
 		$has_any = array_key_exists( $prefix . 'provider', $input )
 			|| array_key_exists( $prefix . 'type', $input )
 			|| array_key_exists( $prefix . 'id', $input );
