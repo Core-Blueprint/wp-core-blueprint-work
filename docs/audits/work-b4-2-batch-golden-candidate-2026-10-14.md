@@ -83,3 +83,14 @@ The failed test did not establish a WordPress Recurrence runtime failure or vali
 - Git status: only `?? dist/`; Work tracked source clean.
 
 **Governance disposition**: B4.2 **LOCAL FINAL GOLDEN PASS**. **Sandbox UI/operational acceptance PENDING** at `wp-sandbox.infused.academy`; **merge NOT APPROVED**; Work `main` still `322436dddefee833b629e3294c38e6daca4c684f`. No production deployment or CI authorization. Ask for user STABIEL after sandbox testing of recurrence generation/Trash/Restore, history retention, List/Table/Board/Calendar, Time/Quick Edit/timer/notes, Projects/Data Exchange and Base Light/Dark. Only then request separate merge GO, merge with authorization, and run post-merge Golden to close Final Technical Golden. Full parallel WordPress scheduler-vs-Trash barrier test was not demonstrated by the SQL fixture; its bounded test design remains documented.
+
+## B4.2 SANDBOX ACCEPTANCE: STABIEL / merge approval outstanding (2026-10-14)
+
+The operator explicitly responded **“Stabiel continue”** after receiving the validated B4.2 archive and sandbox acceptance checklist for `wp-sandbox.infused.academy`. Record the **user-reported sandbox functional acceptance as STABIEL**. The assistant did not independently inspect live UI screenshots or a running deployment; the acceptance is an operator attestation, not a newly run automated test.
+
+**Accepted B4.2 runtime source**: `f865ba4dfa6cba398cc3a5b511ad905d399e3d76`. Its exact built archive `dist/core-blueprint-work.zip` has **SHA-256 `9bcb2b6e9d1848f252bd12bca0bba7916e9c67604936dc5ae5fbe1ed73534ae6`**. The subsequent feature HEAD `05bec451ef484e0a65b36513f0361a6ed2d640d3` was **documentation-only**. The sandbox acceptance was reported against the prepared archive and does not imply verification of all possible role combinations or a full two-worker paused scheduler versus Trash run.
+
+Local Technical Golden: **PASS** with Work Level 1, Level 2 **39 tests / 1,246 assertions**, Level 3 ZIP / SHA sidecar, scoped PHPStan **0 unignored errors + one exactly recorded legacy G0 PHPDoc**. WPCS WordPress.Security retains **227** source-pattern findings requiring risk-aware reporting, not a zero-finding scan. Base used at acceptance run: `15dafa47ad043498b73187e546970cd540da3d9a`.
+
+**Release governance:** B4.2 is **LOCAL GOLDEN + SANDBOX ACCEPTED**; the user did **not** separately authorize a merge by saying “Stabiel continue”. **NO MERGE, NO CI/Actions, NO PRODUCTION DEPLOYMENT.** Next: receive an explicit **“Je mag mergen” / “merge GO”**, merge the accepted feature branch into Work `main` under normal GitHub governance, re-run the exact Work L1/L2/L3 Golden on `main`, verify new main SHA and release ZIP checksum, update Overseer main only with separate permitted changes, then label the technical Work rc1 as closed if all checks pass.
+
