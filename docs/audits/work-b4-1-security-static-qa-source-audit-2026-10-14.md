@@ -127,3 +127,30 @@ Manual positive traces on the **exact referenced source paths**:
 **Evidence standard before B4.2:** for each unique mutation path, document capability, nonce action, input validation and effect; for escaping findings confirm whether data are plain text, attributes, trusted pre-escaped Base markup or custom unsafe HTML. Proposed minimal fixes belong to B4.2 and require separate user GO. Do not bulk-suppress sniff categories, run PHPCBF, or modify Base renderers merely to satisfy WPCS.
 
 **Next operator evidence request:** only the remaining unreviewed escaping sources and any mutation routes without a trace need location-level JSON extraction; the full 231-line report is already stored externally. If needed, extract exact `source` / `line` / `message` from the existing JSON, no new analyzer rerun required. B4.1 SOURCE TRIAGE PARTIAL, SECURITY ACCEPTANCE PENDING. Work runtime and main unchanged.
+
+## Output-escaping review: all 44 reported locations triaged (2026-10-14)
+
+Operator extracted exact `WordPress.Security.EscapeOutput.OutputNotEscaped` locations from the isolated PHPCS JSON report; **44 messages in seven files**, source audit checkout `82fd643f457ab11d6848505915e5d8de84553053`, tracked clean except `?? dist/`. PHPCS sometimes flags individual nested expressions/arguments of a single component call, not separate `echo` sinks. All seven files have now been compared with their source-level output context and the canonical Base **`2bbb695abba4e7bdf9bfb5c95de82e93a65d0c77`** renderers.
+
+| Work location(s) | Verdict | Evidence |
+|---|---|---|
+| `src/Admin/Pickers.php:48–57,87–97,157–167` | **Component escaped; no Work runtime rewrite indicated** | `CoreBlueprint\Core\UI\ObjectPicker::render()` verifies input fields, sanitizes class/ids/actions, and escapes dynamic data, text, JSON HTML attributes and name/placeholder. The returned HTML is intended to be output as markup. |
+| `src/Admin/Page.php:59–63,150–154` | **Component escaped; no double-escape** | Canonical `Notice::render()` escapes its class/role, title, message, and list item content and emits its own semantic HTML. Its `message` map is fixed translations, not raw user HTML. |
+| `src/Admin/TaxRateDataExchange.php:402–406` | **Component escaped** | Same canonical `Notice::render()`; incoming message first `sanitize_text_field()`, then rendered via `esc_html()` internally. |
+| `src/Admin/WorkItemListRenderer.php:178–184` | **Component escaped** | `StateBadge::render()` restricts variants/densities and sanitizes classes, uses `esc_html($label)`. |
+| `src/Admin/WorkItemTableRenderer.php:394–400` | **Component escaped** | Same canonical `StateBadge::render()` contract. |
+| `src/Lifecycle.php:37–44` | **Small, targeted defense-in-depth improvement warranted** | `wp_die` receives already escaped message/title but its `link_text` is passed through raw `__()`, and `link_url` through `admin_url()`. The default WordPress handler calls `esc_url` on its `link_url`, but interpolates `link_text` as HTML **without doing its own `esc_html`**. Convert label to `esc_html__()` and, for explicit caller-side escaping, `link_url` to `esc_url(admin_url(...))`. Translators/filters normally control labels; no exploitable attacker-input path demonstrated. |
+| `core-blueprint-work.php:44–51` | **Same defense-in-depth improvement** | Same `wp_die` `link_url`/`link_text` argument pair as `Lifecycle.php`. |
+
+WordPress authority: https://developer.wordpress.org/reference/functions/_default_wp_die_handler/ confirms link URL escaping and raw HTML interpolation for link text in the default handler. Custom `wp_die_handler` filters can differ; the caller should supply escaped text regardless.
+
+**Escaping disposition:** no confirmed exploitable reflected/stored XSS in the **44 reported contexts** after this scoped source review; two separate `wp_die` argument sites merit small B4.2 hardening and regression coverage. This is **not** a blanket claim that all rendered Work output or every WordPress/custom Base renderer is secure. Do not add `esc_html` over escaped semantic HTML component markup; do not blanket-ignore WPCS Security; do not autoformat with PHPCBF. Source-level check is not a substitute for negative actor or rendered-browser tests.
+
+**Next B4.2 scope proposal, pending explicit GO:**
+1. Verify `wp_die` output in WordPress 7.0 (normal PHP requirement/activation path) and harden **two** link-text/link-URL argument pairs with narrow source regression tests.
+2. Independently calibrate PHPStan **outside Work runtime**: 65 conditional plugin-bootstrap constants; assess the one misplaced `@param` above `work_item_date_label` and `WorkEventOutbox::drain(): int` action-callback mismatch with minimal correct changes (e.g., void adapter only if justified and without breaking integer callers).
+3. Add negative actor/invalid nonce tests for **mutation endpoints** and auth scopes; read-only GET notices are not mutations and do not necessarily require nonce.
+4. Resolve recurrence claim-to-WorkItems::create vs Trash race semantics using a deterministic two-connection test; fix only if contract violated.
+5. Revalidate L1 `./tools/check`, L2 `./tools/check-integration`, L3 `./tools/build-release`, ZIP and checksum. Any functional runtime patch needs sandbox acceptance and separate merge GO.
+
+**B4.1 output-escaping-source review CLOSED; B4.1 security/correctness suite NOT yet CLOSED.** No runtime changes performed and Work `main` remains at the Recurrence Golden.
