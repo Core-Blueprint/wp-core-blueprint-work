@@ -165,3 +165,11 @@ User explicitly gave GO for the remaining **audit-only** batch. A separate sourc
 - **B4.2 NOT AUTHORIZED:** runtime patches, test fixtures with DB mutations, CI, merges and deployment require separate user approval.
 
 Next operator runs `bash -n` and `bash` for both new audit scripts on the verified B4 branch and shares PHPStan classified counts plus route inventory totals and Work Git status.
+
+## B4.1 audit measurement closed, runtime security work moved to B4.2 (operator, 2026-10-14)
+
+Latest operator evidence: both new B4.1 scripts executed, PHPStan external bootstrap calibrated 65 `constant.notFound` to **0**; remaining PHPStan **2** (`parameter.notFound` and `return.void`), no general errors; `tools/audit-b4-route-inventory` indexed **46** registered mutation-hook expressions. No real permission-negative or two-connection concurrency test was run by the audit inventory itself. Work Level 1 PASS, WordPress 7.0 + MariaDB Level 2 **34 tests / 1,187 assertions PASS**, release ZIP integrity, SHA sidecar and fixed reproducible ZIP SHA **`0afe356d899fba6a6aa3b92a15234870eb0078bb2f62580860a958b1b865c155`** PASS. Only `?? dist/` untracked.
+
+The Level 2 run used **Base 98d54ca0760ddbde016ff7c216834f737de53d68** rather than prior-accepted **2bbb695abba4e7bdf9bfb5c95de82e93a65d0c77**. GitHub confirms divergent histories (2 commits ahead / 5 behind), so this is an additional passing Base compatibility branch **not** a repetition of the exact prior Base environment; no local Base checkout was modified. For full decision context and B4.2 acceptance conditions see `docs/audits/work-b4-1-final-security-concurrency-audit-2026-10-14.md`.
+
+**B4.1 local source/tool calibration phase COMPLETE.** End-to-end security hardening **NOT COMPLETE**; B4.2 awaits explicit GO. Neither PHPStan level 2 nor WPCS source scan establishes exploit absence. No runtime source or Base changes, CI or merge under this phase.
