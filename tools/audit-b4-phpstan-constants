@@ -29,18 +29,67 @@ defined('CB_WORK_DIR') || define('CB_WORK_DIR', dirname(__DIR__, 2) . '/wp-core-
 defined('CB_WORK_URL') || define('CB_WORK_URL', '/core-blueprint-work/');
 defined('CB_WORK_BASENAME') || define('CB_WORK_BASENAME', 'core-blueprint-work/core-blueprint-work.php');
 PHP
-cat > "$QA/phpstan-b4.neon" <<NEON
+# The immutable G0/B1.2 renderer source contains exactly one misplaced
+# legacy PHPDoc tag. Do not edit Operations.php or relax its Git-blob Golden.
+# First measure the unfiltered baseline and REQUIRE its exact one known defect.
+cat > "$QA/phpstan-b4-unfiltered.neon" <<NEON
 includes:
     - phpstan.neon
 parameters:
     bootstrapFiles:
         - "$QA/stubs/work-runtime-constants.php"
 NEON
+cat > "$QA/phpstan-b4.neon" <<NEON
+includes:
+    - phpstan.neon
+parameters:
+    bootstrapFiles:
+        - "$QA/stubs/work-runtime-constants.php"
+    reportUnmatchedIgnoredErrors: true
+    ignoreErrors:
+        -
+            identifier: parameter.notFound
+            message: '#PHPDoc tag @param references unknown parameter: [$]ids#'
+            path: "$ROOT/src/Admin/Operations.php"
+            count: 1
+NEON
 echo "=== Work audit source ==="
 git -C "$ROOT" rev-parse HEAD
 echo "=== Pinned QA composer.lock ==="
 sha256sum "$QA/composer.lock"
-echo "=== PHPStan with external-only Work constant definitions ==="
+echo "=== PHPStan unfiltered, exact immutable Golden documentation exception check ==="
+set +e
+"$QA/vendor/bin/phpstan" analyse --configuration="$QA/phpstan-b4-unfiltered.neon" --no-progress --memory-limit=2G --error-format=json > "$QA/reports/work-phpstan-unfiltered.json" 2> "$QA/reports/work-phpstan-unfiltered-stderr.txt"
+unfiltered_exit=$?
+set -e
+python3 - "$QA/reports/work-phpstan-unfiltered.json" "$ROOT/src/Admin/Operations.php" <<'PY_UNFILTERED'
+import json
+import pathlib
+import sys
+
+report = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+observed = [
+    (path, msg)
+    for path, details in report.get("files", {}).items()
+    for msg in details.get("messages", [])
+]
+expected = "PHPDoc tag @param references unknown parameter: $ids"
+if (
+    report.get("errors")
+    or len(observed) != 1
+    or pathlib.Path(observed[0][0]) != pathlib.Path(sys.argv[2])
+    or observed[0][1].get("identifier") != "parameter.notFound"
+    or observed[0][1].get("message") != expected
+):
+    print("B4 PHPStan unfiltered baseline drift: immutable G0 exception is not the single known error.")
+    for path, msg in observed:
+        print(path, msg)
+    print("General errors:", report.get("errors"))
+    sys.exit(1)
+print("B4 source Golden preserved; exactly 1 known immutable PHPDoc annotation exception measured.")
+PY_UNFILTERED
+echo "Unfiltered PHPStan exit: $unfiltered_exit"
+echo "=== PHPStan with exact one-error external exception ==="
 set +e
 "$QA/vendor/bin/phpstan" analyse --configuration="$QA/phpstan-b4.neon" --no-progress --memory-limit=2G --error-format=json > "$OUT" 2> "$QA/reports/work-phpstan-calibrated-stderr.txt"
 stan_exit=$?
