@@ -69,3 +69,19 @@ bash tools/audit-b4-environment
 Once results are received, document the approved offline toolchain and settle whether B4-001 and B4-003 need B4.2 runtime patch/test work. Maintain a separate explicit merge GO after audit acceptance. Source-only audit report and inventory script are development-only and are not included in the WordPress release ZIP.
 
 **Current B4.1 status:** preliminary source audit READY FOR OPERATOR TOOL INVENTORY; static analysis **PENDING**; B4.2 hardening **NOT STARTED**; Final Technical Golden **OPEN**.
+
+## First executed PHPStan and WPCS baseline (operator, 2026-10-14)
+
+The explicitly approved isolated Composer installation **succeeded** on the local Ubuntu/Linux host; all requested direct packages were installed and locked. QA workbench: `~/Downloads/core-blueprint-qa-tools/`, entirely outside Work. Composer used disabled plugins/scripts; bundled dealerdirect installer was downloaded transitively but **not executed**. Registered standards include WordPress, WordPress-Core, WordPress-Docs and WordPress-Extra.
+
+- PHPStan 2.2.14 initial level 2: **67 errors**, analyzer exit **1**.
+- PHP_CodeSniffer 3.13.5 / WPCS 3.4.1 WordPress-Extra: **3,631 errors and 846 warnings in 111 files**; analyzer exit **2**. PHPCBF advertising 3,816 automatable violations is **NOT authorization to auto-fix**.
+- QA Composer lockfile SHA-256 **`59090ca60483ce091c701071eb0c7327175b7013dd3f5fd96efd3f26df9cd806`**.
+- Operator Work audit checkout **`3004f055f9b88ce57c3fa865a19975e95e5f8c00`**, `?? dist/` only; no Work source changes.
+- Reports retained locally in the external QA workbench as `reports/work-phpstan.txt` and `reports/work-phpcs-summary.txt`.
+- Composer deprecation warnings reference system Composer 2.7.1 / libraries on PHP 8.4; they are tooling noise, not Work execution errors.
+- Explicit security-status: **NO complete static QA pass and NO 4,477 security defects established**. WordPress-Extra includes style/doc/spacing along with security checks.
+
+**Two representative PHPStan findings from log:** Work bootstrap constants (`CB_WORK_URL`, `CB_WORK_BASENAME`) reported missing although actually defined conditionally in `core-blueprint-work.php`; analysis/constant discovery must be calibrated outside runtime code. `src/Governance/WorkEventOutbox.php` action callback `drain(): int` triggers `return.void`; WordPress ignores action return values, so determine contract/accuracy before classifying a runtime defect. Do not patch either based only on a single tool line.
+
+**Next measured audit step:** run JSON-format PHPStan to tally identifiers with line examples and run PHPCS source-category and WordPress.Security-only summaries in the already installed workbench; keep reports outside Work and provide aggregate outputs. Only then prioritize proven correctness/security fixes versus analysis stubs and existing style debt. B4.1 remains **BASELINE MEASURED / TRIAGE PENDING**. B4.2 and final Golden OPEN; no CI, merge or runtime change.
