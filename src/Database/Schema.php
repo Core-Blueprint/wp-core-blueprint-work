@@ -261,6 +261,8 @@ final class Schema {
 			create_ahead_days smallint unsigned NOT NULL DEFAULT 14,
 			due_offset_days smallint unsigned NOT NULL DEFAULT 0,
 			is_active tinyint(1) unsigned NOT NULL DEFAULT 1,
+			trashed_at datetime NULL,
+			trashed_by bigint(20) unsigned NOT NULL DEFAULT 0,
 			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
 			updated_by bigint(20) unsigned NOT NULL DEFAULT 0,
 			created_at datetime NOT NULL,
