@@ -38,8 +38,8 @@ final class Lifecycle {
 			esc_html( $message ),
 			esc_html( 'Core Blueprint requirements not met' ),
 			[
-				'link_url'  => admin_url( 'plugins.php' ),
-				'link_text' => __( 'Plugins' ),
+				'link_url'  => esc_url( admin_url( 'plugins.php' ) ),
+				'link_text' => esc_html__( 'Plugins' ),
 			]
 		);
 	}
