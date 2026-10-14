@@ -198,7 +198,7 @@ final class WorkItems {
 			return 0;
 		}
 
-		$relation = self::reference( $input, 'source_' );
+		$relation = WorkItemShape::reference( $input, 'source_' );
 		if ( false === $relation ) {
 			wp_delete_post( $post_id, true );
 			return 0;
