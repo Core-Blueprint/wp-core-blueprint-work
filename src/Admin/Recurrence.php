@@ -51,6 +51,7 @@ final class Recurrence {
 				'billingLabel' => __( 'Billing classification', 'core-blueprint-work' ),
 				'activeDescription' => __( 'Automatic generation active', 'core-blueprint-work' ),
 				'inactiveDescription' => __( 'Automatic generation paused', 'core-blueprint-work' ),
+				'trashConfirm' => __( 'Move this rule to Trash? Generated Work Items and history will be preserved.', 'core-blueprint-work' ),
                 'minuteUnit' => __( 'min', 'core-blueprint-work' ),
 			] );
 		}
@@ -343,7 +344,7 @@ final class Recurrence {
 						<td><?php echo esc_html( self::schedule_label( $configured ) ); ?></td>
 						<td><?php echo esc_html( null === $configured['next_occurrence_on'] ? __( 'Complete', 'core-blueprint-work' ) : mysql2date( get_option( 'date_format' ), (string) $configured['next_occurrence_on'] . ' 12:00:00' ) ); ?></td>
 						<td><?php echo esc_html( (string) $count ); ?></td>
-						<td><span data-cb-rule-status class="cb-work-recurrence-status <?php echo ! empty( $configured['is_active'] ) ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo ! empty( $configured['is_active'] ) ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ); ?></span></td>
+						<td><span data-cb-rule-status class="cb-work-recurrence-status <?php echo ! empty( $configured['is_active'] ) ? 'cb-work-recurrence-status--active' : 'cb-work-recurrence-status--inactive'; ?>"><?php echo $trash_view ? esc_html__( 'Trashed', 'core-blueprint-work' ) : ( ! empty( $configured['is_active'] ) ? esc_html__( 'Active', 'core-blueprint-work' ) : esc_html__( 'Inactive', 'core-blueprint-work' ) ); ?></span></td>
 						<td><?php if ( $trash_view ) : ?>
 							<form class="cb-work-recurrence-inline-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 								<input type="hidden" name="action" value="cb_work_restore_recurrence_rule">
@@ -357,6 +358,7 @@ final class Recurrence {
 							<form class="cb-work-recurrence-inline-form" data-cb-recurrence-trash method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="cb_work_trash_recurrence_rule"><input type="hidden" name="rule_id" value="<?php echo esc_attr( (string) $configured_id ); ?>"><?php wp_nonce_field( 'cb_work_trash_recurrence_rule_' . $configured_id ); ?><button class="button button-small" type="submit"><?php esc_html_e( 'Move to Trash', 'core-blueprint-work' ); ?></button></form>
 						<?php endif; ?></td>
 					</tr>
+					<?php if ( ! $trash_view ) : ?>
 					<tr id="cb-work-recurrence-quick-<?php echo esc_attr( (string) $configured_id ); ?>" class="cb-work-recurrence-quick-row" hidden data-cb-quick-edit-row>
 						<td colspan="7">
 							<form data-cb-quick-edit-form>
@@ -371,6 +373,7 @@ final class Recurrence {
 							</form>
 						</td>
 					</tr>
+					<?php endif; ?>
 				<?php endforeach; ?>
 				</tbody></table></div>
 			<?php endif; ?>
