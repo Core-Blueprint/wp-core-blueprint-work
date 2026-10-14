@@ -60,6 +60,12 @@ $checks = [
 		&& str_contains( $phpunit, 'test_private_project_and_work_item_rest_reads_fail_closed' )
 		&& str_contains( $phpunit, 'test_manager_with_invalid_nonce_cannot_mutate_work' )
 		&& str_contains( $phpunit, 'test_unprivileged_admin_post_mutations_fail_closed' ),
+	'two-session locking regression requires a visible persistent InnoDB table and a genuine lock timeout' =>
+		str_contains( $phpunit, "mysqli_select_db( \$a->dbh, DB_NAME )" )
+		&& str_contains( $phpunit, "mysqli_select_db( \$b->dbh, DB_NAME )" )
+		&& str_contains( $phpunit, "mysqli_query( \$a->dbh, 'CREATE TABLE ' . \$table" )
+		&& str_contains( $phpunit, 'Session B must see the same committed shared InnoDB row' )
+		&& str_contains( $phpunit, "'Lock wait timeout exceeded'" ),
 ];
 foreach ( $checks as $label => $ok ) {
 	if ( ! $ok ) {
