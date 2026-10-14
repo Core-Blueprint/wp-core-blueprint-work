@@ -8,6 +8,7 @@ $projectMeta = file_get_contents( $root . '/src/Content/ProjectMeta.php' );
 $itemMeta    = file_get_contents( $root . '/src/Content/WorkItemMeta.php' );
 $projects    = file_get_contents( $root . '/src/Repository/Projects.php' );
 $items       = file_get_contents( $root . '/src/Repository/WorkItems.php' );
+$itemShape   = file_get_contents( $root . '/src/Repository/WorkItemShape.php' );
 $rules       = file_get_contents( $root . '/src/Repository/RecurrenceRules.php' );
 $schema      = file_get_contents( $root . '/src/Database/Schema.php' );
 $query       = file_get_contents( $root . '/src/Query/WorkItemQuery.php' );
@@ -36,7 +37,7 @@ $checks = [
 		str_contains( $projectMeta, "_cb_work_project_context" )
 		&& str_contains( $itemMeta, "_cb_work_item_context" )
 		&& str_contains( $projects, "'work_context'" )
-		&& str_contains( $items, "'work_context'" ),
+		&& str_contains( $itemShape, "'work_context'" ),
 
 	'legacy migration only promotes complete customer-linked records' =>
 		str_contains( $schema, 'backfill_work_contexts' )
@@ -49,11 +50,11 @@ $checks = [
 		&& str_contains( $rules, "'work_context'        => \$rule['work_context']" ),
 
 	'Project-linked Work Items take authoritative Project context' =>
-		str_contains( $items, "\$context = WorkContext::sanitize( \$project['work_context'] ?? '' );" )
-		&& str_contains( $items, "'provider' => (string) ( \$project['customer_provider'] ?? '' )" ),
+		str_contains( $itemShape, "\$context = WorkContext::sanitize( \$project['work_context'] ?? '' );" )
+		&& str_contains( $itemShape, "'provider' => (string) ( \$project['customer_provider'] ?? '' )" ),
 
 	'Internal Work is forced non-billable at the write boundary' =>
-		str_contains( $items, '$billing  = BillingDisposition::NON_BILLABLE;' )
+		str_contains( $itemShape, '$billing  = BillingDisposition::NON_BILLABLE;' )
 		&& str_contains( $rules, '$billing  = BillingDisposition::NON_BILLABLE;' ),
 
 	'billing snapshot creation fails closed unless Work is Customer context' =>
@@ -63,6 +64,7 @@ $checks = [
 
 	'Project reclassification synchronizes active Work Items and recurrence templates' =>
 		str_contains( $items, 'public static function sync_project_context' )
+		&& str_contains( $items, 'WorkItemShape::normalize_write(' )
 		&& str_contains( $rules, 'public static function sync_project_context' )
 		&& str_contains( $projectAdmin, 'WorkItems::sync_project_context( $post_id )' )
 		&& str_contains( $projectAdmin, 'RecurrenceRules::sync_project_context( $post_id )' ),
