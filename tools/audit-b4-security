@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Read-only WPCS Security sniff audit; reports outside the Work repository.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+REPORT="$QA/reports"
+PHPCS="$QA/vendor/bin/phpcs"
+SECURITY_DIR="$QA/vendor/wp-coding-standards/wpcs/WordPress/Sniffs/Security"
+fail() { printf "B4 SECURITY AUDIT STOP: %s\n" "$*" >&2; exit 2; }
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || fail "Wrong branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Tracked Work source is dirty."
+[[ -x "$PHPCS" && -d "$SECURITY_DIR" ]] || fail "Isolated WPCS tools unavailable."
+mapfile -t sniffs < <(find "$SECURITY_DIR" -maxdepth 1 -type f -name "*Sniff.php" -printf "%f\n" | sed -e "s/Sniff.php$//" -e "s/^/WordPress.Security./" | LC_ALL=C sort)
+[[ "${#sniffs[@]}" -gt 0 ]] || fail "No installed WordPress Security sniffs found."
+sniff_csv="$(IFS=,; printf "%s" "${sniffs[*]}")"
+echo "=== INSTALLED WORDPRESS SECURITY SNIFFS ==="
+printf "%s\n" "${sniffs[@]}"
+mkdir -p "$REPORT"
+echo "=== WPCS SECURITY SOURCE AUDIT ==="
+set +e
+"$PHPCS" --standard=WordPress-Extra --sniffs="$sniff_csv" --extensions=php --report=source "$ROOT/src" "$ROOT/core-blueprint-work.php" > "$REPORT/work-security-categories.txt" 2>&1
+status=$?
+set -e
+echo "=== WPCS SECURITY SUMMARY ==="
+tail -n 60 "$REPORT/work-security-categories.txt"
+printf "PHPCS Security exit=%s\n" "$status"
+printf "Report: %s\n" "$REPORT/work-security-categories.txt"
+echo "B4 SECURITY SNIFF BASELINE COMPLETE; COUNTS REQUIRE MANUAL TRIAGE."
