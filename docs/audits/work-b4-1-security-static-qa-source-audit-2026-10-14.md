@@ -154,3 +154,14 @@ WordPress authority: https://developer.wordpress.org/reference/functions/_defaul
 5. Revalidate L1 `./tools/check`, L2 `./tools/check-integration`, L3 `./tools/build-release`, ZIP and checksum. Any functional runtime patch needs sandbox acceptance and separate merge GO.
 
 **B4.1 output-escaping-source review CLOSED; B4.1 security/correctness suite NOT yet CLOSED.** No runtime changes performed and Work `main` remains at the Recurrence Golden.
+
+## Final B4.1 audit batch authorized and prepared (2026-10-14)
+
+User explicitly gave GO for the remaining **audit-only** batch. A separate source-audited risk register and test design now exists at `docs/audits/work-b4-1-final-security-concurrency-audit-2026-10-14.md`:
+
+- **Permission route review:** 17 inspected admin callback-owner files, ~44 scoped action registrations, guards traced in source, real negative user/nonce tests still required. `tools/audit-b4-route-inventory` performs a read-only registration scan and writes to external QA reports; file-level guard hints are *not* handler-level proof.
+- **PHPStan calibration:** `tools/audit-b4-phpstan-constants` creates a separate `phpstan-b4.neon` and eight shadow constant definitions ONLY under the existing external QA directory and runs a measured PHPStan JSON scan; Work source, Base and original QA baseline remain untouched. Await operator's updated error counts before concluding 65 are resolved.
+- **Concurrency:** source demonstrates a legitimate check-to-create TOCTOU window between active/not-trashed revalidation and `WorkItems::create` because no rule lock spans that write, while Trash is a separate transaction. A deterministic two-connection WordPress+MariaDB test with a test-only pre-`wp_insert_post` barrier is designed; no runtime failure has yet been reproduced. Do not claim Golden.
+- **B4.2 NOT AUTHORIZED:** runtime patches, test fixtures with DB mutations, CI, merges and deployment require separate user approval.
+
+Next operator runs `bash -n` and `bash` for both new audit scripts on the verified B4 branch and shares PHPStan classified counts plus route inventory totals and Work Git status.
