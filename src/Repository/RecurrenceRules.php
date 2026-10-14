@@ -474,9 +474,9 @@ final class RecurrenceRules {
 				'updated_by'         => max( 0, $actor_user_id ),
 				'updated_at'         => current_time( 'mysql', true ),
 			],
-			[ 'id' => $rule_id, 'next_occurrence_on' => $occurrence_on ],
+			[ 'id' => $rule_id, 'next_occurrence_on' => $occurrence_on, 'is_active' => 1, 'trashed_at' => null ],
 			[ '%s', '%d', '%s' ],
-			[ '%d', '%s' ]
+			[ '%d', '%s', '%d', '%s' ]
 		);
 		return 1 === $updated;
 	}
