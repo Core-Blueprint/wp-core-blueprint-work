@@ -16,6 +16,7 @@ $lifecycle = $read( 'src/Lifecycle.php' );
 $bootstrap = $read( 'core-blueprint-work.php' );
 $operations = $read( 'src/Admin/Operations.php' );
 $phpunit = $read( 'tests/integration/WorkB42LockAndAccessIntegrationTest.php' );
+$calibration = $read( 'tools/audit-b4-phpstan-constants' );
 
 $locked_start = strpos( $scheduler, 'WorkSqlTransaction::run(' );
 $row_lock = strpos( $scheduler, "'SELECT id, is_active, trashed_at, created_by FROM ' . \$table . ' WHERE id = %d FOR UPDATE'" );
@@ -49,9 +50,11 @@ $checks = [
 		&& str_contains( $lifecycle, "esc_html__( 'Plugins' )" )
 		&& str_contains( $bootstrap, "esc_url( admin_url( 'plugins.php' ) )" )
 		&& str_contains( $bootstrap, "esc_html__( 'Plugins', 'core-blueprint-work' )" ),
-	'PHPDoc assignment label references real IDs parameter' =>
-		str_contains( $operations, "/** @param int[] \$ids */\n\tprivate static function assignment_label( array \$ids ): string" )
-		&& ! str_contains( $operations, "/** @param int[] \$ids */\n\tprivate static function work_item_date_label" ),
+	'immutable G0 Operations source is preserved with an exact one-error local PHPStan exception' =>
+		str_contains( $operations, "/** @param int[] \$ids */\n\tprivate static function work_item_date_label( string \$date ): string" )
+		&& str_contains( $calibration, 'identifier: parameter.notFound' )
+		&& str_contains( $calibration, 'count: 1' )
+		&& str_contains( $calibration, 'work-phpstan-unfiltered.json' ),
 	'real security regression suite exercises two DB sessions and actor, REST, nonce permissions' =>
 		str_contains( $phpunit, 'test_two_connections_serialize_creation_before_trash' )
 		&& str_contains( $phpunit, 'test_private_project_and_work_item_rest_reads_fail_closed' )
