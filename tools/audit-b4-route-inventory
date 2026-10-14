@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Read-only index of WordPress mutation/action endpoints and guard evidence.
+# This is an inventory, not a capability/CSRF security PASS.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+QA="$HOME/Downloads/core-blueprint-qa-tools"
+[[ "$(git -C "$ROOT" branch --show-current)" == "audit/work-b4-security-static-qa-v1" ]] || exit 2
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || exit 2
+[[ -d "$QA/reports" ]] || exit 2
+
+python3 - "$ROOT/src" "$QA/reports/work-mutation-route-inventory.txt" <<'PY'
+from pathlib import Path
+import sys
+
+source_root = Path(sys.argv[1])
+report_path = Path(sys.argv[2])
+hooks = ("admin_post_", "wp_ajax_", "save_post_")
+guard_tokens = ("check_admin_referer(", "check_ajax_referer(", "wp_verify_nonce(", "self::guard(", "self::guard_ajax(", "Access::can_", "current_user_can(")
+results = []
+for file in sorted(source_root.rglob("*.php")):
+    content = file.read_text(encoding="utf-8")
+    lines = content.splitlines()
+    hits = [(n, line.strip()) for n, line in enumerate(lines, 1) if "add_action(" in line and any(h in line for h in hooks)]
+    if not hits:
+        continue
+    guards = [token for token in guard_tokens if token in content]
+    results.append((file.relative_to(source_root), hits, guards))
+
+output = [
+    "B4.1 mutation route registration INDEX (not authorization certification)",
+    f"Discovered files with matching add_action registrations: {len(results)}",
+]
+total = 0
+for file, hits, guards in results:
+    output.append(f"\n{file} | guard tokens elsewhere in file: {', '.join(guards) or 'NOT FOUND'}")
+    for line, source in hits:
+        total += 1
+        output.append(f"  {line}: {source[:220]}")
+output.append(f"\nTotal matched registration expressions: {total}")
+output.append("Caveats: dynamic registrations and endpoints lacking add_action are not exhaustively covered.")
+output.append("A token anywhere in the file does not prove that the specific handler checks the token.")
+output.append("Use direct source tracing plus negative actor/nonce tests before security acceptance.")
+text = "\n".join(output) + "\n"
+report_path.write_text(text, encoding="utf-8")
+print(text)
+print(f"External report: {report_path}")
+PY
