@@ -165,7 +165,7 @@ final class WorkItemActions {
 	}
 
 	/** @return array<string,mixed>|\WP_Error */
-	public static function transition_status( int $work_item_id, string $to ): array|\WP_Error {
+	public static function transition_status( int $work_item_id, string $to, ?string $expected_from = null ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) {
 			return $forbidden;
@@ -175,8 +175,11 @@ final class WorkItemActions {
 			return new \WP_Error( 'work_resource_unavailable' );
 		}
 		$from = (string) $current['status'];
-		if ( ! WorkItemRepository::transition_status( $work_item_id, $to, get_current_user_id() ) ) {
-			return new \WP_Error( 'work_transition_invalid' );
+		if ( null !== $expected_from && $from !== $expected_from ) {
+			return new \WP_Error( 'work_transition_conflict' );
+		}
+		if ( ! WorkItemRepository::transition_status( $work_item_id, $to, get_current_user_id(), $expected_from ?? $from ) ) {
+			return new \WP_Error( 'work_transition_conflict' );
 		}
 		$item = WorkItems::get( $work_item_id );
 		if ( null === $item ) {

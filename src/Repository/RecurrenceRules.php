@@ -120,52 +120,45 @@ final class RecurrenceRules {
 
 		global $wpdb;
 		$now = current_time( 'mysql', true );
-		$wpdb->query( 'START TRANSACTION' );
-		$ok = $wpdb->insert(
-			Schema::recurrence_rules_table(),
-			self::rule_row( $normalized, $now, true ),
-			self::rule_formats()
-		);
-		$rule_id = false === $ok ? 0 : (int) $wpdb->insert_id;
-		if ( $rule_id <= 0 || ! self::replace_assignments( $rule_id, $normalized['assignments'], false ) ) {
-			$wpdb->query( 'ROLLBACK' );
-			return 0;
-		}
-		$wpdb->query( 'COMMIT' );
-		return $rule_id;
+		return WorkSqlTransaction::run( static function () use ( $wpdb, $normalized, $now ): int {
+			$ok = $wpdb->insert(
+				Schema::recurrence_rules_table(),
+				self::rule_row( $normalized, $now, true ),
+				self::rule_formats()
+			);
+			$rule_id = false === $ok ? 0 : (int) $wpdb->insert_id;
+			return $rule_id > 0 && self::replace_assignments( $rule_id, $normalized['assignments'] ) ? $rule_id : 0;
+		}, 0 );
 	}
 
 	/** @param array<string,mixed> $input */
 	public static function update( int $id, array $input ): bool {
-		$current = self::get( $id );
-		if ( null === $current || ! self::schema_ready() ) {
+		if ( $id <= 0 || ! self::schema_ready() ) {
 			return false;
 		}
-		$normalized = self::normalize_write( $input, $current );
-		if ( null === $normalized ) {
-			return false;
-		}
-
 		global $wpdb;
-		$now = current_time( 'mysql', true );
-		$wpdb->query( 'START TRANSACTION' );
-		$updated = $wpdb->update(
-			Schema::recurrence_rules_table(),
-			self::rule_row( $normalized, $now, false ),
-			[ 'id' => $id ],
-			self::rule_formats( false ),
-			[ '%d' ]
-		);
-		if ( false === $updated ) {
-			$wpdb->query( 'ROLLBACK' );
-			return false;
-		}
-		if ( $normalized['assignments_changed'] && ! self::replace_assignments( $id, $normalized['assignments'], false ) ) {
-			$wpdb->query( 'ROLLBACK' );
-			return false;
-		}
-		$wpdb->query( 'COMMIT' );
-		return true;
+		return WorkSqlTransaction::run( static function () use ( $wpdb, $input, $id ): bool {
+			$locked = $wpdb->get_var( $wpdb->prepare(
+				'SELECT id FROM ' . Schema::recurrence_rules_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $id
+			) );
+			if ( (int) $locked !== $id ) {
+				return false;
+			}
+			$current = self::get( $id );
+			$normalized = null === $current ? null : self::normalize_write( $input, $current );
+			if ( null === $normalized ) {
+				return false;
+			}
+			$now = current_time( 'mysql', true );
+			$updated = $wpdb->update(
+				Schema::recurrence_rules_table(),
+				self::rule_row( $normalized, $now, false ),
+				[ 'id' => $id ],
+				self::rule_formats( false ),
+				[ '%d' ]
+			);
+			return false !== $updated && ( ! $normalized['assignments_changed'] || self::replace_assignments( $id, $normalized['assignments'] ) );
+		}, false );
 	}
 
 	/** @return int[] */
@@ -411,34 +404,20 @@ final class RecurrenceRules {
 	}
 
 	/** @param int[] $user_ids */
-	private static function replace_assignments( int $rule_id, array $user_ids, bool $start_transaction = true ): bool {
+	private static function replace_assignments( int $rule_id, array $user_ids ): bool {
 		global $wpdb;
-		if ( $start_transaction ) {
-			$wpdb->query( 'START TRANSACTION' );
-		}
-		$deleted = $wpdb->delete( Schema::recurrence_assignments_table(), [ 'rule_id' => $rule_id ], [ '%d' ] );
-		if ( false === $deleted ) {
-			if ( $start_transaction ) {
-				$wpdb->query( 'ROLLBACK' );
-			}
+		if ( false === $wpdb->delete( Schema::recurrence_assignments_table(), [ 'rule_id' => $rule_id ], [ '%d' ] ) ) {
 			return false;
 		}
 		$now = current_time( 'mysql', true );
 		foreach ( $user_ids as $user_id ) {
-			$ok = $wpdb->insert(
+			if ( false === $wpdb->insert(
 				Schema::recurrence_assignments_table(),
 				[ 'rule_id' => $rule_id, 'user_id' => $user_id, 'assigned_at' => $now ],
 				[ '%d', '%d', '%s' ]
-			);
-			if ( false === $ok ) {
-				if ( $start_transaction ) {
-					$wpdb->query( 'ROLLBACK' );
-				}
+			) ) {
 				return false;
 			}
-		}
-		if ( $start_transaction ) {
-			$wpdb->query( 'COMMIT' );
 		}
 		return true;
 	}

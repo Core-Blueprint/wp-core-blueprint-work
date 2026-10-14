@@ -94,55 +94,59 @@ final class BillingUnits {
 		if ( false === $payload_json ) { return new \WP_Error( 'work_billing_snapshot_encode_failed' ); }
 
 		global $wpdb;
-		$wpdb->query( 'START TRANSACTION' );
-		$now = current_time( 'mysql', true );
-		$identity_write = $wpdb->query(
-			$wpdb->prepare(
-				'INSERT INTO ' . Schema::billing_units_table() . " (unit_type, unit_id, work_item_id, status, current_snapshot_id, ready_at, linked_at, created_at, updated_at) VALUES (%s, %d, %d, %s, 0, %s, NULL, %s, %s) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)",
-				$candidate['unit_type'], $candidate['unit_id'], $candidate['work_item_id'], BillingUnit::READY, $now, $now, $now
-			)
-		);
-		if ( false === $identity_write ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_prepare_failed' ); }
-		$billing_unit_id = (int) $wpdb->insert_id;
-		if ( $billing_unit_id <= 0 ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_prepare_failed' ); }
+		return WorkSqlTransaction::run(
+			static function () use ( $wpdb, $candidate, $actor_user_id, $payload_json ): array|\WP_Error {
+				$now = current_time( 'mysql', true );
+				$identity_write = $wpdb->query(
+					$wpdb->prepare(
+						'INSERT INTO ' . Schema::billing_units_table() . " (unit_type, unit_id, work_item_id, status, current_snapshot_id, ready_at, linked_at, created_at, updated_at) VALUES (%s, %d, %d, %s, 0, %s, NULL, %s, %s) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)",
+						$candidate['unit_type'], $candidate['unit_id'], $candidate['work_item_id'], BillingUnit::READY, $now, $now, $now
+					)
+				);
+				if ( false === $identity_write ) {  return new \WP_Error( 'work_billing_prepare_failed' ); }
+				$billing_unit_id = (int) $wpdb->insert_id;
+				if ( $billing_unit_id <= 0 ) {  return new \WP_Error( 'work_billing_prepare_failed' ); }
 
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $billing_unit_id ),
-			ARRAY_A
-		);
-		if ( ! is_array( $row ) ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_prepare_failed' ); }
-		$unit = self::hydrate_unit( $row );
-		$current = (int) $unit['current_snapshot_id'] > 0 ? self::snapshot_for_update( (int) $unit['current_snapshot_id'] ) : null;
-		if ( is_array( $current ) && hash_equals( (string) $current['fingerprint'], (string) $candidate['fingerprint'] ) ) {
-			$wpdb->query( 'COMMIT' );
-			return [ 'outcome' => 'reused', 'unit' => $unit, 'snapshot' => $current ];
-		}
-		if ( BillingUnit::EXTERNALLY_LINKED === $unit['status'] ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_linked_source_changed' ); }
+				$row = $wpdb->get_row(
+					$wpdb->prepare( 'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $billing_unit_id ),
+					ARRAY_A
+				);
+				if ( ! is_array( $row ) ) {  return new \WP_Error( 'work_billing_prepare_failed' ); }
+				$unit = self::hydrate_unit( $row );
+				$current = (int) $unit['current_snapshot_id'] > 0 ? self::snapshot_for_update( (int) $unit['current_snapshot_id'] ) : null;
+				if ( is_array( $current ) && hash_equals( (string) $current['fingerprint'], (string) $candidate['fingerprint'] ) ) {
 
-		$is_first_snapshot = null === $current;
-		$version = $is_first_snapshot ? 1 : self::next_snapshot_version( $billing_unit_id );
-		$outcome = $is_first_snapshot ? 'created' : 'refreshed';
-		$ok = $wpdb->insert(
-			Schema::billing_snapshots_table(),
-			[
-				'billing_unit_id' => $billing_unit_id, 'snapshot_version' => $version, 'unit_type' => $candidate['unit_type'],
-				'unit_id' => $candidate['unit_id'], 'work_item_id' => $candidate['work_item_id'], 'source_revision' => $candidate['source_revision'],
-				'fingerprint' => $candidate['fingerprint'], 'payload' => $payload_json, 'created_by' => max( 0, $actor_user_id ), 'created_at' => $now,
-			],
-			[ '%d', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%d', '%s' ]
+					return [ 'outcome' => 'reused', 'unit' => $unit, 'snapshot' => $current ];
+				}
+				if ( BillingUnit::EXTERNALLY_LINKED === $unit['status'] ) {  return new \WP_Error( 'work_billing_linked_source_changed' ); }
+
+				$is_first_snapshot = null === $current;
+				$version = $is_first_snapshot ? 1 : self::next_snapshot_version( $billing_unit_id );
+				$outcome = $is_first_snapshot ? 'created' : 'refreshed';
+				$ok = $wpdb->insert(
+					Schema::billing_snapshots_table(),
+					[
+						'billing_unit_id' => $billing_unit_id, 'snapshot_version' => $version, 'unit_type' => $candidate['unit_type'],
+						'unit_id' => $candidate['unit_id'], 'work_item_id' => $candidate['work_item_id'], 'source_revision' => $candidate['source_revision'],
+						'fingerprint' => $candidate['fingerprint'], 'payload' => $payload_json, 'created_by' => max( 0, $actor_user_id ), 'created_at' => $now,
+					],
+					[ '%d', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%d', '%s' ]
+				);
+				if ( false === $ok ) {  return new \WP_Error( 'work_billing_snapshot_create_failed' ); }
+				$snapshot_id = (int) $wpdb->insert_id;
+				$updated = $wpdb->update(
+					Schema::billing_units_table(),
+					[ 'work_item_id' => $candidate['work_item_id'], 'status' => BillingUnit::READY, 'current_snapshot_id' => $snapshot_id, 'ready_at' => $now, 'linked_at' => null, 'updated_at' => $now ],
+					[ 'id' => $billing_unit_id ],
+					[ '%d', '%s', '%d', '%s', '%s', '%s' ], [ '%d' ]
+				);
+				if ( false === $updated ) {  return new \WP_Error( 'work_billing_prepare_failed' ); }
+
+				$unit = self::get( $billing_unit_id ); $snapshot = self::snapshot( $snapshot_id );
+				return null === $unit || null === $snapshot ? new \WP_Error( 'work_billing_resource_unavailable' ) : [ 'outcome' => $outcome, 'unit' => $unit, 'snapshot' => $snapshot ];
+			},
+			new \WP_Error( 'work_billing_prepare_failed' )
 		);
-		if ( false === $ok ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_snapshot_create_failed' ); }
-		$snapshot_id = (int) $wpdb->insert_id;
-		$updated = $wpdb->update(
-			Schema::billing_units_table(),
-			[ 'work_item_id' => $candidate['work_item_id'], 'status' => BillingUnit::READY, 'current_snapshot_id' => $snapshot_id, 'ready_at' => $now, 'linked_at' => null, 'updated_at' => $now ],
-			[ 'id' => $billing_unit_id ],
-			[ '%d', '%s', '%d', '%s', '%s', '%s' ], [ '%d' ]
-		);
-		if ( false === $updated ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_prepare_failed' ); }
-		$wpdb->query( 'COMMIT' );
-		$unit = self::get( $billing_unit_id ); $snapshot = self::snapshot( $snapshot_id );
-		return null === $unit || null === $snapshot ? new \WP_Error( 'work_billing_resource_unavailable' ) : [ 'outcome' => $outcome, 'unit' => $unit, 'snapshot' => $snapshot ];
 	}
 
 	/** @return array<string,mixed>|\WP_Error */
@@ -150,39 +154,43 @@ final class BillingUnits {
 		$reference = self::normalize_reference( $provider, $resource_type, $resource_id, $display_reference, $status_projection );
 		if ( false === $reference || ! self::schema_ready() ) { return new \WP_Error( 'work_billing_reference_invalid' ); }
 		global $wpdb;
-		$wpdb->query( 'START TRANSACTION' );
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE unit_type = %s AND unit_id = %d LIMIT 1 FOR UPDATE', sanitize_key( $unit_type ), $unit_id ),
-			ARRAY_A
+		return WorkSqlTransaction::run(
+			static function () use ( $wpdb, $unit_type, $unit_id, $expected_fingerprint, $reference ): array|\WP_Error {
+				$row = $wpdb->get_row(
+					$wpdb->prepare( 'SELECT * FROM ' . Schema::billing_units_table() . ' WHERE unit_type = %s AND unit_id = %d LIMIT 1 FOR UPDATE', sanitize_key( $unit_type ), $unit_id ),
+					ARRAY_A
+				);
+				if ( ! is_array( $row ) ) {  return new \WP_Error( 'work_billing_not_ready' ); }
+				$unit = self::hydrate_unit( $row );
+				$current = (int) $unit['current_snapshot_id'] > 0 ? self::snapshot_for_update( (int) $unit['current_snapshot_id'] ) : null;
+				if ( ! is_array( $current ) || ! hash_equals( (string) $current['fingerprint'], $expected_fingerprint ) ) {  return new \WP_Error( 'work_billing_snapshot_stale' ); }
+				$existing = self::reference_for_update( (int) $unit['id'], $reference['provider'], $reference['resource_type'], $reference['resource_id'] );
+				$now = current_time( 'mysql', true );
+				if ( is_array( $existing ) ) {
+					$reference_updated = $wpdb->update( Schema::billing_external_refs_table(), [ 'display_reference' => $reference['display_reference'], 'status_projection' => $reference['status_projection'], 'updated_at' => $now ], [ 'id' => (int) $existing['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
+					if ( false === $reference_updated ) {  return new \WP_Error( 'work_billing_reference_update_failed' ); }
+					if ( BillingUnit::EXTERNALLY_LINKED !== $unit['status'] ) {
+						$unit_updated = $wpdb->update( Schema::billing_units_table(), [ 'status' => BillingUnit::EXTERNALLY_LINKED, 'linked_at' => $now, 'updated_at' => $now ], [ 'id' => (int) $unit['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
+						if ( false === $unit_updated ) {  return new \WP_Error( 'work_billing_reference_update_failed' ); }
+					}
+
+					return self::linked_result( 'reused', (int) $unit['id'], (int) $current['id'], (int) $existing['id'] );
+				}
+				if ( BillingUnit::EXTERNALLY_LINKED === $unit['status'] ) {  return new \WP_Error( 'work_billing_already_linked' ); }
+				$ok = $wpdb->insert(
+					Schema::billing_external_refs_table(),
+					[ 'billing_unit_id' => (int) $unit['id'], 'snapshot_id' => (int) $current['id'], 'provider' => $reference['provider'], 'resource_type' => $reference['resource_type'], 'resource_id' => $reference['resource_id'], 'display_reference' => $reference['display_reference'], 'status_projection' => $reference['status_projection'], 'linked_at' => $now, 'updated_at' => $now ],
+					[ '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
+				);
+				if ( false === $ok ) {  return new \WP_Error( 'work_billing_reference_create_failed' ); }
+				$reference_id = (int) $wpdb->insert_id;
+				$updated = $wpdb->update( Schema::billing_units_table(), [ 'status' => BillingUnit::EXTERNALLY_LINKED, 'linked_at' => $now, 'updated_at' => $now ], [ 'id' => (int) $unit['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
+				if ( false === $updated ) {  return new \WP_Error( 'work_billing_reference_create_failed' ); }
+
+				return self::linked_result( 'linked', (int) $unit['id'], (int) $current['id'], $reference_id );
+			},
+			new \WP_Error( 'work_billing_reference_create_failed' )
 		);
-		if ( ! is_array( $row ) ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_not_ready' ); }
-		$unit = self::hydrate_unit( $row );
-		$current = (int) $unit['current_snapshot_id'] > 0 ? self::snapshot_for_update( (int) $unit['current_snapshot_id'] ) : null;
-		if ( ! is_array( $current ) || ! hash_equals( (string) $current['fingerprint'], $expected_fingerprint ) ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_snapshot_stale' ); }
-		$existing = self::reference_for_update( (int) $unit['id'], $reference['provider'], $reference['resource_type'], $reference['resource_id'] );
-		$now = current_time( 'mysql', true );
-		if ( is_array( $existing ) ) {
-			$reference_updated = $wpdb->update( Schema::billing_external_refs_table(), [ 'display_reference' => $reference['display_reference'], 'status_projection' => $reference['status_projection'], 'updated_at' => $now ], [ 'id' => (int) $existing['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
-			if ( false === $reference_updated ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_reference_update_failed' ); }
-			if ( BillingUnit::EXTERNALLY_LINKED !== $unit['status'] ) {
-				$unit_updated = $wpdb->update( Schema::billing_units_table(), [ 'status' => BillingUnit::EXTERNALLY_LINKED, 'linked_at' => $now, 'updated_at' => $now ], [ 'id' => (int) $unit['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
-				if ( false === $unit_updated ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_reference_update_failed' ); }
-			}
-			$wpdb->query( 'COMMIT' );
-			return self::linked_result( 'reused', (int) $unit['id'], (int) $current['id'], (int) $existing['id'] );
-		}
-		if ( BillingUnit::EXTERNALLY_LINKED === $unit['status'] ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_already_linked' ); }
-		$ok = $wpdb->insert(
-			Schema::billing_external_refs_table(),
-			[ 'billing_unit_id' => (int) $unit['id'], 'snapshot_id' => (int) $current['id'], 'provider' => $reference['provider'], 'resource_type' => $reference['resource_type'], 'resource_id' => $reference['resource_id'], 'display_reference' => $reference['display_reference'], 'status_projection' => $reference['status_projection'], 'linked_at' => $now, 'updated_at' => $now ],
-			[ '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
-		);
-		if ( false === $ok ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_reference_create_failed' ); }
-		$reference_id = (int) $wpdb->insert_id;
-		$updated = $wpdb->update( Schema::billing_units_table(), [ 'status' => BillingUnit::EXTERNALLY_LINKED, 'linked_at' => $now, 'updated_at' => $now ], [ 'id' => (int) $unit['id'] ], [ '%s', '%s', '%s' ], [ '%d' ] );
-		if ( false === $updated ) { $wpdb->query( 'ROLLBACK' ); return new \WP_Error( 'work_billing_reference_create_failed' ); }
-		$wpdb->query( 'COMMIT' );
-		return self::linked_result( 'linked', (int) $unit['id'], (int) $current['id'], $reference_id );
 	}
 
 	/** @return array<string,mixed>|\WP_Error */

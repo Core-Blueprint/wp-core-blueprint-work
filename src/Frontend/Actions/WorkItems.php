@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class WorkItems {
 	/** @return array<string,mixed>|\WP_Error */
-	public static function transition_status( int $work_item_id, string $to ): array|\WP_Error {
+	public static function transition_status( int $work_item_id, string $to, ?string $expected_from = null ): array|\WP_Error {
 		$to = sanitize_key( $to );
 		if ( $work_item_id <= 0 || ! WorkItemStatus::is_valid( $to ) ) {
 			return new \WP_Error( 'work_transition_invalid' );
@@ -34,11 +34,17 @@ final class WorkItems {
 			return new \WP_Error( 'work_action_forbidden' );
 		}
 
+		if ( null === $expected_from || ! WorkItemStatus::is_valid( $expected_from ) ) {
+			return new \WP_Error( 'work_transition_precondition_required' );
+		}
 		$from = (string) ( $visible['status'] ?? '' );
+		if ( $from !== $expected_from ) {
+			return new \WP_Error( 'work_transition_conflict' );
+		}
 		if ( ! WorkItemStatus::can_transition( $from, $to ) ) {
 			return new \WP_Error( 'work_transition_invalid' );
 		}
-		if ( ! WorkItemRepository::transition_status( $work_item_id, $to, get_current_user_id() ) ) {
+		if ( ! WorkItemRepository::transition_status( $work_item_id, $to, get_current_user_id(), $expected_from ) ) {
 			return new \WP_Error( 'work_transition_conflict' );
 		}
 

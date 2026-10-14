@@ -64,6 +64,8 @@ Conditions never persist data and return `false` when a resource is not frontend
 
 It:
 
+- requires the client-observed `expected_from` status as the third argument (omission fails closed);
+- rejects stale or duplicate transitions with `work_transition_conflict`;
 - validates the canonical Work lifecycle transition;
 - uses `Frontend\Access` for action authorization;
 - delegates persistence to `Repository\WorkItems::transition_status()`;
@@ -77,3 +79,5 @@ D3 actions are PHP domain contracts, not HTTP endpoints. A builder or other tran
 D4 may map these contracts into Bricks dynamic data, query loops, conditions and actions. The Bricks adapter must remain thin: it may translate Bricks input/output shapes and provide transport security, but it must not reimplement Work authorization, query semantics, lifecycle rules or persistence.
 
 Future builders must be able to consume the same D3 contracts without changes to the Work domain model.
+
+B3.2: PublicApi\WorkItemActions::transition_status() accepts an optional third `expected_from` argument for sibling PHP integrations and always passes a locked expected source status to the repository. D3 frontend actions require a client-supplied expected value; read/modify/write without this client snapshot is not safe for interactive UIs. Transports remain responsible for nonce/CSRF protections.
