@@ -1039,7 +1039,7 @@ final class Operations {
 		}
 	}
 
-	/** @param int[] $ids */
+	/** Format one canonical Work Item date for the admin UI. */
 	private static function work_item_date_label( string $date ): string {
 		if ( '' === $date ) {
 			return '—';
@@ -1049,6 +1049,7 @@ final class Operations {
 		return $value ? wp_date( 'M j, Y', $value->getTimestamp(), $timezone ) : $date;
 	}
 
+	/** @param int[] $ids */
 	private static function assignment_label( array $ids ): string {
 		$labels = [];
 		foreach ( $ids as $id ) {
