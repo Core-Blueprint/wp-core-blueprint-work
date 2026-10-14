@@ -15,6 +15,7 @@ final class WorkB42LockAndAccessIntegrationTest extends WP_UnitTestCase {
 	private ?wpdb $connection_a = null;
 	private ?wpdb $connection_b = null;
 	private string $table = '';
+	private bool $owns_table = false;
 
 	public function set_up(): void {
 		if ( ! defined( 'DB_NAME' ) || 'core_blueprint_work_test' !== (string) DB_NAME
@@ -26,9 +27,13 @@ final class WorkB42LockAndAccessIntegrationTest extends WP_UnitTestCase {
 
 	public function tear_down(): void {
 		try {
-			if ( '' !== $this->table && $this->connection_a instanceof wpdb ) {
-				$table = '`' . $this->table . '`';
-				self::assertNotFalse( $this->connection_a->query( 'DROP TABLE IF EXISTS ' . $table ) );
+			if ( $this->owns_table && $this->connection_a instanceof wpdb
+				&& 1 === preg_match( '/^cb_wb42_lock_[a-f0-9]{16}$/D', $this->table ) ) {
+				$removed = mysqli_query( $this->connection_a->dbh, 'DROP TABLE `' . $this->table . '`' );
+				if ( true !== $removed ) {
+					throw new RuntimeException( 'B4.2 shared fixture cleanup failed: ' . mysqli_error( $this->connection_a->dbh ) );
+				}
+				$this->owns_table = false;
 			}
 		} finally {
 			$this->connection_a?->close();
@@ -51,17 +56,33 @@ final class WorkB42LockAndAccessIntegrationTest extends WP_UnitTestCase {
 		$this->connection_b = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
 		$a = $this->connection_a;
 		$b = $this->connection_b;
+		self::assertInstanceOf( mysqli::class, $a->dbh );
+		self::assertInstanceOf( mysqli::class, $b->dbh );
+		self::assertTrue( mysqli_select_db( $a->dbh, DB_NAME ) );
+		self::assertTrue( mysqli_select_db( $b->dbh, DB_NAME ) );
+		self::assertTrue( mysqli_autocommit( $a->dbh, true ) );
+		self::assertTrue( mysqli_autocommit( $b->dbh, true ) );
+		self::assertSame( DB_NAME, (string) $a->get_var( 'SELECT DATABASE()' ) );
+		self::assertSame( DB_NAME, (string) $b->get_var( 'SELECT DATABASE()' ) );
 		self::assertNotSame( (int) $a->get_var( 'SELECT CONNECTION_ID()' ), (int) $b->get_var( 'SELECT CONNECTION_ID()' ) );
 		$this->table = 'cb_wb42_lock_' . bin2hex( random_bytes( 8 ) );
 		self::assertMatchesRegularExpression( '/^cb_wb42_lock_[a-f0-9]{16}$/D', $this->table );
 		$table = '`' . $this->table . '`';
-		self::assertNotFalse( $a->query( 'CREATE TABLE ' . $table . ' (
+		// Use the proven A1 two-connection fixture pattern: raw mysqli DDL
+		// guarantees a persistent shared table, never a PHPUnit-only shadow.
+		$created = mysqli_query( $a->dbh, 'CREATE TABLE ' . $table . ' (
 			id bigint unsigned NOT NULL PRIMARY KEY,
 			is_active tinyint(1) NOT NULL,
 			trashed_at datetime NULL,
 			generated_count int unsigned NOT NULL DEFAULT 0
-		) ENGINE=InnoDB' ) );
+		) ENGINE=InnoDB' );
+		self::assertTrue( $created, 'B4.2 shared fixture creation failed: ' . mysqli_error( $a->dbh ) );
+		$this->owns_table = true;
 		self::assertSame( 1, $a->insert( $this->table, [ 'id' => 1, 'is_active' => 1, 'generated_count' => 0 ], [ '%d', '%d', '%d' ] ) );
+		// Fail immediately if B cannot see this persistent fixture; a table
+		// visibility issue is NOT proof that locking was effective.
+		self::assertSame( 1, (int) $b->get_var( 'SELECT is_active FROM ' . $table . ' WHERE id = 1' ), 'Session B must see the same committed shared InnoDB row before attempting a lock.' );
+		self::assertSame( 0, (int) $b->get_var( 'SELECT @@in_transaction' ), 'Session B must not inherit a WordPress PHPUnit transaction.' );
 		self::assertNotFalse( $b->query( 'SET SESSION innodb_lock_wait_timeout = 1' ) );
 
 		self::assertNotFalse( $a->query( 'START TRANSACTION' ) );
@@ -72,6 +93,11 @@ final class WorkB42LockAndAccessIntegrationTest extends WP_UnitTestCase {
 			$b->suppress_errors( true );
 			try {
 				self::assertFalse( $b->query( "UPDATE " . $table . " SET is_active = 0, trashed_at = UTC_TIMESTAMP() WHERE id = 1" ) );
+				self::assertStringContainsString(
+					'Lock wait timeout exceeded',
+					(string) $b->last_error,
+					'Only a genuine InnoDB row-lock timeout demonstrates serialization; missing tables must fail the test.'
+				);
 			} finally {
 				$b->suppress_errors( false );
 			}
