@@ -531,6 +531,44 @@
 	gap: 8px;
 }
 
+/* Removable server-side filter chips preserve the view and sort via their URLs. */
+.cb-work-recurrence-active-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: -4px 0 18px;
+}
+
+.cb-work-recurrence-filter-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	max-width: 100%;
+	padding: 6px 11px;
+	border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+	border-radius: 999px;
+	color: inherit;
+	background: color-mix(in srgb, currentColor 5%, transparent);
+	text-decoration: none;
+	overflow-wrap: anywhere;
+}
+
+.cb-work-recurrence-filter-chip:hover {
+	color: inherit;
+	background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.cb-work-recurrence-filter-chip:focus-visible,
+.cb-work-recurrence-clear-all:focus-visible {
+	outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+	outline-offset: 2px;
+}
+
+.cb-work-recurrence-clear-all {
+	margin-inline-start: 4px;
+}
+
 .cb-work-recurrence-list .widefat th a {
 	color: inherit;
 }
