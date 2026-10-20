@@ -102,8 +102,8 @@ final class Recurrence {
 		$active_filters = [];
 		$filter_labels = [
 			'cb_search'  => [ __( 'Search', 'core-blueprint-work' ), $filter_search ],
-			'cb_status'  => [ __( 'Status', 'core-blueprint-work' ), 'active' === $filter_status ? __( 'Active', 'core-blueprint-work' ) : __( 'Inactive', 'core-blueprint-work' ) ],
-			'cb_context' => [ __( 'Work context', 'core-blueprint-work' ), WorkContext::CUSTOMER === $filter_context ? __( 'Customer', 'core-blueprint-work' ) : __( 'Internal', 'core-blueprint-work' ) ],
+			'cb_status'  => [ __( 'Status', 'core-blueprint-work' ), 'active' === $filter_status ? __( 'Active', 'core-blueprint-work' ) : ( 'inactive' === $filter_status ? __( 'Inactive', 'core-blueprint-work' ) : $filter_status ) ],
+			'cb_context' => [ __( 'Work context', 'core-blueprint-work' ), WorkContext::CUSTOMER === $filter_context ? __( 'Customer', 'core-blueprint-work' ) : ( WorkContext::INTERNAL === $filter_context ? __( 'Internal', 'core-blueprint-work' ) : $filter_context ) ],
 			'cb_project' => [ __( 'Project', 'core-blueprint-work' ), $project_titles[ $filter_project ] ?? (string) $filter_project ],
 		];
 		foreach ( $filter_labels as $filter_key => $filter_parts ) {
