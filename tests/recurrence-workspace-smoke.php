@@ -175,6 +175,26 @@ $checks = [
 		&& str_contains( $recurrence, '$project_titles' )
 		&& str_contains( $recurrence, 'cb-work-recurrence-status--active' )
 		&& str_contains( $recurrence, 'self::schedule_label( $configured )' ),
+	'Active filter chips remove one filter while preserving view and sort state' => str_contains( $recurrence, '$active_filters = [];' )
+		&& str_contains( $recurrence, "unset( $without_filter[ $filter_key ] );" )
+		&& str_contains( $recurrence, "'cb_view' => $trash_view ? 'trash' : ''" )
+		&& str_contains( $recurrence, "array_flip( [ 'cb_view', 'cb_sort', 'cb_dir' ] )" )
+		&& str_contains( $recurrence, 'self::url( $without_filter )' )
+		&& str_contains( $recurrence, 'self::url( $clear_filter_args )' )
+		&& str_contains( $recurrence, 'cb-work-recurrence-active-filters' )
+		&& str_contains( $recurrence, 'role="group" aria-label=' )
+		&& str_contains( $styles, '.cb-work-recurrence-filter-chip:focus-visible' ),
+	'ARIA sorting announces only the three currently sorted column headers' => 3 === substr_count( $recurrence, 'aria-sort=' )
+		&& str_contains( $recurrence, "'ascending' : 'descending'" )
+		&& str_contains( $recurrence, "if ( 'title' === $filter_sort )" )
+		&& str_contains( $recurrence, "if ( 'next_occurrence' === $filter_sort )" )
+		&& str_contains( $recurrence, "if ( 'status' === $filter_sort )" ),
+	'Quick Edit restores focus on Escape, cancel, success, and switching editors' => str_contains( $script, 'const close = (restoreFocus = true) => {' )
+		&& str_contains( $script, 'if (restoreFocus) trigger.focus();' )
+		&& str_contains( $script, "if (event.key !== 'Escape') return;" )
+		&& str_contains( $script, "document.querySelectorAll('[data-cb-quick-edit-row]:not([hidden])')" )
+		&& str_contains( $script, "openEditor.hidden = true;" )
+		&& str_contains( $script, "editor.querySelector('[data-cb-quick-edit-cancel]')?.addEventListener('click', () => close());" ),
 	'Generator remains an explicit governed action in diagnostics' => str_contains( $recurrence, 'cb-work-recurrence-diagnostics' )
 		&& str_contains( $recurrence, 'cb_work_run_recurrence_generator' )
 		&& str_contains( $recurrence, "wp_nonce_field( 'cb_work_run_recurrence_generator' )" ),
