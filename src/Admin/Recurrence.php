@@ -98,6 +98,27 @@ final class Recurrence {
 			$project_titles[ (int) $project['id'] ] = (string) $project['title'];
 		}
 
+		// Links remove one filter while retaining the current view and sort state.
+		$active_filters = [];
+		$filter_labels = [
+			'cb_search'  => [ __( 'Search', 'core-blueprint-work' ), $filter_search ],
+			'cb_status'  => [ __( 'Status', 'core-blueprint-work' ), 'active' === $filter_status ? __( 'Active', 'core-blueprint-work' ) : __( 'Inactive', 'core-blueprint-work' ) ],
+			'cb_context' => [ __( 'Work context', 'core-blueprint-work' ), WorkContext::CUSTOMER === $filter_context ? __( 'Customer', 'core-blueprint-work' ) : __( 'Internal', 'core-blueprint-work' ) ],
+			'cb_project' => [ __( 'Project', 'core-blueprint-work' ), $project_titles[ $filter_project ] ?? (string) $filter_project ],
+		];
+		foreach ( $filter_labels as $filter_key => $filter_parts ) {
+			if ( ! isset( $list_args[ $filter_key ] ) ) {
+				continue;
+			}
+			$without_filter = $list_args;
+			unset( $without_filter[ $filter_key ] );
+			$active_filters[] = [
+				'label' => $filter_parts[0] . ': ' . $filter_parts[1],
+				'url'   => self::url( $without_filter ),
+			];
+		}
+		$clear_filter_args = array_intersect_key( $list_args, array_flip( [ 'cb_view', 'cb_sort', 'cb_dir' ] ) );
+
 		$selected_customer = null;
 		if ( $editing ) {
 			$selected_customer = CRMCustomers::selected(
@@ -320,17 +341,24 @@ final class Recurrence {
 				<label><span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span><select name="cb_status"><option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option><option value="active" <?php selected( $filter_status, 'active' ); ?>><?php esc_html_e( 'Active', 'core-blueprint-work' ); ?></option><option value="inactive" <?php selected( $filter_status, 'inactive' ); ?>><?php esc_html_e( 'Inactive', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></span><select name="cb_context"><option value=""><?php esc_html_e( 'All contexts', 'core-blueprint-work' ); ?></option><option value="internal" <?php selected( $filter_context, 'internal' ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option><option value="customer" <?php selected( $filter_context, 'customer' ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option></select></label>
 				<label><span><?php esc_html_e( 'Project', 'core-blueprint-work' ); ?></span><select name="cb_project"><option value="0"><?php esc_html_e( 'All Projects', 'core-blueprint-work' ); ?></option><?php foreach ( $projects as $project ) : ?><option value="<?php echo esc_attr( (string) $project['id'] ); ?>" <?php selected( $filter_project, (int) $project['id'] ); ?>><?php echo esc_html( (string) $project['title'] ); ?></option><?php endforeach; ?></select></label>
-				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button><a class="button button-secondary" href="<?php echo esc_url( $trash_view ? self::url( [ 'cb_view' => 'trash' ] ) : self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a></div>
+				<div class="cb-work-recurrence-filter-actions"><button class="button button-primary" type="submit"><?php esc_html_e( 'Filter', 'core-blueprint-work' ); ?></button></div>
 			</form>
-
+			<?php if ( [] !== $active_filters ) : ?>
+			<div class="cb-work-recurrence-active-filters" role="group" aria-label="<?php esc_attr_e( 'Active filters', 'core-blueprint-work' ); ?>">
+				<?php foreach ( $active_filters as $active_filter ) : ?>
+				<a class="cb-work-recurrence-filter-chip" href="<?php echo esc_url( $active_filter['url'] ); ?>"><span class="screen-reader-text"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?>: </span><?php echo esc_html( $active_filter['label'] ); ?> <span aria-hidden="true">×</span></a>
+				<?php endforeach; ?>
+				<a class="cb-work-recurrence-clear-all" href="<?php echo esc_url( self::url( $clear_filter_args ) ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+			</div>
+			<?php endif; ?>
 
 			<?php if ( [] === $rules ) : ?>
 				<div class="cb-work-recurrence-empty"><h3><?php echo $trash_view ? esc_html__( 'Trash is empty.', 'core-blueprint-work' ) : esc_html__( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?></h3>
 				<?php if ( '' !== $filter_search || '' !== $filter_status || '' !== $filter_context || 0 !== $filter_project ) : ?>
-				<p><?php esc_html_e( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ); ?></p><a class="button button-secondary" href="<?php echo esc_url( $trash_view ? self::url( [ 'cb_view' => 'trash' ] ) : self::url() ); ?>"><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></a>
+				<p><?php esc_html_e( 'Adjust or clear the current filters to broaden this view.', 'core-blueprint-work' ); ?></p>
 				<?php else : ?><a class="button button-primary" href="<?php echo esc_url( self::url( [ 'mode' => 'add' ] ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a><?php endif; ?></div>
 			<?php else : ?>
-				<div class="cb-work-recurrence-table-scroll"><table class="widefat striped"><thead><tr><th scope="col"><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'title', 'cb_dir' => 'title' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Rule', 'core-blueprint-work' ); ?></a></th><th scope="col"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></th><th scope="col"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'next_occurrence', 'cb_dir' => 'next_occurrence' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Generated', 'core-blueprint-work' ); ?></th><th><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'status', 'cb_dir' => 'status' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></a></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
+				<div class="cb-work-recurrence-table-scroll"><table class="widefat striped"><thead><tr><th scope="col" <?php if ( 'title' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'title', 'cb_dir' => 'title' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Rule', 'core-blueprint-work' ); ?><?php if ( 'title' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th><th scope="col"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></th><th scope="col"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></th><th scope="col" <?php if ( 'next_occurrence' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'next_occurrence', 'cb_dir' => 'next_occurrence' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?><?php if ( 'next_occurrence' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th><th><?php esc_html_e( 'Generated', 'core-blueprint-work' ); ?></th><th scope="col" <?php if ( 'status' === $filter_sort ) : ?>aria-sort="<?php echo esc_attr( 'asc' === $filter_direction ? 'ascending' : 'descending' ); ?>"<?php endif; ?>><a href="<?php echo esc_url( self::url( [ ...$list_args, 'cb_sort' => 'status', 'cb_dir' => 'status' === $filter_sort && 'asc' === $filter_direction ? 'desc' : 'asc' ] ) ); ?>"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?><?php if ( 'status' === $filter_sort ) : ?> <span aria-hidden="true"><?php echo 'asc' === $filter_direction ? '↑' : '↓'; ?></span><?php endif; ?></a></th><th><?php esc_html_e( 'Actions', 'core-blueprint-work' ); ?></th></tr></thead><tbody>
 				<?php foreach ( $rules as $configured ) : ?>
 					<?php
 						$configured_id = (int) $configured['id'];
