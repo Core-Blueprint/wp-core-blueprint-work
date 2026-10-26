@@ -2693,3 +2693,172 @@ msgstr "Regla de trabajo recurrente restaurada"
 
 msgid "Recurring Work rule deleted permanently"
 msgstr "Regla de trabajo recurrente eliminada definitivamente"
+
+#: src/Admin/ServiceOperations.php:30 src/Admin/ServiceOperations.php:115
+msgid "Saved."
+msgstr "Guardado."
+
+#: src/Admin/ServiceOperations.php:31 src/Admin/ServiceOperations.php:115 src/Admin/ServiceOperationsActions.php:67 src/Admin/ServiceOperationsActions.php:70
+msgid "The change could not be saved."
+msgstr "No se pudo guardar el cambio."
+
+#: src/Admin/ServiceOperations.php:32 src/Admin/ServiceOperations.php:52
+msgid "Invoiced externally"
+msgstr "Facturado externamente"
+
+#: src/Admin/ServiceOperations.php:33 src/Admin/ServiceOperations.php:53
+msgid "Not recorded"
+msgstr "No registrado"
+
+#: src/Admin/ServiceOperations.php:46
+msgid "Not delivered"
+msgstr "No realizado"
+
+#: src/Admin/ServiceOperations.php:47
+msgid "Not scheduled"
+msgstr "No programado"
+
+#: src/Admin/ServiceOperations.php:54
+msgid "Not applicable"
+msgstr "No aplicable"
+
+#: src/Admin/ServiceOperations.php:111 src/Admin/ServiceOperations.php:145 src/Admin/Menu.php:51
+msgid "Service Operations"
+msgstr "Operaciones de servicios"
+
+#: src/Admin/ServiceOperations.php:112
+msgid "Recurring customer services, execution and external invoicing in one place."
+msgstr "Servicios recurrentes, ejecución y facturación externa en un solo lugar."
+
+#: src/Admin/ServiceOperations.php:113 src/Admin/ServiceOperations.php:223 src/Admin/ServiceOperations.php:250
+msgid "Add service"
+msgstr "Añadir servicio"
+
+#: src/Admin/ServiceOperations.php:118
+msgid "Period"
+msgstr "Período"
+
+#: src/Admin/ServiceOperations.php:126
+msgid "Execution status"
+msgstr "Estado de ejecución"
+
+#: src/Admin/ServiceOperations.php:127 src/Admin/ServiceOperations.php:149
+msgid "Billing registration"
+msgstr "Registro de facturación"
+
+#: src/Admin/ServiceOperations.php:138
+msgid "Service Operations could not load. No status has been assumed."
+msgstr "No se pudieron cargar las operaciones de servicios. No se ha supuesto ningún estado."
+
+#: src/Admin/ServiceOperations.php:141
+msgid "Summary for the selected period and filters."
+msgstr "Resumen del período y los filtros seleccionados."
+
+#: src/Admin/ServiceOperations.php:147
+msgid "Customer / Project"
+msgstr "Cliente / Proyecto"
+
+#: src/Admin/ServiceOperations.php:147
+msgid "Execution"
+msgstr "Ejecución"
+
+#: src/Admin/ServiceOperations.php:148
+msgid "Last execution"
+msgstr "Última ejecución"
+
+#: src/Admin/ServiceOperations.php:148
+msgid "Next execution"
+msgstr "Próxima ejecución"
+
+#: src/Admin/ServiceOperations.php:166
+msgid "Open Work Item"
+msgstr "Abrir tarea"
+
+#: src/Admin/ServiceOperations.php:169
+msgid "No matching services. Adjust your filters or add a service."
+msgstr "No hay servicios coincidentes. Ajuste los filtros o añada un servicio."
+
+#: src/Admin/ServiceOperations.php:171
+msgid "Pagination"
+msgstr "Paginación"
+
+#: src/Admin/ServiceOperations.php:184
+msgid "Edit billing registration"
+msgstr "Editar registro de facturación"
+
+#: src/Admin/ServiceOperations.php:191
+msgid "Registration"
+msgstr "Registro"
+
+#: src/Admin/ServiceOperations.php:194
+msgid "Invoice date"
+msgstr "Fecha de factura"
+
+#: src/Admin/ServiceOperations.php:195
+msgid "External reference"
+msgstr "Referencia externa"
+
+#: src/Admin/ServiceOperations.php:196
+msgid "Save"
+msgstr "Guardar"
+
+#: src/Admin/ServiceOperations.php:210
+msgid "Link recurring work"
+msgstr "Vincular trabajo recurrente"
+
+#: src/Admin/ServiceOperations.php:218
+msgid "Effective from"
+msgstr "Vigente desde"
+
+#: src/Admin/ServiceOperations.php:219
+msgid "Earlier work is not included before this date."
+msgstr "No se incluye el trabajo anterior a esta fecha."
+
+#: src/Admin/ServiceOperations.php:220
+msgid "Link"
+msgstr "Vincular"
+
+#: src/Admin/ServiceOperations.php:232
+msgid "Label (optional)"
+msgstr "Etiqueta (opcional)"
+
+#: src/Admin/ServiceOperations.php:233
+msgid "Starts on"
+msgstr "Comienza el"
+
+#: src/Admin/ServiceOperations.php:234
+msgid "Billing frequency"
+msgstr "Frecuencia de facturación"
+
+#: src/Admin/ServiceOperations.php:239
+msgid "Invoice timing"
+msgstr "Momento de facturación"
+
+#: src/Admin/ServiceOperations.php:240
+msgid "After service"
+msgstr "Después del servicio"
+
+#: src/Admin/ServiceOperations.php:241
+msgid "In advance"
+msgstr "Por adelantado"
+
+#: src/Admin/ServiceOperations.php:243
+msgid "Existing Recurring Work (optional)"
+msgstr "Trabajo recurrente existente (opcional)"
+
+#: src/Admin/ServiceOperations.php:249
+msgid "The selected rule must belong to the same customer, Project and Service."
+msgstr "La regla seleccionada debe pertenecer al mismo cliente, proyecto y servicio."
+
+#: src/Governance/Events.php:82
+msgid "Recurring customer service created"
+msgstr "Servicio recurrente creado"
+
+#: src/Governance/Events.php:83
+msgid "Recurring work linked to service"
+msgstr "Trabajo recurrente vinculado al servicio"
+
+#: src/Governance/Events.php:84
+msgid "External service invoice registration updated"
+msgstr "Registro de facturación externa actualizado"
+

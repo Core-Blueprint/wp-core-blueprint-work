@@ -2677,3 +2677,172 @@ msgstr "Regel voor terugkerend werk hersteld"
 
 msgid "Recurring Work rule deleted permanently"
 msgstr "Regel voor terugkerend werk definitief verwijderd"
+
+#: src/Admin/ServiceOperations.php:30 src/Admin/ServiceOperations.php:115
+msgid "Saved."
+msgstr "Opgeslagen."
+
+#: src/Admin/ServiceOperations.php:31 src/Admin/ServiceOperations.php:115 src/Admin/ServiceOperationsActions.php:67 src/Admin/ServiceOperationsActions.php:70
+msgid "The change could not be saved."
+msgstr "De wijziging kon niet worden opgeslagen."
+
+#: src/Admin/ServiceOperations.php:32 src/Admin/ServiceOperations.php:52
+msgid "Invoiced externally"
+msgstr "Extern gefactureerd"
+
+#: src/Admin/ServiceOperations.php:33 src/Admin/ServiceOperations.php:53
+msgid "Not recorded"
+msgstr "Niet geregistreerd"
+
+#: src/Admin/ServiceOperations.php:46
+msgid "Not delivered"
+msgstr "Niet uitgevoerd"
+
+#: src/Admin/ServiceOperations.php:47
+msgid "Not scheduled"
+msgstr "Niet gepland"
+
+#: src/Admin/ServiceOperations.php:54
+msgid "Not applicable"
+msgstr "Niet van toepassing"
+
+#: src/Admin/ServiceOperations.php:111 src/Admin/ServiceOperations.php:145 src/Admin/Menu.php:51
+msgid "Service Operations"
+msgstr "Dienstenbeheer"
+
+#: src/Admin/ServiceOperations.php:112
+msgid "Recurring customer services, execution and external invoicing in one place."
+msgstr "Terugkerende klantdiensten, uitvoering en externe facturatie op één plek."
+
+#: src/Admin/ServiceOperations.php:113 src/Admin/ServiceOperations.php:223 src/Admin/ServiceOperations.php:250
+msgid "Add service"
+msgstr "Dienst toevoegen"
+
+#: src/Admin/ServiceOperations.php:118
+msgid "Period"
+msgstr "Periode"
+
+#: src/Admin/ServiceOperations.php:126
+msgid "Execution status"
+msgstr "Uitvoeringsstatus"
+
+#: src/Admin/ServiceOperations.php:127 src/Admin/ServiceOperations.php:149
+msgid "Billing registration"
+msgstr "Facturatieregistratie"
+
+#: src/Admin/ServiceOperations.php:138
+msgid "Service Operations could not load. No status has been assumed."
+msgstr "Dienstenbeheer kon niet worden geladen. Er is geen status aangenomen."
+
+#: src/Admin/ServiceOperations.php:141
+msgid "Summary for the selected period and filters."
+msgstr "Samenvatting voor de geselecteerde periode en filters."
+
+#: src/Admin/ServiceOperations.php:147
+msgid "Customer / Project"
+msgstr "Klant / project"
+
+#: src/Admin/ServiceOperations.php:147
+msgid "Execution"
+msgstr "Uitvoering"
+
+#: src/Admin/ServiceOperations.php:148
+msgid "Last execution"
+msgstr "Laatste uitvoering"
+
+#: src/Admin/ServiceOperations.php:148
+msgid "Next execution"
+msgstr "Volgende uitvoering"
+
+#: src/Admin/ServiceOperations.php:166
+msgid "Open Work Item"
+msgstr "Werkitem openen"
+
+#: src/Admin/ServiceOperations.php:169
+msgid "No matching services. Adjust your filters or add a service."
+msgstr "Geen overeenkomende diensten. Pas je filters aan of voeg een dienst toe."
+
+#: src/Admin/ServiceOperations.php:171
+msgid "Pagination"
+msgstr "Paginering"
+
+#: src/Admin/ServiceOperations.php:184
+msgid "Edit billing registration"
+msgstr "Facturatieregistratie bewerken"
+
+#: src/Admin/ServiceOperations.php:191
+msgid "Registration"
+msgstr "Registratie"
+
+#: src/Admin/ServiceOperations.php:194
+msgid "Invoice date"
+msgstr "Factuurdatum"
+
+#: src/Admin/ServiceOperations.php:195
+msgid "External reference"
+msgstr "Externe referentie"
+
+#: src/Admin/ServiceOperations.php:196
+msgid "Save"
+msgstr "Opslaan"
+
+#: src/Admin/ServiceOperations.php:210
+msgid "Link recurring work"
+msgstr "Terugkerend werk koppelen"
+
+#: src/Admin/ServiceOperations.php:218
+msgid "Effective from"
+msgstr "Van kracht vanaf"
+
+#: src/Admin/ServiceOperations.php:219
+msgid "Earlier work is not included before this date."
+msgstr "Eerder werk vóór deze datum wordt niet meegenomen."
+
+#: src/Admin/ServiceOperations.php:220
+msgid "Link"
+msgstr "Koppelen"
+
+#: src/Admin/ServiceOperations.php:232
+msgid "Label (optional)"
+msgstr "Label (optioneel)"
+
+#: src/Admin/ServiceOperations.php:233
+msgid "Starts on"
+msgstr "Begint op"
+
+#: src/Admin/ServiceOperations.php:234
+msgid "Billing frequency"
+msgstr "Facturatiefrequentie"
+
+#: src/Admin/ServiceOperations.php:239
+msgid "Invoice timing"
+msgstr "Facturatiemoment"
+
+#: src/Admin/ServiceOperations.php:240
+msgid "After service"
+msgstr "Achteraf"
+
+#: src/Admin/ServiceOperations.php:241
+msgid "In advance"
+msgstr "Vooraf"
+
+#: src/Admin/ServiceOperations.php:243
+msgid "Existing Recurring Work (optional)"
+msgstr "Bestaand terugkerend werk (optioneel)"
+
+#: src/Admin/ServiceOperations.php:249
+msgid "The selected rule must belong to the same customer, Project and Service."
+msgstr "De geselecteerde regel moet bij dezelfde klant, hetzelfde project en dezelfde dienst horen."
+
+#: src/Governance/Events.php:82
+msgid "Recurring customer service created"
+msgstr "Terugkerende klantdienst aangemaakt"
+
+#: src/Governance/Events.php:83
+msgid "Recurring work linked to service"
+msgstr "Terugkerend werk aan dienst gekoppeld"
+
+#: src/Governance/Events.php:84
+msgid "External service invoice registration updated"
+msgstr "Externe facturatieregistratie van dienst bijgewerkt"
+
