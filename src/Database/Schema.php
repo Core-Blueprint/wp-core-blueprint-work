@@ -35,6 +35,11 @@ final class Schema {
 				[ self::class, 'active_timers_table' ],
 				[ self::class, 'portable_identities_table' ],
 				[ self::class, 'outbox_table' ],
+				[ self::class, 'engagements_table' ],
+				[ self::class, 'engagement_rules_table' ],
+				[ self::class, 'service_billing_terms_table' ],
+				[ self::class, 'service_billing_registrations_table' ],
+				[ self::class, 'service_billing_events_table' ],
 			],
 			'install'    => [ self::class, 'install' ],
 		] );
@@ -113,6 +118,32 @@ final class Schema {
 	public static function outbox_table(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'cb_work_bundle_event_outbox';
+	}
+
+
+	public static function engagements_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_service_engagements';
+	}
+
+	public static function engagement_rules_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_service_engagement_rules';
+	}
+
+	public static function service_billing_terms_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_service_billing_terms';
+	}
+
+	public static function service_billing_registrations_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_service_billing_registrations';
+	}
+
+	public static function service_billing_events_table(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'cb_work_service_billing_events';
 	}
 
 	public static function install(): bool {
@@ -359,6 +390,88 @@ final class Schema {
 			UNIQUE KEY event_key (event_key),
 			KEY state_claimed (state,claimed_at),
 			KEY state_delivered (state,delivered_at)
+		) {$charset};" );
+
+
+		// Service Operations owns long-lived relationships and manual administrative facts.
+		// The existing recurrence and billing tables are left untouched.
+		dbDelta( 'CREATE TABLE ' . self::engagements_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			project_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			service_id bigint(20) unsigned NOT NULL,
+			customer_provider varchar(64) NOT NULL DEFAULT '',
+			customer_type varchar(64) NOT NULL DEFAULT '',
+			customer_id varchar(191) NOT NULL DEFAULT '',
+			label varchar(190) NOT NULL DEFAULT '',
+			starts_on date NOT NULL,
+			ends_on date NULL,
+			is_active tinyint(1) unsigned NOT NULL DEFAULT 1,
+			revision int unsigned NOT NULL DEFAULT 1,
+			created_by bigint(20) unsigned NOT NULL,
+			updated_by bigint(20) unsigned NOT NULL,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY project_active (project_id,is_active),
+			KEY service_active (service_id,is_active),
+			KEY customer (customer_provider,customer_type,customer_id)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::engagement_rules_table() . " (
+			rule_id bigint(20) unsigned NOT NULL,
+			engagement_id bigint(20) unsigned NOT NULL,
+			effective_from date NOT NULL,
+			linked_by bigint(20) unsigned NOT NULL,
+			linked_at datetime NOT NULL,
+			PRIMARY KEY  (rule_id),
+			KEY engagement (engagement_id,effective_from)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::service_billing_terms_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			engagement_id bigint(20) unsigned NOT NULL,
+			frequency varchar(16) NOT NULL,
+			interval_count smallint unsigned NOT NULL DEFAULT 1,
+			anchor_on date NOT NULL,
+			effective_from date NOT NULL,
+			effective_until date NULL,
+			invoice_timing varchar(16) NOT NULL DEFAULT 'arrears',
+			created_by bigint(20) unsigned NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY term_start (engagement_id,effective_from),
+			KEY engagement_effective (engagement_id,effective_from,effective_until)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::service_billing_registrations_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			engagement_id bigint(20) unsigned NOT NULL,
+			billing_terms_id bigint(20) unsigned NOT NULL,
+			period_start date NOT NULL,
+			period_end_exclusive date NOT NULL,
+			state varchar(24) NOT NULL DEFAULT 'not_recorded',
+			invoiced_on date NULL,
+			external_reference varchar(190) NOT NULL DEFAULT '',
+			revision int unsigned NOT NULL DEFAULT 1,
+			recorded_by bigint(20) unsigned NOT NULL,
+			recorded_at datetime NOT NULL,
+			updated_by bigint(20) unsigned NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY term_period (billing_terms_id,period_start),
+			KEY engagement_period (engagement_id,period_start)
+		) {$charset};" );
+
+		dbDelta( 'CREATE TABLE ' . self::service_billing_events_table() . " (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			registration_id bigint(20) unsigned NOT NULL,
+			revision int unsigned NOT NULL,
+			previous_state varchar(24) NOT NULL,
+			new_state varchar(24) NOT NULL,
+			actor_user_id bigint(20) unsigned NOT NULL,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY registration_revision (registration_id,revision)
 		) {$charset};" );
 
 		self::backfill_work_contexts();
