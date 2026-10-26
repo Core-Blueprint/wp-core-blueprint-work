@@ -40,6 +40,11 @@ final class Events {
 	public const TIMER_STARTED                   = 'work.time.timer.started';
 	public const TIMER_STOPPED                   = 'work.time.timer.stopped';
 
+
+	public const SERVICE_ENGAGEMENT_CREATED = 'work.service.engagement.created';
+	public const SERVICE_RULE_BOUND = 'work.service.rule.bound';
+	public const SERVICE_BILLING_RECORDED = 'work.service.billing.recorded';
+
 	public static function init(): void {
 		add_action( 'init', [ self::class, 'register' ], 2 );
 	}
@@ -74,6 +79,9 @@ final class Events {
 			self::RECURRENCE_GENERATION_FAILED   => [ __( 'Recurring Work generation failed', 'core-blueprint-work' ), 'maintenance' ],
 			self::RECURRENCE_GENERATOR_RUN       => [ __( 'Recurring Work generator run', 'core-blueprint-work' ), 'maintenance' ],
 			self::TIME_ENTRY_CREATED             => [ __( 'Work Time entry created', 'core-blueprint-work' ), 'general' ],
+			self::SERVICE_ENGAGEMENT_CREATED => [ __( 'Recurring customer service created', 'core-blueprint-work' ), 'general' ],
+			self::SERVICE_RULE_BOUND => [ __( 'Recurring work linked to service', 'core-blueprint-work' ), 'general' ],
+			self::SERVICE_BILLING_RECORDED => [ __( 'External service invoice registration updated', 'core-blueprint-work' ), 'general' ],
 			self::TIME_ENTRY_UPDATED             => [ __( 'Work Time entry updated', 'core-blueprint-work' ), 'general' ],
 			self::TIMER_STARTED                  => [ __( 'Work timer started', 'core-blueprint-work' ), 'general' ],
 			self::TIMER_STOPPED                   => [ __( 'Work timer stopped', 'core-blueprint-work' ), 'general' ],
