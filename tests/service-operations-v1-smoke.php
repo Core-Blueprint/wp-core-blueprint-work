@@ -27,6 +27,8 @@ $tests=[
     'Project/Service references guarded' => str_contains($engagement,'Services::get') && str_contains($engagement,'Projects::get'),
     'recurrence relation effective date explicit' => str_contains($engagement,'effective_from'),
     'idempotent binding' => str_contains($engagement,'work_service_rule_already_bound'),
+    'ledger source identity is validated' => str_contains($periods,'recurrence_occurrence') && str_contains($periods,'$source_valid'),
+    'inactive rule does not assert missing history was scheduled' => str_contains($periods,'$potential') && str_contains($periods,'$unknown = true'),
     'period resolver is read-only' => !str_contains($periods,'wp_insert_post(') && !str_contains($periods,'::reserve_next_occurrence('),
     'period status considers missing' => str_contains($periods,"$"."counts['missing']"),
     'period status considers blocked and canceled' => str_contains($periods,'WorkItemStatus::BLOCKED') && str_contains($periods,'WorkItemStatus::CANCELLED'),

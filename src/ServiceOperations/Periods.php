@@ -89,7 +89,7 @@ final class Periods {
             }
             $from = max( $start, (string) $link['effective_from'] );
             $rows = $wpdb->get_results( $wpdb->prepare(
-                'SELECT occurrence_on, work_item_id FROM ' . Schema::recurrence_occurrences_table()
+                'SELECT id, occurrence_on, work_item_id FROM ' . Schema::recurrence_occurrences_table()
                 . ' WHERE rule_id = %d AND occurrence_on >= %s AND occurrence_on < %s ORDER BY occurrence_on ASC LIMIT 501',
                 $rule_id, $from, $effective_end
             ), ARRAY_A );
@@ -97,7 +97,7 @@ final class Periods {
                 return new \WP_Error( 'work_service_occurrence_query_failed' );
             }
             $ledger = [];
-            foreach ( $rows as $row ) { $ledger[ (string) $row['occurrence_on'] ] = (int) $row['work_item_id']; }
+            foreach ( $rows as $row ) { $ledger[ (string) $row['occurrence_on'] ] = [ 'id' => (int) $row['id'], 'work_item_id' => (int) $row['work_item_id'] ]; }
 
             $expected = [];
             if ( ! empty( $rule['is_active'] ) && empty( $rule['is_trashed'] ) ) {
@@ -116,6 +116,15 @@ final class Periods {
                     $next = $candidate;
                 }
             }
+            // A paused rule has no deactivation date in the legacy contract.
+            // Missing past work is therefore unverifiable, never silently No Work.
+            if ( empty( $rule['is_active'] ) || ! empty( $rule['is_trashed'] ) ) {
+                $potential = self::first_on_or_after( $rule, $from );
+                if ( null !== $potential && $potential < $effective_end
+                    && $potential <= $as_of && ! isset( $ledger[ $potential ] ) ) {
+                    $unknown = true;
+                }
+            }
             // Historical generated work must remain visible even after a rule is deactivated.
             foreach ( $ledger as $on => $_ ) { $expected[$on] = true; }
             foreach ( array_keys( $expected ) as $on ) {
@@ -123,11 +132,26 @@ final class Periods {
                 if ( isset( $seen[ $key ] ) ) { continue; }
                 $seen[ $key ] = true;
                 $counts['scheduled']++;
-                $item_id = $ledger[$on] ?? 0;
+                $item_id = $ledger[$on]['work_item_id'] ?? 0;
                 $item = $item_id > 0 ? WorkItems::get( $item_id ) : null;
                 if ( null === $item ) {
                     $counts['missing']++;
                     if ( $on < $as_of ) { $counts['overdue']++; }
+                    continue;
+                }
+                // A ledger foreign ID is not sufficient proof of recurrence identity.
+                $source_valid = false;
+                foreach ( (array) ( $item['relations'] ?? [] ) as $relation ) {
+                    if ( (string) ( $relation['provider'] ?? '' ) === 'core-blueprint-work'
+                        && (string) ( $relation['relation_type'] ?? '' ) === 'recurrence_occurrence'
+                        && (string) ( $relation['external_id'] ?? '' ) === (string) ( $ledger[$on]['id'] ?? '' ) ) {
+                        $source_valid = true;
+                        break;
+                    }
+                }
+                if ( ! $source_valid ) {
+                    $unknown = true;
+                    $counts['missing']++;
                     continue;
                 }
                 $counts['work_item_ids'][] = $item_id;
@@ -164,7 +188,7 @@ final class Periods {
             if ( '' !== (string) $wpdb->last_error ) { return new \WP_Error( 'work_service_last_query_failed' ); }
             if ( is_string( $latest ) && '' !== $latest && ( null === $last || $latest > $last ) ) { $last = $latest; }
         }
-        $counts['last_execution'] = $last;
+        $counts['last_execution'] = $unknown ? null : $last;
         $counts['next_execution'] = $next;
         if ( $unknown ) { $counts['status'] = 'attention'; }
         elseif ( $counts['overdue'] > 0 ) { $counts['status'] = 'overdue'; }
