@@ -68,8 +68,12 @@ final class ServiceBilling {
         if ( ! is_array( $terms ) ) { return [ 'state' => 'not_applicable', 'registration' => null ]; }
 
         $anchor = (string) $terms['anchor_on'];
-        $target = max( $bounds[0], (string) $terms['effective_from'], $anchor, (string) $engagement['starts_on'] );
-        if ( $target >= $bounds[1] ) { return [ 'state' => 'not_applicable', 'registration' => null ]; }
+        // Report the latest coverage START within the selected calendar month,
+        // otherwise the cycle covering that month. A 26th-of-month anchor must
+        // not keep displaying last month's invoice throughout the next month.
+        $last_day = (new \DateTimeImmutable( $bounds[1] ))->modify( '-1 day' )->format( 'Y-m-d' );
+        $target = max( $last_day, (string) $terms['effective_from'], $anchor, (string) $engagement['starts_on'] );
+        if ( (string) $engagement['starts_on'] >= $bounds[1] || $target >= $bounds[1] ) { return [ 'state' => 'not_applicable', 'registration' => null ]; }
         $freq = (string) $terms['frequency'];
         $interval = (int) $terms['interval_count'];
         $schedule_freq = 'quarterly' === $freq ? RecurrenceSchedule::MONTHLY : $freq;

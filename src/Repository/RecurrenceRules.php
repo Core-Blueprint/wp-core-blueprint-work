@@ -620,6 +620,30 @@ final class RecurrenceRules {
 			return null;
 		}
 
+		// An Engagement already owns the historical Project/Service/customer context.
+		// Never let editing a Recurring Work template silently reassign that history.
+		if ( null !== $current ) {
+			global $wpdb;
+			$binding = $wpdb->get_var( $wpdb->prepare(
+				'SELECT engagement_id FROM ' . Schema::engagement_rules_table() . ' WHERE rule_id = %d',
+				(int) $current['id']
+			) );
+			if ( '' !== (string) $wpdb->last_error ) {
+				return null;
+			}
+			if ( (int) $binding > 0 ) {
+				$engagement = \CB\Work\ServiceOperations\Engagements::get( (int) $binding );
+				if ( null === $engagement
+					|| $engagement['project_id'] !== $project_id
+					|| $engagement['service_id'] !== $service_id
+					|| $engagement['customer_provider'] !== $customer['provider']
+					|| $engagement['customer_type'] !== $customer['type']
+					|| $engagement['customer_id'] !== $customer['id'] ) {
+					return null;
+				}
+			}
+		}
+
 		$schedule_changed = null === $current
 			|| $schedule['frequency'] !== (string) $current['frequency']
 			|| $schedule['interval_count'] !== (int) $current['interval_count']
