@@ -66,6 +66,7 @@ final class ServiceOperations {
             $chunk_page++;
         } while ($chunk_page <= $chunk['pages']);
         $matches = [];
+        $billing_counts = ['invoiced' => 0, 'not_recorded' => 0];
         $counts = array_fill_keys(array_keys(self::statuses()), 0);
         foreach ($raw as $engagement) {
             $customer_ref = $engagement['customer_provider'] . ':' . $engagement['customer_type'] . ':' . $engagement['customer_id'];
@@ -82,13 +83,14 @@ final class ServiceOperations {
             if ($filters['status'] !== '' && $execution['status'] !== $filters['status']) { continue; }
             if ($filters['billing'] !== '' && $coverage['state'] !== $filters['billing']) { continue; }
             $counts[$execution['status']]++;
+            if (isset($billing_counts[$coverage['state']])) { $billing_counts[$coverage['state']]++; }
             $matches[] = compact('engagement','project','service','customer','execution','coverage');
         }
         $total = count($matches);
         $pages = max(1, (int)ceil($total / 25));
         $page = min($pages, max(1, $filters['page']));
         return ['rows' => array_slice($matches, ($page - 1) * 25, 25),
-            'counts' => $counts, 'total' => $total, 'pages' => $pages, 'page' => $page];
+            'counts' => $counts, 'billing_counts' => $billing_counts, 'total' => $total, 'pages' => $pages, 'page' => $page];
     }
     public static function render(): void {
         if (!current_user_can(Capabilities::MANAGE)) { wp_die(esc_html__('You do not have permission to manage Work.','core-blueprint-work')); }
@@ -140,7 +142,10 @@ final class ServiceOperations {
         <?php else: ?>
             <p class="description"><?php esc_html_e('Summary for the selected period and filters.','core-blueprint-work'); ?></p>
             <div class="cb-work-so-cards"><div><strong><?php echo esc_html((string)$report['total']); ?></strong><?php esc_html_e('Services','core-blueprint-work'); ?></div>
-            <?php foreach (self::statuses() as $key => $label): ?><div><strong><?php echo esc_html((string)$report['counts'][$key]); ?></strong><?php echo esc_html($label); ?></div><?php endforeach; ?></div>
+            <?php foreach (self::statuses() as $key => $label): ?><div><strong><?php echo esc_html((string)$report['counts'][$key]); ?></strong><?php echo esc_html($label); ?></div><?php endforeach; ?>
+            <?php if ($filters['billing'] === ''): foreach (['invoiced','not_recorded'] as $key): ?>
+                <div><strong data-cb-so-billing-count="<?php echo esc_attr($key); ?>"><?php echo esc_html((string)$report['billing_counts'][$key]); ?></strong><?php echo esc_html(self::billing_statuses()[$key]); ?></div>
+            <?php endforeach; endif; ?></div>
             <div class="cb-work-so-table-wrap"><table class="widefat striped cb-work-so-table">
             <caption class="screen-reader-text"><?php esc_html_e('Service Operations','core-blueprint-work'); ?></caption>
             <thead><tr>

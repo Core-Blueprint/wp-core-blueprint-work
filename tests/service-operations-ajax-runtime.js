@@ -17,7 +17,7 @@ const context={
     window:{cbWorkServiceOperations:{
         ajaxUrl:'/wp-admin/admin-ajax.php',saved:'Saved.',error:'Error',invoiced:'Invoiced externally',notRecorded:'Not recorded'
     },fetch:true},
-    document:{addEventListener(name,fn){assert.equal(name,'submit');submit=fn;}},
+    document:{addEventListener(name,fn){assert.equal(name,'submit');submit=fn;},querySelector(){return null;}},
     FormData:class{constructor(){this.map=new Map([['revision','0']]);}set(k,v){this.map.set(k,v);}get(k){return this.map.get(k);}},
     fetch:async (_url,options)=>{
         assert.equal(options.method,'POST');

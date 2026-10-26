@@ -24,7 +24,16 @@
             const registration = result.data.registration;
             form.elements.revision.value = String(registration.revision);
             const badge = form.closest('td')?.querySelector('[data-cb-so-billing-label]');
-            if (badge) badge.textContent = registration.state === 'invoiced' ? config.invoiced : config.notRecorded;
+            if (badge) {
+                const previous = badge.textContent === config.invoiced ? 'invoiced' : 'not_recorded';
+                badge.textContent = registration.state === 'invoiced' ? config.invoiced : config.notRecorded;
+                if (previous !== registration.state) {
+                    for (const [state, delta] of [[previous, -1], [registration.state, 1]]) {
+                        const counter = document.querySelector('[data-cb-so-billing-count="' + state + '"]');
+                        if (counter) counter.textContent = String(Math.max(0, Number(counter.textContent) + delta));
+                    }
+                }
+            }
             feedback.textContent = config.saved;
         } catch (error) {
             feedback.textContent = config.error + (error.message ? ' (' + error.message + ')' : '');
