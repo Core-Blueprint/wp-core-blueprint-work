@@ -119,7 +119,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		) ) );
 
 		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', false ),
-			'Production Base SchemaRegistry must complete the 2.0 to 2.2 upgrade.' );
+			'Production Base SchemaRegistry must complete the 2.0 to 2.3 upgrade.' );
 		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ) );
 		self::assertSame( $table, $wpdb->get_var( $wpdb->prepare(
 			'SHOW TABLES LIKE %s', $wpdb->esc_like( $table )
@@ -144,7 +144,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		self::assertCount( 1, $event_keys );
 		self::assertSame( '0', (string) $event_keys[0]['Non_unique'], 'Each outbox event must have an immutable unique key.' );
 
-		// Schema 2.2 must preserve the B3.1 outbox and add recoverable
+		// Schema 2.3 must preserve the B3.1 outbox and add recoverable
 		// Recurring Work lifecycle columns without dropping legacy rows.
 		$recurrence = Schema::recurrence_rules_table();
 		$recurrence_columns = $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $recurrence ) );
@@ -167,7 +167,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		) ) );
 
 		// An existing 2.1 installation also advances through Base's
-		// official schema registry to 2.2 without disturbing Work data.
+		// official schema registry to 2.3 without disturbing Work data.
 		update_option( Schema::OPTION, '2.1' );
 		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', false ) );
 		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ) );
