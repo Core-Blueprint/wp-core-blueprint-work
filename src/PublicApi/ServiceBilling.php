@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace CB\Work\PublicApi;
 
 use CB\Work\Capabilities;
-use CB\Work\ServiceOperations\ServiceBilling;
 use CoreBlueprint\Core\Governance\Audit;
 use CB\Work\Governance\Events;
 

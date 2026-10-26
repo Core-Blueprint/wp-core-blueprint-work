@@ -13,6 +13,8 @@ use CB\Work\Admin\ProjectDataExchange;
 use CB\Work\Admin\Projects;
 use CB\Work\Admin\QuickAdd;
 use CB\Work\Admin\RecurrenceActions;
+use CB\Work\Admin\ServiceOperations as ServiceOperationsAdmin;
+use CB\Work\Admin\ServiceOperationsActions;
 use CB\Work\Admin\ServicePricing;
 use CB\Work\Admin\TaxRateActions;
 use CB\Work\Admin\Time;
@@ -76,6 +78,8 @@ final class Plugin {
 			WorkItemBoardActions::init();
 			WorkItemCalendarActions::init();
 			RecurrenceActions::init();
+		ServiceOperationsAdmin::init();
+		ServiceOperationsActions::init();
 			Time::init();
 			TimeActions::init();
 			TimerHud::init();

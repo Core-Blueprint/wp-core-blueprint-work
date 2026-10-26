@@ -15,11 +15,13 @@ final class Menu {
 	public const PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project';
 	public const PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import';
 	public const RECURRENCE_SLUG       = 'core-blueprint-work-recurrence';
+	public const SERVICE_OPERATIONS_SLUG = 'core-blueprint-work-service-operations';
 	public const TIME_SLUG             = 'core-blueprint-work-time';
 	public const WORK_TYPES_SLUG       = 'core-blueprint-work-types';
 	public const CONTEXT_OVERVIEW      = 'overview';
 	public const CONTEXT_WORK_ITEMS    = 'work_items';
 	public const CONTEXT_RECURRENCE    = 'recurrence';
+	public const CONTEXT_SERVICE_OPERATIONS = 'service_operations';
 	public const CONTEXT_TIME          = 'time';
 	public const CONTEXT_PROJECTS      = 'projects';
 	public const CONTEXT_SERVICES      = 'services';
@@ -46,6 +48,7 @@ final class Menu {
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 5 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 10 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 15 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Service Operations', 'core-blueprint-work' ), __( 'Service Operations', 'core-blueprint-work' ), Capabilities::MANAGE, self::SERVICE_OPERATIONS_SLUG, [ ServiceOperations::class, 'render' ], 16 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 17 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
@@ -165,6 +168,7 @@ final class Menu {
 		if ( self::RECURRENCE_SLUG === $page ) {
 			return self::CONTEXT_RECURRENCE;
 		}
+		if ( self::SERVICE_OPERATIONS_SLUG === $page ) { return self::CONTEXT_SERVICE_OPERATIONS; }
 		if ( self::TIME_SLUG === $page ) {
 			return self::CONTEXT_TIME;
 		}
@@ -192,6 +196,7 @@ final class Menu {
 			self::CONTEXT_OVERVIEW   => self::TOP_LEVEL_SLUG,
 			self::CONTEXT_WORK_ITEMS => self::WORK_ITEMS_SLUG,
 			self::CONTEXT_RECURRENCE => self::RECURRENCE_SLUG,
+			self::CONTEXT_SERVICE_OPERATIONS => self::SERVICE_OPERATIONS_SLUG,
 			self::CONTEXT_TIME       => current_user_can( Capabilities::MANAGE ) ? self::TIME_SLUG : self::TOP_LEVEL_SLUG,
 			self::CONTEXT_PROJECTS   => self::projects_path(),
 			self::CONTEXT_SERVICES   => self::services_path(),
