@@ -14,8 +14,28 @@ const billingFields={
     hidden:false,
     querySelector(sel){assert.equal(sel,'[name="billing_enabled"]');return checkbox;}
 };
-const projectForm={querySelector(sel){assert.equal(sel,'[data-cb-so-billing-fields]');return billingFields;}};
+const ruleOptions=[
+    {value:'0',selected:true,dataset:{}},
+    {value:'17',selected:false,dataset:{project:'123',service:'9',context:'internal'},disabled:false,hidden:false},
+    {value:'18',selected:false,dataset:{project:'123',service:'9',context:'customer'},disabled:false,hidden:false},
+    {value:'19',selected:false,dataset:{project:'999',service:'9',context:'internal'},disabled:false,hidden:false}
+];
+const rulePicker={value:'0',options:ruleOptions};
+const serviceSelector={value:'9',closest(sel){assert.equal(sel,'form');return projectForm;}};
+const projectForm={
+    querySelector(sel){
+        const nodes={
+            '[data-cb-so-billing-fields]':billingFields,
+            '[data-cb-so-project-context]':projectSelector,
+            '[data-cb-so-service-id]':serviceSelector,
+            '[data-cb-so-rule-picker]':rulePicker
+        };
+        assert.ok(Object.hasOwn(nodes,sel));
+        return nodes[sel];
+    }
+};
 const projectSelector={
+    value:'123',
     closest(sel){assert.equal(sel,'form');return projectForm;},
     get selectedOptions(){return [{dataset:{context:contextSelected}}];}
 };
@@ -64,14 +84,27 @@ vm.runInNewContext(source,context);
     assert.equal(typeof change,'function');
     assert.equal(billingFields.hidden,true);
     assert.equal(checkbox.disabled,true);
+    assert.equal(ruleOptions[1].disabled,false);
+    assert.equal(ruleOptions[2].disabled,true);
+    assert.equal(ruleOptions[3].disabled,true);
     contextSelected='customer';
     change({target:{closest(selector){assert.equal(selector,'[data-cb-so-project-context]');return projectSelector;}}});
     assert.equal(billingFields.hidden,false);
     assert.equal(checkbox.disabled,false);
+    assert.equal(ruleOptions[1].disabled,true);
+    assert.equal(ruleOptions[2].disabled,false);
     contextSelected='internal';
     change({target:{closest(){return projectSelector;}}});
     assert.equal(billingFields.hidden,true);
     assert.equal(checkbox.disabled,true);
+    assert.equal(ruleOptions[1].disabled,false);
+    ruleOptions[1].selected=true;
+    rulePicker.value='17';
+    serviceSelector.value='10';
+    change({target:{closest(selector){return selector==='[data-cb-so-service-id]'?serviceSelector:null;}}});
+    assert.equal(ruleOptions[1].disabled,true);
+    assert.equal(rulePicker.value,'0');
+    serviceSelector.value='9';
     let clickPrevented=false;
     click({
         target:{closest(selector){assert.equal(selector,'[data-cb-so-open]');return {href:'#cb-work-so-add'};}},
