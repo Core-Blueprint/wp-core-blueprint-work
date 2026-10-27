@@ -16,20 +16,43 @@
     });
     // Project context is authoritative server-side; the client only adjusts
     // the optional billing controls to avoid asking Internal users for invoices.
+    function updateServiceOptions(form) {
+        const project = form.querySelector('[data-cb-so-project-context]');
+        const service = form.querySelector('[data-cb-so-service-id]');
+        const rulePicker = form.querySelector('[data-cb-so-rule-picker]');
+        if (!project || !service || !rulePicker) return;
+        const projectId = project.value || '';
+        const serviceId = service.value || '';
+        const context = project.selectedOptions?.[0]?.dataset?.context || '';
+        for (const option of rulePicker.options) {
+            if (!option.value) continue;
+            const compatible = !!projectId && !!serviceId
+                && option.dataset?.project === projectId
+                && option.dataset?.service === serviceId
+                && option.dataset?.context === context;
+            option.disabled = !compatible;
+            option.hidden = !compatible;
+            if (!compatible && option.selected) rulePicker.value = '0';
+        }
+    }
     function updateBillingVisibility(project) {
         const form = project.closest('form');
         const fields = form?.querySelector('[data-cb-so-billing-fields]');
         if (!fields) return;
-        const selected = project.selectedOptions?.[0];
-        const context = selected?.dataset?.context || '';
+        const context = project.selectedOptions?.[0]?.dataset?.context || '';
         fields.hidden = context === 'internal';
         const checkbox = fields.querySelector('[name="billing_enabled"]');
         if (checkbox) checkbox.disabled = context === 'internal';
+        if (form) updateServiceOptions(form);
     }
     document.querySelectorAll?.('[data-cb-so-project-context]').forEach(updateBillingVisibility);
     document.addEventListener('change', event => {
         const project = event.target.closest?.('[data-cb-so-project-context]');
         if (project) updateBillingVisibility(project);
+        else if (event.target.closest?.('[data-cb-so-service-id]')) {
+            const form = event.target.closest('form');
+            if (form) updateServiceOptions(form);
+        }
     });
     document.addEventListener('submit', async event => {
         const form = event.target.closest('form[data-cb-so-invoice]');

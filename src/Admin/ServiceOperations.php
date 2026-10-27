@@ -141,7 +141,7 @@ final class ServiceOperations {
         $notice = sanitize_key((string)wp_unslash($_GET['cb_notice'] ?? ''));
         ?><div class="wrap cb-work-service-operations">
         <header class="cb-work-so-header"><div><h1><?php esc_html_e('Service Operations','core-blueprint-work'); ?></h1>
-        <p class="description"><?php esc_html_e('Recurring customer services, execution and external invoicing in one place.','core-blueprint-work'); ?></p></div>
+        <p class="description"><?php esc_html_e('Track recurring services, execution and optional external invoicing in one place.','core-blueprint-work'); ?></p></div>
         <?php if ($can_create && (!is_array($report) || $report['total'] > 0 || self::has_filters($filters))): ?>
         <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
         <?php endif; ?></header>
@@ -303,6 +303,10 @@ final class ServiceOperations {
         foreach (RecurrenceRules::all(false,500) as $rule) {
             if ((int)($rule['project_id'] ?? 0)===$eng['project_id']
                 && (int)($rule['service_id'] ?? 0)===$eng['service_id']
+                && (string)($rule['work_context'] ?? '')===$eng['work_context']
+                && (string)($rule['customer_provider'] ?? '')===$eng['customer_provider']
+                && (string)($rule['customer_type'] ?? '')===$eng['customer_type']
+                && (string)($rule['customer_id'] ?? '')===$eng['customer_id']
                 && !in_array((int)$rule['id'],$bound,true)) { $available[] = $rule; }
         }
         if (!$available) { return; } ?>
@@ -333,7 +337,7 @@ final class ServiceOperations {
           </select>
         </label>
         <label><?php esc_html_e('Service','core-blueprint-work'); ?>
-          <select name="service_id" required><option value="">—</option>
+          <select name="service_id" data-cb-so-service-id required><option value="">—</option>
             <?php foreach ($services as $id=>$title): ?><option value="<?php echo esc_attr((string)$id); ?>"><?php echo esc_html($title); ?></option><?php endforeach; ?>
           </select>
         </label>
@@ -355,13 +359,18 @@ final class ServiceOperations {
             <option value="advance"><?php esc_html_e('In advance','core-blueprint-work'); ?></option>
         </select></label>
         </fieldset>
-        <label><?php esc_html_e('Existing Recurring Work (optional)','core-blueprint-work'); ?><select name="rule_id">
+        <label><?php esc_html_e('Existing Recurring Work (optional)','core-blueprint-work'); ?><select name="rule_id" data-cb-so-rule-picker>
             <option value="0"><?php esc_html_e('None','core-blueprint-work'); ?></option>
             <?php foreach (RecurrenceRules::all(false,500) as $rule): ?>
-                <option value="<?php echo esc_attr((string)$rule['id']); ?>"><?php echo esc_html($rule['title']); ?></option>
+                <option value="<?php echo esc_attr((string)$rule['id']); ?>"
+                    data-project="<?php echo esc_attr((string)($rule['project_id'] ?? 0)); ?>"
+                    data-service="<?php echo esc_attr((string)($rule['service_id'] ?? 0)); ?>"
+                    data-context="<?php echo esc_attr((string)($rule['work_context'] ?? '')); ?>">
+                    <?php echo esc_html($rule['title']); ?>
+                </option>
             <?php endforeach; ?>
         </select></label>
-        <p class="description"><?php esc_html_e('The selected rule must belong to the same customer, Project and Service.','core-blueprint-work'); ?></p>
+        <p class="description"><?php esc_html_e('The recurring rule must match the selected Project, Service and Work context.','core-blueprint-work'); ?></p>
         <button class="button button-primary" type="submit"><?php esc_html_e('Add service','core-blueprint-work'); ?></button>
         </form></details><?php
     }

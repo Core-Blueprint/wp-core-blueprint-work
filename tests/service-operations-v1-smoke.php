@@ -101,6 +101,11 @@ $tests=[
         str_contains($admin, 'cb_context')
         && str_contains($admin, 'WorkContext::INTERNAL')
         && str_contains($admin, 'WorkContext::CUSTOMER'),
+    'I2 Recurring Work choices are context scoped' =>
+        str_contains($admin, 'data-cb-so-rule-picker')
+        && str_contains($admin, 'data-project=')
+        && str_contains($admin, 'data-service=')
+        && str_contains($read('assets/service-operations.js'), 'updateServiceOptions'),
     'I2 billing options are conditional, never the identity authority' =>
         str_contains($admin, 'data-cb-so-billing-fields')
         && str_contains($actions, 'WorkContext::CUSTOMER === $engagement')
