@@ -107,8 +107,12 @@ final class Engagements {
             if ( ! $project || '' !== $provider || '' !== $type || '' !== $customer_id ) {
                 return new \WP_Error( 'work_service_internal_identity_invalid' );
             }
-        } elseif ( '' === $provider || '' === $type || '' === $customer_id ) {
-            return new \WP_Error( 'work_service_customer_required' );
+        } elseif ( WorkContext::CUSTOMER === $context ) {
+            if ( '' === $provider || '' === $type || '' === $customer_id ) {
+                return new \WP_Error( 'work_service_customer_required' );
+            }
+        } else {
+            return new \WP_Error( 'work_service_context_invalid' );
         }
         $start = ProjectMeta::sanitize_date( $input['starts_on'] ?? '' );
         $end = ProjectMeta::sanitize_date( $input['ends_on'] ?? '' );
