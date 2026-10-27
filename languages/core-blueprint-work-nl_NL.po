@@ -2710,10 +2710,6 @@ msgstr "Niet van toepassing"
 msgid "Service Operations"
 msgstr "Dienstenbeheer"
 
-#: src/Admin/ServiceOperations.php:112
-msgid "Recurring customer services, execution and external invoicing in one place."
-msgstr "Terugkerende klantdiensten, uitvoering en externe facturatie op één plek."
-
 #: src/Admin/ServiceOperations.php:113 src/Admin/ServiceOperations.php:223 src/Admin/ServiceOperations.php:250
 msgid "Add service"
 msgstr "Dienst toevoegen"
@@ -2830,10 +2826,6 @@ msgstr "Vooraf"
 msgid "Existing Recurring Work (optional)"
 msgstr "Bestaand terugkerend werk (optioneel)"
 
-#: src/Admin/ServiceOperations.php:249
-msgid "The selected rule must belong to the same customer, Project and Service."
-msgstr "De geselecteerde regel moet bij dezelfde klant, hetzelfde project en dezelfde dienst horen."
-
 #: src/Governance/Events.php:82
 msgid "Recurring customer service created"
 msgstr "Terugkerende klantdienst aangemaakt"
@@ -2889,4 +2881,12 @@ msgstr "Externe facturatie bijhouden"
 #: src/Admin/ServiceOperations.php
 msgid "Optional for Customer projects. Internal services are never invoiced."
 msgstr "Optioneel voor klantprojecten. Interne diensten worden nooit gefactureerd."
+
+#: src/Admin/ServiceOperations.php
+msgid "Track recurring services, execution and optional external invoicing in one place."
+msgstr "Beheer terugkerende diensten, uitvoering en optionele externe facturatie op één plek."
+
+#: src/Admin/ServiceOperations.php
+msgid "The recurring rule must match the selected Project, Service and Work context."
+msgstr "De terugkeerregel moet overeenkomen met het geselecteerde project, de dienst en de werkcontext."
 

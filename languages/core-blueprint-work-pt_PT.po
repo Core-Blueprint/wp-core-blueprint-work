@@ -2715,10 +2715,6 @@ msgstr "Não aplicável"
 msgid "Service Operations"
 msgstr "Operações de serviços"
 
-#: src/Admin/ServiceOperations.php:112
-msgid "Recurring customer services, execution and external invoicing in one place."
-msgstr "Serviços recorrentes, execução e faturação externa num só local."
-
 #: src/Admin/ServiceOperations.php:113 src/Admin/ServiceOperations.php:223 src/Admin/ServiceOperations.php:250
 msgid "Add service"
 msgstr "Adicionar serviço"
@@ -2835,10 +2831,6 @@ msgstr "Antecipadamente"
 msgid "Existing Recurring Work (optional)"
 msgstr "Trabalho recorrente existente (opcional)"
 
-#: src/Admin/ServiceOperations.php:249
-msgid "The selected rule must belong to the same customer, Project and Service."
-msgstr "A regra selecionada deve pertencer ao mesmo cliente, projeto e serviço."
-
 #: src/Governance/Events.php:82
 msgid "Recurring customer service created"
 msgstr "Serviço recorrente criado"
@@ -2894,4 +2886,12 @@ msgstr "Registar faturação externa"
 #: src/Admin/ServiceOperations.php
 msgid "Optional for Customer projects. Internal services are never invoiced."
 msgstr "Opcional para projetos de cliente. Os serviços internos nunca são faturados."
+
+#: src/Admin/ServiceOperations.php
+msgid "Track recurring services, execution and optional external invoicing in one place."
+msgstr "Gira serviços recorrentes, execução e faturação externa opcional num só lugar."
+
+#: src/Admin/ServiceOperations.php
+msgid "The recurring rule must match the selected Project, Service and Work context."
+msgstr "A regra recorrente tem de corresponder ao projeto, ao serviço e ao contexto de trabalho selecionados."
 

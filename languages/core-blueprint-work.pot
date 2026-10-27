@@ -2725,10 +2725,6 @@ msgstr ""
 msgid "Service Operations"
 msgstr ""
 
-#: src/Admin/ServiceOperations.php:112
-msgid "Recurring customer services, execution and external invoicing in one place."
-msgstr ""
-
 #: src/Admin/ServiceOperations.php:113 src/Admin/ServiceOperations.php:223 src/Admin/ServiceOperations.php:250
 msgid "Add service"
 msgstr ""
@@ -2845,10 +2841,6 @@ msgstr ""
 msgid "Existing Recurring Work (optional)"
 msgstr ""
 
-#: src/Admin/ServiceOperations.php:249
-msgid "The selected rule must belong to the same customer, Project and Service."
-msgstr ""
-
 #: src/Governance/Events.php:82
 msgid "Recurring customer service created"
 msgstr ""
@@ -2903,5 +2895,13 @@ msgstr ""
 
 #: src/Admin/ServiceOperations.php
 msgid "Optional for Customer projects. Internal services are never invoiced."
+msgstr ""
+
+#: src/Admin/ServiceOperations.php
+msgid "Track recurring services, execution and optional external invoicing in one place."
+msgstr ""
+
+#: src/Admin/ServiceOperations.php
+msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr ""
 
