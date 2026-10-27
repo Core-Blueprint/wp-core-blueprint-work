@@ -171,7 +171,7 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         // An unavailable customer provider must not offer a dead-end
         // customer-Project creation action.
         if (!\CB\Work\Integration\CRMCustomers::available()) {
-            self::assertStringContainsString('Customer selection is unavailable.',$html);
+            self::assertStringContainsString('cb-work-so-guidance',$html);
             self::assertStringNotContainsString('post-new.php?post_type=cb_work_project',$html);
         }
     }
@@ -203,7 +203,7 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
             $_GET=$prior;
         }
         self::assertStringContainsString('cb-work-so-filters',$filtered);
-        self::assertStringContainsString('Clear filters',$filtered);
+        self::assertStringContainsString('cb_month=',$filtered);
         self::assertStringNotContainsString('cb-work-so-onboarding',$filtered);
     }
 
