@@ -166,7 +166,19 @@ namespace {
 	assert_true( '2.3' === CB_WORK_SCHEMA_VERSION, 'Service Operations schema version 2.3.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
-	assert_true( 15 === count( $schema['tables'] ?? [] ), 'Work schema declares its 15 canonical tables, including the bundle event outbox; Projects and Work Items remain CPT-backed.' );
+	assert_true( 20 === count( $schema['tables'] ?? [] ), 'Work schema registers its 15 foundational and five Service Operations tables; Projects and Work Items remain CPT-backed.' );
+	foreach ( [
+		'engagements_table',
+		'engagement_rules_table',
+		'service_billing_terms_table',
+		'service_billing_registrations_table',
+		'service_billing_events_table',
+	] as $service_table ) {
+		assert_true(
+			in_array( [ \CB\Work\Database\Schema::class, $service_table ], $schema['tables'], true ),
+			'Service Operations table ' . $service_table . ' registers via Base SchemaRegistry.'
+		);
+	}
 	assert_true(
 		in_array( [ \CB\Work\Database\Schema::class, 'outbox_table' ], $schema['tables'], true ),
 		'Work registers the B3.1 event outbox table through Base SchemaRegistry.'
@@ -207,6 +219,7 @@ namespace {
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import remains registered through the WordPress access-check phase.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
+	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work'][\CB\Work\Admin\Menu::SERVICE_OPERATIONS_SLUG] ), 'Service Operations is mounted under Work for managers.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Time is mounted under Work for managers.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_project'] ), 'Native Projects are mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['edit.php?post_type=cb_work_service'] ), 'Native Services are mounted under Work.' );
