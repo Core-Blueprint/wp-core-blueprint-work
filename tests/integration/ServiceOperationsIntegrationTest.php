@@ -25,7 +25,15 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         }
         parent::set_up();
         $this->actor=self::factory()->user->create(['role'=>'administrator']);
+        // The PHPUnit bootstrap loads Work but does not activate it. Provide
+        // the exact capability installed by Capabilities::install() for this
+        // test operator, without granting it to other users or bypassing ACL.
+        $operator=get_userdata($this->actor);
+        self::assertInstanceOf(WP_User::class,$operator);
+        $operator->add_cap(Capabilities::MANAGE);
         wp_set_current_user($this->actor);
+        self::assertTrue(current_user_can(Capabilities::MANAGE),
+            'The authorized fixture must carry the installed Work capability.');
         update_option(Schema::OPTION,CB_WORK_SCHEMA_VERSION);
         $this->project=self::factory()->post->create([
             'post_type'=>PostTypes::PROJECT,'post_status'=>'publish','post_title'=>'Client Project'
@@ -130,8 +138,16 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         self::assertIsArray(ReadApi::period($engagement,'2026-10'));
         $user=self::factory()->user->create(['role'=>'subscriber']);
         wp_set_current_user($user);
-        self::assertWPError(ReadApi::search());
-        self::assertWPError(ReadApi::period($engagement,'2026-10'));
-        self::assertWPError(ServiceBillingActions::record($engagement,'2026-10','invoiced','', '',0));
+        self::assertFalse(current_user_can(Capabilities::MANAGE),
+            'A non-operator must not inherit the Work capability.');
+        $search=ReadApi::search();
+        self::assertWPError($search);
+        self::assertSame('work_service_forbidden',$search->get_error_code());
+        $period=ReadApi::period($engagement,'2026-10');
+        self::assertWPError($period);
+        self::assertSame('work_service_forbidden',$period->get_error_code());
+        $mutation=ServiceBillingActions::record($engagement,'2026-10','invoiced','', '',0);
+        self::assertWPError($mutation);
+        self::assertSame('work_service_forbidden',$mutation->get_error_code());
     }
 }
