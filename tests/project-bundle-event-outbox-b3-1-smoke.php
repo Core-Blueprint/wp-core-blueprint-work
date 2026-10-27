@@ -17,8 +17,8 @@ $golden = file_get_contents( $root . '/tests/integration/ProjectBundleGoldenAcce
 $plugin = file_get_contents( $root . '/src/Plugin.php' );
 
 $checks = [
-	'outbox retains immutable event identity under schema 2.3 and immutable event UUID uniqueness' =>
-		is_string( $boot ) && str_contains( $boot, "CB_WORK_SCHEMA_VERSION', '2.3'" )
+	'outbox retains immutable event identity under schema 2.4 and immutable event UUID uniqueness' =>
+		is_string( $boot ) && str_contains( $boot, "CB_WORK_SCHEMA_VERSION', '2.4'" )
 		&& is_string( $schema ) && str_contains( $schema, "cb_work_bundle_event_outbox" )
 		&& str_contains( $schema, "UNIQUE KEY event_key (event_key)" ),
 	'Project bundle SQL boundary waits for outbox insert before releasing savepoint' =>
