@@ -248,7 +248,7 @@ final class ServiceOperations {
               <strong><?php esc_html_e('Create a customer Project','core-blueprint-work'); ?></strong>
               <p><?php esc_html_e('Link the Project to a customer in the Project editor.','core-blueprint-work'); ?></p>
               <?php if ($project_ready): ?><span class="cb-work-so-ready"><?php esc_html_e('Ready','core-blueprint-work'); ?></span>
-              <?php else: ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a customer Project','core-blueprint-work'); ?></a><?php endif; ?>
+              <?php elseif (CRMCustomers::available()): ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a customer Project','core-blueprint-work'); ?></a><?php endif; ?>
             </li>
           </ol>
           <?php if (!$project_ready && !CRMCustomers::available()): ?>

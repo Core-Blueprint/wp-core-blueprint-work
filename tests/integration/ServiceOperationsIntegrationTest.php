@@ -154,6 +154,59 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         self::assertSame('work_service_forbidden',$result->get_error_code());
     }
 
+    public function test_first_run_guidance_blocks_creation_without_customer_project():void {
+        wp_delete_post($this->project,true);
+        wp_delete_post($this->service,true);
+        ob_start();
+        try {
+            \CB\Work\Admin\ServiceOperations::render();
+        } finally {
+            $html=(string)ob_get_clean();
+        }
+        self::assertStringContainsString('cb-work-so-onboarding',$html);
+        self::assertStringContainsString('post-new.php?post_type=cb_work_service',$html);
+        self::assertStringNotContainsString('id="cb-work-so-add"',$html);
+        self::assertStringNotContainsString('cb-work-so-cards',$html);
+        self::assertStringNotContainsString('cb-work-so-table',$html);
+        // An unavailable customer provider must not offer a dead-end
+        // customer-Project creation action.
+        if (!\CB\Work\Integration\CRMCustomers::available()) {
+            self::assertStringContainsString('Customer selection is unavailable.',$html);
+            self::assertStringNotContainsString('post-new.php?post_type=cb_work_project',$html);
+        }
+    }
+
+    public function test_first_run_ready_and_filtered_zero_are_distinct():void {
+        // The real WordPress posts seeded in set_up provide the prerequisites,
+        // but no recurring service has been registered yet.
+        ob_start();
+        try {
+            \CB\Work\Admin\ServiceOperations::render();
+        } finally {
+            $first=(string)ob_get_clean();
+        }
+        self::assertStringContainsString('cb-work-so-onboarding',$first);
+        self::assertStringContainsString('id="cb-work-so-add"',$first);
+        self::assertStringContainsString('data-cb-so-open',$first);
+        self::assertStringNotContainsString('cb-work-so-filters',$first);
+
+        $prior=$_GET;
+        try {
+            $_GET['cb_search']='no-service-matches-this-filter';
+            ob_start();
+            try {
+                \CB\Work\Admin\ServiceOperations::render();
+            } finally {
+                $filtered=(string)ob_get_clean();
+            }
+        } finally {
+            $_GET=$prior;
+        }
+        self::assertStringContainsString('cb-work-so-filters',$filtered);
+        self::assertStringContainsString('Clear filters',$filtered);
+        self::assertStringNotContainsString('cb-work-so-onboarding',$filtered);
+    }
+
     public function test_manager_only_contracts_and_no_provider_dependencies():void {
         $engagement=$this->engagement();
         self::assertIsArray(ReadApi::period($engagement,'2026-10'));
