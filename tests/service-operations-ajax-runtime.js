@@ -5,6 +5,17 @@ const vm = require('node:vm');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname,'../assets/service-operations.js'),'utf8');
 let submit;
+let click;
+let detailsFocus=false;
+let detailsScroll=false;
+const details={
+    open:false,
+    scrollIntoView(){detailsScroll=true;},
+    querySelector(selector){
+        assert.equal(selector,'select[name="project_id"]');
+        return {focus(options){assert.equal(options.preventScroll,true);detailsFocus=true;}};
+    }
+};
 const badge={textContent:'Not recorded'};
 const feedback={textContent:''};
 const button={disabled:false};
@@ -17,7 +28,15 @@ const context={
     window:{cbWorkServiceOperations:{
         ajaxUrl:'/wp-admin/admin-ajax.php',saved:'Saved.',error:'Error',invoiced:'Invoiced externally',notRecorded:'Not recorded'
     },fetch:true},
-    document:{addEventListener(name,fn){assert.equal(name,'submit');submit=fn;},querySelector(){return null;}},
+    document:{
+        addEventListener(name,fn){
+            assert.ok(['submit','click'].includes(name));
+            if(name==='submit')submit=fn;
+            else click=fn;
+        },
+        getElementById(id){assert.equal(id,'cb-work-so-add');return details;},
+        querySelector(){return null;}
+    },
     FormData:class{constructor(){this.map=new Map([['revision','0']]);}set(k,v){this.map.set(k,v);}get(k){return this.map.get(k);}},
     fetch:async (_url,options)=>{
         assert.equal(options.method,'POST');
@@ -27,6 +46,16 @@ const context={
 };
 vm.runInNewContext(source,context);
 (async()=>{
+    assert.equal(typeof click,'function');
+    let clickPrevented=false;
+    click({
+        target:{closest(selector){assert.equal(selector,'[data-cb-so-open]');return {href:'#cb-work-so-add'};}},
+        preventDefault(){clickPrevented=true;}
+    });
+    assert.equal(clickPrevented,true);
+    assert.equal(details.open,true);
+    assert.equal(detailsFocus,true);
+    assert.equal(detailsScroll,true);
     let prevented=false;
     await submit({target:{closest(){return form;}},preventDefault(){prevented=true;}});
     assert.equal(prevented,true);
@@ -38,5 +67,5 @@ vm.runInNewContext(source,context);
     await submit({target:{closest(){return form;}},preventDefault(){}});
     assert.match(feedback.textContent,/work_service_registration_stale/);
     assert.equal(button.disabled,false);
-    console.log('Service Operations AJAX runtime: PASS');
+    console.log('Service Operations AJAX and first-run interaction runtime: PASS');
 })().catch(e=>{console.error(e);process.exitCode=1;});
