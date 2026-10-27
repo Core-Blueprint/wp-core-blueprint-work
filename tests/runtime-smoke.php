@@ -157,13 +157,13 @@ namespace {
 	require dirname( __DIR__ ) . '/core-blueprint-work.php';
 
 	add_action( 'plugins_loaded', static function (): void {
-		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '2.3'; }
+		if ( isset( \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ) ) { $GLOBALS['options']['cb_work_db_version'] = '2.4'; }
 	}, 5 );
 	add_action( 'plugins_loaded', static function (): void { do_action( 'core_blueprint_booted' ); }, 25 );
 
 	do_action( 'plugins_loaded' );
 	assert_true( '1.0.0-rc1' === CB_WORK_VERSION, 'Launch candidate exposes the uniform rc1 version.' );
-	assert_true( '2.3' === CB_WORK_SCHEMA_VERSION, 'Service Operations schema version 2.3.' );
+	assert_true( '2.4' === CB_WORK_SCHEMA_VERSION, 'Service Operations schema version 2.4.' );
 	$schema = \CoreBlueprint\Core\Database\SchemaRegistry::$definitions['core-blueprint-work'] ?? null;
 	assert_true( is_array( $schema ), 'Work schema registers before Base sweep.' );
 	assert_true( 20 === count( $schema['tables'] ?? [] ), 'Work schema registers its 15 foundational and five Service Operations tables; Projects and Work Items remain CPT-backed.' );
