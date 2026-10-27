@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace CB\Work\Admin;
 use CB\Work\Capabilities;
+use CB\Work\Domain\WorkContext;
 use CB\Work\PublicApi\ServiceBillingActions;
 use CB\Work\PublicApi\ServiceOperationsActions as WorkActions;
 use CB\Work\Repository\WorkSqlTransaction;
@@ -29,11 +30,18 @@ final class ServiceOperationsActions {
         $frequency=sanitize_key((string)wp_unslash($_POST['frequency'] ?? ''));
         $timing=sanitize_key((string)wp_unslash($_POST['timing'] ?? ''));
         $rule_id=absint($_POST['rule_id'] ?? 0);
-        $result=WorkSqlTransaction::run(static function()use($input,$frequency,$timing,$rule_id):int|\WP_Error {
+        $billing_enabled = '1' === (string)(is_scalar($_POST['billing_enabled'] ?? null) ? $_POST['billing_enabled'] : '');
+        $result=WorkSqlTransaction::run(static function()use($input,$frequency,$timing,$rule_id,$billing_enabled):int|\WP_Error {
             $id=Engagements::create($input,get_current_user_id());
             if(is_wp_error($id)){return $id;}
-            $terms=ServiceBilling::create_terms($id,$frequency,$input['starts_on'],$timing,get_current_user_id());
-            if(is_wp_error($terms)){return $terms;}
+            // Work Context comes from the canonical Project on the server,
+            // never from a client-supplied billing flag.
+            $engagement=Engagements::get($id);
+            if(!$engagement){return new \WP_Error('work_service_create_failed');}
+            if($billing_enabled && WorkContext::CUSTOMER === $engagement['work_context']){
+                $terms=ServiceBilling::create_terms($id,$frequency,$input['starts_on'],$timing,get_current_user_id());
+                if(is_wp_error($terms)){return $terms;}
+            }
             if($rule_id>0){
                 $linked=Engagements::bind_rule($id,$rule_id,$input['starts_on'],get_current_user_id());
                 if(is_wp_error($linked)){return $linked;}

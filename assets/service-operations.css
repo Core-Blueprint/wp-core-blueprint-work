@@ -38,6 +38,12 @@
 .cb-work-so-add>summary{font-weight:600;cursor:pointer}
 .cb-work-so-add form{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:16px}
 .cb-work-so-add .description{width:100%}
+.cb-work-so-billing-fields{border:0;padding:0;margin:0;min-width:0;display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.cb-work-so-billing-fields legend{font-weight:600;margin-bottom:6px}
+.cb-work-so-billing-fields[hidden]{display:none}
+.cb-work-so-billing-fields .cb-work-so-billing-toggle{flex-direction:row;align-items:center;gap:8px}
+.cb-work-so-billing-fields .description{margin:2px 0}
+
 .cb-work-so-pages{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
 .cb-work-so-pages [aria-current=page]{font-weight:700}
 @media(max-width:782px){.cb-work-so-header{align-items:flex-start}.cb-work-so-onboarding{padding:16px}.cb-work-so-filters-main,.cb-work-so-filters-extra{align-items:stretch}.cb-work-so-filters label{width:100%}.cb-work-so-filters input,.cb-work-so-filters select,.cb-work-so-filters-main label:nth-child(2) input{max-width:100%;width:100%}.cb-work-so-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.cb-work-so-steps{padding-left:22px}}

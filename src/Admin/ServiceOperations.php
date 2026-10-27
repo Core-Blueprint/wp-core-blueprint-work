@@ -17,7 +17,7 @@ final class ServiceOperations {
 
     /** Filtering should not turn an empty search result into first-run onboarding. */
     private static function has_filters(array $filters): bool {
-        return (int)$filters['project_id'] > 0 || (int)$filters['service_id'] > 0
+        return '' !== $filters['work_context'] || (int)$filters['project_id'] > 0 || (int)$filters['service_id'] > 0
             || '' !== $filters['status'] || '' !== $filters['billing']
             || '' !== $filters['customer'] || '' !== $filters['search'];
     }
@@ -67,7 +67,8 @@ final class ServiceOperations {
         $chunk_page = 1;
         do {
             $chunk = Engagements::search(['project_id' => $filters['project_id'],
-                'service_id' => $filters['service_id'], 'active' => 1, 'page' => $chunk_page, 'per_page' => 50]);
+                'service_id' => $filters['service_id'], 'work_context' => $filters['work_context'],
+                'active' => 1, 'page' => $chunk_page, 'per_page' => 50]);
             if (is_wp_error($chunk)) { return $chunk; }
             if ($chunk['total'] > self::SCAN_LIMIT) { return new \WP_Error('work_service_scan_limit'); }
             array_push($raw, ...$chunk['items']);
@@ -81,7 +82,9 @@ final class ServiceOperations {
             if ($filters['customer'] !== '' && stripos($customer_ref, $filters['customer']) === false) { continue; }
             $project = $projects[$engagement['project_id']] ?? '';
             $service = $services[$engagement['service_id']] ?? '';
-            $customer = CRMCustomers::label($engagement['customer_provider'], $engagement['customer_type'], $engagement['customer_id']);
+            $customer = WorkContext::CUSTOMER === ($engagement['work_context'] ?? '')
+                ? CRMCustomers::label($engagement['customer_provider'], $engagement['customer_type'], $engagement['customer_id'])
+                : '';
             $haystack = implode(' ', [$project, $service, $customer, $customer_ref, $engagement['label']]);
             if ($filters['search'] !== '' && stripos($haystack, $filters['search']) === false) { continue; }
             $execution = Periods::resolve($engagement, $filters['month']);
@@ -105,26 +108,35 @@ final class ServiceOperations {
         $month = isset($_GET['cb_month']) ? sanitize_text_field((string)wp_unslash($_GET['cb_month'])) : wp_date('Y-m');
         if (!Periods::bounds($month)) { $month = wp_date('Y-m'); }
         $filters = [
-            'month' => $month, 'project_id' => absint($_GET['cb_project'] ?? 0), 'service_id' => absint($_GET['cb_service'] ?? 0),
+            'month' => $month, 'work_context' => WorkContext::sanitize($_GET['cb_context'] ?? ''),
+            'project_id' => absint($_GET['cb_project'] ?? 0), 'service_id' => absint($_GET['cb_service'] ?? 0),
             'status' => sanitize_key((string)wp_unslash($_GET['cb_status'] ?? '')),
             'billing' => sanitize_key((string)wp_unslash($_GET['cb_billing'] ?? '')),
             'customer' => sanitize_text_field((string)wp_unslash($_GET['cb_customer'] ?? '')),
             'search' => sanitize_text_field((string)wp_unslash($_GET['cb_search'] ?? '')),
             'page' => max(1, absint($_GET['cb_page'] ?? 1)),
         ];
-        $projects = []; $customer_projects = []; $services = [];
+        $projects = []; $eligible_projects = []; $project_contexts = []; $services = [];
         foreach (Projects::all(500) as $p) {
             $id = (int)$p['id'];
             $projects[$id] = (string)$p['title'];
-            if (WorkContext::CUSTOMER === ($p['work_context'] ?? '')
+            $context = WorkContext::sanitize($p['work_context'] ?? '');
+            if (WorkContext::INTERNAL === $context
+                && '' === (string)($p['customer_provider'] ?? '')
+                && '' === (string)($p['customer_type'] ?? '')
+                && '' === (string)($p['customer_id'] ?? '')) {
+                $eligible_projects[$id] = (string)$p['title'];
+                $project_contexts[$id] = $context;
+            } elseif (WorkContext::CUSTOMER === $context
                 && '' !== (string)($p['customer_provider'] ?? '')
                 && '' !== (string)($p['customer_type'] ?? '')
                 && '' !== (string)($p['customer_id'] ?? '')) {
-                $customer_projects[$id] = (string)$p['title'];
+                $eligible_projects[$id] = (string)$p['title'];
+                $project_contexts[$id] = $context;
             }
         }
         foreach (Services::all(250) as $s) { $services[(int)$s['id']] = (string)$s['title']; }
-        $can_create = [] !== $customer_projects && [] !== $services;
+        $can_create = [] !== $eligible_projects && [] !== $services;
         $report = self::query($filters, $projects, $services);
         $notice = sanitize_key((string)wp_unslash($_GET['cb_notice'] ?? ''));
         ?><div class="wrap cb-work-service-operations">
@@ -139,7 +151,7 @@ final class ServiceOperations {
             <div class="notice notice-error"><p><?php esc_html_e('Service Operations could not load. No status has been assumed.','core-blueprint-work'); ?>
             <code><?php echo esc_html($report->get_error_code()); ?></code></p></div>
         <?php elseif (0 === $report['total'] && !self::has_filters($filters)): ?>
-            <?php self::onboarding($customer_projects,$services); ?>
+            <?php self::onboarding($eligible_projects,$services); ?>
         <?php else: ?>
         <form class="cb-work-so-filters" method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>">
         <input type="hidden" name="page" value="<?php echo esc_attr(Menu::SERVICE_OPERATIONS_SLUG); ?>">
@@ -151,9 +163,14 @@ final class ServiceOperations {
           <a class="button" href="<?php echo esc_url(add_query_arg(['page'=>Menu::SERVICE_OPERATIONS_SLUG,'cb_month'=>$month],admin_url('admin.php'))); ?>"><?php esc_html_e('Clear filters','core-blueprint-work'); ?></a>
           <?php endif; ?>
         </div>
-        <details class="cb-work-so-filters-more" <?php if ((int)$filters['project_id']>0 || (int)$filters['service_id']>0 || ''!==$filters['status'] || ''!==$filters['billing'] || ''!==$filters['customer']): ?>open<?php endif; ?>>
+        <details class="cb-work-so-filters-more" <?php if (''!==$filters['work_context'] || (int)$filters['project_id']>0 || (int)$filters['service_id']>0 || ''!==$filters['status'] || ''!==$filters['billing'] || ''!==$filters['customer']): ?>open<?php endif; ?>>
           <summary><?php esc_html_e('More filters','core-blueprint-work'); ?></summary>
           <div class="cb-work-so-filters-extra">
+            <label><?php esc_html_e('Work context','core-blueprint-work'); ?><select name="cb_context">
+              <option value=""><?php esc_html_e('All contexts','core-blueprint-work'); ?></option>
+              <option value="internal" <?php selected($filters['work_context'],WorkContext::INTERNAL); ?>><?php esc_html_e('Internal','core-blueprint-work'); ?></option>
+              <option value="customer" <?php selected($filters['work_context'],WorkContext::CUSTOMER); ?>><?php esc_html_e('Customer','core-blueprint-work'); ?></option>
+            </select></label>
         <?php foreach (['cb_project' => [__('Projects','core-blueprint-work'),__('All Projects','core-blueprint-work'),$projects,$filters['project_id']],
                         'cb_service' => [__('Services','core-blueprint-work'),__('All Services','core-blueprint-work'),$services,$filters['service_id']]] as $name => $data): ?>
             <label><?php echo esc_html($data[0]); ?><select name="<?php echo esc_attr($name); ?>">
@@ -202,7 +219,8 @@ final class ServiceOperations {
             <?php foreach ($report['rows'] as $row): $e=$row['engagement'];$x=$row['execution'];$b=$row['coverage'];$id=$e['id']; ?>
                 <tr><td><?php if ($e['project_id'] && get_edit_post_link($e['project_id'])): ?><a href="<?php echo esc_url(get_edit_post_link($e['project_id'])); ?>"><?php echo esc_html($row['project']); ?></a>
                     <?php else: echo esc_html($row['project']); endif; ?>
-                    <small><?php echo esc_html($row['customer']); ?></small></td>
+                    <small><?php echo esc_html(WorkContext::INTERNAL === ($e['work_context'] ?? '') ? __('Internal','core-blueprint-work') : __('Customer','core-blueprint-work')); ?></small>
+                    <?php if ('' !== $row['customer']): ?><small><?php echo esc_html($row['customer']); ?></small><?php endif; ?></td>
                 <td><strong><?php echo esc_html($row['service']); ?></strong><small><?php echo esc_html($e['label']); ?></small></td>
                 <td><span class="cb-work-so-badge cb-work-so-<?php echo esc_attr($x['status']); ?>"><?php echo esc_html(self::statuses()[$x['status']]); ?></span>
                     <small><?php echo esc_html($x['completed'].' / '.$x['scheduled']); ?></small></td>
@@ -221,23 +239,23 @@ final class ServiceOperations {
             </tbody></table></div>
             <?php if ($report['pages']>1): ?><nav class="cb-work-so-pages" aria-label="<?php esc_attr_e('Pagination','core-blueprint-work'); ?>">
             <?php for ($p=1;$p<=$report['pages'];$p++): $args = array_filter([
-                'page'=>Menu::SERVICE_OPERATIONS_SLUG, 'cb_month'=>$month,'cb_project'=>$filters['project_id'],
+                'page'=>Menu::SERVICE_OPERATIONS_SLUG, 'cb_month'=>$month, 'cb_context'=>$filters['work_context'], 'cb_project'=>$filters['project_id'],
                 'cb_service'=>$filters['service_id'],'cb_status'=>$filters['status'],'cb_billing'=>$filters['billing'],
                 'cb_customer'=>$filters['customer'],'cb_search'=>$filters['search'],'cb_page'=>$p
             ],static fn(mixed $v):bool=>''!==$v && 0!==$v); ?>
                 <a class="button" href="<?php echo esc_url(add_query_arg($args,admin_url('admin.php'))); ?>" <?php if ($p===$report['page']): ?>aria-current="page"<?php endif; ?>><?php echo esc_html((string)$p); ?></a>
             <?php endfor; ?></nav><?php endif; ?>
         <?php endif; ?>
-        <?php if ($can_create): self::create_form($customer_projects,$services); endif; ?></div><?php
+        <?php if ($can_create): self::create_form($eligible_projects,$services,$project_contexts); endif; ?></div><?php
     }
     /** First-run guidance deliberately avoids invented customer identities. */
-    private static function onboarding(array $customer_projects,array $services):void {
+    private static function onboarding(array $eligible_projects,array $services):void {
         $service_ready = [] !== $services;
-        $project_ready = [] !== $customer_projects;
+        $project_ready = [] !== $eligible_projects;
         ?>
         <section class="cb-work-so-onboarding" aria-labelledby="cb-work-so-getting-started">
           <h2 id="cb-work-so-getting-started"><?php esc_html_e('Getting started','core-blueprint-work'); ?></h2>
-          <p><?php esc_html_e('A customer-linked Project and a Work Service are required.','core-blueprint-work'); ?></p>
+          <p><?php esc_html_e('Create an Internal Project for your own sites, or link a Customer Project to a customer. Both use the same Work Service.','core-blueprint-work'); ?></p>
           <ol class="cb-work-so-steps">
             <li>
               <strong><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></strong>
@@ -245,14 +263,14 @@ final class ServiceOperations {
               <?php else: ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_service')); ?>"><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></a><?php endif; ?>
             </li>
             <li>
-              <strong><?php esc_html_e('Create a customer Project','core-blueprint-work'); ?></strong>
-              <p><?php esc_html_e('Link the Project to a customer in the Project editor.','core-blueprint-work'); ?></p>
+              <strong><?php esc_html_e('Create a Project','core-blueprint-work'); ?></strong>
+              <p><?php esc_html_e('Select Internal for your own websites, or Customer for client work.','core-blueprint-work'); ?></p>
               <?php if ($project_ready): ?><span class="cb-work-so-ready"><?php esc_html_e('Ready','core-blueprint-work'); ?></span>
-              <?php elseif (CRMCustomers::available()): ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a customer Project','core-blueprint-work'); ?></a><?php endif; ?>
+              <?php else: ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a Project','core-blueprint-work'); ?></a><?php endif; ?>
             </li>
           </ol>
           <?php if (!$project_ready && !CRMCustomers::available()): ?>
-            <p class="cb-work-so-guidance"><?php esc_html_e('Customer selection is unavailable. Connect a customer provider before creating customer Projects.','core-blueprint-work'); ?></p>
+            <p class="cb-work-so-guidance"><?php esc_html_e('Customer Projects require a connected customer provider. Internal Projects do not.','core-blueprint-work'); ?></p>
           <?php endif; ?>
           <?php if ($service_ready && $project_ready): ?>
             <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
@@ -300,18 +318,33 @@ final class ServiceOperations {
         <p class="description"><?php esc_html_e('Earlier work is not included before this date.','core-blueprint-work'); ?></p>
         <button class="button" type="submit"><?php esc_html_e('Link','core-blueprint-work'); ?></button></form></details><?php
     }
-    private static function create_form(array $projects,array $services):void { ?>
+    private static function create_form(array $projects,array $services,array $contexts):void { ?>
         <details id="cb-work-so-add" class="cb-work-so-add"><summary><?php esc_html_e('Service details','core-blueprint-work'); ?></summary>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
         <input type="hidden" name="action" value="cb_work_service_create"><?php wp_nonce_field('cb_work_service_create'); ?>
-        <?php foreach (['project_id'=>[__('Project','core-blueprint-work'),$projects],
-                        'service_id'=>[__('Service','core-blueprint-work'),$services]] as $key=>$data): ?>
-            <label><?php echo esc_html($data[0]); ?><select name="<?php echo esc_attr($key); ?>" required><option value="">—</option>
-                <?php foreach ($data[1] as $id=>$title): ?><option value="<?php echo esc_attr((string)$id); ?>"><?php echo esc_html($title); ?></option><?php endforeach; ?>
-            </select></label>
-        <?php endforeach; ?>
+        <label><?php esc_html_e('Project','core-blueprint-work'); ?>
+          <select name="project_id" data-cb-so-project-context required>
+            <option value="">—</option>
+            <?php foreach ($projects as $id=>$title): ?>
+              <option value="<?php echo esc_attr((string)$id); ?>" data-context="<?php echo esc_attr($contexts[$id]); ?>">
+                <?php echo esc_html($title . ' — ' . (WorkContext::INTERNAL === $contexts[$id] ? __('Internal','core-blueprint-work') : __('Customer','core-blueprint-work'))); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label><?php esc_html_e('Service','core-blueprint-work'); ?>
+          <select name="service_id" required><option value="">—</option>
+            <?php foreach ($services as $id=>$title): ?><option value="<?php echo esc_attr((string)$id); ?>"><?php echo esc_html($title); ?></option><?php endforeach; ?>
+          </select>
+        </label>
         <label><?php esc_html_e('Label (optional)','core-blueprint-work'); ?><input name="label" maxlength="190"></label>
         <label><?php esc_html_e('Starts on','core-blueprint-work'); ?><input name="starts_on" type="date" value="<?php echo esc_attr(wp_date('Y-m-d')); ?>" required></label>
+        <fieldset class="cb-work-so-billing-fields" data-cb-so-billing-fields>
+        <legend><?php esc_html_e('External invoicing','core-blueprint-work'); ?></legend>
+        <label class="cb-work-so-billing-toggle"><input type="checkbox" name="billing_enabled" value="1" checked>
+          <?php esc_html_e('Track external invoicing','core-blueprint-work'); ?>
+        </label>
+        <p class="description"><?php esc_html_e('Optional for Customer projects. Internal services are never invoiced.','core-blueprint-work'); ?></p>
         <label><?php esc_html_e('Billing frequency','core-blueprint-work'); ?><select name="frequency">
         <?php foreach (['monthly'=>__('Monthly','core-blueprint-work'),'weekly'=>__('Weekly','core-blueprint-work'),
             'quarterly'=>__('Quarterly','core-blueprint-work'),'yearly'=>__('Yearly','core-blueprint-work')] as $key=>$label): ?>
@@ -321,6 +354,7 @@ final class ServiceOperations {
             <option value="arrears"><?php esc_html_e('After service','core-blueprint-work'); ?></option>
             <option value="advance"><?php esc_html_e('In advance','core-blueprint-work'); ?></option>
         </select></label>
+        </fieldset>
         <label><?php esc_html_e('Existing Recurring Work (optional)','core-blueprint-work'); ?><select name="rule_id">
             <option value="0"><?php esc_html_e('None','core-blueprint-work'); ?></option>
             <?php foreach (RecurrenceRules::all(false,500) as $rule): ?>

@@ -14,6 +14,23 @@
         details.scrollIntoView?.({block: 'start', behavior: 'smooth'});
         details.querySelector('select[name="project_id"]')?.focus({preventScroll: true});
     });
+    // Project context is authoritative server-side; the client only adjusts
+    // the optional billing controls to avoid asking Internal users for invoices.
+    function updateBillingVisibility(project) {
+        const form = project.closest('form');
+        const fields = form?.querySelector('[data-cb-so-billing-fields]');
+        if (!fields) return;
+        const selected = project.selectedOptions?.[0];
+        const context = selected?.dataset?.context || '';
+        fields.hidden = context === 'internal';
+        const checkbox = fields.querySelector('[name="billing_enabled"]');
+        if (checkbox) checkbox.disabled = context === 'internal';
+    }
+    document.querySelectorAll?.('[data-cb-so-project-context]').forEach(updateBillingVisibility);
+    document.addEventListener('change', event => {
+        const project = event.target.closest?.('[data-cb-so-project-context]');
+        if (project) updateBillingVisibility(project);
+    });
     document.addEventListener('submit', async event => {
         const form = event.target.closest('form[data-cb-so-invoice]');
         if (!form || !window.fetch) return;
