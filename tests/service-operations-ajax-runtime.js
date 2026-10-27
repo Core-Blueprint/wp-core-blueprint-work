@@ -6,7 +6,19 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname,'../assets/service-operations.js'),'utf8');
 let submit;
 let click;
+let change;
 let detailsFocus=false;
+let contextSelected='internal';
+const checkbox={disabled:false};
+const billingFields={
+    hidden:false,
+    querySelector(sel){assert.equal(sel,'[name="billing_enabled"]');return checkbox;}
+};
+const projectForm={querySelector(sel){assert.equal(sel,'[data-cb-so-billing-fields]');return billingFields;}};
+const projectSelector={
+    closest(sel){assert.equal(sel,'form');return projectForm;},
+    get selectedOptions(){return [{dataset:{context:contextSelected}}];}
+};
 let detailsScroll=false;
 const details={
     open:false,
@@ -30,11 +42,13 @@ const context={
     },fetch:true},
     document:{
         addEventListener(name,fn){
-            assert.ok(['submit','click'].includes(name));
+            assert.ok(['submit','click','change'].includes(name));
             if(name==='submit')submit=fn;
-            else click=fn;
+            else if(name==='click')click=fn;
+            else change=fn;
         },
         getElementById(id){assert.equal(id,'cb-work-so-add');return details;},
+        querySelectorAll(selector){assert.equal(selector,'[data-cb-so-project-context]');return [projectSelector];},
         querySelector(){return null;}
     },
     FormData:class{constructor(){this.map=new Map([['revision','0']]);}set(k,v){this.map.set(k,v);}get(k){return this.map.get(k);}},
@@ -47,6 +61,17 @@ const context={
 vm.runInNewContext(source,context);
 (async()=>{
     assert.equal(typeof click,'function');
+    assert.equal(typeof change,'function');
+    assert.equal(billingFields.hidden,true);
+    assert.equal(checkbox.disabled,true);
+    contextSelected='customer';
+    change({target:{closest(selector){assert.equal(selector,'[data-cb-so-project-context]');return projectSelector;}}});
+    assert.equal(billingFields.hidden,false);
+    assert.equal(checkbox.disabled,false);
+    contextSelected='internal';
+    change({target:{closest(){return projectSelector;}}});
+    assert.equal(billingFields.hidden,true);
+    assert.equal(checkbox.disabled,true);
     let clickPrevented=false;
     click({
         target:{closest(selector){assert.equal(selector,'[data-cb-so-open]');return {href:'#cb-work-so-add'};}},

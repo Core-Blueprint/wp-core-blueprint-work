@@ -50,19 +50,20 @@ $tests=[
     'P1 filters are optional and first-run state is filter aware' =>
         str_contains($admin, 'private static function has_filters')
         && str_contains($admin, "0 === $"."report['total'] && !self::has_filters($"."filters)"),
-    'P1 create is gated on eligible customer Projects and Services' =>
+    'P1 create is gated on eligible internal or customer Projects and Services' =>
         str_contains($admin, "WorkContext::CUSTOMER ===")
         && str_contains($admin, "'' !== (string)($"."p['customer_provider']")
         && str_contains($admin, "'' !== (string)($"."p['customer_id']")
-        && str_contains($admin, '$can_create = [] !== $customer_projects && [] !== $services')
-        && str_contains($admin, 'self::create_form($customer_projects,$services)'),
+        && str_contains($admin, "WorkContext::INTERNAL ===")
+        && str_contains($admin, '$can_create = [] !== $eligible_projects && [] !== $services')
+        && str_contains($admin, 'self::create_form($eligible_projects,$services,$project_contexts)'),
     'P1 onboarding gives real WordPress entry points' =>
-        str_contains($admin, 'self::onboarding($customer_projects,$services)')
+        str_contains($admin, 'self::onboarding($eligible_projects,$services)')
         && str_contains($admin, "post-new.php?post_type=cb_work_project")
         && str_contains($admin, "post-new.php?post_type=cb_work_service"),
     'P1 missing customer provider is not silently fabricated' =>
         str_contains($admin, '!CRMCustomers::available()')
-        && str_contains($admin, 'Customer selection is unavailable.')
+        && str_contains($admin, 'Customer Projects require a connected customer provider.')
         && !str_contains($admin, "'customer_provider'=>'manual'"),
     'P1 primary CTA has explicit native details target' =>
         str_contains($admin, 'data-cb-so-open')
@@ -80,6 +81,30 @@ $tests=[
         && str_contains($admin, "cb_customer")
         && str_contains($admin, "cb_billing")
         && str_contains($admin, "cb_status"),
+    'I1 migration preserves legacy customer evidence without fabricating internal rows' =>
+        str_contains($schema, 'backfill_service_engagement_contexts')
+        && str_contains($schema, 'customer_provider <> %s AND customer_type <> %s AND customer_id <> %s')
+        && str_contains($schema, 'work_context varchar(16) NOT NULL'),
+    'I1 domain supports both contexts without parallel services or scheduler' =>
+        str_contains($engagement, 'WorkContext::INTERNAL === $context')
+        && str_contains($engagement, 'WorkContext::CUSTOMER')
+        && str_contains($engagement, 'project_context_preserved')
+        && !str_contains($engagement, 'reserve_next_occurrence'),
+    'I1 internal service cannot write billing terms or invoice records' =>
+        str_contains($billing, 'work_service_billing_not_applicable')
+        && str_contains($billing, "WorkContext::INTERNAL === $"."engagement['work_context']")
+        && str_contains($billing, "'state' => 'not_applicable'"),
+    'I1 recurrence guards the bound context' =>
+        str_contains($periods, "rule['work_context']")
+        && str_contains($engagement, "rule['work_context']"),
+    'I2 UI exposes Internal and Customer filter' =>
+        str_contains($admin, 'cb_context')
+        && str_contains($admin, 'WorkContext::INTERNAL')
+        && str_contains($admin, 'WorkContext::CUSTOMER'),
+    'I2 billing options are conditional, never the identity authority' =>
+        str_contains($admin, 'data-cb-so-billing-fields')
+        && str_contains($actions, 'WorkContext::CUSTOMER === $engagement')
+        && str_contains($read('assets/service-operations.js'), 'updateBillingVisibility'),
     'P1 localizations available' =>
         str_contains($read('languages/core-blueprint-work.pot'), 'msgid "Getting started"')
         && str_contains($read('languages/core-blueprint-work-nl_NL.po'), 'msgstr "Aan de slag"'),

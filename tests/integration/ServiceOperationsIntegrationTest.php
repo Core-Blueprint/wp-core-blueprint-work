@@ -168,11 +168,10 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         self::assertStringNotContainsString('id="cb-work-so-add"',$html);
         self::assertStringNotContainsString('cb-work-so-cards',$html);
         self::assertStringNotContainsString('cb-work-so-table',$html);
-        // An unavailable customer provider must not offer a dead-end
-        // customer-Project creation action.
+        // An Internal Project can always be created, even without CRM.
+        self::assertStringContainsString('post-new.php?post_type=cb_work_project',$html);
         if (!\CB\Work\Integration\CRMCustomers::available()) {
             self::assertStringContainsString('cb-work-so-guidance',$html);
-            self::assertStringNotContainsString('post-new.php?post_type=cb_work_project',$html);
         }
     }
 
@@ -205,6 +204,137 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         self::assertStringContainsString('cb-work-so-filters',$filtered);
         self::assertStringContainsString('cb_month=',$filtered);
         self::assertStringNotContainsString('cb-work-so-onboarding',$filtered);
+    }
+
+    private function internalProject():int {
+        $project=self::factory()->post->create([
+            'post_type'=>PostTypes::PROJECT,'post_status'=>'publish',
+            'post_title'=>'Own Website'
+        ]);
+        self::assertTrue(ProjectMeta::save($project,['work_context'=>'internal','starts_on'=>'2026-10-01']));
+        ProjectMeta::mark_initialized($project);
+        return $project;
+    }
+
+    public function test_internal_service_tracks_execution_without_customer_or_invoices():void {
+        $project=$this->internalProject();
+        $id=Engagements::create([
+            'project_id'=>$project,'service_id'=>$this->service,
+            'starts_on'=>'2026-10-01','label'=>'Core Blueprint maintenance'
+        ],$this->actor);
+        self::assertIsInt($id);
+        $saved=Engagements::get($id);
+        self::assertSame('internal',$saved['work_context']);
+        self::assertSame('',$saved['customer_provider']);
+        self::assertSame('',$saved['customer_type']);
+        self::assertSame('',$saved['customer_id']);
+
+        $rule=RecurrenceRules::create([
+            'title'=>'Internal website maintenance',
+            'project_id'=>$project,'service_id'=>$this->service,
+            'frequency'=>'monthly','interval_count'=>1,'start_on'=>'2026-10-05',
+            'is_active'=>true,'created_by'=>$this->actor,'updated_by'=>$this->actor
+        ]);
+        self::assertGreaterThan(0,$rule);
+        self::assertTrue(Engagements::bind_rule($id,$rule,'2026-10-01',$this->actor));
+        $period=Periods::resolve($saved,'2026-10','2026-11-02');
+        self::assertIsArray($period);
+        self::assertSame(1,$period['scheduled']);
+        self::assertSame(1,$period['missing']);
+        self::assertSame('overdue',$period['status']);
+
+        $coverage=ServiceBilling::for_month($id,'2026-10');
+        self::assertSame('not_applicable',$coverage['state']);
+        $terms=ServiceBilling::create_terms($id,'monthly','2026-10-01','advance',$this->actor);
+        self::assertWPError($terms);
+        self::assertSame('work_service_billing_not_applicable',$terms->get_error_code());
+        $invoice=ServiceBillingActions::record($id,'2026-10','invoiced','2026-10-02','INTERNAL-1',0);
+        self::assertWPError($invoice);
+        self::assertSame('work_service_registration_not_applicable',$invoice->get_error_code());
+
+        $internal=ReadApi::search(['work_context'=>'internal']);
+        $customers=ReadApi::search(['work_context'=>'customer']);
+        self::assertIsArray($internal);
+        self::assertSame(1,$internal['total']);
+        self::assertIsArray($customers);
+        self::assertSame(0,$customers['total']);
+    }
+
+    public function test_customer_without_invoice_terms_is_valid():void {
+        $id=$this->engagement();
+        $coverage=ServiceBilling::for_month($id,'2026-10');
+        self::assertSame('not_applicable',$coverage['state']);
+        self::assertSame('customer',Engagements::get($id)['work_context']);
+        $record=ServiceBillingActions::record($id,'2026-10','invoiced','2026-10-02','INV-NA',0);
+        self::assertWPError($record);
+        self::assertSame('work_service_registration_not_applicable',$record->get_error_code());
+    }
+
+    public function test_context_and_customer_ownership_cannot_silently_change():void {
+        $project=$this->internalProject();
+        $id=Engagements::create([
+            'project_id'=>$project,'service_id'=>$this->service,'starts_on'=>'2026-10-01'
+        ],$this->actor);
+        self::assertIsInt($id);
+        $forged=Engagements::create([
+            'project_id'=>$project,'service_id'=>$this->service,
+            'starts_on'=>'2026-10-01','work_context'=>'customer'
+        ],$this->actor);
+        self::assertWPError($forged);
+        self::assertSame('work_service_context_invalid',$forged->get_error_code());
+
+        self::assertFalse(ProjectMeta::save($project,[
+            'work_context'=>'customer','customer_provider'=>'crm',
+            'customer_type'=>'organization','customer_id'=>'123'
+        ]),'Internal Project cannot change identity while its service is bound.');
+        self::assertSame('internal',ProjectMeta::get($project)['work_context']);
+
+        $customer_id=$this->engagement();
+        self::assertFalse(ProjectMeta::save($this->project,[
+            'work_context'=>'internal'
+        ]),'Customer Project cannot erase ownership with bound service history.');
+        self::assertSame('customer',ProjectMeta::get($this->project)['work_context']);
+    }
+
+    public function test_context_migration_keeps_customer_rows_and_never_guesses_internal():void {
+        $id=$this->engagement();
+        global $wpdb;
+        $table=Schema::engagements_table();
+        self::assertSame(1,$wpdb->update($table,['work_context'=>''],['id'=>$id]));
+        // Re-running the idempotent Base-owned installer recreates the exact
+        // 2.3 -> 2.4 customer backfill without modifying identity or billing.
+        self::assertTrue(Schema::install());
+        $saved=Engagements::get($id);
+        self::assertSame('customer',$saved['work_context']);
+        self::assertSame('SO-CUSTOMER-101',$saved['customer_id']);
+        $corrupt=$wpdb->insert($table,[
+            'project_id'=>0,'service_id'=>$this->service,'work_context'=>'',
+            'customer_provider'=>'','customer_type'=>'','customer_id'=>'',
+            'label'=>'uncertain','starts_on'=>'2026-10-01','is_active'=>1,
+            'revision'=>1,'created_by'=>$this->actor,'updated_by'=>$this->actor,
+            'created_at'=>current_time('mysql',true),'updated_at'=>current_time('mysql',true)
+        ]);
+        self::assertSame(1,$corrupt);
+        $uncertain=(int)$wpdb->insert_id;
+        self::assertTrue(Schema::install());
+        self::assertSame('',Engagements::get($uncertain)['work_context']);
+        $billing=ServiceBilling::for_month($uncertain,'2026-10');
+        self::assertWPError($billing);
+        self::assertSame('work_service_context_invalid',$billing->get_error_code());
+    }
+
+    public function test_internal_project_is_a_valid_first_run_prerequisite():void {
+        wp_delete_post($this->project,true);
+        $this->internalProject();
+        ob_start();
+        try {
+            \CB\Work\Admin\ServiceOperations::render();
+        } finally {
+            $html=(string)ob_get_clean();
+        }
+        self::assertStringContainsString('cb-work-so-onboarding',$html);
+        self::assertStringContainsString('id="cb-work-so-add"',$html);
+        self::assertStringContainsString('data-context="internal"',$html);
     }
 
     public function test_manager_only_contracts_and_no_provider_dependencies():void {
