@@ -24,16 +24,19 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
             self::fail('Service Operations tests require the canonical isolated Work test DB.');
         }
         parent::set_up();
-        $this->actor=self::factory()->user->create(['role'=>'administrator']);
-        // The PHPUnit bootstrap loads Work but does not activate it. Provide
-        // the exact capability installed by Capabilities::install() for this
-        // test operator, without granting it to other users or bypassing ACL.
+        // Base's signed Privileged Access Protection restricts newly created
+        // administrators until independently approved. Delegated Work managers
+        // need the explicit application cap, not administrator privileges.
+        $this->actor=self::factory()->user->create(['role'=>'subscriber']);
         $operator=get_userdata($this->actor);
         self::assertInstanceOf(WP_User::class,$operator);
+        self::assertFalse(\CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::is_privileged($operator),
+            'A delegated Work manager must not inherit administrator authority.');
         $operator->add_cap(Capabilities::MANAGE);
         wp_set_current_user($this->actor);
+        self::assertTrue(\cb_work_runtime_ready(), 'Work and Base contracts must be available.');
         self::assertTrue(current_user_can(Capabilities::MANAGE),
-            'The authorized fixture must carry the installed Work capability.');
+            'An explicitly authorized, non-privileged Work manager must be allowed.');
         update_option(Schema::OPTION,CB_WORK_SCHEMA_VERSION);
         $this->project=self::factory()->post->create([
             'post_type'=>PostTypes::PROJECT,'post_status'=>'publish','post_title'=>'Client Project'
@@ -131,6 +134,24 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
             'SELECT COUNT(*) FROM '.Schema::service_billing_events_table().' WHERE registration_id = %d',
             $created['registration']['id']
         )));
+    }
+
+    public function test_unapproved_privileged_identity_is_restricted_by_base():void {
+        // Base's fail-closed signed-approval boundary applies before Work's
+        // own capability check. Never fake approval or bypass a guard in tests.
+        self::assertTrue(\CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::enforces_approval());
+        $admin_id=self::factory()->user->create(['role'=>'administrator']);
+        $admin=get_userdata($admin_id);
+        self::assertInstanceOf(WP_User::class,$admin);
+        $admin->add_cap(Capabilities::MANAGE);
+        self::assertTrue(\CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::is_privileged($admin));
+        self::assertFalse(\CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::is_approved($admin));
+        wp_set_current_user($admin_id);
+        self::assertFalse(current_user_can(Capabilities::MANAGE),
+            'An administrator pending Base approval must not gain Work authority.');
+        $result=ReadApi::search();
+        self::assertWPError($result);
+        self::assertSame('work_service_forbidden',$result->get_error_code());
     }
 
     public function test_manager_only_contracts_and_no_provider_dependencies():void {
