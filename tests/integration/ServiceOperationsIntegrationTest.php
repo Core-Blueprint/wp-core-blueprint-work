@@ -301,9 +301,9 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         global $wpdb;
         $table=Schema::engagements_table();
         self::assertSame(1,$wpdb->update($table,['work_context'=>''],['id'=>$id]));
-        // Re-running the idempotent Base-owned installer recreates the exact
-        // 2.3 -> 2.4 customer backfill without modifying identity or billing.
-        self::assertTrue(Schema::install());
+        // Test the production data migrator without dbDelta: DDL would
+        // implicitly commit the WordPress integration test transaction.
+        self::assertTrue(\CB\Work\Database\ServiceEngagementContextMigration::apply());
         $saved=Engagements::get($id);
         self::assertSame('customer',$saved['work_context']);
         self::assertSame('SO-CUSTOMER-101',$saved['customer_id']);
@@ -316,7 +316,7 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         ]);
         self::assertSame(1,$corrupt);
         $uncertain=(int)$wpdb->insert_id;
-        self::assertTrue(Schema::install());
+        self::assertTrue(\CB\Work\Database\ServiceEngagementContextMigration::apply());
         self::assertSame('',Engagements::get($uncertain)['work_context']);
         $billing=ServiceBilling::for_month($uncertain,'2026-10');
         self::assertWPError($billing);

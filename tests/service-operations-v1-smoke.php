@@ -82,8 +82,8 @@ $tests=[
         && str_contains($admin, "cb_billing")
         && str_contains($admin, "cb_status"),
     'I1 migration preserves legacy customer evidence without fabricating internal rows' =>
-        str_contains($schema, 'backfill_service_engagement_contexts')
-        && str_contains($schema, 'customer_provider <> %s AND customer_type <> %s AND customer_id <> %s')
+        str_contains($schema, 'ServiceEngagementContextMigration::apply()')
+        && str_contains($read('src/Database/ServiceEngagementContextMigration.php'), 'customer_provider <> %s AND customer_type <> %s AND customer_id <> %s')
         && str_contains($schema, 'work_context varchar(16) NOT NULL'),
     'I1 domain supports both contexts without parallel services or scheduler' =>
         str_contains($engagement, 'WorkContext::INTERNAL === $context')
