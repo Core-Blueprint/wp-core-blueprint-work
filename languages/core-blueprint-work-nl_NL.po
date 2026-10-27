@@ -2846,3 +2846,35 @@ msgstr "Terugkerend werk aan dienst gekoppeld"
 msgid "External service invoice registration updated"
 msgstr "Externe facturatieregistratie van dienst bijgewerkt"
 
+#: src/Admin/ServiceOperations.php:239
+msgid "Getting started"
+msgstr "Aan de slag"
+
+#: src/Admin/ServiceOperations.php:240
+msgid "A customer-linked Project and a Work Service are required."
+msgstr "Een Project met gekoppelde klant en een Work Service zijn vereist."
+
+#: src/Admin/ServiceOperations.php:243
+msgid "Create a Work Service"
+msgstr "Maak een Work Service aan"
+
+#: src/Admin/ServiceOperations.php:248
+msgid "Create a customer Project"
+msgstr "Maak een klantproject aan"
+
+#: src/Admin/ServiceOperations.php:249
+msgid "Link the Project to a customer in the Project editor."
+msgstr "Koppel het project in de Project-editor aan een klant."
+
+#: src/Admin/ServiceOperations.php:255
+msgid "Customer selection is unavailable. Connect a customer provider before creating customer Projects."
+msgstr "Klanten selecteren is niet beschikbaar. Verbind eerst een klantprovider voordat je klantprojecten aanmaakt."
+
+#: src/Admin/ServiceOperations.php:185
+msgid "More statuses"
+msgstr "Meer statussen"
+
+#: src/Admin/ServiceOperations.php:303
+msgid "Service details"
+msgstr "Servicegegevens"
+

@@ -2861,3 +2861,35 @@ msgstr ""
 msgid "External service invoice registration updated"
 msgstr ""
 
+#: src/Admin/ServiceOperations.php:239
+msgid "Getting started"
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:240
+msgid "A customer-linked Project and a Work Service are required."
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:243
+msgid "Create a Work Service"
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:248
+msgid "Create a customer Project"
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:249
+msgid "Link the Project to a customer in the Project editor."
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:255
+msgid "Customer selection is unavailable. Connect a customer provider before creating customer Projects."
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:185
+msgid "More statuses"
+msgstr ""
+
+#: src/Admin/ServiceOperations.php:303
+msgid "Service details"
+msgstr ""
+

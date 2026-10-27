@@ -2851,3 +2851,35 @@ msgstr "Trabalho recorrente associado ao serviço"
 msgid "External service invoice registration updated"
 msgstr "Registo de faturação externa atualizado"
 
+#: src/Admin/ServiceOperations.php:239
+msgid "Getting started"
+msgstr "Primeiros passos"
+
+#: src/Admin/ServiceOperations.php:240
+msgid "A customer-linked Project and a Work Service are required."
+msgstr "São necessários um projeto associado a um cliente e um Work Service."
+
+#: src/Admin/ServiceOperations.php:243
+msgid "Create a Work Service"
+msgstr "Criar um Work Service"
+
+#: src/Admin/ServiceOperations.php:248
+msgid "Create a customer Project"
+msgstr "Criar um projeto de cliente"
+
+#: src/Admin/ServiceOperations.php:249
+msgid "Link the Project to a customer in the Project editor."
+msgstr "Associe o projeto a um cliente no editor de projetos."
+
+#: src/Admin/ServiceOperations.php:255
+msgid "Customer selection is unavailable. Connect a customer provider before creating customer Projects."
+msgstr "A seleção de clientes não está disponível. Ligue primeiro um fornecedor de clientes antes de criar projetos de cliente."
+
+#: src/Admin/ServiceOperations.php:185
+msgid "More statuses"
+msgstr "Mais estados"
+
+#: src/Admin/ServiceOperations.php:303
+msgid "Service details"
+msgstr "Detalhes do serviço"
+
