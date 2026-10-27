@@ -101,7 +101,11 @@ vm.runInNewContext(source,context);
     ruleOptions[1].selected=true;
     rulePicker.value='17';
     serviceSelector.value='10';
-    change({target:{closest(selector){return selector==='[data-cb-so-service-id]'?serviceSelector:null;}}});
+    change({target:{closest(selector){
+        if (selector==='[data-cb-so-service-id]') return serviceSelector;
+        if (selector==='form') return projectForm;
+        return null;
+    }}});
     assert.equal(ruleOptions[1].disabled,true);
     assert.equal(rulePicker.value,'0');
     serviceSelector.value='9';
