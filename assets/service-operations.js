@@ -2,6 +2,18 @@
 (() => {
     const config = window.cbWorkServiceOperations;
     if (!config) return;
+    // Keep the deep-link usable without JavaScript; enhance it by revealing
+    // the native details element and focusing the first required selector.
+    document.addEventListener('click', event => {
+        const trigger = event.target.closest?.('[data-cb-so-open]');
+        if (!trigger) return;
+        const details = document.getElementById('cb-work-so-add');
+        if (!details) return;
+        event.preventDefault();
+        details.open = true;
+        details.scrollIntoView?.({block: 'start', behavior: 'smooth'});
+        details.querySelector('select[name="project_id"]')?.focus({preventScroll: true});
+    });
     document.addEventListener('submit', async event => {
         const form = event.target.closest('form[data-cb-so-invoice]');
         if (!form || !window.fetch) return;
