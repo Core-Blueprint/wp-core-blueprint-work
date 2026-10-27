@@ -116,6 +116,17 @@ final class ProjectMeta {
 			return null;
 		}
 
+		// Service Engagement history is immutable with respect to owner context.
+		// Date/title changes remain possible; ownership changes require a
+		// separately governed migration rather than a silent Project edit.
+		if ( function_exists( 'cb_work_runtime_ready' ) && \cb_work_runtime_ready()
+			&& \CB\Work\ServiceOperations\Engagements::ready()
+			&& ! \CB\Work\ServiceOperations\Engagements::project_context_preserved(
+				$project_id, $context, $provider, $type, $id
+			) ) {
+			return null;
+		}
+
 		return [
 			'work_context'      => $context,
 			'customer_provider' => $provider,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Work\ServiceOperations;
 
 use CB\Work\Database\Schema;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\RecurrenceSchedule;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Repository\RecurrenceRules;
@@ -59,6 +60,9 @@ final class Periods {
         if ( ! $bounds || null === RecurrenceSchedule::add_days( $as_of, 0 ) ) {
             return new \WP_Error( 'work_service_period_invalid' );
         }
+        if ( ! WorkContext::is_valid( (string) ( $engagement['work_context'] ?? '' ) ) ) {
+            return new \WP_Error( 'work_service_context_invalid' );
+        }
         [ $start, $end ] = $bounds;
         $start = max( $start, (string) $engagement['starts_on'] );
         $effective_end = $engagement['ends_on'] === null ? $end : min( $end, (new \DateTimeImmutable( $engagement['ends_on'] ))->modify( '+1 day' )->format( 'Y-m-d' ) );
@@ -81,6 +85,7 @@ final class Periods {
             if ( null === $rule ) { $unknown = true; continue; }
             if ( (int) ( $rule['service_id'] ?? 0 ) !== (int) $engagement['service_id']
                 || (int) ( $rule['project_id'] ?? 0 ) !== (int) $engagement['project_id']
+                || (string) ( $rule['work_context'] ?? '' ) !== (string) $engagement['work_context']
                 || (string) $rule['customer_provider'] !== (string) $engagement['customer_provider']
                 || (string) $rule['customer_type'] !== (string) $engagement['customer_type']
                 || (string) $rule['customer_id'] !== (string) $engagement['customer_id'] ) {

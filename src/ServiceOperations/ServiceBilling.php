@@ -5,6 +5,7 @@ namespace CB\Work\ServiceOperations;
 
 use CB\Work\Content\ProjectMeta;
 use CB\Work\Database\Schema;
+use CB\Work\Domain\WorkContext;
 use CB\Work\Domain\RecurrenceSchedule;
 use CB\Work\Repository\WorkSqlTransaction;
 
@@ -20,6 +21,9 @@ final class ServiceBilling {
     /** Initial terms; later versions remain immutable historical agreements. */
     public static function create_terms( int $engagement_id, string $frequency, string $anchor_on, string $timing, int $actor ): int|\WP_Error {
         $engagement = Engagements::get( $engagement_id );
+        if ( ! $engagement || WorkContext::CUSTOMER !== $engagement['work_context'] ) {
+            return new \WP_Error( 'work_service_billing_not_applicable' );
+        }
         $date = ProjectMeta::sanitize_date( $anchor_on );
         $frequency = sanitize_key( $frequency );
         $timing = sanitize_key( $timing );
@@ -57,6 +61,12 @@ final class ServiceBilling {
         if ( ! $bounds ) { return new \WP_Error( 'work_service_period_invalid' ); }
         $engagement = Engagements::get( $engagement_id );
         if ( ! $engagement ) { return new \WP_Error( 'work_service_not_found' ); }
+        if ( WorkContext::INTERNAL === $engagement['work_context'] ) {
+            return [ 'state' => 'not_applicable', 'registration' => null ];
+        }
+        if ( WorkContext::CUSTOMER !== $engagement['work_context'] ) {
+            return new \WP_Error( 'work_service_context_invalid' );
+        }
         global $wpdb;
         $terms = $wpdb->get_row( $wpdb->prepare(
             'SELECT * FROM ' . Schema::service_billing_terms_table()

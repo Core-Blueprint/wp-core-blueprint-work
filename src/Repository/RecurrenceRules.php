@@ -636,6 +636,7 @@ final class RecurrenceRules {
 				if ( null === $engagement
 					|| $engagement['project_id'] !== $project_id
 					|| $engagement['service_id'] !== $service_id
+					|| $engagement['work_context'] !== $context
 					|| $engagement['customer_provider'] !== $customer['provider']
 					|| $engagement['customer_type'] !== $customer['type']
 					|| $engagement['customer_id'] !== $customer['id'] ) {

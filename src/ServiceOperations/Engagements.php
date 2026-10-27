@@ -5,6 +5,7 @@ namespace CB\Work\ServiceOperations;
 
 use CB\Work\Content\ProjectMeta;
 use CB\Work\Database\Schema;
+use CB\Work\Domain\WorkContext;
 use CB\Work\PublicApi\Services;
 use CB\Work\Repository\Projects;
 use CB\Work\Repository\RecurrenceRules;
@@ -39,6 +40,12 @@ final class Engagements {
         global $wpdb;
         $where = [ '1=1' ];
         $params = [];
+        if ( isset( $filters['work_context'] ) && '' !== (string) $filters['work_context'] ) {
+            $context = WorkContext::sanitize( $filters['work_context'] );
+            if ( '' === $context ) { return new \WP_Error( 'work_service_context_invalid' ); }
+            $where[] = 'work_context = %s';
+            $params[] = $context;
+        }
         foreach ( [ 'project_id', 'service_id' ] as $field ) {
             $value = max( 0, (int) ( $filters[ $field ] ?? 0 ) );
             if ( $value ) { $where[] = $field . ' = %d'; $params[] = $value; }
@@ -83,10 +90,24 @@ final class Engagements {
         if ( $service_id <= 0 || null === Services::get( $service_id ) || ( $project_id && null === $project ) ) {
             return new \WP_Error( 'work_service_reference_invalid' );
         }
+        $context = $project
+            ? WorkContext::sanitize( $project['work_context'] ?? '' )
+            : WorkContext::sanitize( $input['work_context'] ?? '' );
         $provider = $project ? (string) $project['customer_provider'] : ProjectMeta::sanitize_reference_part( $input['customer_provider'] ?? '' );
         $type = $project ? (string) $project['customer_type'] : ProjectMeta::sanitize_reference_part( $input['customer_type'] ?? '' );
         $customer_id = $project ? (string) $project['customer_id'] : ProjectMeta::sanitize_reference_id( $input['customer_id'] ?? '' );
-        if ( '' === $provider || '' === $type || '' === $customer_id ) {
+        // Context belongs to the canonical Project. A direct API caller cannot
+        // turn a customer Project into internal work or invent internal identity.
+        if ( ! WorkContext::is_valid( $context )
+            || ( $project && isset( $input['work_context'] )
+                && WorkContext::sanitize( $input['work_context'] ) !== $context ) ) {
+            return new \WP_Error( 'work_service_context_invalid' );
+        }
+        if ( WorkContext::INTERNAL === $context ) {
+            if ( ! $project || '' !== $provider || '' !== $type || '' !== $customer_id ) {
+                return new \WP_Error( 'work_service_internal_identity_invalid' );
+            }
+        } elseif ( '' === $provider || '' === $type || '' === $customer_id ) {
             return new \WP_Error( 'work_service_customer_required' );
         }
         $start = ProjectMeta::sanitize_date( $input['starts_on'] ?? '' );
@@ -97,12 +118,30 @@ final class Engagements {
         $now = current_time( 'mysql', true );
         $created = $wpdb->insert( Schema::engagements_table(), [
             'project_id' => $project_id, 'service_id' => $service_id,
-            'customer_provider' => $provider, 'customer_type' => $type, 'customer_id' => $customer_id,
+            'work_context' => $context, 'customer_provider' => $provider, 'customer_type' => $type, 'customer_id' => $customer_id,
             'label' => $label, 'starts_on' => $start, 'ends_on' => '' === $end ? null : $end,
             'is_active' => 1, 'revision' => 1, 'created_by' => $actor, 'updated_by' => $actor,
             'created_at' => $now, 'updated_at' => $now,
         ] );
         return false === $created ? new \WP_Error( 'work_service_create_failed' ) : (int) $wpdb->insert_id;
+    }
+
+    /**
+     * A project with bound service history must not silently change context
+     * or customer ownership. Called by the canonical ProjectMeta write path.
+     */
+    public static function project_context_preserved(
+        int $project_id, string $context, string $provider, string $type, string $customer_id
+    ): bool {
+        if ( ! self::ready() ) { return false; }
+        global $wpdb;
+        $count = $wpdb->get_var( $wpdb->prepare(
+            'SELECT COUNT(*) FROM ' . Schema::engagements_table()
+            . ' WHERE project_id = %d AND (work_context <> %s'
+            . ' OR customer_provider <> %s OR customer_type <> %s OR customer_id <> %s)',
+            $project_id, $context, $provider, $type, $customer_id
+        ) );
+        return '' === (string) $wpdb->last_error && null !== $count && 0 === (int) $count;
     }
 
     /** Bind a rule exactly once, without claiming history before the effective date. */
@@ -115,6 +154,7 @@ final class Engagements {
         }
         if ( (int) ( $rule['project_id'] ?? 0 ) !== (int) $engagement['project_id']
             || (int) ( $rule['service_id'] ?? 0 ) !== (int) $engagement['service_id']
+            || (string) ( $rule['work_context'] ?? '' ) !== $engagement['work_context']
             || (string) $rule['customer_provider'] !== $engagement['customer_provider']
             || (string) $rule['customer_type'] !== $engagement['customer_type']
             || (string) $rule['customer_id'] !== $engagement['customer_id']
@@ -153,6 +193,7 @@ final class Engagements {
         return [
             'id' => (int) $row['id'], 'project_id' => (int) $row['project_id'],
             'service_id' => (int) $row['service_id'],
+            'work_context' => WorkContext::sanitize( $row['work_context'] ?? '' ),
             'customer_provider' => (string) $row['customer_provider'],
             'customer_type' => (string) $row['customer_type'],
             'customer_id' => (string) $row['customer_id'],

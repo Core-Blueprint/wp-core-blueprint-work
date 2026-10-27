@@ -399,6 +399,7 @@ final class Schema {
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			project_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			service_id bigint(20) unsigned NOT NULL,
+			work_context varchar(16) NOT NULL DEFAULT '',
 			customer_provider varchar(64) NOT NULL DEFAULT '',
 			customer_type varchar(64) NOT NULL DEFAULT '',
 			customer_id varchar(191) NOT NULL DEFAULT '',
@@ -414,6 +415,7 @@ final class Schema {
 			PRIMARY KEY  (id),
 			KEY project_active (project_id,is_active),
 			KEY service_active (service_id,is_active),
+			KEY context_active (work_context,is_active),
 			KEY customer (customer_provider,customer_type,customer_id)
 		) {$charset};" );
 
@@ -475,8 +477,24 @@ final class Schema {
 		) {$charset};" );
 
 		self::backfill_work_contexts();
+		self::backfill_service_engagement_contexts();
 		self::seed_default_work_types();
 		return true;
+	}
+
+	/**
+	 * 2.3 -> 2.4: existing Service Engagements all required a customer identity.
+	 * Backfill only provably complete customer references; never guess that a
+	 * blank/partial historical identity was an internal engagement.
+	 */
+	private static function backfill_service_engagement_contexts(): void {
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare(
+			'UPDATE ' . self::engagements_table()
+			. ' SET work_context = %s WHERE work_context = %s'
+			. ' AND customer_provider <> %s AND customer_type <> %s AND customer_id <> %s',
+			WorkContext::CUSTOMER, '', '', '', ''
+		) );
 	}
 
 	private static function backfill_work_contexts(): void {
