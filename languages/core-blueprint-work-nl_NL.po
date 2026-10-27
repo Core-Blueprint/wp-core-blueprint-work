@@ -2850,25 +2850,9 @@ msgstr "Externe facturatieregistratie van dienst bijgewerkt"
 msgid "Getting started"
 msgstr "Aan de slag"
 
-#: src/Admin/ServiceOperations.php:240
-msgid "A customer-linked Project and a Work Service are required."
-msgstr "Een Project met gekoppelde klant en een Work Service zijn vereist."
-
 #: src/Admin/ServiceOperations.php:243
 msgid "Create a Work Service"
 msgstr "Maak een Work Service aan"
-
-#: src/Admin/ServiceOperations.php:248
-msgid "Create a customer Project"
-msgstr "Maak een klantproject aan"
-
-#: src/Admin/ServiceOperations.php:249
-msgid "Link the Project to a customer in the Project editor."
-msgstr "Koppel het project in de Project-editor aan een klant."
-
-#: src/Admin/ServiceOperations.php:255
-msgid "Customer selection is unavailable. Connect a customer provider before creating customer Projects."
-msgstr "Klanten selecteren is niet beschikbaar. Verbind eerst een klantprovider voordat je klantprojecten aanmaakt."
 
 #: src/Admin/ServiceOperations.php:185
 msgid "More statuses"
@@ -2877,4 +2861,32 @@ msgstr "Meer statussen"
 #: src/Admin/ServiceOperations.php:303
 msgid "Service details"
 msgstr "Servicegegevens"
+
+#: src/Admin/ServiceOperations.php
+msgid "Create an Internal Project for your own sites, or link a Customer Project to a customer. Both use the same Work Service."
+msgstr "Maak voor je eigen websites een intern project aan, of koppel een klantproject aan een klant. Beide gebruiken dezelfde Work Service."
+
+#: src/Admin/ServiceOperations.php
+msgid "Create a Project"
+msgstr "Project aanmaken"
+
+#: src/Admin/ServiceOperations.php
+msgid "Select Internal for your own websites, or Customer for client work."
+msgstr "Kies Intern voor je eigen websites of Klant voor klantwerk."
+
+#: src/Admin/ServiceOperations.php
+msgid "Customer Projects require a connected customer provider. Internal Projects do not."
+msgstr "Klantprojecten vereisen een gekoppelde klantprovider. Interne projecten niet."
+
+#: src/Admin/ServiceOperations.php
+msgid "External invoicing"
+msgstr "Externe facturatie"
+
+#: src/Admin/ServiceOperations.php
+msgid "Track external invoicing"
+msgstr "Externe facturatie bijhouden"
+
+#: src/Admin/ServiceOperations.php
+msgid "Optional for Customer projects. Internal services are never invoiced."
+msgstr "Optioneel voor klantprojecten. Interne diensten worden nooit gefactureerd."
 

@@ -2866,25 +2866,9 @@ msgstr "Registro de facturación externa actualizado"
 msgid "Getting started"
 msgstr "Primeros pasos"
 
-#: src/Admin/ServiceOperations.php:240
-msgid "A customer-linked Project and a Work Service are required."
-msgstr "Se necesitan un proyecto vinculado a un cliente y un Work Service."
-
 #: src/Admin/ServiceOperations.php:243
 msgid "Create a Work Service"
 msgstr "Crear un Work Service"
-
-#: src/Admin/ServiceOperations.php:248
-msgid "Create a customer Project"
-msgstr "Crear un proyecto de cliente"
-
-#: src/Admin/ServiceOperations.php:249
-msgid "Link the Project to a customer in the Project editor."
-msgstr "Vincula el proyecto a un cliente en el editor de proyectos."
-
-#: src/Admin/ServiceOperations.php:255
-msgid "Customer selection is unavailable. Connect a customer provider before creating customer Projects."
-msgstr "La selección de clientes no está disponible. Conecta primero un proveedor de clientes antes de crear proyectos de cliente."
 
 #: src/Admin/ServiceOperations.php:185
 msgid "More statuses"
@@ -2893,4 +2877,32 @@ msgstr "Más estados"
 #: src/Admin/ServiceOperations.php:303
 msgid "Service details"
 msgstr "Detalles del servicio"
+
+#: src/Admin/ServiceOperations.php
+msgid "Create an Internal Project for your own sites, or link a Customer Project to a customer. Both use the same Work Service."
+msgstr "Crea un proyecto interno para tus sitios o vincula un proyecto de cliente a un cliente. Ambos utilizan el mismo Work Service."
+
+#: src/Admin/ServiceOperations.php
+msgid "Create a Project"
+msgstr "Crear un proyecto"
+
+#: src/Admin/ServiceOperations.php
+msgid "Select Internal for your own websites, or Customer for client work."
+msgstr "Selecciona Interno para tus propios sitios web o Cliente para trabajos de clientes."
+
+#: src/Admin/ServiceOperations.php
+msgid "Customer Projects require a connected customer provider. Internal Projects do not."
+msgstr "Los proyectos de cliente requieren un proveedor de clientes conectado. Los proyectos internos no."
+
+#: src/Admin/ServiceOperations.php
+msgid "External invoicing"
+msgstr "Facturación externa"
+
+#: src/Admin/ServiceOperations.php
+msgid "Track external invoicing"
+msgstr "Registrar facturación externa"
+
+#: src/Admin/ServiceOperations.php
+msgid "Optional for Customer projects. Internal services are never invoiced."
+msgstr "Opcional para proyectos de cliente. Los servicios internos nunca se facturan."
 
