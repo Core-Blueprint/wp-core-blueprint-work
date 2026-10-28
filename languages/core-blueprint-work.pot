@@ -1314,10 +1314,6 @@ msgstr ""
 msgid "This Project has no planned, in-progress or blocked Work Items."
 msgstr ""
 
-#: src/Admin/ProjectWorkspace.php:95
-msgid "Create Work Item"
-msgstr ""
-
 #. translators: %d: total number of active Work Items in this Project.
 #: src/Admin/ProjectWorkspace.php:123
 #, php-format
