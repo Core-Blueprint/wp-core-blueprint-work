@@ -33,6 +33,9 @@ namespace {
 namespace CB\Work {
     final class Capabilities { public const MANAGE = 'cb_manage_work'; }
 }
+namespace CB\Work\Content {
+    final class PostTypes { public const PROJECT = 'cb_work_project'; }
+}
 namespace CB\Work\Repository {
     final class WorkItems {
         public static int $count = 0;
