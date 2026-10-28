@@ -31,7 +31,7 @@ class Element {
             const key = selector.slice(6, -1).replace(/-([a-z])/g, (_, c) => c.toUpperCase());
             return Object.prototype.hasOwnProperty.call(this.dataset, key);
         }
-        const match = /^([a-z]+)?(?:\.([\w-]+))?$/.exec(selector);
+        const match = /^([a-z][a-z0-9]*)?(?:\.([\w-]+))?$/.exec(selector);
         return Boolean(match && (!match[1] || this.tagName === match[1])
             && (!match[2] || this.className.split(/\s+/).includes(match[2])));
     }
