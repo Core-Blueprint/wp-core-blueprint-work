@@ -803,10 +803,6 @@ msgstr "Temporizador en marcha"
 msgid "Open timer"
 msgstr "Temporizador abierto"
 
-#: src/Admin/Overview.php:110
-msgid "Nothing needs your attention here."
-msgstr "Aquí no hay nada que requiera tu atención."
-
 #: src/Admin/Overview.php:129
 msgid "Operational work with a current billing-ready snapshot."
 msgstr "Trabajo operativo con una instantánea actual lista para facturación."
