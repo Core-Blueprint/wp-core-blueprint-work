@@ -221,7 +221,7 @@
 .cb-work-daily-overview__empty-link {
 	display: inline-block;
 	margin-top: var(--cb-space-3);
-	color: var(--cb-text-link);
+	color: var(--cb-accent);
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
 }
