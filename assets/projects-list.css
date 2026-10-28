@@ -1,0 +1,77 @@
+/*
+ * UX-02A: native Projects list header composition.
+ * WordPress and Base keep control/heading/theme ownership; Work only groups
+ * already-rendered native elements on its own Projects list screen.
+ */
+.cb-work-workspace-screen .cb-work-projects-list__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--cb-space-4, 16px);
+	margin: 0 0 var(--cb-space-5, 20px);
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__heading {
+	flex: 1 1 20rem;
+	min-width: 0;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__heading > h1.wp-heading-inline {
+	display: block;
+	float: none;
+	margin: 0 0 var(--cb-space-2, 8px);
+	padding: 0;
+	font-weight: 400;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__heading > .description {
+	margin: 0;
+	max-width: 75ch;
+	line-height: 1.5;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2, 8px);
+	min-width: 0;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__actions > .page-title-action {
+	position: static;
+	top: auto;
+	margin: 0;
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-workspace-screen .cb-work-projects-list__header {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--cb-space-3, 12px);
+	}
+
+	.cb-work-workspace-screen .cb-work-projects-list__heading {
+		flex: 0 1 auto;
+	}
+
+	.cb-work-workspace-screen .cb-work-projects-list__actions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.cb-work-workspace-screen .cb-work-projects-list__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.cb-work-workspace-screen .cb-work-projects-list__actions > .page-title-action {
+		box-sizing: border-box;
+		width: 100%;
+		text-align: center;
+	}
+}
