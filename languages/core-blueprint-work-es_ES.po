@@ -2913,3 +2913,19 @@ msgstr "Listo para empezar"
 #: src/Admin/ServiceOperations.php
 msgid "Your Project and Work Service are ready. Add a service to start tracking work."
 msgstr "Tu proyecto y tu Work Service están listos. Añade un servicio para empezar a hacer seguimiento del trabajo."
+
+#: src/Admin/Overview.php
+msgid "No work scheduled or due today."
+msgstr "No hay trabajo programado ni con vencimiento hoy."
+
+#: src/Admin/Overview.php
+msgid "No overdue or blocked work."
+msgstr "No hay trabajo atrasado ni bloqueado."
+
+#: src/Admin/Overview.php
+msgid "No work in progress."
+msgstr "No hay trabajo en curso."
+
+#: src/Admin/Overview.php
+msgid "No work due in the next seven days."
+msgstr "No hay trabajo con vencimiento en los próximos siete días."
