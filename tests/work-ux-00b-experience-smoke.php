@@ -96,7 +96,8 @@ $invariants = [
         && str_contains( $workspace, 'cb-work-workspace-screen' )
         && str_contains( $css, '.cb-work-workspace-screen .wrap > .cb-work-page-heading' )
         && str_contains( $css, '.cb-work-workspace-screen .wrap.cb-work-items-page > .cb-work-page-header' )
-        && str_contains( $css, '.cb-work-workspace-screen .wrap.cb-work-types-page > h1' ),
+        && str_contains( $css, '.cb-work-workspace-screen .wrap.cb-work-types-page > h1' )
+        && str_contains( $css, 'font-weight: 400;' ),
     'Base owns native controls and theme' =>
         str_contains( $css, 'var(--cb-space-4, 16px)' )
         && ! str_contains( $css, 'body.dark' )
