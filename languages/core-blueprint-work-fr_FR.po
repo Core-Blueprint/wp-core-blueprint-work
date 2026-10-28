@@ -2928,3 +2928,23 @@ msgstr "Aucun travail à échéance dans les sept prochains jours."
 #: src/Admin/Assets.php
 msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
 msgstr "Organisez les projets internes et les projets clients. Ouvrez un espace de travail pour voir leurs Work Items."
+
+#: src/Admin/Assets.php
+msgid "No projects yet."
+msgstr "Aucun projet pour le moment."
+
+#: src/Admin/Assets.php
+msgid "Create an Internal Project for your own work, or a Customer Project for client work."
+msgstr "Créez un projet interne pour votre travail ou un projet client pour les missions de vos clients."
+
+#: src/Admin/Assets.php
+msgid "No matching Projects."
+msgstr "Aucun projet correspondant."
+
+#: src/Admin/Assets.php
+msgid "Try another search or clear your filters."
+msgstr "Essayez une autre recherche ou effacez les filtres."
+
+#: src/Admin/Assets.php
+msgid "View all Projects"
+msgstr "Voir tous les projets"
