@@ -2912,3 +2912,19 @@ msgstr ""
 #: src/Admin/ServiceOperations.php
 msgid "Your Project and Work Service are ready. Add a service to start tracking work."
 msgstr ""
+
+#: src/Admin/Overview.php
+msgid "No work scheduled or due today."
+msgstr ""
+
+#: src/Admin/Overview.php
+msgid "No overdue or blocked work."
+msgstr ""
+
+#: src/Admin/Overview.php
+msgid "No work in progress."
+msgstr ""
+
+#: src/Admin/Overview.php
+msgid "No work due in the next seven days."
+msgstr ""
