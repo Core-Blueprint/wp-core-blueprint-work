@@ -97,12 +97,12 @@ final class Operations {
 		}
 		?>
 		<div class="wrap cb-work-items-page cb-work-items-page--refined">
-			<header class="cb-work-page-header">
+			<header class="cb-work-page-header cb-work-page-heading">
 				<div class="cb-work-page-header__copy">
 					<h1><?php esc_html_e( 'Work Items', 'core-blueprint-work' ); ?></h1>
 					<p class="description"><?php esc_html_e( 'Manage actionable work across customers and Projects. Open a Work Item to edit it in Gutenberg.', 'core-blueprint-work' ); ?></p>
 				</div>
-				<div class="cb-work-page-header__actions">
+				<div class="cb-work-page-header__actions cb-work-page-heading__actions">
 					<a class="button button-primary cb-work-page-header__primary" href="<?php echo esc_url( Menu::new_work_item_url( $project_filter ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 				</div>
 			</header>
@@ -155,8 +155,12 @@ final class Operations {
 		$types = WorkTypes::all( true );
 		?>
 		<div class="wrap cb-work-types-page">
-			<h1><?php esc_html_e( 'Work Types', 'core-blueprint-work' ); ?></h1>
-			<p class="description"><?php esc_html_e( 'Classify the nature of work independently from Services and pricing.', 'core-blueprint-work' ); ?></p>
+			<header class="cb-work-page-heading">
+				<div>
+					<h1><?php esc_html_e( 'Work Types', 'core-blueprint-work' ); ?></h1>
+					<p class="description"><?php esc_html_e( 'Classify the nature of work independently from Services and pricing.', 'core-blueprint-work' ); ?></p>
+				</div>
+			</header>
 			<?php self::render_notice(); ?>
 			<?php if ( ! self::schema_ready() ) { self::storage_notice(); return; } ?>
 
