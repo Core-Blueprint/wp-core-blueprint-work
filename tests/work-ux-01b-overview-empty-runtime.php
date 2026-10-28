@@ -93,7 +93,7 @@ namespace {
         'No work due in the next seven days.',
     ];
     $panels = static function ( string $html ): array {
-        preg_match_all( '~<section class="cb-work-daily-overview__panel(?: cb-work-daily-overview__panel--attention)?">.*?</section>~s', $html, $found );
+        preg_match_all( '~<section class="cb-work-daily-overview__panel(?: cb-work-daily-overview__panel--attention| cb-work-daily-overview__ready)?">.*?</section>~s', $html, $found );
         return $found[0];
     };
 
