@@ -171,7 +171,59 @@ final class Assets {
 		wp_localize_script( self::PROJECT_LIST_SCRIPT_HANDLE, 'cbWorkProjectsList', [
 			'description' => __( 'Organize internal and customer projects. Open a workspace to see its Work Items.', 'core-blueprint-work' ),
 			...$import_action,
+			'empty'       => self::project_list_empty_state(),
 		] );
+	}
+
+	/**
+	 * Presentation-only status for the native WordPress Project list.
+	 * Native WP_Query remains the sole authority for actual list/filter results;
+	 * the JS only enhances an existing native no-items table cell.
+	 *
+	 * @return array{kind:string,title:string,description:string,actionUrl:string,actionLabel:string}
+	 */
+	private static function project_list_empty_state(): array {
+		$filtered = false;
+		$status   = '';
+		foreach ( [ 's', 'cb_work_context', 'post_status', 'author', 'm', 'paged' ] as $key ) {
+			$value = isset( $_GET[ $key ] ) && is_scalar( $_GET[ $key ] )
+				? trim( (string) wp_unslash( $_GET[ $key ] ) ) : '';
+			if ( 'post_status' === $key ) {
+				$status = sanitize_key( $value );
+			}
+			if ( '' !== $value && ! ( 'post_status' === $key && 'all' === $value )
+				&& ! ( 'paged' === $key && '1' === $value ) ) {
+				$filtered = true;
+			}
+		}
+
+		$kind = 'trash' === $status ? 'trash'
+			: ( $filtered || \CB\Work\Repository\Projects::count() > 0 ? 'filtered' : 'first_run' );
+		$reset_url = Menu::projects_url();
+
+		return match ( $kind ) {
+			'first_run' => [
+				'kind' => $kind,
+				'title' => __( 'No projects yet.', 'core-blueprint-work' ),
+				'description' => __( 'Create an Internal Project for your own work, or a Customer Project for client work.', 'core-blueprint-work' ),
+				'actionUrl' => '',
+				'actionLabel' => '',
+			],
+			'trash' => [
+				'kind' => $kind,
+				'title' => __( 'Trash is empty.', 'core-blueprint-work' ),
+				'description' => '',
+				'actionUrl' => $reset_url,
+				'actionLabel' => __( 'View all Projects', 'core-blueprint-work' ),
+			],
+			default => [
+				'kind' => $kind,
+				'title' => __( 'No matching Projects.', 'core-blueprint-work' ),
+				'description' => __( 'Try another search or clear your filters.', 'core-blueprint-work' ),
+				'actionUrl' => $reset_url,
+				'actionLabel' => __( 'Clear filters', 'core-blueprint-work' ),
+			],
+		};
 	}
 
 	private static function enqueue_context_script(): void {
