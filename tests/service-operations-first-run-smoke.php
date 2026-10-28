@@ -76,4 +76,4 @@ if (!str_contains($html, 'Create a Work Service')
     fwrite(STDERR, "SO-UX1 FAIL: completely unconfigured guidance\n");
     exit(1);
 }
-echo "Service Operations SO-UX1 first-run presentation: PASS (9 cases)\n";
+echo "Service Operations SO-UX1 first-run presentation: PASS (10 cases)\n";
