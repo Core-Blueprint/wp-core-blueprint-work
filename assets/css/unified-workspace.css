@@ -1,0 +1,99 @@
+/* UWE-03A: read-only Work application shell, scoped to its private admin route. */
+.cb-work-workspace-screen .wrap.cb-work-unified {
+	max-width: 1440px;
+	margin-top: var(--cb-space-5, 20px);
+}
+
+.cb-work-unified .cb-work-uwe__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--cb-space-4, 16px);
+	margin-bottom: var(--cb-space-5, 20px);
+}
+
+.cb-work-unified .cb-work-uwe__header h1 {
+	margin: 0 0 var(--cb-space-2, 8px);
+	font-weight: 400;
+}
+
+.cb-work-unified .cb-work-uwe__header .description {
+	margin: 0;
+}
+
+.cb-work-unified .cb-work-uwe__tabs {
+	display: flex;
+	gap: var(--cb-space-2, 8px);
+	max-width: 100%;
+	overflow-x: auto;
+	border-bottom: 1px solid var(--cb-work-border, #c3c4c7);
+}
+
+.cb-work-unified .cb-work-uwe__tab {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	min-height: 44px;
+	padding: 8px 16px;
+	color: var(--cb-work-text, inherit);
+	text-decoration: none;
+	border-bottom: 2px solid transparent;
+}
+
+.cb-work-unified .cb-work-uwe__tab.is-active {
+	color: var(--cb-work-text-strong, inherit);
+	border-bottom-color: currentColor;
+	font-weight: 600;
+}
+
+.cb-work-unified .cb-work-uwe__panel {
+	margin-top: var(--cb-space-5, 20px);
+	padding: var(--cb-space-5, 20px);
+	background: var(--cb-work-surface, transparent);
+	border: 1px solid var(--cb-work-border, #c3c4c7);
+	border-radius: var(--cb-work-radius, 8px);
+}
+
+.cb-work-unified .cb-work-uwe__panel[hidden] {
+	display: none;
+}
+
+.cb-work-unified .cb-work-uwe__panel h2 {
+	margin: 0 0 var(--cb-space-4, 16px);
+}
+
+.cb-work-unified .cb-work-uwe__collection {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+	gap: var(--cb-space-3, 12px);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.cb-work-unified .cb-work-uwe__record {
+	min-width: 0;
+	margin: 0;
+	padding: var(--cb-space-4, 16px);
+	border: 1px solid var(--cb-work-border, #c3c4c7);
+	border-radius: var(--cb-work-radius, 8px);
+	background: var(--cb-work-surface-raised, transparent);
+}
+
+.cb-work-unified .cb-work-uwe__record-title {
+	display: block;
+	overflow-wrap: anywhere;
+	font-weight: 600;
+}
+
+.cb-work-unified .cb-work-uwe__empty {
+	margin: 0;
+	color: var(--cb-work-text-muted, inherit);
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-unified .cb-work-uwe__panel {
+		padding: var(--cb-space-3, 12px);
+	}
+}

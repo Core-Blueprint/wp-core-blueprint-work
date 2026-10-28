@@ -27,8 +27,8 @@ $expected = [
     [ 'Work Types',        'self::WORK_TYPES_SLUG',        40 ],
 ];
 
-if ( count( $rows ) !== 10 ) {
-    fwrite( STDERR, 'UX-00A navigation: expected 8 visible and 2 contextual manager entries, got ' . count( $rows ) . ".\n" );
+if ( count( $rows ) !== 11 ) {
+    fwrite( STDERR, 'UX-00A navigation: expected 8 visible and 3 contextual manager entries, got ' . count( $rows ) . ".\n" );
     exit( 1 );
 }
 
@@ -59,11 +59,20 @@ foreach ( [
     }
 }
 
+if (
+	! str_contains( $rows[10], "__( 'Work', 'core-blueprint-work' )" )
+	|| ! str_contains( $rows[10], ', Capabilities::MANAGE, self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class, \'render\' ]' )
+) {
+	fwrite( STDERR, "UX-00A navigation: additional hidden UWE route is missing or incorrectly authorized.\n" );
+	exit( 1 );
+}
+
 $invariants = [
     'tracker-only Time landing' => str_contains( $menu, "Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ]" ),
     'manager and tracker separation' => str_contains( $menu, 'if ( $can_manage )' ) && str_contains( $menu, 'if ( ! $can_track )' ),
     'hidden contextual routes' => str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG )' )
-        && str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG )' ),
+        && str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG )' )
+		&& str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::UNIFIED_WORKSPACE_SLUG )' ),
     'WordPress active menu mapping' => str_contains( $menu, "add_filter( 'parent_file'" )
         && str_contains( $menu, "add_filter( 'submenu_file'" )
         && str_contains( $menu, 'self::CONTEXT_PROJECTS' )

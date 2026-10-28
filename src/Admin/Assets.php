@@ -50,6 +50,10 @@ final class Assets {
 
 		self::enqueue_workspace_style();
 		self::enqueue_context_script();
+		if ( Menu::CONTEXT_UNIFIED_WORKSPACE === $context ) {
+			self::enqueue_unified_workspace();
+			return;
+		}
 		self::enqueue_quick_add_assets();
 		$page = isset( $_GET['page'] ) ? sanitize_key( (string) wp_unslash( $_GET['page'] ) ) : '';
 		if ( Menu::PROJECT_WORKSPACE_SLUG === $page ) {
@@ -77,6 +81,35 @@ final class Assets {
 		if ( WorkItemViewState::VIEW_CALENDAR === WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() ) ) {
 			self::enqueue_calendar_assets();
 		}
+	}
+
+	/** UWE-03A is a hidden, manager-only preview. Never load its assets elsewhere. */
+	private static function enqueue_unified_workspace(): void {
+		if ( ! current_user_can( \CB\Work\Capabilities::MANAGE ) ) {
+			return;
+		}
+		$style = CB_WORK_DIR . 'assets/unified-workspace.css';
+		$app   = CB_WORK_DIR . 'assets/js/workspace/app.js';
+		$router = CB_WORK_DIR . 'assets/js/workspace/router.js';
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) ) {
+			return;
+		}
+
+		$css_modified = filemtime( $style );
+		wp_enqueue_style(
+			'cb-work-unified-workspace',
+			CB_WORK_URL . 'assets/unified-workspace.css',
+			[ self::WORKSPACE_STYLE_HANDLE ],
+			false === $css_modified ? CB_WORK_VERSION : (string) $css_modified
+		);
+
+		$app_modified = filemtime( $app );
+		wp_enqueue_script_module(
+			'@cb-work/unified-workspace',
+			CB_WORK_URL . 'assets/js/workspace/app.js',
+			[],
+			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
+		);
 	}
 
 	/** Shared Base Toast Foundation on Work-owned admin screens only. */

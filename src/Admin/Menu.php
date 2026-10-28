@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 final class Menu {
 	public const TOP_LEVEL_SLUG        = 'core-blueprint-work';
 	public const WORK_ITEMS_SLUG       = 'core-blueprint-work-items';
+	public const UNIFIED_WORKSPACE_SLUG = 'core-blueprint-work-workspace';
 	public const PROJECT_WORKSPACE_SLUG = 'core-blueprint-work-project';
 	public const PROJECT_IMPORT_SLUG    = 'core-blueprint-work-project-import';
 	public const RECURRENCE_SLUG       = 'core-blueprint-work-recurrence';
@@ -20,6 +21,7 @@ final class Menu {
 	public const WORK_TYPES_SLUG       = 'core-blueprint-work-types';
 	public const CONTEXT_OVERVIEW      = 'overview';
 	public const CONTEXT_WORK_ITEMS    = 'work_items';
+	public const CONTEXT_UNIFIED_WORKSPACE = 'unified_workspace';
 	public const CONTEXT_RECURRENCE    = 'recurrence';
 	public const CONTEXT_SERVICE_OPERATIONS = 'service_operations';
 	public const CONTEXT_TIME          = 'time';
@@ -55,6 +57,7 @@ final class Menu {
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class, 'render' ] );
 			return;
 		}
 
@@ -72,6 +75,7 @@ final class Menu {
 		if ( current_user_can( Capabilities::MANAGE ) ) {
 			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG );
 			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::UNIFIED_WORKSPACE_SLUG );
 			return;
 		}
 
@@ -159,6 +163,9 @@ final class Menu {
 		if ( self::TOP_LEVEL_SLUG === $page ) {
 			return current_user_can( Capabilities::MANAGE ) ? self::CONTEXT_OVERVIEW : self::CONTEXT_TIME;
 		}
+		if ( self::UNIFIED_WORKSPACE_SLUG === $page ) {
+			return current_user_can( Capabilities::MANAGE ) ? self::CONTEXT_UNIFIED_WORKSPACE : '';
+		}
 		if ( in_array( $page, [ self::PROJECT_WORKSPACE_SLUG, self::PROJECT_IMPORT_SLUG ], true ) ) {
 			return self::CONTEXT_PROJECTS;
 		}
@@ -195,6 +202,7 @@ final class Menu {
 		return match ( $context ) {
 			self::CONTEXT_OVERVIEW   => self::TOP_LEVEL_SLUG,
 			self::CONTEXT_WORK_ITEMS => self::WORK_ITEMS_SLUG,
+			self::CONTEXT_UNIFIED_WORKSPACE => self::WORK_ITEMS_SLUG,
 			self::CONTEXT_RECURRENCE => self::RECURRENCE_SLUG,
 			self::CONTEXT_SERVICE_OPERATIONS => self::SERVICE_OPERATIONS_SLUG,
 			self::CONTEXT_TIME       => current_user_can( Capabilities::MANAGE ) ? self::TIME_SLUG : self::TOP_LEVEL_SLUG,
