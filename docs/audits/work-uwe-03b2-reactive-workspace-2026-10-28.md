@@ -12,7 +12,7 @@ Status: SOURCE CANDIDATE, Level 1/2/3 and FIELD OPEN. Main merge HOLD.
 - Bootstrap the UWE-03B.1 GET-only REST API from three WordPress-generated endpoint URLs. This supports both permalink REST and ?rest_route= fallback.
 - Authenticate REST reads with wp_create_nonce('wp_rest') in the X-WP-Nonce request header, same-origin GET credentials. No nonce in URLs and no write routes.
 - Vanilla ES modules (app, router, state, data-client), no framework and no Base-source changes.
-- Per-section, shareable URL state: search, sort, status (Work Items), page, per_page. Preserve unrelated wp-admin args.
+- Per-section, shareable URL state: search, sort, status (Work Items), uwe_page, per_page. Preserve WordPress's reserved admin `page` route and unrelated wp-admin args. REST query pagination remains `page`.
 - Search with bounded debounce, filter and sort change, direct deep-links, Back/Forward, remembered state per section.
 - Abort obsolete requests and discard stale responses, including overlapping same-section fetches.
 - Render API titles only via textContent, no HTML injection.

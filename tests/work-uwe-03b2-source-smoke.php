@@ -55,6 +55,12 @@ $checks = [
 		&& str_contains( $app, 'browser.history.pushState' )
 		&& str_contains( $app, 'browser.history.replaceState' )
 		&& str_contains( $app, "'popstate'" ),
+	'WordPress page route is reserved and pagination is namespaced' =>
+		str_contains( $state, "params.get('uwe_page')" )
+		&& str_contains( $state, "url.searchParams.set('uwe_page', String(state.page))" )
+		&& ! str_contains( $state, "url.searchParams.delete('page')" )
+		&& ! str_contains( $state, "url.searchParams.set('page', String(state.page))" )
+		&& str_contains( $state, "parameters.set('page', String(state.page))" ),
 	'overlapping requests cancelled with sequence guard' =>
 		str_contains( $client, 'current.abort()' )
 		&& str_contains( $app, 'refreshSequence' )

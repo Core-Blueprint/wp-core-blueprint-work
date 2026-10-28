@@ -5,11 +5,11 @@ import {
 import { createDataClient } from '../assets/js/workspace/data-client.js';
 
 const base = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-workspace';
-const original = base + '&section=work-items&search=sample&sort=due&status=blocked&page=3&per_page=10#table';
+const original = base + '&section=work-items&search=sample&sort=due&status=blocked&uwe_page=3&per_page=10#table';
 assert.deepEqual(readDataState(original, 'work-items'), {
 	search: 'sample', sort: 'due', status: 'blocked', page: 3, per_page: 10,
 });
-assert.deepEqual(readDataState(base + '&page=-4&per_page=900&sort=invalid&status=invalid', 'work-items'),
+assert.deepEqual(readDataState(base + '&uwe_page=-4&per_page=900&sort=invalid&status=invalid', 'work-items'),
 	defaultDataState('work-items'));
 assert.equal(readDataState(base + '&sort=due&status=blocked', 'projects').sort, 'title');
 assert.equal(readDataState(base + '&sort=due&status=blocked', 'services').status, '');
@@ -17,10 +17,26 @@ assert.equal(readDataState(base + '&search=' + 'a'.repeat(190), 'projects').sear
 const rewritten = dataStateUrl(original, 'work-items', {
 	...defaultDataState('work-items'), search: 'Audit & Service', status: 'planned', page: 2,
 });
-assert.equal(rewritten, '/site/wp-admin/admin.php?page=core-blueprint-work-workspace&section=work-items&search=Audit+%26+Service&status=planned&page=2#table');
+assert.equal(rewritten, '/site/wp-admin/admin.php?page=core-blueprint-work-workspace&section=work-items&search=Audit+%26+Service&status=planned&uwe_page=2#table');
 assert.equal(dataStateUrl(base + '&section=projects&status=blocked&per_page=40', 'projects', defaultDataState('projects')),
 	'/site/wp-admin/admin.php?page=core-blueprint-work-workspace&section=projects');
 assert.equal(apiParameters({ ...defaultDataState('work-items'), status: 'planned' }).get('status'), 'planned');
+assert.equal(new URL(rewritten, base).searchParams.get('page'), 'core-blueprint-work-workspace',
+	'Workspace query updates must never remove the WordPress admin route');
+assert.equal(new URL(rewritten, base).searchParams.get('uwe_page'), '2');
+assert.equal(new URL(rewritten, base).searchParams.getAll('page').length, 1,
+	'No duplicate WordPress page parameters may be written');
+assert.equal(new URL(rewritten, base).searchParams.has('per_page'), false);
+assert.equal(apiParameters({ ...defaultDataState('work-items'), page: 4 }).get('page'), '4',
+	'The REST API still expects page, not the admin-only uwe_page parameter');
+assert.equal(apiParameters({ ...defaultDataState('work-items'), page: 4 }).has('uwe_page'), false);
+assert.deepEqual(readDataState(base + '&uwe_page=3&search=title', 'work-items'),
+	{ ...defaultDataState('work-items'), search: 'title', page: 3 },
+	'Deep-linked pagination must remain usable alongside WordPress admin routing');
+assert.equal(new URL(dataStateUrl(base + '&uwe_page=5', 'work-items', defaultDataState('work-items')), base)
+	.searchParams.get('page'), 'core-blueprint-work-workspace',
+	'Resetting Workspace filters must never delete the WordPress page route');
+
 
 let observed = null;
 const valid = { section: 'work-items', items: [{ id: 9, title: '<script>alert(1)</script>' }], page: 1, total: 1, pages: 1 };

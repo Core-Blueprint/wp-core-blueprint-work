@@ -1,8 +1,9 @@
 /**
  * UWE-03B.2: shareable, bounded client query state.
+ * Reserves the WordPress admin `page` route and uses `uwe_page` for workspace pagination.
  * Preserves unrelated WordPress/admin query arguments and hash fragments.
  */
-export const DATA_KEYS = Object.freeze(['search', 'sort', 'status', 'page', 'per_page']);
+export const DATA_KEYS = Object.freeze(['search', 'sort', 'status', 'uwe_page', 'per_page']);
 const SORTS = Object.freeze(['workload', 'due', 'scheduled', 'updated', 'title']);
 const STATUSES = Object.freeze(['planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled']);
 
@@ -30,7 +31,7 @@ export function readDataState(href, section) {
 		sort: SORTS.includes(sort) && (section === 'work-items' || ['title', 'updated'].includes(sort))
 			? sort : defaults.sort,
 		status: section === 'work-items' && STATUSES.includes(status) ? status : '',
-		page: boundedInteger(params.get('page'), 1, 100000, 1),
+		page: boundedInteger(params.get('uwe_page'), 1, 100000, 1),
 		per_page: boundedInteger(params.get('per_page'), 1, 100, 25),
 	};
 }
@@ -47,7 +48,7 @@ export function dataStateUrl(href, section, input) {
 	}
 	if (section === 'work-items' && STATUSES.includes(state.status)) url.searchParams.set('status', state.status);
 	if (Number.isSafeInteger(state.page) && state.page > 1 && state.page <= 100000) {
-		url.searchParams.set('page', String(state.page));
+		url.searchParams.set('uwe_page', String(state.page));
 	}
 	if (Number.isSafeInteger(state.per_page) && state.per_page !== 25
 		&& state.per_page >= 1 && state.per_page <= 100) {

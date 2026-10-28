@@ -34,7 +34,7 @@ $checks = [
 		&& str_contains( $controller, "'minimum' => 1" ),
 	'canonical Work Item repository, no duplicate query' =>
 		str_contains( $controller, 'WorkItems::search( $criteria )' )
-		&& ! str_contains( $controller, "PostTypes::WORK_ITEM, $page" ),
+		&& ! str_contains( $controller, 'PostTypes::WORK_ITEM, $page' ),
 	'canonical Project and Service record readers' =>
 		str_contains( $controller, 'Projects::get( $id )' )
 		&& str_contains( $controller, 'Services::get( $id )' ),
