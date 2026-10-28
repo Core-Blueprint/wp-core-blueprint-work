@@ -30,6 +30,8 @@ namespace {
 	function wp_localize_script( string $handle, string $name, array $data ): void {
 		$GLOBALS['ux02a_localizations'][ $handle ] = compact( 'name', 'data' );
 	}
+	function wp_unslash( mixed $value ): mixed { return $value; }
+	function sanitize_key( string $value ): string { return strtolower( preg_replace( '/[^a-z0-9_\\-]/i', '', $value ) ?? '' ); }
 	function __( string $message, string $domain ): string {
 		if ( 'core-blueprint-work' !== $domain ) {
 			throw new \RuntimeException( 'Unexpected translation domain.' );
@@ -43,7 +45,15 @@ namespace CB\Work {
 namespace CB\Work\Content {
 	final class PostTypes { public const PROJECT = 'cb_work_project'; }
 }
+namespace CB\Work\Repository {
+	final class Projects {
+		public static function count(): int { return 1; }
+	}
+}
 namespace CB\Work\Admin {
+	final class Menu {
+		public static function projects_url(): string { return '/wp-admin/edit.php?post_type=cb_work_project'; }
+	}
 	final class ProjectDataExchange {
 		public static bool $available = true;
 		public static int $import_calls = 0;
