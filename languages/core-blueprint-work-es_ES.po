@@ -2929,3 +2929,23 @@ msgstr "No hay trabajo con vencimiento en los próximos siete días."
 #: src/Admin/Assets.php
 msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
 msgstr "Organiza los proyectos internos y de clientes. Abre un espacio de trabajo para ver sus Work Items."
+
+#: src/Admin/Assets.php
+msgid "No projects yet."
+msgstr "Todavía no hay proyectos."
+
+#: src/Admin/Assets.php
+msgid "Create an Internal Project for your own work, or a Customer Project for client work."
+msgstr "Crea un proyecto interno para tu propio trabajo o un proyecto de cliente para los trabajos de clientes."
+
+#: src/Admin/Assets.php
+msgid "No matching Projects."
+msgstr "No hay proyectos coincidentes."
+
+#: src/Admin/Assets.php
+msgid "Try another search or clear your filters."
+msgstr "Prueba otra búsqueda o borra los filtros."
+
+#: src/Admin/Assets.php
+msgid "View all Projects"
+msgstr "Ver todos los proyectos"
