@@ -23,9 +23,9 @@ final class WorkItemViewPreferences {
 	/** @return list<string> */
 	public static function canonical_order(): array {
 		return [
-			WorkItemViewState::VIEW_TABLE,
-			WorkItemViewState::VIEW_LIST,
 			WorkItemViewState::VIEW_KANBAN,
+			WorkItemViewState::VIEW_LIST,
+			WorkItemViewState::VIEW_TABLE,
 			WorkItemViewState::VIEW_CALENDAR,
 		];
 	}
