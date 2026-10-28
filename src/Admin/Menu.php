@@ -46,12 +46,12 @@ final class Menu {
 		if ( $can_manage ) {
 			add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 'dashicons-clipboard', 26.5 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 5 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 10 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 15 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Service Operations', 'core-blueprint-work' ), __( 'Service Operations', 'core-blueprint-work' ), Capabilities::MANAGE, self::SERVICE_OPERATIONS_SLUG, [ ServiceOperations::class, 'render' ], 16 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 17 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 30 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 10 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 15 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 20 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Service Operations', 'core-blueprint-work' ), __( 'Service Operations', 'core-blueprint-work' ), Capabilities::MANAGE, self::SERVICE_OPERATIONS_SLUG, [ ServiceOperations::class, 'render' ], 25 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 30 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 35 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
