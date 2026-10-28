@@ -51,10 +51,10 @@ $tests=[
         str_contains($admin, 'private static function has_filters')
         && str_contains($admin, 'private static function display_state')
         && str_contains($admin, 'self::display_state((int)$report[\'total\'], self::has_filters($filters), $can_create)')
-        && str_contains($admin, "if ($total > 0 || $filtered) { return 'operational'; }")
-        && str_contains($admin, "return $can_create ? 'ready' : 'setup';")
-        && str_contains($admin, "'setup' === $display_state")
-        && str_contains($admin, "'ready' === $display_state"),
+        && str_contains($admin, 'if ($total > 0 || $filtered) { return \'operational\'; }')
+        && str_contains($admin, 'return $can_create ? \'ready\' : \'setup\';')
+        && str_contains($admin, '\'setup\' === $display_state')
+        && str_contains($admin, '\'ready\' === $display_state'),
     'P1 create is gated on eligible internal or customer Projects and Services' =>
         str_contains($admin, "WorkContext::CUSTOMER ===")
         && str_contains($admin, "'' !== (string)($"."p['customer_provider']")
