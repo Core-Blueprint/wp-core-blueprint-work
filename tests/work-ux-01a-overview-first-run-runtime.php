@@ -105,6 +105,8 @@ namespace {
     $assert( str_contains( $blank, 'No Work Items yet.' ), 'clear first step' );
     $assert( str_contains( $blank, '/wp-admin/post-new.php?post_type=cb_work_item' ), 'Work Item canonical creation route' );
     $assert( str_contains( $blank, '/wp-admin/post-new.php?post_type=cb_work_project' ), 'Project canonical native creation route' );
+    $assert( 1 === substr_count( $blank, '/wp-admin/post-new.php?post_type=cb_work_item' )
+        && ! str_contains( $blank, 'Open Time' ), 'first-run shows one primary Work Item action without duplicate header actions' );
     $assert( 1 === WorkItems::$calls, 'single canonical Work Item count check' );
     $assert( 1 === substr_count( $blank, 'class="cb-work-daily-overview__grid"' )
         && str_contains( $blank, 'Needs attention' )
@@ -120,6 +122,8 @@ namespace {
     WorkItems::$count = 2;
     $established = $capture();
     $assert( ! str_contains( $established, 'cb-work-daily-overview__getting-started' ), 'existing Work Items hide onboarding' );
+    $assert( 1 === substr_count( $established, '/wp-admin/post-new.php?post_type=cb_work_item' )
+        && str_contains( $established, 'Open Time' ), 'established Work keeps normal header actions' );
     $assert( str_contains( $established, 'cb-work-daily-overview__focus' )
         && str_contains( $established, 'cb-work-daily-overview__ready' ), 'existing KPIs and billing snapshot remain' );
 
