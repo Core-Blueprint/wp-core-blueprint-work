@@ -801,10 +801,6 @@ msgstr "Timer loopt"
 msgid "Open timer"
 msgstr "Open timer"
 
-#: src/Admin/Overview.php:110
-msgid "Nothing needs your attention here."
-msgstr "Hier is niets dat je aandacht nodig heeft."
-
 #: src/Admin/Overview.php:129
 msgid "Operational work with a current billing-ready snapshot."
 msgstr "Operationeel werk met een actuele facturatieklare snapshot."
