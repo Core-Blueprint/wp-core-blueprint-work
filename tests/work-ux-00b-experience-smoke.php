@@ -37,7 +37,6 @@ if ( false === $css || false === $assets || false === $workspace ) {
 // Confirm exactly one Work heading per operational surface, including Work Types.
 $headings = [
     'overview'   => [ 'cb-work-daily-overview__header', 'Work' ],
-    'items'      => [ 'cb-work-page-header', 'Work Items' ],
     'recurrence' => [ 'cb-work-recurrence-header', 'Recurring Work' ],
     'services'   => [ 'cb-work-so-header', 'Service Operations' ],
     'time'       => [ 'cb-work-time-header', 'Time' ],
@@ -52,9 +51,14 @@ foreach ( $headings as $name => [ $original_class, $title ] ) {
         $fail( "{$name} header title or description missing" );
     }
 }
-if ( 1 !== substr_count( $source['items'], '<header class="cb-work-page-heading">' )
+// G0 Table/List/Board uses an immutable byte-for-byte Operations.php contract.
+// This UX patch must style its existing header and Work Types title by class,
+// NEVER modify frozen renderer markup or rewrite the B1.2 source hash fixture.
+$operations_blob = sha1( 'blob ' . strlen( $source['items'] ) . "\0" . $source['items'] );
+if ( '92a4814f24b43f96d16e3d96ce61a49ee9f21500' !== $operations_blob
+    || ! str_contains( $source['items'], '<header class="cb-work-page-header">' )
     || ! str_contains( $source['items'], "<h1><?php esc_html_e( 'Work Types', 'core-blueprint-work' ); ?></h1>" ) ) {
-    $fail( 'Work Types keeps simple title/description without a redundant top-level action' );
+    $fail( 'G0-frozen Work Items header and Work Types markup must remain exact' );
 }
 
 $invariants = [
@@ -65,7 +69,7 @@ $invariants = [
         && str_contains( $source['overview'], "self::queue( __( 'Today'" )
         && str_contains( $source['overview'], "self::queue( __( 'Needs attention'" ),
     'work items keeps its single primary canonical create action' =>
-        str_contains( $source['items'], 'cb-work-page-header__actions cb-work-page-heading__actions' )
+        str_contains( $source['items'], 'cb-work-page-header__actions' )
         && str_contains( $source['items'], 'Menu::new_work_item_url( $project_filter )' )
         && str_contains( $source['items'], 'self::render_work_item_filters(' ),
     'recurrence retains add/back action and separate activation' =>
@@ -90,7 +94,9 @@ $invariants = [
     'shared style uses existing WordPress/Base screen context' =>
         str_contains( $assets, "self::enqueue_workspace_style();" )
         && str_contains( $workspace, 'cb-work-workspace-screen' )
-        && str_contains( $css, '.cb-work-workspace-screen .wrap > .cb-work-page-heading' ),
+        && str_contains( $css, '.cb-work-workspace-screen .wrap > .cb-work-page-heading' )
+        && str_contains( $css, '.cb-work-workspace-screen .wrap.cb-work-items-page > .cb-work-page-header' )
+        && str_contains( $css, '.cb-work-workspace-screen .wrap.cb-work-types-page > h1' ),
     'Base owns native controls and theme' =>
         str_contains( $css, 'var(--cb-space-4, 16px)' )
         && ! str_contains( $css, 'body.dark' )
@@ -107,4 +113,4 @@ foreach ( $invariants as $label => $pass ) {
     }
 }
 
-echo "Work UX-00B experience smoke passed (six headers, action contracts, responsive Base-token layout).\n";
+echo "Work UX-00B experience smoke passed (five shared headers, frozen Work Items/Types, actions and responsive Base tokens).\n";
