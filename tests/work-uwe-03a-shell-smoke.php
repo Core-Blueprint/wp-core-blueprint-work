@@ -33,7 +33,18 @@ $checks = [
 		str_contains( $assets, 'enqueue_unified_workspace' )
 		&& str_contains( $assets, 'wp_enqueue_script_module(' )
 		&& str_contains( $assets, "'assets/js/workspace/app.js'" )
-		&& str_contains( $assets, "'assets/unified-workspace.css'" ),
+		&& str_contains( $assets, "'assets/css/unified-workspace.css'" ),
+	'workspace CSS resolves to real packaged asset and correct URL' =>
+		is_file( $root . '/assets/css/unified-workspace.css' )
+		&& str_contains( $assets, "CB_WORK_DIR . 'assets/css/unified-workspace.css'" )
+		&& str_contains( $assets, "CB_WORK_URL . 'assets/css/unified-workspace.css'" )
+		&& ! str_contains( $assets, "'assets/unified-workspace.css'" ),
+	'workspace JavaScript entry and relative router are packaged' =>
+		is_file( $root . '/assets/js/workspace/app.js' )
+		&& is_file( $root . '/assets/js/workspace/router.js' )
+		&& str_contains( (string) file_get_contents( $root . '/assets/js/workspace/app.js' ), "from './router.js'" )
+		&& str_contains( $assets, "CB_WORK_DIR . 'assets/js/workspace/app.js'" )
+		&& str_contains( $assets, "CB_WORK_URL . 'assets/js/workspace/app.js'" ),
 	'protected Operations renderer unchanged by this patch' =>
 		! str_contains( $operations, 'UnifiedWorkspace' ),
 ];

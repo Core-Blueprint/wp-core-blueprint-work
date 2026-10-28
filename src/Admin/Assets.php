@@ -88,7 +88,7 @@ final class Assets {
 		if ( ! current_user_can( \CB\Work\Capabilities::MANAGE ) ) {
 			return;
 		}
-		$style = CB_WORK_DIR . 'assets/unified-workspace.css';
+		$style = CB_WORK_DIR . 'assets/css/unified-workspace.css';
 		$app   = CB_WORK_DIR . 'assets/js/workspace/app.js';
 		$router = CB_WORK_DIR . 'assets/js/workspace/router.js';
 		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) ) {
@@ -98,7 +98,7 @@ final class Assets {
 		$css_modified = filemtime( $style );
 		wp_enqueue_style(
 			'cb-work-unified-workspace',
-			CB_WORK_URL . 'assets/unified-workspace.css',
+			CB_WORK_URL . 'assets/css/unified-workspace.css',
 			[ self::WORKSPACE_STYLE_HANDLE ],
 			false === $css_modified ? CB_WORK_VERSION : (string) $css_modified
 		);
