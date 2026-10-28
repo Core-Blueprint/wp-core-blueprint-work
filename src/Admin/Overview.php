@@ -62,10 +62,10 @@ final class Overview {
 			<?php self::render_timer( is_array( $snapshot['active_timer'] ) ? $snapshot['active_timer'] : null ); ?>
 
 			<div class="cb-work-daily-overview__grid">
-				<?php self::queue( __( 'Today', 'core-blueprint-work' ), __( 'Scheduled or due today.', 'core-blueprint-work' ), (array) $snapshot['today'], $projects ); ?>
-				<?php self::queue( __( 'Needs attention', 'core-blueprint-work' ), __( 'Overdue and blocked work.', 'core-blueprint-work' ), self::merge_attention( (array) $snapshot['overdue'], (array) $snapshot['blocked'] ), $projects, true ); ?>
-				<?php self::queue( __( 'In progress', 'core-blueprint-work' ), __( 'Work currently underway.', 'core-blueprint-work' ), (array) $snapshot['in_progress'], $projects ); ?>
-				<?php self::queue( __( 'Coming up', 'core-blueprint-work' ), __( 'Due in the next seven days.', 'core-blueprint-work' ), (array) $snapshot['due_soon'], $projects ); ?>
+				<?php self::queue( __( 'Today', 'core-blueprint-work' ), __( 'Scheduled or due today.', 'core-blueprint-work' ), (array) $snapshot['today'], $projects, __( 'No work scheduled or due today.', 'core-blueprint-work' ), $first_run ? null : self::work_items_url() ); ?>
+				<?php self::queue( __( 'Needs attention', 'core-blueprint-work' ), __( 'Overdue and blocked work.', 'core-blueprint-work' ), self::merge_attention( (array) $snapshot['overdue'], (array) $snapshot['blocked'] ), $projects, __( 'No overdue or blocked work.', 'core-blueprint-work' ), null, true ); ?>
+				<?php self::queue( __( 'In progress', 'core-blueprint-work' ), __( 'Work currently underway.', 'core-blueprint-work' ), (array) $snapshot['in_progress'], $projects, __( 'No work in progress.', 'core-blueprint-work' ), $first_run ? null : self::work_items_url() ); ?>
+				<?php self::queue( __( 'Coming up', 'core-blueprint-work' ), __( 'Due in the next seven days.', 'core-blueprint-work' ), (array) $snapshot['due_soon'], $projects, __( 'No work due in the next seven days.', 'core-blueprint-work' ) ); ?>
 			</div>
 
 			<?php self::ready_to_bill( (array) $snapshot['ready_to_bill'] ); ?>
@@ -126,7 +126,7 @@ final class Overview {
 	}
 
 	/** @param array<int,array<string,mixed>> $items @param array<int,string> $projects */
-	private static function queue( string $title, string $description, array $items, array $projects, bool $attention = false ): void {
+	private static function queue( string $title, string $description, array $items, array $projects, string $empty_message, ?string $empty_action_url = null, bool $attention = false ): void {
 		?>
 		<section class="cb-work-daily-overview__panel<?php echo $attention ? ' cb-work-daily-overview__panel--attention' : ''; ?>">
 			<header>
@@ -134,7 +134,12 @@ final class Overview {
 				<span class="cb-work-daily-overview__count"><?php echo esc_html( (string) count( $items ) ); ?></span>
 			</header>
 			<?php if ( [] === $items ) : ?>
-				<p class="cb-work-daily-overview__empty"><?php esc_html_e( 'Nothing needs your attention here.', 'core-blueprint-work' ); ?></p>
+				<div class="cb-work-daily-overview__empty">
+					<p><?php echo esc_html( $empty_message ); ?></p>
+					<?php if ( null !== $empty_action_url ) : ?>
+						<a class="cb-work-daily-overview__empty-link" href="<?php echo esc_url( $empty_action_url ); ?>"><?php esc_html_e( 'Open Work Items', 'core-blueprint-work' ); ?></a>
+					<?php endif; ?>
+				</div>
 			<?php else : ?>
 				<ul class="cb-work-daily-overview__items">
 					<?php foreach ( $items as $item ) : ?>
