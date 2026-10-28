@@ -52,51 +52,59 @@ final class Projects {
 	}
 
 	public static function render_details( \WP_Post $post ): void {
-		$meta     = ProjectMeta::get( (int) $post->ID );
-		$context  = (string) $meta['work_context'];
+		$meta    = ProjectMeta::get( (int) $post->ID );
+		$context = (string) $meta['work_context'];
 		if ( '' === $context && 'auto-draft' === $post->post_status ) {
 			$context = WorkContext::INTERNAL;
 		}
 		$selected = CRMCustomers::selected( $meta['customer_provider'], $meta['customer_type'], $meta['customer_id'] );
 
 		wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD );
-		if ( (int) $post->ID > 0 && 'auto-draft' !== $post->post_status ) {
-			?>
-			<p><a class="button" href="<?php echo esc_url( Menu::project_workspace_url( (int) $post->ID ) ); ?>"><?php esc_html_e( 'Open Project Workspace', 'core-blueprint-work' ); ?></a></p>
-			<?php
-		}
 		?>
-		<table class="form-table" role="presentation"><tbody>
-			<tr data-cb-work-context-row>
-				<th scope="row"><label for="cb-work-project-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label></th>
-				<td>
+		<div class="cb-work-project-editor">
+			<?php if ( (int) $post->ID > 0 && 'auto-draft' !== $post->post_status ) : ?>
+				<p class="cb-work-project-editor__workspace-link"><a class="button" href="<?php echo esc_url( Menu::project_workspace_url( (int) $post->ID ) ); ?>"><?php esc_html_e( 'Open Project Workspace', 'core-blueprint-work' ); ?></a></p>
+			<?php endif; ?>
+
+			<section class="cb-work-project-editor__section" aria-labelledby="cb-work-project-editor-context-title">
+				<div class="cb-work-project-editor__section-heading">
+					<h3 id="cb-work-project-editor-context-title"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></h3>
+					<p class="description"><?php esc_html_e( 'Internal Projects have no customer and are never billable. Customer Projects require a CRM customer.', 'core-blueprint-work' ); ?></p>
+				</div>
+				<div class="cb-work-project-editor__field" data-cb-work-context-row>
+					<label for="cb-work-project-context"><?php esc_html_e( 'Work context', 'core-blueprint-work' ); ?></label>
 					<select id="cb-work-project-context" name="cb_work_project[work_context]" data-cb-work-context-select required>
 						<?php if ( '' === $context ) : ?><option value="" selected><?php esc_html_e( 'Needs classification', 'core-blueprint-work' ); ?></option><?php endif; ?>
 						<option value="<?php echo esc_attr( WorkContext::INTERNAL ); ?>" <?php selected( $context, WorkContext::INTERNAL ); ?>><?php esc_html_e( 'Internal', 'core-blueprint-work' ); ?></option>
 						<option value="<?php echo esc_attr( WorkContext::CUSTOMER ); ?>" <?php selected( $context, WorkContext::CUSTOMER ); ?>><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></option>
 					</select>
-					<p class="description"><?php esc_html_e( 'Internal Projects have no customer and are never billable. Customer Projects require a CRM customer.', 'core-blueprint-work' ); ?></p>
-				</td>
-			</tr>
-			<tr data-cb-work-customer-row>
-				<th scope="row"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></th>
-				<td>
+				</div>
+				<div class="cb-work-project-editor__field cb-work-project-editor__customer" data-cb-work-customer-row>
+					<label for="cb-work-project-customer"><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></label>
 					<?php if ( '' !== $meta['customer_provider'] && null === $selected ) : ?>
 						<p class="description"><?php esc_html_e( 'This Project already has a customer link that cannot be resolved for the current user. The link is preserved.', 'core-blueprint-work' ); ?></p>
 					<?php else : ?>
 						<?php Pickers::customer( 'cb_work_project[customer_object_id]', 'cb-work-project-customer', $selected ); ?>
 					<?php endif; ?>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="cb-work-project-starts"><?php esc_html_e( 'Start date', 'core-blueprint-work' ); ?></label></th>
-				<td><input id="cb-work-project-starts" type="date" name="cb_work_project[starts_on]" value="<?php echo esc_attr( $meta['starts_on'] ); ?>"></td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="cb-work-project-due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></label></th>
-				<td><input id="cb-work-project-due" type="date" name="cb_work_project[due_on]" value="<?php echo esc_attr( $meta['due_on'] ); ?>"></td>
-			</tr>
-		</tbody></table>
+				</div>
+			</section>
+
+			<section class="cb-work-project-editor__section" aria-labelledby="cb-work-project-editor-schedule-title">
+				<div class="cb-work-project-editor__section-heading">
+					<h3 id="cb-work-project-editor-schedule-title"><?php esc_html_e( 'Schedule', 'core-blueprint-work' ); ?></h3>
+				</div>
+				<div class="cb-work-project-editor__dates">
+					<div class="cb-work-project-editor__field">
+						<label for="cb-work-project-starts"><?php esc_html_e( 'Start date', 'core-blueprint-work' ); ?></label>
+						<input id="cb-work-project-starts" type="date" name="cb_work_project[starts_on]" value="<?php echo esc_attr( $meta['starts_on'] ); ?>">
+					</div>
+					<div class="cb-work-project-editor__field">
+						<label for="cb-work-project-due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></label>
+						<input id="cb-work-project-due" type="date" name="cb_work_project[due_on]" value="<?php echo esc_attr( $meta['due_on'] ); ?>">
+					</div>
+				</div>
+			</section>
+		</div>
 		<?php
 	}
 
