@@ -147,10 +147,12 @@ final class ServiceOperations {
             : self::display_state((int)$report['total'], self::has_filters($filters), $can_create);
         $notice = sanitize_key((string)wp_unslash($_GET['cb_notice'] ?? ''));
         ?><div class="wrap cb-work-service-operations">
-        <header class="cb-work-so-header"><div><h1><?php esc_html_e('Service Operations','core-blueprint-work'); ?></h1>
+        <header class="cb-work-so-header cb-work-page-heading"><div><h1><?php esc_html_e('Service Operations','core-blueprint-work'); ?></h1>
         <p class="description"><?php esc_html_e('Track recurring services, execution and optional external invoicing in one place.','core-blueprint-work'); ?></p></div>
         <?php if ($can_create && 'operational' === $display_state): ?>
+        <div class="cb-work-page-heading__actions">
         <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
+        </div>
         <?php endif; ?></header>
         <?php if ($notice): ?><div class="notice <?php echo in_array($notice,['created','bound','saved'],true) ? 'notice-success':'notice-error'; ?>">
         <p><?php echo esc_html(in_array($notice,['created','bound','saved'],true) ? __('Saved.','core-blueprint-work'):__('The change could not be saved.','core-blueprint-work')); ?></p></div><?php endif; ?>
