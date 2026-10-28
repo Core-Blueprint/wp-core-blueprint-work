@@ -214,6 +214,23 @@
 	color: var(--cb-work-overview-muted);
 }
 
+.cb-work-daily-overview__empty p {
+	margin: 0;
+}
+
+.cb-work-daily-overview__empty-link {
+	display: inline-block;
+	margin-top: var(--cb-space-3);
+	color: var(--cb-text-link);
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.cb-work-daily-overview__empty-link:hover,
+.cb-work-daily-overview__empty-link:focus-visible {
+	color: var(--cb-interactive-hover);
+}
+
 .cb-work-daily-overview__ready {
 	margin-bottom: var(--cb-space-5);
 }
