@@ -2923,3 +2923,7 @@ msgstr "Keine Arbeit in Bearbeitung."
 #: src/Admin/Overview.php
 msgid "No work due in the next seven days."
 msgstr "In den nächsten sieben Tagen ist keine Arbeit fällig."
+
+#: src/Admin/Assets.php
+msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
+msgstr "Organisieren Sie interne Projekte und Kundenprojekte. Öffnen Sie einen Arbeitsbereich, um die Work Items zu sehen."
