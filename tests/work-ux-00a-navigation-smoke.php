@@ -49,7 +49,7 @@ foreach ( [
     [ 'Import Work Project', 'self::PROJECT_IMPORT_SLUG' ],
 ] as $index => [ $label, $route ] ) {
     $row = trim( $rows[ $index + 8 ] );
-    if ( ! str_contains( $row, "__ ( '" . $label ) && ! str_contains( $row, "__( '" . $label ) ) {
+    if ( ! str_contains( $row, "__( '" . $label ) ) {
         fwrite( STDERR, "UX-00A navigation: contextual {$label} is missing.\n" );
         exit( 1 );
     }
