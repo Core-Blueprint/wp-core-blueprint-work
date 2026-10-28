@@ -2928,3 +2928,23 @@ msgstr ""
 #: src/Admin/Assets.php
 msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
 msgstr ""
+
+#: src/Admin/Assets.php
+msgid "No projects yet."
+msgstr ""
+
+#: src/Admin/Assets.php
+msgid "Create an Internal Project for your own work, or a Customer Project for client work."
+msgstr ""
+
+#: src/Admin/Assets.php
+msgid "No matching Projects."
+msgstr ""
+
+#: src/Admin/Assets.php
+msgid "Try another search or clear your filters."
+msgstr ""
+
+#: src/Admin/Assets.php
+msgid "View all Projects"
+msgstr ""
