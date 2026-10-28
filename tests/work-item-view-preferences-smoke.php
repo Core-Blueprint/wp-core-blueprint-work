@@ -46,7 +46,7 @@ namespace {
 	use CB\Work\Admin\WorkItemViewPreferences;
 
 	$defaults = WorkItemViewPreferences::defaults();
-	$expected_order = [ 'table', 'list', 'kanban', 'calendar' ];
+	$expected_order = [ 'kanban', 'list', 'table', 'calendar' ];
 	if ( 'table' !== $defaults['default_view'] || $expected_order !== $defaults['order'] ) {
 		fwrite( STDERR, "Work Item view preferences smoke failed: Golden defaults drifted.\n" );
 		exit( 1 );
@@ -56,6 +56,15 @@ namespace {
 		'default_view' => 'calendar',
 		'order'        => [ 'calendar', 'table', 'bogus', 'calendar', 'kanban' ],
 	] );
+	$saved_order = WorkItemViewPreferences::normalize( [
+		'default_view' => 'calendar',
+		'order'        => [ 'calendar', 'list', 'table', 'kanban' ],
+	] );
+	if ( [ 'calendar', 'list', 'table', 'kanban' ] !== $saved_order['order'] || 'calendar' !== $saved_order['default_view'] ) {
+		fwrite( STDERR, "Work Item view preferences smoke failed: user-configured order/default overwritten by canonical update.\n" );
+		exit( 1 );
+	}
+
 	if ( 'calendar' !== $normalized['default_view'] ) {
 		fwrite( STDERR, "Work Item view preferences smoke failed: valid personal default was not preserved.\n" );
 		exit( 1 );
@@ -119,6 +128,7 @@ namespace {
 		|| ! str_contains( $operations, 'WorkItemViewPreferences::apply_default_to_request( $_GET, get_current_user_id() )' )
 		|| ! str_contains( $operations, 'WorkItemViewPreferences::get( get_current_user_id() )' )
 		|| ! str_contains( $operations, 'data-cb-work-view-preferences-open' )
+		|| ! str_contains( $operations, 'WorkItemViewPreferences::canonical_order()' )
 		|| ! str_contains( $operations, 'data-cb-core-reorder-list="views"' )
 		|| ! str_contains( $operations, 'name="cb-work-default-view"' )
 		|| ! str_contains( $operations, "'Default', 'core-blueprint-work'" )
