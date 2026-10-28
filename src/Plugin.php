@@ -22,6 +22,7 @@ use CB\Work\Admin\TimeActions;
 use CB\Work\Admin\TimerHud;
 use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
+use CB\Work\Admin\WorkItemViewBridge;
 use CB\Work\Admin\WorkItemListPreferences;
 use CB\Work\Admin\WorkItemTablePreferences;
 use CB\Work\Admin\WorkItemViewPreferences;
@@ -74,6 +75,7 @@ final class Plugin {
 			Projects::init();
 			ProjectDataExchange::init();
 			WorkItemsAdmin::init();
+			WorkItemViewBridge::init();
 			WorkItemListPreferences::init();
 			WorkItemTablePreferences::init();
 			WorkItemViewPreferences::init();

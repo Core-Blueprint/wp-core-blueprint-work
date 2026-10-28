@@ -75,6 +75,11 @@ final class UnifiedWorkspace {
 					aria-labelledby="cb-work-uwe-tab-<?php echo esc_attr( $key ); ?>"
 					tabindex="0"
 					data-cb-work-uwe-panel="<?php echo esc_attr( $key ); ?>"
+					<?php if ( 'work-items' === $key ) : ?>
+						data-cb-work-uwe-classic-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
+						data-cb-work-uwe-classic-action="<?php echo esc_attr( WorkItemViewBridge::ACTION ); ?>"
+						data-cb-work-uwe-classic-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewBridge::NONCE_ACTION ) ); ?>"
+					<?php endif; ?>
 					data-cb-work-uwe-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/' . $key ) ); ?>"
 					<?php echo $active !== $key ? 'hidden' : ''; ?>
 				>
