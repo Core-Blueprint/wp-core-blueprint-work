@@ -2897,3 +2897,19 @@ msgstr "Klaar om te beginnen"
 #: src/Admin/ServiceOperations.php
 msgid "Your Project and Work Service are ready. Add a service to start tracking work."
 msgstr "Je project en Work Service zijn klaar. Voeg een dienst toe om werkzaamheden bij te houden."
+
+#: src/Admin/Overview.php
+msgid "No work scheduled or due today."
+msgstr "Er staat voor vandaag geen werk gepland en er zijn geen deadlines."
+
+#: src/Admin/Overview.php
+msgid "No overdue or blocked work."
+msgstr "Geen achterstallig of geblokkeerd werk."
+
+#: src/Admin/Overview.php
+msgid "No work in progress."
+msgstr "Er is geen werk in uitvoering."
+
+#: src/Admin/Overview.php
+msgid "No work due in the next seven days."
+msgstr "Geen werk met een deadline in de komende zeven dagen."
