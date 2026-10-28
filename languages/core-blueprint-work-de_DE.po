@@ -2927,3 +2927,23 @@ msgstr "In den nächsten sieben Tagen ist keine Arbeit fällig."
 #: src/Admin/Assets.php
 msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
 msgstr "Organisieren Sie interne Projekte und Kundenprojekte. Öffnen Sie einen Arbeitsbereich, um die Work Items zu sehen."
+
+#: src/Admin/Assets.php
+msgid "No projects yet."
+msgstr "Noch keine Projekte."
+
+#: src/Admin/Assets.php
+msgid "Create an Internal Project for your own work, or a Customer Project for client work."
+msgstr "Erstellen Sie ein internes Projekt für Ihre eigene Arbeit oder ein Kundenprojekt für Kundenaufträge."
+
+#: src/Admin/Assets.php
+msgid "No matching Projects."
+msgstr "Keine passenden Projekte."
+
+#: src/Admin/Assets.php
+msgid "Try another search or clear your filters."
+msgstr "Versuchen Sie eine andere Suche oder setzen Sie die Filter zurück."
+
+#: src/Admin/Assets.php
+msgid "View all Projects"
+msgstr "Alle Projekte anzeigen"
