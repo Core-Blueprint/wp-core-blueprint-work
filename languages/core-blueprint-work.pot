@@ -2924,3 +2924,7 @@ msgstr ""
 #: src/Admin/Overview.php
 msgid "No work due in the next seven days."
 msgstr ""
+
+#: src/Admin/Assets.php
+msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
+msgstr ""
