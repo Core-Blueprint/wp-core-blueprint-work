@@ -162,11 +162,15 @@ final class Assets {
 		$modified = filemtime( $file );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
 		wp_enqueue_script( self::PROJECT_LIST_SCRIPT_HANDLE, CB_WORK_URL . 'assets/projects-list.js', [], $version, true );
-		$can_import = ProjectDataExchange::available();
+		$import_action = ProjectDataExchange::available()
+			? [
+				'importUrl'   => ProjectDataExchange::import_url(),
+				'importLabel' => __( 'Import project', 'core-blueprint-work' ),
+			]
+			: [ 'importUrl' => '', 'importLabel' => '' ];
 		wp_localize_script( self::PROJECT_LIST_SCRIPT_HANDLE, 'cbWorkProjectsList', [
 			'description' => __( 'Organize internal and customer projects. Open a workspace to see its Work Items.', 'core-blueprint-work' ),
-			'importUrl'   => $can_import ? ProjectDataExchange::import_url() : '',
-			'importLabel' => $can_import ? __( 'Import project', 'core-blueprint-work' ) : '',
+			...$import_action,
 		] );
 	}
 
