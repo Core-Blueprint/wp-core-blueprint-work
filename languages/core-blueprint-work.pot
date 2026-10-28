@@ -2905,3 +2905,10 @@ msgstr ""
 msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr ""
 
+#: src/Admin/ServiceOperations.php
+msgid "Ready to start"
+msgstr ""
+
+#: src/Admin/ServiceOperations.php
+msgid "Your Project and Work Service are ready. Add a service to start tracking work."
+msgstr ""

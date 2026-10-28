@@ -2905,3 +2905,10 @@ msgstr "Gérez les services récurrents, leur exécution et la facturation exter
 msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr "La règle de récurrence doit correspondre au projet, au service et au contexte de travail sélectionnés."
 
+#: src/Admin/ServiceOperations.php
+msgid "Ready to start"
+msgstr "Prêt à démarrer"
+
+#: src/Admin/ServiceOperations.php
+msgid "Your Project and Work Service are ready. Add a service to start tracking work."
+msgstr "Votre projet et votre Work Service sont prêts. Ajoutez un service pour commencer à suivre les travaux."

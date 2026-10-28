@@ -2890,3 +2890,10 @@ msgstr "Beheer terugkerende diensten, uitvoering en optionele externe facturatie
 msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr "De terugkeerregel moet overeenkomen met het geselecteerde project, de dienst en de werkcontext."
 
+#: src/Admin/ServiceOperations.php
+msgid "Ready to start"
+msgstr "Klaar om te beginnen"
+
+#: src/Admin/ServiceOperations.php
+msgid "Your Project and Work Service are ready. Add a service to start tracking work."
+msgstr "Je project en Work Service zijn klaar. Voeg een dienst toe om werkzaamheden bij te houden."

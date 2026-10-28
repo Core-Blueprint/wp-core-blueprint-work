@@ -2904,3 +2904,10 @@ msgstr "Wiederkehrende Leistungen, Durchführung und optionale externe Rechnungs
 msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr "Die Wiederholungsregel muss zum ausgewählten Projekt, Service und Arbeitskontext passen."
 
+#: src/Admin/ServiceOperations.php
+msgid "Ready to start"
+msgstr "Bereit für den Start"
+
+#: src/Admin/ServiceOperations.php
+msgid "Your Project and Work Service are ready. Add a service to start tracking work."
+msgstr "Ihr Projekt und Ihr Work Service sind bereit. Fügen Sie einen Dienst hinzu, um die Arbeiten nachzuverfolgen."

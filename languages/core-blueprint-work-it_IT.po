@@ -2893,3 +2893,10 @@ msgstr "Gestisci servizi ricorrenti, esecuzione e fatturazione esterna facoltati
 msgid "The recurring rule must match the selected Project, Service and Work context."
 msgstr "La regola ricorrente deve corrispondere al progetto, al servizio e al contesto di lavoro selezionati."
 
+#: src/Admin/ServiceOperations.php
+msgid "Ready to start"
+msgstr "Pronto per iniziare"
+
+#: src/Admin/ServiceOperations.php
+msgid "Your Project and Work Service are ready. Add a service to start tracking work."
+msgstr "Il tuo progetto e il tuo Work Service sono pronti. Aggiungi un servizio per iniziare a monitorare il lavoro."

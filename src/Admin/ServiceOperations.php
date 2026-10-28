@@ -21,6 +21,11 @@ final class ServiceOperations {
             || '' !== $filters['status'] || '' !== $filters['billing']
             || '' !== $filters['customer'] || '' !== $filters['search'];
     }
+    /** Explicit presentation state, independent from Engagement mutations. */
+    private static function display_state(int $total, bool $filtered, bool $can_create): string {
+        if ($total > 0 || $filtered) { return 'operational'; }
+        return $can_create ? 'ready' : 'setup';
+    }
     public static function init(): void {
         add_action('admin_enqueue_scripts', [self::class, 'assets']);
     }
@@ -138,11 +143,13 @@ final class ServiceOperations {
         foreach (Services::all(250) as $s) { $services[(int)$s['id']] = (string)$s['title']; }
         $can_create = [] !== $eligible_projects && [] !== $services;
         $report = self::query($filters, $projects, $services);
+        $display_state = is_wp_error($report) ? 'error'
+            : self::display_state((int)$report['total'], self::has_filters($filters), $can_create);
         $notice = sanitize_key((string)wp_unslash($_GET['cb_notice'] ?? ''));
         ?><div class="wrap cb-work-service-operations">
         <header class="cb-work-so-header"><div><h1><?php esc_html_e('Service Operations','core-blueprint-work'); ?></h1>
         <p class="description"><?php esc_html_e('Track recurring services, execution and optional external invoicing in one place.','core-blueprint-work'); ?></p></div>
-        <?php if ($can_create && (!is_array($report) || $report['total'] > 0 || self::has_filters($filters))): ?>
+        <?php if ($can_create && 'operational' === $display_state): ?>
         <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
         <?php endif; ?></header>
         <?php if ($notice): ?><div class="notice <?php echo in_array($notice,['created','bound','saved'],true) ? 'notice-success':'notice-error'; ?>">
@@ -150,8 +157,10 @@ final class ServiceOperations {
         <?php if (is_wp_error($report)): ?>
             <div class="notice notice-error"><p><?php esc_html_e('Service Operations could not load. No status has been assumed.','core-blueprint-work'); ?>
             <code><?php echo esc_html($report->get_error_code()); ?></code></p></div>
-        <?php elseif (0 === $report['total'] && !self::has_filters($filters)): ?>
+        <?php elseif ('setup' === $display_state): ?>
             <?php self::onboarding($eligible_projects,$services); ?>
+        <?php elseif ('ready' === $display_state): ?>
+            <?php self::ready_state(); ?>
         <?php else: ?>
         <form class="cb-work-so-filters" method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>">
         <input type="hidden" name="page" value="<?php echo esc_attr(Menu::SERVICE_OPERATIONS_SLUG); ?>">
@@ -248,33 +257,41 @@ final class ServiceOperations {
         <?php endif; ?>
         <?php if ($can_create): self::create_form($eligible_projects,$services,$project_contexts); endif; ?></div><?php
     }
-    /** First-run guidance deliberately avoids invented customer identities. */
-    private static function onboarding(array $eligible_projects,array $services):void {
+    /** Only show genuinely missing prerequisites. No synthetic customer identity. */
+    private static function onboarding(array $eligible_projects, array $services): void {
         $service_ready = [] !== $services;
         $project_ready = [] !== $eligible_projects;
         ?>
         <section class="cb-work-so-onboarding" aria-labelledby="cb-work-so-getting-started">
           <h2 id="cb-work-so-getting-started"><?php esc_html_e('Getting started','core-blueprint-work'); ?></h2>
-          <p><?php esc_html_e('Create an Internal Project for your own sites, or link a Customer Project to a customer. Both use the same Work Service.','core-blueprint-work'); ?></p>
+          <?php if (!$project_ready): ?>
+            <p><?php esc_html_e('Create an Internal Project for your own sites, or link a Customer Project to a customer. Both use the same Work Service.','core-blueprint-work'); ?></p>
+          <?php endif; ?>
           <ol class="cb-work-so-steps">
-            <li>
-              <strong><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></strong>
-              <?php if ($service_ready): ?><span class="cb-work-so-ready"><?php esc_html_e('Ready','core-blueprint-work'); ?></span>
-              <?php else: ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_service')); ?>"><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></a><?php endif; ?>
-            </li>
-            <li>
-              <strong><?php esc_html_e('Create a Project','core-blueprint-work'); ?></strong>
-              <p><?php esc_html_e('Select Internal for your own websites, or Customer for client work.','core-blueprint-work'); ?></p>
-              <?php if ($project_ready): ?><span class="cb-work-so-ready"><?php esc_html_e('Ready','core-blueprint-work'); ?></span>
-              <?php else: ?><a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a Project','core-blueprint-work'); ?></a><?php endif; ?>
-            </li>
+            <?php if (!$service_ready): ?>
+              <li><strong><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></strong>
+                <a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_service')); ?>"><?php esc_html_e('Create a Work Service','core-blueprint-work'); ?></a>
+              </li>
+            <?php endif; ?>
+            <?php if (!$project_ready): ?>
+              <li><strong><?php esc_html_e('Create a Project','core-blueprint-work'); ?></strong>
+                <p><?php esc_html_e('Select Internal for your own websites, or Customer for client work.','core-blueprint-work'); ?></p>
+                <a class="button" href="<?php echo esc_url(admin_url('post-new.php?post_type=cb_work_project')); ?>"><?php esc_html_e('Create a Project','core-blueprint-work'); ?></a>
+              </li>
+            <?php endif; ?>
           </ol>
           <?php if (!$project_ready && !CRMCustomers::available()): ?>
             <p class="cb-work-so-guidance"><?php esc_html_e('Customer Projects require a connected customer provider. Internal Projects do not.','core-blueprint-work'); ?></p>
           <?php endif; ?>
-          <?php if ($service_ready && $project_ready): ?>
-            <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
-          <?php endif; ?>
+        </section><?php
+    }
+    /** A compact first-action state once both prerequisites exist. */
+    private static function ready_state(): void {
+        ?>
+        <section class="cb-work-so-ready-state" aria-labelledby="cb-work-so-ready-title">
+          <h2 id="cb-work-so-ready-title"><?php esc_html_e('Ready to start','core-blueprint-work'); ?></h2>
+          <p><?php esc_html_e('Your Project and Work Service are ready. Add a service to start tracking work.','core-blueprint-work'); ?></p>
+          <a class="button button-primary" href="#cb-work-so-add" data-cb-so-open><?php esc_html_e('Add service','core-blueprint-work'); ?></a>
         </section><?php
     }
 

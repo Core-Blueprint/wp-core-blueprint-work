@@ -15,6 +15,9 @@
 .cb-work-so-cards-extra{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .cb-work-so-onboarding{max-width:920px;margin:24px 0;padding:24px;border:1px solid color-mix(in srgb,currentColor 17%,transparent);background:var(--cb-surface-1,color-mix(in srgb,currentColor 3%,transparent));border-radius:8px}
 .cb-work-so-onboarding h2{margin:0 0 12px;font-size:1.35rem}
+.cb-work-so-ready-state{max-width:680px;margin:20px 0;padding:18px 22px;border:1px solid color-mix(in srgb,currentColor 17%,transparent);background:var(--cb-surface-1,color-mix(in srgb,currentColor 3%,transparent));border-radius:8px}
+.cb-work-so-ready-state h2{margin:0 0 8px;font-size:1.2rem}
+.cb-work-so-ready-state p{margin:0 0 14px;line-height:1.5}
 .cb-work-so-steps{list-style:decimal;margin:22px 0;padding-left:22px;display:grid;gap:12px}
 .cb-work-so-steps li{padding:14px 16px;border:1px solid color-mix(in srgb,currentColor 13%,transparent);border-radius:8px;background:var(--cb-surface-2,transparent)}
 .cb-work-so-steps strong{display:inline-block;margin-right:12px}
@@ -46,5 +49,5 @@
 
 .cb-work-so-pages{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
 .cb-work-so-pages [aria-current=page]{font-weight:700}
-@media(max-width:782px){.cb-work-so-header{align-items:flex-start}.cb-work-so-onboarding{padding:16px}.cb-work-so-filters-main,.cb-work-so-filters-extra{align-items:stretch}.cb-work-so-filters label{width:100%}.cb-work-so-filters input,.cb-work-so-filters select,.cb-work-so-filters-main label:nth-child(2) input{max-width:100%;width:100%}.cb-work-so-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.cb-work-so-steps{padding-left:22px}}
+@media(max-width:782px){.cb-work-so-header{align-items:flex-start}.cb-work-so-onboarding,.cb-work-so-ready-state{padding:16px}.cb-work-so-filters-main,.cb-work-so-filters-extra{align-items:stretch}.cb-work-so-filters label{width:100%}.cb-work-so-filters input,.cb-work-so-filters select,.cb-work-so-filters-main label:nth-child(2) input{max-width:100%;width:100%}.cb-work-so-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.cb-work-so-steps{padding-left:22px}}
 @media(max-width:440px){.cb-work-so-cards{grid-template-columns:minmax(0,1fr)}}
