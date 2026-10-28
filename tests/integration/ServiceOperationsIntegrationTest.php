@@ -184,9 +184,15 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         } finally {
             $first=(string)ob_get_clean();
         }
-        self::assertStringContainsString('cb-work-so-onboarding',$first);
+        // Both prerequisites exist: a compact ready state replaces onboarding.
+        self::assertStringContainsString('cb-work-so-ready-state',$first);
+        self::assertStringContainsString('id="cb-work-so-ready-title"',$first);
+        self::assertStringNotContainsString('cb-work-so-onboarding',$first);
+        self::assertStringNotContainsString('cb-work-so-steps',$first);
         self::assertStringContainsString('id="cb-work-so-add"',$first);
-        self::assertStringContainsString('data-cb-so-open',$first);
+        self::assertStringContainsString('href="#cb-work-so-add"',$first);
+        self::assertSame(1,substr_count($first,'data-cb-so-open'),
+            'Ready state must offer exactly one open-form action.');
         self::assertStringNotContainsString('cb-work-so-filters',$first);
 
         $prior=$_GET;
@@ -204,6 +210,8 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         self::assertStringContainsString('cb-work-so-filters',$filtered);
         self::assertStringContainsString('cb_month=',$filtered);
         self::assertStringNotContainsString('cb-work-so-onboarding',$filtered);
+        self::assertStringNotContainsString('cb-work-so-ready-state',$filtered);
+        self::assertStringContainsString('No matching services.',$filtered);
     }
 
     private function internalProject():int {
@@ -332,9 +340,13 @@ final class ServiceOperationsIntegrationTest extends WP_UnitTestCase {
         } finally {
             $html=(string)ob_get_clean();
         }
-        self::assertStringContainsString('cb-work-so-onboarding',$html);
+        self::assertStringContainsString('cb-work-so-ready-state',$html);
+        self::assertStringNotContainsString('cb-work-so-onboarding',$html);
+        self::assertStringNotContainsString('cb-work-so-steps',$html);
         self::assertStringContainsString('id="cb-work-so-add"',$html);
         self::assertStringContainsString('data-context="internal"',$html);
+        self::assertSame(1,substr_count($html,'data-cb-so-open'),
+            'Internal Project is a valid prerequisite for the ready-state action.');
     }
 
     public function test_manager_only_contracts_and_no_provider_dependencies():void {
