@@ -18,6 +18,7 @@ final class Assets {
 	private const CONTEXT_SCRIPT_HANDLE      = 'cb-work-context';
 	private const PROJECT_STYLE_HANDLE     = 'cb-work-project-workspace';
 	private const PROJECT_LIST_SCRIPT_HANDLE = 'cb-work-projects-list';
+	private const PROJECT_LIST_STYLE_HANDLE = 'cb-work-projects-list';
 	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
 	private const QUICK_ADD_STYLE_HANDLE   = 'cb-work-quick-add';
 	private const FAST_PATH_STYLE_HANDLE   = 'cb-work-fast-paths';
@@ -127,6 +128,11 @@ final class Assets {
 		);
 	}
 
+	/**
+	 * Progressive enhancement of the native Projects list only. Import is
+	 * optional; layout and normal WordPress Add/Edit remain available without
+	 * Data Exchange and without JavaScript.
+	 */
 	public static function enqueue_project_list_action(): void {
 		$screen = get_current_screen();
 		if (
@@ -134,9 +140,19 @@ final class Assets {
 			|| 'edit' !== (string) $screen->base
 			|| \CB\Work\Content\PostTypes::PROJECT !== (string) $screen->post_type
 			|| ! current_user_can( \CB\Work\Capabilities::MANAGE )
-			|| ! ProjectDataExchange::available()
 		) {
 			return;
+		}
+
+		$stylesheet = CB_WORK_DIR . 'assets/projects-list.css';
+		if ( is_file( $stylesheet ) ) {
+			$modified = filemtime( $stylesheet );
+			wp_enqueue_style(
+				self::PROJECT_LIST_STYLE_HANDLE,
+				CB_WORK_URL . 'assets/projects-list.css',
+				[],
+				false === $modified ? CB_WORK_VERSION : (string) $modified
+			);
 		}
 
 		$file = CB_WORK_DIR . 'assets/projects-list.js';
@@ -146,9 +162,11 @@ final class Assets {
 		$modified = filemtime( $file );
 		$version  = false === $modified ? CB_WORK_VERSION : (string) $modified;
 		wp_enqueue_script( self::PROJECT_LIST_SCRIPT_HANDLE, CB_WORK_URL . 'assets/projects-list.js', [], $version, true );
+		$can_import = ProjectDataExchange::available();
 		wp_localize_script( self::PROJECT_LIST_SCRIPT_HANDLE, 'cbWorkProjectsList', [
-			'importUrl'   => ProjectDataExchange::import_url(),
-			'importLabel' => __( 'Import project', 'core-blueprint-work' ),
+			'description' => __( 'Organize internal and customer projects. Open a workspace to see its Work Items.', 'core-blueprint-work' ),
+			'importUrl'   => $can_import ? ProjectDataExchange::import_url() : '',
+			'importLabel' => $can_import ? __( 'Import project', 'core-blueprint-work' ) : '',
 		] );
 	}
 
