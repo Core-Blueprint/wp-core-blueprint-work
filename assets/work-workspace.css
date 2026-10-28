@@ -16,3 +16,78 @@
 	--cb-work-radius: var(--cb-radius-md);
 	--cb-work-transition: var(--cb-interactive-transition);
 }
+
+
+/*
+ * UX-00B: one quiet heading rhythm for Work-owned operational screens.
+ * These are Work layout rules only; WordPress/Base retain all title, button,
+ * focus, theme and native input presentation.
+ */
+.cb-work-workspace-screen .wrap > .cb-work-page-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--cb-space-4, 16px);
+	margin: 0 0 var(--cb-space-5, 20px);
+}
+
+.cb-work-workspace-screen .wrap > .cb-work-page-heading > :first-child {
+	flex: 1 1 20rem;
+	min-width: 0;
+}
+
+.cb-work-workspace-screen .wrap > .cb-work-page-heading h1 {
+	margin: 0 0 var(--cb-space-2, 8px);
+}
+
+.cb-work-workspace-screen .wrap > .cb-work-page-heading .description {
+	max-width: 75ch;
+	margin: 0;
+	line-height: 1.5;
+}
+
+.cb-work-workspace-screen .wrap > .cb-work-page-heading .cb-work-page-heading__actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	align-self: flex-start;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: var(--cb-space-2, 8px);
+	min-width: 0;
+}
+
+.cb-work-workspace-screen .wrap > .cb-work-page-heading .cb-work-page-heading__actions > .button {
+	margin: 0;
+}
+
+@media screen and (max-width: 782px) {
+	.cb-work-workspace-screen .wrap > .cb-work-page-heading {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--cb-space-3, 12px);
+	}
+
+	.cb-work-workspace-screen .wrap > .cb-work-page-heading > :first-child {
+		flex: 0 1 auto;
+		width: 100%;
+	}
+
+	.cb-work-workspace-screen .wrap > .cb-work-page-heading .cb-work-page-heading__actions {
+		justify-content: flex-start;
+		width: 100%;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.cb-work-workspace-screen .wrap > .cb-work-page-heading .cb-work-page-heading__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.cb-work-workspace-screen .wrap > .cb-work-page-heading .cb-work-page-heading__actions > .button {
+		width: 100%;
+		text-align: center;
+	}
+}
