@@ -69,9 +69,11 @@ final class Time {
 		$view = self::requested_view();
 		?>
 		<div class="wrap cb-work-time-page cb-work-time-workspace">
-			<header class="cb-work-time-header">
-				<h1><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></h1>
-				<p class="description"><?php esc_html_e( 'Track time, add entries and review recorded work.', 'core-blueprint-work' ); ?></p>
+			<header class="cb-work-time-header cb-work-page-heading">
+				<div>
+					<h1><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></h1>
+					<p class="description"><?php esc_html_e( 'Track time, add entries and review recorded work.', 'core-blueprint-work' ); ?></p>
+				</div>
 			</header>
 			<?php if ( ! self::schema_ready() ) : ?>
 				<div class="notice notice-warning inline"><p><?php esc_html_e( 'Work Time storage is not ready yet. Complete the Work schema upgrade first.', 'core-blueprint-work' ); ?></p></div>
