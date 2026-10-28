@@ -43,6 +43,22 @@ The Project list has two separately owned surfaces:
 
 **Out of scope:** UX-02B project-list first-run/filtered-empty states, UX-02C Project workspace polish/editor progressive disclosure, UX-03 Services, UX-04–06 Recurring Work. No new Project data model, filtering algorithm, import handler, Base design-system override or custom WP list replacement.
 
+## UX-02A Data Exchange Golden compatibility correction
+
+**2026-10-28 — SOURCE CORRECTED / Technical Golden OPEN.** During the operator's first `./tools/check` run, the new Projects Assets fixture **PASS (24 assertions)**, JS DOM runtime **PASS (24 assertions)**, Project workspace smoke, G0/B1 exact renderer and canonical six-locales i18n all **PASS**. Further existing Work regressions passed through the VAT checks. The existing `tests/project-bundle-data-exchange-smoke.php` halted the Level 1 run:
+
+`Project bundle Data Exchange smoke failed: Project import is a page-level action beside Add Project rather than a filter control`.
+
+**Root cause:** UX-02A had replaced the existing direct `'importUrl'   => ProjectDataExchange::import_url()` value in `src/Admin/Assets.php` with an inline ternary. This changed the source expression protected by the existing Golden contract even though the DOM runtime still passed. The tested contract is semantically correct and **was not modified**.
+
+**Fix:** The optional import fields are now assembled as a conditional array. When Data Exchange is available, the source retains the original canonical `'importUrl'   => ProjectDataExchange::import_url()` action mapping, and the existing `'importLabel'`. When unavailable, both values are empty, ensuring no Import button and **zero calls** to the import URL provider. The optional array is spread into the same localized script payload. The enhanced native Projects header, original Add Project button, list table, fallback and all scripts remain unchanged.
+
+**Corrected source:** `feature/work-ux-02a-projects-native-header-20261028@b5fc7ab82e89932758b7369870269621246312cd`. Delta from original candidate `c8ed1ec1b8b16723d090b09c54d1337aeacf03f8` is `src/Admin/Assets.php` **only** prior to this documentation update. Nine scoped GitHub source checks confirm contract text, conditional URL invocation, and unchanged previous/new tests, JS and other files. **These are static checks, not executed PHP tests.**
+
+**Required immediate retest:** `php tests/project-bundle-data-exchange-smoke.php`; `php tests/work-ux-02a-projects-assets-runtime.php`; `node tests/work-ux-02a-projects-list-runtime.js`; `./tools/check`; pinned Base L2; `./tools/build-release`; SHA/ZIP verification. Preserve fail-fast behavior and do not mark Golden until actual full rerun passes.
+
+---
+
 ## Local Golden validation
 
 ```bash
