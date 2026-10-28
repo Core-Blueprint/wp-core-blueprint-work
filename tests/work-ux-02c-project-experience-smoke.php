@@ -17,6 +17,12 @@ namespace {
 		if ( $echo ) { echo $out; }
 		return $out;
 	}
+	$GLOBALS['ux02c_screen'] = null;
+	$GLOBALS['ux02c_enqueued_styles'] = [];
+	function get_current_screen(): ?object { return $GLOBALS['ux02c_screen']; }
+	function wp_enqueue_style( string $handle, string $src, array $deps = [], string|bool|null $version = null ): void {
+		$GLOBALS['ux02c_enqueued_styles'][] = [ 'handle' => $handle, 'src' => $src ];
+	}
 	function wp_nonce_field( string $action, string $field ): void {
 		echo '<input type="hidden" name="' . esc_attr( $field ) . '">';
 	}
@@ -65,9 +71,15 @@ namespace CB\Work\Admin {
 }
 
 namespace {
+	define( 'CB_WORK_DIR', dirname( __DIR__ ) . '/' );
+	define( 'CB_WORK_URL', 'https://example.test/plugins/core-blueprint-work/' );
+	define( 'CB_WORK_VERSION', '1.0.0-rc1' );
+
 	require dirname( __DIR__ ) . '/src/Admin/Projects.php';
+	require dirname( __DIR__ ) . '/src/Admin/Assets.php';
 
 	use CB\Work\Admin\Projects;
+	use CB\Work\Admin\Assets;
 	use CB\Work\Content\ProjectMeta;
 
 	ProjectMeta::$current = [
@@ -101,6 +113,21 @@ namespace {
 	check_ux02c( str_contains( $existing, 'name="cb_work_project[customer_object_id]"' ), 'Customer picker retains field name.' );
 	check_ux02c( str_contains( $existing, 'cb_work_project_details_nonce' ), 'Native nonce preserved.' );
 
+	$GLOBALS['ux02c_screen'] = (object) [ 'base' => 'post', 'post_type' => 'cb_work_project' ];
+	Assets::enqueue_project_editor_style();
+	check_ux02c(
+		1 === count( $GLOBALS['ux02c_enqueued_styles'] )
+		&& 'cb-work-project-editor' === $GLOBALS['ux02c_enqueued_styles'][0]['handle'],
+		'Native Project editor enqueues its scoped stylesheet.'
+	);
+	$GLOBALS['ux02c_enqueued_styles'] = [];
+	$GLOBALS['ux02c_screen'] = (object) [ 'base' => 'edit', 'post_type' => 'cb_work_project' ];
+	Assets::enqueue_project_editor_style();
+	check_ux02c( [] === $GLOBALS['ux02c_enqueued_styles'], 'Projects list never enqueues editor stylesheet.' );
+	$GLOBALS['ux02c_screen'] = (object) [ 'base' => 'post', 'post_type' => 'cb_work_item' ];
+	Assets::enqueue_project_editor_style();
+	check_ux02c( [] === $GLOBALS['ux02c_enqueued_styles'], 'Work Item editor never enqueues Project stylesheet.' );
+
 	$workspace = file_get_contents( dirname( __DIR__ ) . '/src/Admin/ProjectWorkspace.php' );
 	$assets = file_get_contents( dirname( __DIR__ ) . '/src/Admin/Assets.php' );
 	$css = file_get_contents( dirname( __DIR__ ) . '/assets/project-editor.css' );
@@ -114,5 +141,5 @@ namespace {
 	check_ux02c( str_contains( $assets, 'enqueue_project_editor_style' ) && str_contains( $assets, "'post' !== (string) \$screen->base" ), 'Editor CSS scoped to native Project post screens.' );
 	check_ux02c( str_contains( $css, '#cb-work-project-details' ) && str_contains( $css, '[hidden]' ), 'CSS scoped and obeys hidden customer row.' );
 
-	echo "Work UX-02C Project experience smoke: PASS (24 assertions).\n";
+	echo "Work UX-02C Project experience smoke: PASS (27 assertions).\n";
 }
