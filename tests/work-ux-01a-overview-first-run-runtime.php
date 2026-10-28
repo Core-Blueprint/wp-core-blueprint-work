@@ -102,7 +102,7 @@ namespace {
     $blank = $capture();
     $assert( 1 === substr_count( $blank, 'class="cb-work-daily-overview__getting-started"' ), 'one first-run panel' );
     $assert( str_contains( $blank, 'aria-labelledby="cb-work-daily-overview-getting-started-title"' ), 'accessible section name' );
-    $assert( str_contains( $blank, 'Create your first Work Item to start planning and tracking customer work.' ), 'clear first step' );
+    $assert( str_contains( $blank, 'No Work Items yet.' ), 'clear first step' );
     $assert( str_contains( $blank, '/wp-admin/post-new.php?post_type=cb_work_item' ), 'Work Item canonical creation route' );
     $assert( str_contains( $blank, '/wp-admin/post-new.php?post_type=cb_work_project' ), 'Project canonical native creation route' );
     $assert( 1 === WorkItems::$calls, 'single canonical Work Item count check' );
@@ -138,7 +138,7 @@ namespace {
     $pot = file_get_contents( dirname( __DIR__ ) . '/languages/core-blueprint-work.pot' );
     foreach ( [
         'Getting started',
-        'Create your first Work Item to start planning and tracking customer work.',
+        'No Work Items yet.',
         'Add Work Item',
         'Add Project',
     ] as $message ) {
