@@ -45,11 +45,11 @@ final class UnifiedWorkspace {
 			],
 		];
 		?>
-		<div class="wrap cb-work-unified" data-cb-work-uwe data-readonly="true">
+		<div class="wrap cb-work-unified" data-cb-work-uwe data-readonly="true" data-cb-work-uwe-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>">
 			<header class="cb-work-uwe__header">
 				<div>
 					<h1><?php esc_html_e( 'Work', 'core-blueprint-work' ); ?></h1>
-					<p class="description">UWE-03A</p>
+					<p class="description">UWE-03B</p>
 				</div>
 			</header>
 			<nav class="cb-work-uwe__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Work', 'core-blueprint-work' ); ?>">
@@ -75,20 +75,62 @@ final class UnifiedWorkspace {
 					aria-labelledby="cb-work-uwe-tab-<?php echo esc_attr( $key ); ?>"
 					tabindex="0"
 					data-cb-work-uwe-panel="<?php echo esc_attr( $key ); ?>"
+					data-cb-work-uwe-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/' . $key ) ); ?>"
 					<?php echo $active !== $key ? 'hidden' : ''; ?>
 				>
 					<h2><?php echo esc_html( $section['label'] ); ?></h2>
-					<?php if ( [] === $section['items'] ) : ?>
-						<p class="cb-work-uwe__empty"><?php echo esc_html( $section['empty'] ); ?></p>
-					<?php else : ?>
-						<ul class="cb-work-uwe__collection">
-							<?php foreach ( $section['items'] as $item ) : ?>
-								<li class="cb-work-uwe__record">
-									<span class="cb-work-uwe__record-title"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></span>
-								</li>
-							<?php endforeach; ?>
-						</ul>
-					<?php endif; ?>
+					<form class="cb-work-uwe__controls" data-cb-work-uwe-controls hidden role="search">
+						<label class="cb-work-uwe__field" for="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>">
+							<span><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>
+							<input id="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>" type="search" name="search" maxlength="160" autocomplete="off">
+						</label>
+						<label class="cb-work-uwe__field" for="cb-work-uwe-sort-<?php echo esc_attr( $key ); ?>">
+							<span><?php esc_html_e( 'Sort by', 'core-blueprint-work' ); ?></span>
+							<select id="cb-work-uwe-sort-<?php echo esc_attr( $key ); ?>" name="sort">
+								<option value="workload"><?php esc_html_e( 'Workload', 'core-blueprint-work' ); ?></option>
+								<option value="title"><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
+								<option value="updated"><?php esc_html_e( 'Recently updated', 'core-blueprint-work' ); ?></option>
+								<?php if ( 'work-items' === $key ) : ?>
+									<option value="due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></option>
+								<?php endif; ?>
+							</select>
+						</label>
+						<?php if ( 'work-items' === $key ) : ?>
+							<label class="cb-work-uwe__field" for="cb-work-uwe-status-<?php echo esc_attr( $key ); ?>">
+								<span><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></span>
+								<select id="cb-work-uwe-status-<?php echo esc_attr( $key ); ?>" name="status">
+									<option value=""><?php esc_html_e( 'All statuses', 'core-blueprint-work' ); ?></option>
+									<option value="planned"><?php esc_html_e( 'Planned', 'core-blueprint-work' ); ?></option>
+									<option value="in_progress"><?php esc_html_e( 'In Progress', 'core-blueprint-work' ); ?></option>
+									<option value="blocked"><?php esc_html_e( 'Blocked', 'core-blueprint-work' ); ?></option>
+									<option value="completed"><?php esc_html_e( 'Completed', 'core-blueprint-work' ); ?></option>
+									<option value="skipped"><?php esc_html_e( 'Skipped', 'core-blueprint-work' ); ?></option>
+									<option value="cancelled"><?php esc_html_e( 'Cancelled', 'core-blueprint-work' ); ?></option>
+								</select>
+							</label>
+						<?php endif; ?>
+						<button type="submit" class="button button-primary"><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
+						<button type="button" class="button" data-cb-work-uwe-clear><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></button>
+						<span class="cb-work-uwe__count" data-cb-work-uwe-count aria-live="polite"></span>
+					</form>
+					<div class="cb-work-uwe__feedback" hidden data-cb-work-uwe-feedback role="status" aria-live="polite"></div>
+					<div class="cb-work-uwe__error" hidden data-cb-work-uwe-error role="alert">
+						<span><?php esc_html_e( 'Work storage unavailable', 'core-blueprint-work' ); ?></span>
+						<button type="button" class="button" data-cb-work-uwe-retry><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></button>
+					</div>
+					<p class="cb-work-uwe__empty" data-cb-work-uwe-empty <?php echo [] !== $section['items'] ? 'hidden' : ''; ?>><?php echo esc_html( $section['empty'] ); ?></p>
+					<ul class="cb-work-uwe__collection" data-cb-work-uwe-list <?php echo [] === $section['items'] ? 'hidden' : ''; ?>>
+						<?php foreach ( $section['items'] as $item ) : ?>
+							<li class="cb-work-uwe__record">
+								<span class="cb-work-uwe__record-title"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></span>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+					<div class="cb-work-uwe__pagination" hidden data-cb-work-uwe-pagination>
+						<button type="button" class="button" data-cb-work-uwe-prev><?php esc_html_e( 'Previous', 'core-blueprint-work' ); ?></button>
+						<span data-cb-work-uwe-page-label data-template="<?php echo esc_attr__( 'Page %1$d of %2$d', 'core-blueprint-work' ); ?>"></span>
+						<button type="button" class="button" data-cb-work-uwe-next><?php esc_html_e( 'Next', 'core-blueprint-work' ); ?></button>
+					</div>
 				</section>
 			<?php endforeach; ?>
 		</div>

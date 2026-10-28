@@ -91,7 +91,9 @@ final class Assets {
 		$style = CB_WORK_DIR . 'assets/css/unified-workspace.css';
 		$app   = CB_WORK_DIR . 'assets/js/workspace/app.js';
 		$router = CB_WORK_DIR . 'assets/js/workspace/router.js';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) ) {
+		$state = CB_WORK_DIR . 'assets/js/workspace/state.js';
+		$data_client = CB_WORK_DIR . 'assets/js/workspace/data-client.js';
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) ) {
 			return;
 		}
 
