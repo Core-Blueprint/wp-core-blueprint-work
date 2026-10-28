@@ -31,13 +31,13 @@ final class Overview {
 		$week_end  = $date->modify( '+7 days' )->format( 'Y-m-d' );
 		?>
 		<div class="wrap cb-work-daily-overview">
-			<header class="cb-work-daily-overview__header">
+			<header class="cb-work-daily-overview__header cb-work-page-heading">
 				<div>
 					<p class="cb-work-daily-overview__eyebrow"><?php esc_html_e( 'Daily overview', 'core-blueprint-work' ); ?></p>
 					<h1><?php esc_html_e( 'Work', 'core-blueprint-work' ); ?></h1>
 					<p class="description"><?php echo esc_html( wp_date( (string) get_option( 'date_format' ), $date->getTimestamp(), wp_timezone() ) ); ?> · <?php esc_html_e( 'What needs attention now.', 'core-blueprint-work' ); ?></p>
 				</div>
-				<div class="cb-work-daily-overview__actions">
+				<div class="cb-work-daily-overview__actions cb-work-page-heading__actions">
 					<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url() ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 					<a class="button" href="<?php echo esc_url( Menu::time_url() ); ?>"><?php esc_html_e( 'Open Time', 'core-blueprint-work' ); ?></a>
 				</div>
