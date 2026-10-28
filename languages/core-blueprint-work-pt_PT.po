@@ -803,10 +803,6 @@ msgstr "Timer em execução"
 msgid "Open timer"
 msgstr "Abrir timer"
 
-#: src/Admin/Overview.php:110
-msgid "Nothing needs your attention here."
-msgstr "Nada requer a sua atenção aqui."
-
 #: src/Admin/Overview.php:129
 msgid "Operational work with a current billing-ready snapshot."
 msgstr "Trabalho operacional com um snapshot atual pronto para faturação."
