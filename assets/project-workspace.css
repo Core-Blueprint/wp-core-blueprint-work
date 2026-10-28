@@ -47,10 +47,42 @@
 
 .cb-work-project-workspace__actions {
 	display: flex;
-	align-items: center;
+	align-items: flex-end;
+	flex-direction: column;
+	gap: var(--cb-space-3);
+	min-width: 0;
+}
+
+.cb-work-project-workspace__secondary {
+	display: flex;
 	justify-content: flex-end;
 	flex-wrap: wrap;
-	gap: var(--cb-space-2);
+	gap: var(--cb-space-2) var(--cb-space-4);
+	font-size: var(--cb-fs-sm);
+}
+
+.cb-work-project-workspace__secondary a {
+	text-underline-offset: .15em;
+}
+
+.cb-work-project-workspace__eyebrow span {
+	margin-inline: var(--cb-space-2);
+}
+
+.cb-work-project-workspace__heading h1 {
+	overflow-wrap: anywhere;
+}
+
+.cb-work-project-workspace__context-chip {
+	display: inline-block;
+	margin: 0 0 var(--cb-space-2);
+	padding: var(--cb-space-1) var(--cb-space-3);
+	color: var(--cb-work-project-strong);
+	background: var(--cb-work-project-surface-raised);
+	border: 1px solid var(--cb-work-project-border);
+	border-radius: var(--cb-radius-sm);
+	font-size: var(--cb-fs-sm);
+	font-weight: var(--cb-fw-semibold);
 }
 
 .cb-work-project-workspace__actions .button {
@@ -127,7 +159,25 @@
 }
 
 .cb-work-project-workspace__work-table {
-	min-width: 680px;
+	min-width: 600px;
+}
+
+.cb-work-project-workspace__work-table th,
+.cb-work-project-workspace__work-table td {
+	vertical-align: middle;
+}
+
+.cb-work-project-workspace__status {
+	display: inline-block;
+	padding: var(--cb-space-1) var(--cb-space-2);
+	background: var(--cb-work-project-surface-raised);
+	border: 1px solid var(--cb-work-project-border);
+	border-radius: var(--cb-radius-sm);
+	white-space: nowrap;
+}
+
+.cb-work-project-workspace__status--blocked {
+	font-weight: var(--cb-fw-semibold);
 }
 
 .cb-work-project-workspace__empty {
@@ -199,12 +249,15 @@
 
 	.cb-work-project-workspace__actions {
 		width: 100%;
-		justify-content: flex-start;
+		align-items: stretch;
 	}
 
-	.cb-work-project-workspace__actions .button {
-		width: 100%;
+	.cb-work-project-workspace__actions > .button {
 		text-align: center;
+	}
+
+	.cb-work-project-workspace__secondary {
+		justify-content: flex-start;
 	}
 
 	.cb-work-project-workspace__metrics {
