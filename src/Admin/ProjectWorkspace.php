@@ -49,21 +49,28 @@ final class ProjectWorkspace {
 		$description = wp_trim_words( wp_strip_all_tags( (string) $project['description'] ), 42 );
 		?>
 		<div class="wrap cb-work-project-workspace">
-			<header class="cb-work-project-workspace__header">
+			<header class="cb-work-project-workspace__header cb-work-page-heading">
 				<div class="cb-work-project-workspace__heading">
-					<p class="cb-work-project-workspace__eyebrow"><?php esc_html_e( 'Project workspace', 'core-blueprint-work' ); ?></p>
+					<p class="cb-work-project-workspace__eyebrow"><a href="<?php echo esc_url( Menu::projects_url() ); ?>"><?php esc_html_e( 'Projects', 'core-blueprint-work' ); ?></a><span aria-hidden="true">/</span><?php esc_html_e( 'Project workspace', 'core-blueprint-work' ); ?></p>
 					<h1><?php echo esc_html( (string) $project['title'] ); ?></h1>
+					<p class="cb-work-project-workspace__context-chip"><?php echo esc_html( match ( (string) $project['work_context'] ) {
+						WorkContext::INTERNAL => __( 'Internal', 'core-blueprint-work' ),
+						WorkContext::CUSTOMER => __( 'Customer', 'core-blueprint-work' ),
+						default => __( 'Needs classification', 'core-blueprint-work' ),
+					} ); ?></p>
 					<p class="description"><?php echo esc_html( '' !== $description ? $description : __( 'No project description yet.', 'core-blueprint-work' ) ); ?></p>
 				</div>
-				<div class="cb-work-project-workspace__actions">
+				<div class="cb-work-project-workspace__actions cb-work-page-heading__actions">
 					<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url( $project_id ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
-					<a class="button" href="<?php echo esc_url( $all_items_url ); ?>"><?php esc_html_e( 'View all Work Items', 'core-blueprint-work' ); ?></a>
-					<?php if ( ProjectDataExchange::available() && WorkContext::INTERNAL === (string) $project['work_context'] ) : ?>
-						<a class="button" href="<?php echo esc_url( ProjectDataExchange::export_url( $project_id ) ); ?>"><?php esc_html_e( 'Export JSON', 'core-blueprint-work' ); ?></a>
-					<?php endif; ?>
-					<?php if ( is_string( $edit_url ) && '' !== $edit_url ) : ?>
-						<a class="button" href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit project details', 'core-blueprint-work' ); ?></a>
-					<?php endif; ?>
+					<nav class="cb-work-project-workspace__secondary" aria-label="<?php esc_attr_e( 'Project Details', 'core-blueprint-work' ); ?>">
+						<a href="<?php echo esc_url( $all_items_url ); ?>"><?php esc_html_e( 'View all Work Items', 'core-blueprint-work' ); ?></a>
+						<?php if ( is_string( $edit_url ) && '' !== $edit_url ) : ?>
+							<a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit project details', 'core-blueprint-work' ); ?></a>
+						<?php endif; ?>
+						<?php if ( ProjectDataExchange::available() && WorkContext::INTERNAL === (string) $project['work_context'] ) : ?>
+							<a href="<?php echo esc_url( ProjectDataExchange::export_url( $project_id ) ); ?>"><?php esc_html_e( 'Export JSON', 'core-blueprint-work' ); ?></a>
+						<?php endif; ?>
+					</nav>
 				</div>
 			</header>
 
@@ -85,30 +92,28 @@ final class ProjectWorkspace {
 								echo esc_html( sprintf( _n( '%d active Work Item.', '%d active Work Items.', $active_count, 'core-blueprint-work' ), $active_count ) );
 								?></p>
 							</div>
-							<a class="button button-small" href="<?php echo esc_url( Menu::new_work_item_url( $project_id ) ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
 						</div>
 
 						<?php if ( [] === $items ) : ?>
 							<div class="cb-work-project-workspace__empty">
 								<h3><?php esc_html_e( 'No active work', 'core-blueprint-work' ); ?></h3>
 								<p class="description"><?php esc_html_e( 'This Project has no planned, in-progress or blocked Work Items.', 'core-blueprint-work' ); ?></p>
-								<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url( $project_id ) ); ?>"><?php esc_html_e( 'Create Work Item', 'core-blueprint-work' ); ?></a>
 							</div>
 						<?php else : ?>
 							<div class="cb-work-project-workspace__table-wrap">
 								<table class="widefat striped cb-work-project-workspace__work-table">
 									<thead><tr>
-										<th><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
-										<th><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th>
-										<th><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></th>
-										<th><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></th>
-										<th><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Work Item', 'core-blueprint-work' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Priority', 'core-blueprint-work' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></th>
+										<th scope="col"><?php esc_html_e( 'Assignees', 'core-blueprint-work' ); ?></th>
 									</tr></thead>
 									<tbody>
 									<?php foreach ( $items as $item ) : ?>
 										<tr>
 											<td><strong><a href="<?php echo esc_url( Menu::edit_work_item_url( (int) $item['id'] ) ); ?>"><?php echo esc_html( (string) $item['title'] ); ?></a></strong></td>
-											<td><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></td>
+											<td><span class="cb-work-project-workspace__status cb-work-project-workspace__status--<?php echo esc_attr( sanitize_html_class( (string) $item['status'] ) ); ?>"><?php echo esc_html( self::humanize( (string) $item['status'] ) ); ?></span></td>
 											<td><?php echo esc_html( self::humanize( (string) $item['priority'] ) ); ?></td>
 											<td><?php echo esc_html( self::date_label( (string) ( $item['due_on'] ?? '' ) ) ); ?></td>
 											<td><?php echo esc_html( self::assignment_label( (array) ( $item['assigned_user_ids'] ?? [] ) ) ); ?></td>
@@ -132,7 +137,9 @@ final class ProjectWorkspace {
 						<h2><?php esc_html_e( 'Project context', 'core-blueprint-work' ); ?></h2>
 						<dl class="cb-work-project-workspace__facts">
 							<div><dt><?php esc_html_e( 'Context', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( '' !== (string) $project['work_context'] ? self::humanize( (string) $project['work_context'] ) : __( 'Needs classification', 'core-blueprint-work' ) ); ?></dd></div>
+							<?php if ( WorkContext::CUSTOMER === (string) $project['work_context'] || $has_customer_reference ) : ?>
 							<div><dt><?php esc_html_e( 'Customer', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( '' !== $customer ? $customer : ( $has_customer_reference ? __( 'Linked customer unavailable', 'core-blueprint-work' ) : __( 'Not linked', 'core-blueprint-work' ) ) ); ?></dd></div>
+							<?php endif; ?>
 							<div><dt><?php esc_html_e( 'Starts', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( self::date_label( (string) $project['starts_on'] ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Due', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( self::date_label( (string) $project['due_on'] ) ); ?></dd></div>
 							<div><dt><?php esc_html_e( 'Total Work Items', 'core-blueprint-work' ); ?></dt><dd><?php echo esc_html( (string) array_sum( $counts ) ); ?></dd></div>
