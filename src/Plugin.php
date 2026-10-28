@@ -37,6 +37,7 @@ use CB\Work\Recurrence\Scheduler;
 use CB\Work\Repository\PortableIdentities;
 use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
+use CB\Work\Transport\Rest\WorkspaceReadController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -60,6 +61,7 @@ final class Plugin {
 		PortableIdentities::init();
 		ServicePricingDomain::init();
 		Scheduler::init();
+		WorkspaceReadController::init();
 
 		if ( is_admin() ) {
 			Assets::init();
