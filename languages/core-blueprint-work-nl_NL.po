@@ -2913,3 +2913,23 @@ msgstr "Geen werk met een deadline in de komende zeven dagen."
 #: src/Admin/Assets.php
 msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
 msgstr "Organiseer interne projecten en klantprojecten. Open een werkruimte om de Work Items te bekijken."
+
+#: src/Admin/Assets.php
+msgid "No projects yet."
+msgstr "Nog geen projecten."
+
+#: src/Admin/Assets.php
+msgid "Create an Internal Project for your own work, or a Customer Project for client work."
+msgstr "Maak een intern project voor je eigen werk, of een klantproject voor werkzaamheden voor klanten."
+
+#: src/Admin/Assets.php
+msgid "No matching Projects."
+msgstr "Geen overeenkomende projecten."
+
+#: src/Admin/Assets.php
+msgid "Try another search or clear your filters."
+msgstr "Probeer een andere zoekopdracht of wis de filters."
+
+#: src/Admin/Assets.php
+msgid "View all Projects"
+msgstr "Alle projecten bekijken"
