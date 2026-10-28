@@ -107,7 +107,7 @@ namespace {
         $GLOBALS['ux00c_removed'] = [];
     };
 
-    // Native WP menu registration with the UX-00A order, never a custom shell.
+    // Existing native WordPress navigation stays unchanged; UWE adds one hidden, manager-only preview route.
     $role( 'manager' );
     Menu::register();
     $expect( 1 === count( $GLOBALS['ux00c_menu'] ), 'manager has one Work top-level menu' );
@@ -124,7 +124,7 @@ namespace {
         [ 'Services', Menu::services_path(), 35 ],
         [ 'Work Types', Menu::WORK_TYPES_SLUG, 40 ],
     ];
-    $expect( 10 === count( $GLOBALS['ux00c_submenu'] ), 'manager keeps eight visible and two contextual routes' );
+    $expect( 11 === count( $GLOBALS['ux00c_submenu'] ), 'manager keeps eight visible and three contextual routes' );
     foreach ( $expected as $index => [ $label, $slug, $position ] ) {
         $args = $GLOBALS['ux00c_submenu'][ $index ];
         $expect( Menu::TOP_LEVEL_SLUG === $args[0]
@@ -133,10 +133,20 @@ namespace {
             && $slug === $args[4]
             && $position === $args[6], 'manager order/route/capability for ' . $label );
     }
+    $uwe = $GLOBALS['ux00c_submenu'][10] ?? [];
+    $expect(
+        Menu::TOP_LEVEL_SLUG === ( $uwe[0] ?? null )
+        && 'Work' === ( $uwe[2] ?? null )
+        && Capabilities::MANAGE === ( $uwe[3] ?? null )
+        && Menu::UNIFIED_WORKSPACE_SLUG === ( $uwe[4] ?? null )
+        && [ 'CB\\Work\\Admin\\UnifiedWorkspace', 'render' ] === ( $uwe[5] ?? null ),
+        'UWE preview is registered as a manager-only contextual Work route'
+    );
     Menu::hide_contextual_submenu_pages();
     $expect( [
         [ Menu::TOP_LEVEL_SLUG, Menu::PROJECT_WORKSPACE_SLUG ],
         [ Menu::TOP_LEVEL_SLUG, Menu::PROJECT_IMPORT_SLUG ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::UNIFIED_WORKSPACE_SLUG ],
     ] === $GLOBALS['ux00c_removed'], 'manager contextual pages hidden after registration' );
     $expect( str_contains( Menu::time_url(), 'page=' . Menu::TIME_SLUG ), 'manager Time URL stays subordinate' );
 
@@ -162,6 +172,7 @@ namespace {
     $screen_cases = [
         [ 'manager', Menu::TOP_LEVEL_SLUG, '', Menu::CONTEXT_OVERVIEW, Menu::TOP_LEVEL_SLUG ],
         [ 'manager', Menu::WORK_ITEMS_SLUG, '', Menu::CONTEXT_WORK_ITEMS, Menu::WORK_ITEMS_SLUG ],
+        [ 'manager', Menu::UNIFIED_WORKSPACE_SLUG, '', Menu::CONTEXT_UNIFIED_WORKSPACE, Menu::WORK_ITEMS_SLUG ],
         [ 'manager', Menu::TIME_SLUG, '', Menu::CONTEXT_TIME, Menu::TIME_SLUG ],
         [ 'manager', Menu::SERVICE_OPERATIONS_SLUG, '', Menu::CONTEXT_SERVICE_OPERATIONS, Menu::SERVICE_OPERATIONS_SLUG ],
         [ 'manager', Menu::RECURRENCE_SLUG, '', Menu::CONTEXT_RECURRENCE, Menu::RECURRENCE_SLUG ],
@@ -172,6 +183,7 @@ namespace {
         [ 'manager', '', PostTypes::SERVICE, Menu::CONTEXT_SERVICES, Menu::services_path() ],
         [ 'manager', '', PostTypes::WORK_ITEM, Menu::CONTEXT_WORK_ITEMS, Menu::WORK_ITEMS_SLUG ],
         [ 'tracker', Menu::TOP_LEVEL_SLUG, '', Menu::CONTEXT_TIME, Menu::TOP_LEVEL_SLUG ],
+        [ 'tracker', Menu::UNIFIED_WORKSPACE_SLUG, '', '', 'index.php' ],
         [ 'tracker', Menu::TIME_SLUG, '', Menu::CONTEXT_TIME, Menu::TOP_LEVEL_SLUG ],
         [ 'manager', '', 'post', '', 'index.php' ],
     ];
