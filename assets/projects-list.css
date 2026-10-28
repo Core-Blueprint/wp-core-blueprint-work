@@ -75,3 +75,36 @@
 		text-align: center;
 	}
 }
+
+/*
+ * UX-02B: this is content *inside WordPress's existing no-items table cell*.
+ * The table, its screen-reader semantics, filters and normal controls remain.
+ */
+.cb-work-workspace-screen .cb-work-projects-list__empty {
+	box-sizing: border-box;
+	max-width: 38rem;
+	margin: var(--cb-space-5, 20px) auto;
+	padding: var(--cb-space-5, 20px);
+	text-align: center;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__empty h2 {
+	margin: 0 0 var(--cb-space-2, 8px);
+	font-weight: 400;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__empty p {
+	margin: 0;
+	color: var(--cb-text-muted);
+	line-height: 1.5;
+}
+
+.cb-work-workspace-screen .cb-work-projects-list__empty > .button {
+	margin: var(--cb-space-4, 16px) 0 0;
+}
+
+@media screen and (max-width: 480px) {
+	.cb-work-workspace-screen .cb-work-projects-list__empty {
+		padding: var(--cb-space-3, 12px);
+	}
+}
