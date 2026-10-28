@@ -1,0 +1,90 @@
+/*
+ * UX-02C — Project Details inside WordPress's authoritative Project CPT editor.
+ * Work owns field composition only. WordPress/Base keep the postboxes,
+ * controls, navigation, project save hooks and permission enforcement.
+ */
+#cb-work-project-details .cb-work-project-editor {
+	display: grid;
+	gap: var(--cb-space-5, 20px);
+	padding-block: var(--cb-space-2, 8px);
+}
+
+#cb-work-project-details .cb-work-project-editor__workspace-link {
+	margin: 0;
+}
+
+#cb-work-project-details .cb-work-project-editor__section {
+	min-width: 0;
+	padding: 0 0 var(--cb-space-5, 20px);
+	border-bottom: 1px solid var(--cb-border);
+}
+
+#cb-work-project-details .cb-work-project-editor__section:last-child {
+	padding-bottom: 0;
+	border-bottom: 0;
+}
+
+#cb-work-project-details .cb-work-project-editor__section-heading {
+	margin: 0 0 var(--cb-space-4, 16px);
+}
+
+#cb-work-project-details .cb-work-project-editor__section-heading h3 {
+	margin: 0 0 var(--cb-space-2, 8px);
+	font-size: var(--cb-fs-md, 1rem);
+	font-weight: var(--cb-fw-semibold, 600);
+}
+
+#cb-work-project-details .cb-work-project-editor__section-heading .description {
+	max-width: 70ch;
+	margin: 0;
+	line-height: 1.5;
+}
+
+#cb-work-project-details .cb-work-project-editor__field {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--cb-space-2, 8px);
+	min-width: 0;
+	margin: 0 0 var(--cb-space-4, 16px);
+}
+
+#cb-work-project-details .cb-work-project-editor__field:last-child {
+	margin-bottom: 0;
+}
+
+#cb-work-project-details .cb-work-project-editor__field[hidden] {
+	display: none;
+}
+
+#cb-work-project-details .cb-work-project-editor__field > label {
+	font-weight: var(--cb-fw-semibold, 600);
+}
+
+#cb-work-project-details .cb-work-project-editor__field > select,
+#cb-work-project-details .cb-work-project-editor__field > input[type="date"] {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 26rem;
+}
+
+#cb-work-project-details .cb-work-project-editor__customer {
+	max-width: 38rem;
+}
+
+#cb-work-project-details .cb-work-project-editor__customer .description {
+	margin: 0;
+}
+
+#cb-work-project-details .cb-work-project-editor__dates {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--cb-space-4, 16px);
+	max-width: 54rem;
+}
+
+@media screen and (max-width: 782px) {
+	#cb-work-project-details .cb-work-project-editor__dates {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
