@@ -2912,3 +2912,7 @@ msgstr "Nessun lavoro in corso."
 #: src/Admin/Overview.php
 msgid "No work due in the next seven days."
 msgstr "Nessun lavoro in scadenza nei prossimi sette giorni."
+
+#: src/Admin/Assets.php
+msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
+msgstr "Organizza i progetti interni e quelli dei clienti. Apri uno spazio di lavoro per vedere i Work Items."
