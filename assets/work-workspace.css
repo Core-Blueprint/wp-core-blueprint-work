@@ -43,6 +43,7 @@
 .cb-work-workspace-screen .wrap.cb-work-items-page > .cb-work-page-header h1,
 .cb-work-workspace-screen .wrap.cb-work-types-page > h1 {
 	margin: 0 0 var(--cb-space-2, 8px);
+	font-weight: 400;
 }
 
 .cb-work-workspace-screen .wrap > .cb-work-page-heading .description,
