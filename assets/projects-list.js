@@ -3,6 +3,45 @@
 
 	// Progressive enhancement for the native WordPress Project list.
 	// The original title, Add Project button and list table remain authoritative.
+	// Augment only WordPress's real empty-result row. Never synthesize a
+	// second list, override native search/filter behavior or remove the table.
+	const renderEmptyState = (wrap, config) => {
+		const empty = config.empty;
+		const cell = wrap.querySelector('.wp-list-table tbody tr.no-items td');
+		if (!empty || !cell || cell.querySelector('[data-cb-work-projects-empty]')) {
+			return;
+		}
+		if (!['first_run', 'filtered', 'trash'].includes(empty.kind) || !empty.title) {
+			return;
+		}
+
+		const panel = document.createElement('div');
+		panel.className = 'cb-work-projects-list__empty';
+		panel.dataset.cbWorkProjectsEmpty = 'true';
+
+		const title = document.createElement('h2');
+		title.textContent = empty.title;
+		panel.appendChild(title);
+
+		if (empty.description) {
+			const details = document.createElement('p');
+			details.textContent = empty.description;
+			panel.appendChild(details);
+		}
+
+		// Never duplicate the native Add Project control. Offer a way back to
+		// the full list only for a narrowed search, filtered view or Trash.
+		if (empty.kind !== 'first_run' && empty.actionUrl && empty.actionLabel) {
+			const reset = document.createElement('a');
+			reset.className = 'button';
+			reset.href = empty.actionUrl;
+			reset.textContent = empty.actionLabel;
+			panel.appendChild(reset);
+		}
+
+		cell.replaceChildren(panel);
+	};
+
 	const mount = () => {
 		const config = window.cbWorkProjectsList;
 		const wrap = document.querySelector('.wrap');
@@ -10,6 +49,7 @@
 		if (!config || !wrap || !heading) {
 			return;
 		}
+		renderEmptyState(wrap, config);
 
 		// Keep the established Import action available independently of the
 		// optional header layout. No import link is shown without the provider.
