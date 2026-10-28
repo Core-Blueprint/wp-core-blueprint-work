@@ -43,6 +43,10 @@ final class Overview {
 				</div>
 			</header>
 
+			<?php if ( 0 === WorkItems::count() ) : ?>
+				<?php self::getting_started(); ?>
+			<?php endif; ?>
+
 			<div class="cb-work-daily-overview__focus">
 				<?php self::focus_card( __( 'Today', 'core-blueprint-work' ), count( (array) $snapshot['today'] ), null ); ?>
 				<?php self::focus_card( __( 'Overdue', 'core-blueprint-work' ), count( (array) $snapshot['overdue'] ), self::work_items_url( [ 'status' => 'active', 'due_to' => $yesterday ] ), true ); ?>
@@ -63,6 +67,26 @@ final class Overview {
 
 			<?php self::ready_to_bill( (array) $snapshot['ready_to_bill'] ); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * First-use guidance is derived from canonical Work Item counts. It is
+	 * read-only, requires no onboarding state and never creates demo records.
+	 * Projects are optional: a Work Item may be created directly.
+	 */
+	private static function getting_started(): void {
+		?>
+		<section class="cb-work-daily-overview__getting-started" aria-labelledby="cb-work-daily-overview-getting-started-title">
+			<div class="cb-work-daily-overview__getting-started-copy">
+				<h2 id="cb-work-daily-overview-getting-started-title"><?php esc_html_e( 'Getting started', 'core-blueprint-work' ); ?></h2>
+				<p><?php esc_html_e( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ); ?></p>
+			</div>
+			<div class="cb-work-daily-overview__getting-started-actions">
+				<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url() ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . \CB\Work\Content\PostTypes::PROJECT ) ); ?>"><?php esc_html_e( 'Add Project', 'core-blueprint-work' ); ?></a>
+			</div>
+		</section>
 		<?php
 	}
 
