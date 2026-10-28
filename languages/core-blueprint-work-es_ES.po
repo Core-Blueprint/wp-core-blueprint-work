@@ -2925,3 +2925,7 @@ msgstr "No hay trabajo en curso."
 #: src/Admin/Overview.php
 msgid "No work due in the next seven days."
 msgstr "No hay trabajo con vencimiento en los próximos siete días."
+
+#: src/Admin/Assets.php
+msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
+msgstr "Organiza los proyectos internos y de clientes. Abre un espacio de trabajo para ver sus Work Items."
