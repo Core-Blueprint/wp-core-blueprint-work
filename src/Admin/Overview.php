@@ -83,7 +83,7 @@ final class Overview {
 		<section class="cb-work-daily-overview__getting-started" aria-labelledby="cb-work-daily-overview-getting-started-title">
 			<div class="cb-work-daily-overview__getting-started-copy">
 				<h2 id="cb-work-daily-overview-getting-started-title"><?php esc_html_e( 'Getting started', 'core-blueprint-work' ); ?></h2>
-				<p><?php esc_html_e( 'Create your first Work Item to start planning and tracking customer work.', 'core-blueprint-work' ); ?></p>
+				<p><?php esc_html_e( 'No Work Items yet.', 'core-blueprint-work' ); ?></p>
 			</div>
 			<div class="cb-work-daily-overview__getting-started-actions">
 				<a class="button button-primary" href="<?php echo esc_url( Menu::new_work_item_url() ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
