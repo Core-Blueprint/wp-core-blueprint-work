@@ -2909,3 +2909,7 @@ msgstr "Er is geen werk in uitvoering."
 #: src/Admin/Overview.php
 msgid "No work due in the next seven days."
 msgstr "Geen werk met een deadline in de komende zeven dagen."
+
+#: src/Admin/Assets.php
+msgid "Organize internal and customer projects. Open a workspace to see its Work Items."
+msgstr "Organiseer interne projecten en klantprojecten. Open een werkruimte om de Work Items te bekijken."
