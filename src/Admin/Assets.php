@@ -17,6 +17,7 @@ final class Assets {
 	private const WORKSPACE_STYLE_HANDLE   = 'cb-work-workspace';
 	private const CONTEXT_SCRIPT_HANDLE      = 'cb-work-context';
 	private const PROJECT_STYLE_HANDLE     = 'cb-work-project-workspace';
+	private const PROJECT_EDITOR_STYLE_HANDLE = 'cb-work-project-editor';
 	private const PROJECT_LIST_SCRIPT_HANDLE = 'cb-work-projects-list';
 	private const PROJECT_LIST_STYLE_HANDLE = 'cb-work-projects-list';
 	private const OVERVIEW_STYLE_HANDLE    = 'cb-work-overview';
@@ -35,6 +36,7 @@ final class Assets {
 	public static function init(): void {
 		add_action( 'core_blueprint_admin_theme_enqueue', [ self::class, 'enqueue' ], 10, 4 );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_project_list_action' ] );
+		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_project_editor_style' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_toast_feedback' ] );
 	}
 
@@ -224,6 +226,29 @@ final class Assets {
 				'actionLabel' => __( 'Clear filters', 'core-blueprint-work' ),
 			],
 		};
+	}
+
+	/**
+	 * Native Project editor presentation, independently enqueued on its own
+	 * post screens. WordPress/Base retain the editor and all persistence.
+	 */
+	public static function enqueue_project_editor_style(): void {
+		$screen = get_current_screen();
+		if ( ! $screen || 'post' !== (string) $screen->base
+			|| \CB\Work\Content\PostTypes::PROJECT !== (string) $screen->post_type ) {
+			return;
+		}
+		$file = CB_WORK_DIR . 'assets/project-editor.css';
+		if ( ! is_file( $file ) ) {
+			return;
+		}
+		$modified = filemtime( $file );
+		wp_enqueue_style(
+			self::PROJECT_EDITOR_STYLE_HANDLE,
+			CB_WORK_URL . 'assets/project-editor.css',
+			[],
+			false === $modified ? CB_WORK_VERSION : (string) $modified
+		);
 	}
 
 	private static function enqueue_context_script(): void {
