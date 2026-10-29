@@ -102,7 +102,7 @@ final class UnifiedWorkspace {
 								<?php $view_label = $canonical_views[ $view_id ]; ?>
 								<a
 									class="cb-work-uwe__view-link<?php echo $view_id === $preferred_view ? ' is-active' : ''; ?>"
-									href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'view' => $view_id ], admin_url( 'admin.php' ) ) ); ?>"
+									href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::UNIFIED_WORKSPACE_SLUG, 'section' => 'work-items', 'view' => $view_id ], admin_url( 'admin.php' ) ) ); ?>"
 									data-cb-work-uwe-view="<?php echo esc_attr( $view_id ); ?>"
 									<?php if ( $view_id === $preferred_view ) : ?>aria-current="page"<?php endif; ?>
 								><?php echo esc_html( $view_label ); ?></a>
