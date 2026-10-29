@@ -136,6 +136,8 @@ node --experimental-default-type=module "$ROOT/tests/work-m1-mutations-runtime.m
 php "$ROOT/tests/work-m1-status-sync-smoke.php"
 node --experimental-default-type=module "$ROOT/tests/work-m1-status-sync-runtime.mjs"
 php "$ROOT/tests/work-m1-read-recovery-smoke.php"
+php "$ROOT/tests/work-m1-modal-action-parity-smoke.php"
+node --experimental-default-type=module "$ROOT/tests/work-m1-modal-action-parity-runtime.mjs"
 node --experimental-default-type=module "$ROOT/tests/work-uwe-03b2-runtime.mjs"
 node --experimental-default-type=module "$ROOT/tests/work-uwe-03a-router-runtime.mjs"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"

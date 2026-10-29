@@ -10,12 +10,13 @@
 	}
 
 	ready( function () {
-		const page = document.querySelector( '.cb-work-items-page' );
-		if ( ! page ) {
-			return;
-		}
-
+		// The Work workspace mounts canonical Work Items after DOM ready.
+		// Resolve the active Work Items fragment when the shortcut is used,
+		// not once at initial load. Register only one global listener.
 		document.addEventListener( 'keydown', function ( event ) {
+			const page = document.querySelector( '.cb-work-items-page' );
+			if ( ! page || page.closest( '[data-cb-work-uwe-panel]' )?.hidden
+				|| page.closest( '[data-cb-work-uwe-canonical]' )?.hidden ) return;
 			if ( event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey ) {
 				return;
 			}
@@ -26,7 +27,7 @@
 			}
 
 			if ( event.key === '/' ) {
-				const search = document.getElementById( 'cb-work-filter-search' );
+				const search = page.querySelector( '#cb-work-filter-search' );
 				if ( search ) {
 					event.preventDefault();
 					search.focus();

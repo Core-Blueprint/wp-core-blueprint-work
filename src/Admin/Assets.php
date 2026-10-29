@@ -146,6 +146,7 @@ final class Assets {
 		// native editor or submits hidden forms.
 		self::enqueue_script();
 		self::enqueue_refinement_assets();
+		self::enqueue_fast_path_assets();
 		self::enqueue_reorder_assets();
 		self::enqueue_view_preferences_assets();
 		self::enqueue_calendar_assets();

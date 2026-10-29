@@ -60,7 +60,9 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 	async function handle(event) {
 		if (event.defaultPrevented) return;
 		const form = event.target;
-		if (!form || !destination.contains(form) || String(form.method || '').toLowerCase() !== 'post') return;
+		const modalBody = form?.closest?.('[data-cb-work-uwe-modal]') || null;
+		if (!form || (!destination.contains(form) && !modalBody)
+			|| String(form.method || '').toLowerCase() !== 'post') return;
 		// Fail closed: unexpected native admin-post actions must never navigate
 		// away from the persistent Work app or bypass its controlled transport.
 		event.preventDefault();
@@ -94,6 +96,9 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 			const payload = await response.json().catch(() => null);
 			if (response.status === 401 || response.status === 403) {
 				announce(panel.dataset.cbWorkUweMutationFailed || 'Work Item update failed.', true);
+				// The detached Base dialog is outside the canonical HTML
+				// mount; purge its private records before rechecking access.
+				if (modalBody) modalBody.replaceChildren();
 				// A denied write may indicate revoked capabilities. Re-check
 				// the canonical read boundary; it owns the fail-closed purge.
 				if (!panel.hidden) await refresh();
@@ -109,9 +114,16 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 				? message : message + ' (' + result.updated + '/' + result.attempted + ')');
 			// Do not perform an optimistic mutation: only server-confirmed
 			// success causes the canonical renderer to rehydrate the view.
-			// The user may have changed views during the mutation. Rehydrate
-			// the CURRENT view rather than silently keeping stale state.
-			if (!panel.hidden) await refresh();
+			// Calendar menus live inside Base's detached modal. Preserve its
+			// own Close/Escape/focus lifecycle and let Calendar refresh
+			// only AFTER the dialog resolves, just like a drag move.
+			if (modalBody) {
+				form.dispatchEvent(new CustomEvent('cb-work:calendar-modal-mutation-saved', {
+					bubbles: true,
+				}));
+			} else if (!panel.hidden) {
+				await refresh();
+			}
 		} catch {
 			// Network, malformed response and authorization failures keep the
 			// current form/selection available for correction and retry.
@@ -127,6 +139,11 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 		}
 	}
 	destination.addEventListener('submit', (event) => { void handle(event); });
+	// Base teleports Calendar's body into a dialog outside destination.
+	// Capture only explicitly tagged Work-owned modal form submits.
+	document.addEventListener?.('submit', (event) => {
+		if (event.target?.closest?.('[data-cb-work-uwe-modal]')) void handle(event);
+	}, true);
 	return { ready(root) {
 		// Only enable previously hidden mutation controls after both the
 		// canonical UI handlers AND secure submission transport are mounted.

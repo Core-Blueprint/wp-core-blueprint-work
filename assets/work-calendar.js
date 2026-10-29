@@ -78,9 +78,18 @@ const openDayModal = (trigger) => {
 
 	const body = template.content.firstElementChild?.cloneNode(true);
 	if (!(body instanceof HTMLElement)) return;
+	// Base mounts its modal outside the Work panel. Explicitly mark only
+	// dialogs launched by the authenticated Unified Workspace, so their
+	// existing status forms share the Work AJAX handler instead of navigating.
+	if (calendar?.closest('[data-cb-work-uwe-canonical]')) {
+		body.setAttribute('data-cb-work-uwe-modal', '');
+	}
 
 	const closeLabel = String(calendar?.dataset.closeLabel || 'Close');
 	let statusCommitted = false;
+	body.addEventListener('cb-work:calendar-modal-mutation-saved', () => {
+		statusCommitted = true;
+	});
 	const pending = modal.show({
 		title: String(trigger.dataset.modalTitle || ''),
 		body,
