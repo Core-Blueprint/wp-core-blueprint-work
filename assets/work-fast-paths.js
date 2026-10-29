@@ -22,7 +22,11 @@
 			}
 
 			const target = event.target;
-			if ( target && target.matches && target.matches( 'input, textarea, select, [contenteditable="true"]' ) ) {
+			// Never escape Base's modal focus trap or interrupt nested editable
+			// content (including rich text descendants) with the / shortcut.
+			const modalOpen = document.querySelector( 'dialog[open], [role="dialog"][aria-modal="true"]' );
+			const editable = 'input, textarea, select, [contenteditable], [role="textbox"]';
+			if ( modalOpen || target?.closest?.( editable ) || target?.matches?.( editable ) ) {
 				return;
 			}
 

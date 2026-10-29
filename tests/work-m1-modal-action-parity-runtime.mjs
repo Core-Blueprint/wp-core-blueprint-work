@@ -120,11 +120,15 @@ try {
 const shortcuts = fs.readFileSync(new URL('../assets/work-fast-paths.js', import.meta.url), 'utf8');
 const listeners = {};
 let page = null;
+let modalOpen = false;
 let focused = 0, selected = 0;
 const search = { focus() { focused++; }, select() { selected++; } };
 const fakeDocument = {
 	readyState: 'complete',
 	querySelector(selector) {
+		if (selector === 'dialog[open], [role="dialog"][aria-modal="true"]') {
+			return modalOpen ? {} : null;
+		}
 		assert.equal(selector, '.cb-work-items-page');
 		return page;
 	},
@@ -156,6 +160,13 @@ assert.equal(keydown(), true, 'After AJAX mount, / focuses the real Work Items s
 assert.equal(focused, 1);
 assert.equal(selected, 1);
 assert.equal(keydown({ matches() { return true; } }), false, 'Typing in input never triggers shortcut');
+assert.equal(keydown({
+	matches() { return false; },
+	closest(selector) { return selector.includes('[contenteditable]') ? {} : null; },
+}), false, 'Nested contenteditable text never triggers shortcut');
+modalOpen = true;
+assert.equal(keydown(), false, 'Open Base modal must retain its keyboard focus trap');
+modalOpen = false;
 page.hidden = true;
 assert.equal(keydown(), false, 'Projects/Services never steal shortcut focus');
 page.hidden = false;

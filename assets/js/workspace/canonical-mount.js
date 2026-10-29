@@ -338,6 +338,13 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				detail: { root: outgoing },
 			}));
 		}
+		// Calendar's Base modal lives outside destination. A denied GET must
+		// also purge its private day cards, without touching other dialogs.
+		for (const modalBody of document.querySelectorAll?.('[data-cb-work-uwe-modal]') || []) {
+			if (modalBody.dataset?.cbWorkUweOwner === panel.id) {
+				modalBody.replaceChildren();
+			}
+		}
 		destination.replaceChildren();
 		showFallback();
 	}

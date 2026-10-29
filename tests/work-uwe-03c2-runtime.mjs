@@ -112,10 +112,22 @@ panel.dataset = {
 	cbWorkUweClassicNonce: 'private-nonce',
 };
 panel.querySelector = (selector) => selectors[selector] || null;
-panel.ownerDocument = { importNode: (node, deep) => {
-	assert.equal(deep, true);
-	return node;
-} };
+panel.id = 'cb-work-uwe-panel-work-items';
+let ownedDialogPurges = 0;
+let unrelatedDialogPurges = 0;
+panel.ownerDocument = {
+	importNode: (node, deep) => {
+		assert.equal(deep, true);
+		return node;
+	},
+	querySelectorAll(selector) {
+		assert.equal(selector, '[data-cb-work-uwe-modal]');
+		return [
+			{ dataset: { cbWorkUweOwner: panel.id }, replaceChildren() { ownedDialogPurges++; } },
+			{ dataset: { cbWorkUweOwner: 'another-workspace' }, replaceChildren() { unrelatedDialogPurges++; } },
+		];
+	},
+};
 const queuedSearch = new Map();
 let nextTimer = 0;
 const browser = {
@@ -209,6 +221,8 @@ browser.fetch = async () => ({ ok: false, status: 403 });
 await mount.refresh();
 assert.equal(destination.hidden, true);
 assert.equal(destination.firstElementChild, null);
+assert.equal(ownedDialogPurges, 1, 'Denied GET purges detached Work Calendar content');
+assert.equal(unrelatedDialogPurges, 0, 'Denied GET leaves unrelated Base dialogs alone');
 assert.equal(list.hidden, true);
 assert.equal(controls.hidden, true);
 assert.equal(error.hidden, false);

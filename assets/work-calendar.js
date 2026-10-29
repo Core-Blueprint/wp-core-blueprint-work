@@ -83,6 +83,9 @@ const openDayModal = (trigger) => {
 	// existing status forms share the Work AJAX handler instead of navigating.
 	if (calendar?.closest('[data-cb-work-uwe-canonical]')) {
 		body.setAttribute('data-cb-work-uwe-modal', '');
+		// The dialog is detached from the canonical view by Base. Scope its
+		// ownership so a revoked Work read can clear only its own modal.
+		body.dataset.cbWorkUweOwner = calendar.closest('[data-cb-work-uwe-panel]')?.id || '';
 	}
 
 	const closeLabel = String(calendar?.dataset.closeLabel || 'Close');
