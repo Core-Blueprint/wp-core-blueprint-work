@@ -289,6 +289,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			toggle.textContent = type.active
 				? (root.dataset.cbWorkM2Deactivate || 'Deactivate')
 				: (root.dataset.cbWorkM2Activate || 'Activate');
+			toggle.setAttribute('aria-label', toggle.textContent + ' ' + String(type.label));
 			toggle.addEventListener('click', async () => {
 				toggle.disabled = true;
 				feedback.hidden = true;
@@ -301,6 +302,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 					toggle.textContent = type.active
 						? (root.dataset.cbWorkM2Deactivate || 'Deactivate')
 						: (root.dataset.cbWorkM2Activate || 'Activate');
+					toggle.setAttribute('aria-label', toggle.textContent + ' ' + String(type.label));
 				} catch (_) {
 					feedback.textContent = root.dataset.cbWorkM2Error || 'Could not save.';
 					feedback.hidden = false;
