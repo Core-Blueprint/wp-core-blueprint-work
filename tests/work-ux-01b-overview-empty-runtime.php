@@ -48,6 +48,7 @@ namespace CB\Work\Repository {
 namespace CB\Work\Admin {
     final class Menu {
         public const WORK_ITEMS_SLUG = 'core-blueprint-work-items';
+        public const UNIFIED_WORKSPACE_SLUG = 'core-blueprint-work-workspace';
         public static function new_work_item_url(): string { return '/wp-admin/post-new.php?post_type=cb_work_item'; }
         public static function time_url(): string { return '/wp-admin/admin.php?page=core-blueprint-work-time'; }
         public static function edit_work_item_url( int $id ): string { return '/wp-admin/post.php?post=' . $id; }
@@ -121,10 +122,12 @@ namespace {
         $links = substr_count( $quiet_panels[ $index ], 'class="cb-work-daily-overview__empty-link"' );
         $check( ( 0 === $index || 2 === $index ? 1 : 0 ) === $links, "deliberate navigation density {$index}" );
         if ( 1 === $links ) {
-            $check( str_contains( $quiet_panels[ $index ], '/wp-admin/admin.php?page=core-blueprint-work-items' ),
-                "canonical Work Items route {$index}" );
+            $check( str_contains( $quiet_panels[ $index ], '/wp-admin/admin.php?page=core-blueprint-work-workspace&amp;section=work-items' ),
+                "canonical Unified Work route {$index}" );
         }
     }
+    $check( ! str_contains( $quiet, '/wp-admin/admin.php?page=core-blueprint-work-items' ),
+        'Overview no longer links to the hidden legacy Work Items menu' );
     $check( str_contains( $quiet_panels[4], 'Nothing is waiting for commercial handoff.' ),
         'Ready to bill keeps its existing truthful empty state' );
 

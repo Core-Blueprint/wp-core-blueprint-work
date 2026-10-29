@@ -51,6 +51,7 @@ namespace CB\Work\Repository {
 namespace CB\Work\Admin {
     final class Menu {
         public const WORK_ITEMS_SLUG = 'core-blueprint-work-items';
+        public const UNIFIED_WORKSPACE_SLUG = 'core-blueprint-work-workspace';
         public static function new_work_item_url(): string { return '/wp-admin/post-new.php?post_type=cb_work_item'; }
         public static function time_url(): string { return '/wp-admin/admin.php?page=core-blueprint-work-time'; }
         public static function edit_work_item_url( int $id ): string { return '/wp-admin/post.php?post=' . $id; }
@@ -124,6 +125,9 @@ namespace {
     $assert( ! str_contains( $established, 'cb-work-daily-overview__getting-started' ), 'existing Work Items hide onboarding' );
     $assert( 1 === substr_count( $established, '/wp-admin/post-new.php?post_type=cb_work_item' )
         && str_contains( $established, 'Open Time' ), 'established Work keeps normal header actions' );
+    $assert( str_contains( $established, '/wp-admin/admin.php?page=core-blueprint-work-workspace&amp;section=work-items' )
+        && ! str_contains( $established, '/wp-admin/admin.php?page=core-blueprint-work-items' ),
+        'Overview queue routes target unified Work, not hidden native Work Items' );
     $assert( str_contains( $established, 'cb-work-daily-overview__focus' )
         && str_contains( $established, 'cb-work-daily-overview__ready' ), 'existing KPIs and billing snapshot remain' );
 
