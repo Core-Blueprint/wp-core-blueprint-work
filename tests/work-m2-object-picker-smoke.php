@@ -30,7 +30,8 @@ $contracts = [
 		// dependency list, so it must NOT be altered just to satisfy M2.
 		str_contains( $assets, '\\CoreBlueprint\\Core\\UI\\Assets::enqueue_object_picker();' )
 		&& str_contains( $assets, "self::VIEW_PREFERENCES_SCRIPT_HANDLE ]," )
-		&& str_contains( $editor, "import '@cb-core/object-picker';" )
+		&& ! str_contains( $editor, "import '@cb-core/object-picker';" )
+		&& str_contains( $editor, 'browser.cbCore?.objectPicker?.init' )
 		&& str_contains( $editor, 'browser.cbCore.objectPicker.init(body)' )
 		&& str_contains( $editor, "'cb_work_search_customers'" )
 		&& str_contains( $editor, "'cb_work_search_users'" )

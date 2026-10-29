@@ -1,5 +1,7 @@
 import '@cb-core/modal';
-import '@cb-core/object-picker';
+// Base enqueues Object Picker separately. Do not bare-import that enqueued
+// root module: WordPress omits root module IDs from its import map.
+// The optional public window.cbCore.objectPicker API is checked at use time.
 
 /**
  * M2 coherent editor slice for Work Items and Projects.

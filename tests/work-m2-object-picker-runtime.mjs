@@ -45,6 +45,7 @@ assert.deepEqual(fields, {
 	work_context: 'customer', customer: 'crm:contact:13', assigned_user_ids: '4,9',
 });
 assert.match(src, /browser\.cbCore\.objectPicker\.init\(body\)/);
-assert.match(src, /import '@cb-core\/object-picker'/);
+assert.doesNotMatch(src, /import\s*['"]@cb-core\/object-picker['"]/);
+assert.match(src, /browser\.cbCore\?\.objectPicker\?\.init/);
 assert.doesNotMatch(src, /innerHTML\s*=/);
 console.log('Work M2 Base Object Picker modal contract: PASS.');
