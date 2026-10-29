@@ -28,7 +28,7 @@ $cases = [
         && str_contains( $service, 'TaxRates::is_available(' )
         && str_contains( $service, "'work_service_pricing_invalid'" )
         && ! str_contains( $service, "'post_content' => wp_kses_post" )
-        && str_contains( $service, "'post_content' => $description_requested ? $description : ''" )
+        && str_contains( $service, "'post_content' => \$description_requested ? \$description : ''" )
         && str_contains( $service, "work_service_description_advanced_required" ),
     'Partial Work Item and Project updates never sanitize existing Gutenberg content' =>
         str_contains( $work_item, 'array_key_exists(' )
