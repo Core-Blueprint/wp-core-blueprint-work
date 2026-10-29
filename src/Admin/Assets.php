@@ -123,7 +123,11 @@ final class Assets {
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
-			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE, '@cb-core/modal', '@cb-core/object-picker' ],
+			// Keep the frozen M1 module dependency declaration unchanged.
+// Base Modal is loaded by enqueue_view_preferences_assets() and
+// enqueue_calendar_assets(); Base Object Picker is enqueued above.
+// The M2 editor submodule imports both through their registered IDs.
+			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE ],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
 	}
