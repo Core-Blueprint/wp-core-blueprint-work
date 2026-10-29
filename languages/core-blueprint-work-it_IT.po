@@ -2932,3 +2932,67 @@ msgstr "Prova un'altra ricerca o cancella i filtri."
 #: src/Admin/Assets.php
 msgid "View all Projects"
 msgstr "Visualizza tutti i progetti"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Edit planning and other supported fields here. Rich document formatting remains in the advanced editor."
+msgstr "Modifica qui la pianificazione e gli altri campi supportati. La formattazione avanzata dei documenti resta nell’editor avanzato."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Plain text only. Use the advanced editor for formatting."
+msgstr "Solo testo semplice. Usa l’editor avanzato per la formattazione."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record contains rich content. Open the advanced editor to change its description."
+msgstr "Questo elemento contiene contenuti formattati. Apri l’editor avanzato per modificarne la descrizione."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Open advanced editor"
+msgstr "Apri l’editor avanzato"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Estimated minutes"
+msgstr "Minuti stimati"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add"
+msgstr "Aggiungi"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create"
+msgstr "Crea"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create Work Types or activate and deactivate existing types."
+msgstr "Crea tipi di lavoro oppure attiva e disattiva quelli esistenti."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Included"
+msgstr "Incluso"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Non-billable"
+msgstr "Non fatturabile"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Low"
+msgstr "Bassa"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "High"
+msgstr "Alta"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Urgent"
+msgstr "Urgente"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "You no longer have permission to edit this record. Close the editor."
+msgstr "Non hai più l’autorizzazione per modificare questo elemento. Chiudi l’editor."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record changed. Close and reopen the editor before saving."
+msgstr "Questo elemento è stato modificato. Chiudi e riapri l’editor prima di salvare."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Could not save. Review the fields and try again."
+msgstr "Impossibile salvare. Controlla i campi e riprova."

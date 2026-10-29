@@ -96,3 +96,14 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Added targeted `UnifiedEditorDescriptionIntegrationTest`, Service and Project/Work Item multiline content integration cases, a Node dirty-description/grid-attachment runtime check, and a PHP source smoke. The checks are registered through the existing Level 1 `tools/check` entry point.
 - **Golden still HOLD:** no PHP/Node canonical Level 1 or WordPress/MariaDB Level 2/Level 3 executed on this source; no ZIP, operator FIELD or complete i18n catalog sync. The new localized description guidance and earlier M2 labels have not been propagated through canonical POT and six PO locales. Rich document editing within the modal is intentionally unsupported until a shared, lossless, accessible Base-backed rich editor contract is reviewed.
 
+
+## M2 internal batch 06 — Calendar editor handoff and six-locale translation convergence
+
+**Still SOURCE candidate, not Golden.**
+
+- Confirmed the Unified Workspace Work Item title links in Table, List and Board are native WordPress editor URLs; the M2 click adapter intercepts them only inside the canonical Work UI. Added the List detail panel's explicit **Edit Work Item** action to the same scoped interception. Old native routes are untouched.
+- Calendar opens its Base day dialog outside the panel. Added a **document-capture handler restricted to the current authenticated Calendar day modal ownership token**. On ordinary Work Item title clicks, it closes the Calendar dialog using its existing Base Close button and waits for Base's focus restoration/removal cycle before opening the Work editor. Ctrl/meta/modified clicks, wrong-owner dialogs and unavailable Base actions are not intercepted. No nested dialog/focus trap or parallel modal engine.
+- Added `work-m2-calendar-edit-handoff-runtime.mjs` to the Level 1 gate. In an isolated JS mock, owner-scoped Calendar clicks activate Base Close and defer editor requests until after cleanup.
+- Existing M2 source introduced 16 untranslated PHP `msgid` strings in `UnifiedWorkspace.php`. Added exactly those 16 to `languages/core-blueprint-work.pot` and reviewed translations to all six required PO catalogs (`nl_NL`, `de_DE`, `fr_FR`, `es_ES`, `it_IT`, `pt_PT`). Verified matching 683 source keys in each and no blank translations or fuzzy markers in the in-memory key contract. No i18n tool modifications.
+- **Golden still HOLD:** real canonical `./tools/i18n/check`, `./tools/check`, WordPress/MariaDB Level 2, release ZIP/SHA and browser FIELD have not run here. The canonical `./tools/i18n/update` may normalize references/headers; do not claim a fully reproducible i18n gate from this source-only inspection. No Work main merge or deployment.
+

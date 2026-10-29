@@ -2929,3 +2929,67 @@ msgstr "Probeer een andere zoekopdracht of wis de filters."
 #: src/Admin/Assets.php
 msgid "View all Projects"
 msgstr "Alle projecten bekijken"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Edit planning and other supported fields here. Rich document formatting remains in the advanced editor."
+msgstr "Bewerk hier de planning en andere ondersteunde velden. Uitgebreide documentopmaak blijft beschikbaar in de geavanceerde editor."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Plain text only. Use the advanced editor for formatting."
+msgstr "Alleen platte tekst. Gebruik de geavanceerde editor voor opmaak."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record contains rich content. Open the advanced editor to change its description."
+msgstr "Dit item bevat opgemaakte inhoud. Open de geavanceerde editor om de beschrijving te wijzigen."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Open advanced editor"
+msgstr "Geavanceerde editor openen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Estimated minutes"
+msgstr "Geschatte minuten"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add"
+msgstr "Toevoegen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create"
+msgstr "Aanmaken"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create Work Types or activate and deactivate existing types."
+msgstr "Maak Work Types aan of activeer en deactiveer bestaande types."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Included"
+msgstr "Inbegrepen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Non-billable"
+msgstr "Niet-factureerbaar"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Low"
+msgstr "Laag"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "High"
+msgstr "Hoog"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Urgent"
+msgstr "Urgent"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "You no longer have permission to edit this record. Close the editor."
+msgstr "Je hebt geen toestemming meer om dit item te bewerken. Sluit de editor."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record changed. Close and reopen the editor before saving."
+msgstr "Dit item is gewijzigd. Sluit de editor en open hem opnieuw voordat je opslaat."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Could not save. Review the fields and try again."
+msgstr "Opslaan mislukt. Controleer de velden en probeer het opnieuw."

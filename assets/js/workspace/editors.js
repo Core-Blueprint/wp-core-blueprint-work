@@ -532,6 +532,41 @@ export function mountUnifiedEditors(root, browser, refresh) {
 		if (changed || result === true) void refresh('work-items');
 	}
 
+
+	// Calendar's Base day dialog is intentionally detached from the Work
+	// panel. Close it through Base's existing dismiss action before starting
+	// an item edit; never stack two workspace dialogs or bypass Base focus.
+	document.addEventListener('click', (event) => {
+		if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.shiftKey
+			|| event.altKey || event.metaKey) return;
+		const link = event.target?.closest?.('a[href]');
+		if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+		const body = link.closest('.cb-work-day-modal[data-cb-work-uwe-modal]');
+		const panel = root.querySelector('[data-cb-work-uwe-panel="work-items"]');
+		if (!body || !panel?.id || body.dataset.cbWorkUweOwner !== panel.id) return;
+		if (!link.closest('.cb-work-board__title, .cb-work-day-modal__closed')) return;
+		const target = nativeWorkItemTarget(link.href, browser.location.href);
+		if (!target || !browser.cbCore?.modal?.show) return;
+		const dialog = body.closest('dialog.cb-work-calendar-modal');
+		const dismiss = dialog?.querySelector('.cb-work-calendar-modal__close');
+		if (!dismiss || !dialog.open || dismiss.disabled) return;
+		event.preventDefault();
+		event.stopPropagation();
+		dialog.addEventListener('close', () => {
+			// Base removes the dialog and restores focus in an animation frame.
+			// Open the editor only after that cleanup, not inside the day modal.
+			const schedule = typeof browser.requestAnimationFrame === 'function'
+				? browser.requestAnimationFrame.bind(browser)
+				: (callback) => browser.setTimeout(callback, 16);
+			schedule(() => schedule(() => {
+				if (root.isConnected && !body.isConnected) {
+					void open(target.entity, target.id, link);
+				}
+			}));
+		}, { once: true });
+		dismiss.click();
+	}, true);
+
 	root.addEventListener('click', (event) => {
 		if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.shiftKey
 			|| event.altKey || event.metaKey) return;
@@ -554,7 +589,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 				|| !link.closest('[data-cb-work-uwe-canonical]')) return;
 			// Intercept only the canonical Work Item title links, not unrelated
 			// Project, Calendar, filter, menu or administration destinations.
-			if (!link.closest('.cb-work-item-cell__title, .cb-work-list-item__title, .cb-work-board__title')) return;
+			if (!link.closest('.cb-work-item-cell__title, .cb-work-list-item__title, .cb-work-list-item__detail-actions, .cb-work-board__title')) return;
 			const destination = nativeWorkItemTarget(link.href, browser.location.href);
 			if (!destination) return;
 			trigger = link;

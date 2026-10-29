@@ -2944,3 +2944,67 @@ msgstr ""
 #: src/Admin/Assets.php
 msgid "View all Projects"
 msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Edit planning and other supported fields here. Rich document formatting remains in the advanced editor."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Plain text only. Use the advanced editor for formatting."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record contains rich content. Open the advanced editor to change its description."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Open advanced editor"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Estimated minutes"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Create Work Types or activate and deactivate existing types."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Included"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Non-billable"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Low"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "High"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Urgent"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "You no longer have permission to edit this record. Close the editor."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "This record changed. Close and reopen the editor before saving."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Could not save. Review the fields and try again."
+msgstr ""
