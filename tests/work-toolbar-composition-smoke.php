@@ -9,13 +9,30 @@ $css        = (string) file_get_contents( $root . '/assets/work-toolbar-golden.c
 $refinement = (string) file_get_contents( $root . '/assets/work-items-refinement.css' );
 $calendar   = (string) file_get_contents( $root . '/src/Admin/WorkItemCalendarView.php' );
 
+// Unified Workspace and native Work Items are disjoint screen contexts.
+// Verify exactly one invocation per context, not one source invocation overall.
+$native_start  = strpos( $assets, 'if ( Menu::CONTEXT_WORK_ITEMS !== $context )' );
+$unified_start = strpos( $assets, 'private static function enqueue_unified_canonical_view_styles(): void' );
+$unified_end   = strpos( $assets, '/** Shared Base Toast Foundation', $unified_start ?: 0 );
+$native_section = false !== $native_start && false !== $unified_start
+	? substr( $assets, $native_start, $unified_start - $native_start ) : '';
+$unified_section = false !== $unified_start && false !== $unified_end
+	? substr( $assets, $unified_start, $unified_end - $unified_start ) : '';
+
+
 $assertions = [
-	'Work-only asset loaded once after accepted refinement styles' =>
+	'Work-only asset loaded exactly once per distinct Work Items context after accepted refinement styles' =>
 		str_contains( $assets, "private const TOOLBAR_GOLDEN_STYLE_HANDLE = 'cb-work-toolbar-golden';" )
-		&& str_contains( $assets, 'self::enqueue_toolbar_golden_style();' )
 		&& str_contains( $assets, "CB_WORK_URL . 'assets/work-toolbar-golden.css', [ self::REFINEMENT_STYLE_HANDLE ]" )
-		&& substr_count( $assets, 'self::enqueue_toolbar_golden_style();' ) === 1
-		&& strpos( $assets, 'self::enqueue_toolbar_golden_style();' ) > strpos( $assets, "if ( Menu::CONTEXT_WORK_ITEMS !== \$context )" ),
+		&& 2 === substr_count( $assets, 'self::enqueue_toolbar_golden_style();' )
+		&& 1 === substr_count( $native_section, 'self::enqueue_toolbar_golden_style();' )
+		&& 1 === substr_count( $unified_section, 'self::enqueue_toolbar_golden_style();' )
+		&& strpos( $native_section, 'self::enqueue_refinement_assets();' )
+			< strpos( $native_section, 'self::enqueue_toolbar_golden_style();' )
+		&& str_contains( $assets, "if ( Menu::CONTEXT_UNIFIED_WORKSPACE === \$context ) {" )
+		&& str_contains( $assets, "self::enqueue_unified_workspace();\n\t\t\treturn;" )
+		&& str_contains( $assets, 'self::enqueue_unified_canonical_view_styles();' )
+		&& str_contains( $unified_section, '[ self::REFINEMENT_STYLE_HANDLE ]' ),
 	'Canonical toolbar renderer still shares three work regions in each view' =>
 		str_contains( $view, 'class="cb-work-toolbar__row"' )
 		&& str_contains( $view, 'class="cb-work-toolbar__head"' )
