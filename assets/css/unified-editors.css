@@ -91,3 +91,9 @@
 	border-top: 1px solid var(--cb-border, #c3c4c7);
 	padding-top: 1rem;
 }
+
+/* M2 owns the Workspace title and Add action; the canonical G0 renderer
+   retains its untouched legacy header for the native Work Items route. */
+.cb-work-unified .cb-work-uwe__canonical-view .cb-work-page-header {
+	display: none;
+}
