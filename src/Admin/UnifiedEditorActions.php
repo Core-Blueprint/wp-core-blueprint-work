@@ -10,6 +10,7 @@ use CB\Work\Repository\TaxRates;
 use CB\Work\PublicApi\WorkItemActions;
 use CB\Work\Repository\Projects;
 use CB\Work\Repository\WorkItems;
+use CB\Work\Repository\EditorRevisions;
 use CB\Work\PublicApi\Services;
 use CB\Work\PublicApi\WorkTypes;
 
@@ -111,7 +112,7 @@ final class UnifiedEditorActions {
         }
         $raw_fields = wp_unslash( $raw_fields );
         $allowed = match ( $entity ) {
-            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on' ],
+            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'billing_disposition' ],
             'project' => [ 'title', 'starts_on', 'due_on' ],
             'service' => [ 'title', 'amount', 'currency', 'pricing_model', 'recurring_period', 'tax_mode', 'tax_rate_id' ],
         };
@@ -127,12 +128,15 @@ final class UnifiedEditorActions {
         if ( '' === $title || strlen( $title ) > 200 ) {
             self::fail( 'work_editor_title_required', 422 );
         }
-        // No metadata is overwritten on a stale editor. The canonical domain
-        // actions still own validation, transaction and event/audit behavior.
+        // Fast read check for helpful conflict feedback. Work Item/Project
+        // mutations repeat the semantic fingerprint under their row lock.
+        $revision = isset( $_POST['expected_version'] ) && is_string( $_POST['expected_version'] )
+            ? sanitize_text_field( (string) wp_unslash( $_POST['expected_version'] ) ) : '';
         if ( $id > 0 && 'service' !== $entity ) {
-            $version = isset( $_POST['expected_updated_at'] ) && is_string( $_POST['expected_updated_at'] )
-                ? sanitize_text_field( (string) wp_unslash( $_POST['expected_updated_at'] ) ) : '';
-            if ( '' === $version || ! hash_equals( (string) $existing['updated_at'], $version ) ) {
+            $current_revision = 'work-item' === $entity
+                ? EditorRevisions::for_work_item( $existing )
+                : EditorRevisions::for_project( $existing );
+            if ( '' === $revision || ! hash_equals( $current_revision, $revision ) ) {
                 self::fail( 'work_editor_stale', 409 );
             }
         }
@@ -155,18 +159,24 @@ final class UnifiedEditorActions {
             if ( 0 === $id ) {
                 $input['work_context'] = 'internal';
             }
-            $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update( $id, $input );
+            $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update( $id, $input, $revision );
         } elseif ( 'project' === $entity ) {
             if ( 0 === $id ) {
                 $input['work_context'] = 'internal';
             }
-            $saved = 0 === $id ? ProjectActions::create( $input ) : ProjectActions::update( $id, $input );
+            $saved = 0 === $id ? ProjectActions::create( $input ) : ProjectActions::update( $id, $input, $revision );
         } else {
-            $revision = isset( $_POST['expected_version'] ) && is_string( $_POST['expected_version'] )
-                ? sanitize_text_field( (string) wp_unslash( $_POST['expected_version'] ) ) : '';
             $saved = ServiceActions::save( $id, $input, $revision );
         }
         if ( is_wp_error( $saved ) ) {
+            if ( $id > 0 && 'service' !== $entity ) {
+                $fresh = self::find( $entity, $id );
+                $fresh_revision = null === $fresh ? '' : ( 'work-item' === $entity
+                    ? EditorRevisions::for_work_item( $fresh ) : EditorRevisions::for_project( $fresh ) );
+                if ( '' === $fresh_revision || ! hash_equals( $fresh_revision, $revision ) ) {
+                    self::fail( 'work_editor_stale', 409 );
+                }
+            }
             $error = $saved->get_error_data();
             $status = is_array( $error ) ? (int) ( $error['status'] ?? 422 ) : 422;
             self::fail( sanitize_key( $saved->get_error_code() ), in_array( $status, [ 403, 404, 409, 422, 503 ], true ) ? $status : 422 );
@@ -192,7 +202,8 @@ final class UnifiedEditorActions {
             'work-item' => [ 'id' => 0, 'title' => '', 'work_context' => 'internal',
                 'project_id' => 0, 'service_id' => 0, 'work_type_id' => 0,
                 'priority' => 'normal', 'estimated_minutes' => 0,
-                'scheduled_on' => '', 'due_on' => '', 'status' => 'planned', 'updated_at' => '' ],
+                'scheduled_on' => '', 'due_on' => '', 'status' => 'planned',
+                'billing_disposition' => 'non_billable', 'updated_at' => '' ],
             'project' => [ 'id' => 0, 'title' => '', 'work_context' => 'internal',
                 'starts_on' => '', 'due_on' => '', 'updated_at' => '' ],
             'service' => [ 'id' => 0, 'title' => '', 'updated_at' => '', 'version' => '',
@@ -206,11 +217,17 @@ final class UnifiedEditorActions {
     private static function projection( string $entity, array $item ): array {
         $keys = match ( $entity ) {
             'work-item' => [ 'id', 'title', 'work_context', 'project_id', 'service_id', 'work_type_id',
-                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'updated_at' ],
+                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'billing_disposition', 'updated_at' ],
             'project' => [ 'id', 'title', 'work_context', 'starts_on', 'due_on', 'updated_at' ],
             'service' => [ 'id', 'title', 'pricing', 'amount_display', 'version', 'updated_at' ],
         };
-        return array_intersect_key( $item, array_flip( $keys ) );
+        $projection = array_intersect_key( $item, array_flip( $keys ) );
+        if ( 'work-item' === $entity && (int) ( $item['id'] ?? 0 ) > 0 ) {
+            $projection['version'] = EditorRevisions::for_work_item( $item );
+        } elseif ( 'project' === $entity && (int) ( $item['id'] ?? 0 ) > 0 ) {
+            $projection['version'] = EditorRevisions::for_project( $item );
+        }
+        return $projection;
     }
 
     /** @param array<int,array<string,mixed>> $rows */

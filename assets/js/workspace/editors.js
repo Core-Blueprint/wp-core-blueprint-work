@@ -96,6 +96,14 @@ function buildEditor(document, root, result) {
 			item.priority, ['low', 'normal', 'high', 'urgent'].map((value) => ({
 				id: value, title: root.dataset['cbWorkM2Priority' + value[0].toUpperCase() + value.slice(1)] || value,
 			})), null));
+		grid.appendChild(select(document, root.dataset.cbWorkM2Billing || 'Billing', 'billing_disposition',
+			item.billing_disposition ?? 'non_billable', [
+				{ id: '', title: root.dataset.cbWorkM2Unclassified || 'Not classified' },
+				{ id: 'hourly', title: root.dataset.cbWorkM2Hourly || 'Hourly' },
+				{ id: 'fixed', title: root.dataset.cbWorkM2Fixed || 'Fixed price' },
+				{ id: 'included', title: root.dataset.cbWorkM2Included || 'Included' },
+				{ id: 'non_billable', title: root.dataset.cbWorkM2NonBillable || 'Non-billable' },
+			], null));
 		grid.appendChild(field(document, root.dataset.cbWorkM2Estimate || 'Estimate (minutes)',
 			'estimated_minutes', item.estimated_minutes, 'number'));
 		grid.appendChild(field(document, root.dataset.cbWorkM2Scheduled || 'Scheduled',

@@ -56,3 +56,14 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Existing Project and Work Item `updated_at` checks are second-resolution and are **not** a full row-locked CAS for two simultaneous modal saves. No claim of multi-writer safety; strengthen this before M2 Golden.
 - Detached Calendar day modal currently has its own Base lifecycle; nested Work Item editing from its cards requires explicit verified UX handling, not an untested nested-dialog shortcut.
 - Public/customer release and merge remain on HOLD.
+
+## M2 internal batch 03 — locked semantic revisions and billing classification
+
+- Found and fixed a **Service modal initialization order** error: Pricing model / VAT dependent controls are initialized only after their grid is mounted in the editor body.
+- Added Work-owned `Repository\\EditorRevisions` with SHA-256 semantic snapshots of Work Item / Project title, Gutenberg body, context/customer reference, date/planning/billing metadata and (for Work Items) sorted assignee IDs. This replaces reliance on second-resolution WordPress `post_modified_gmt` to detect two open editor copies.
+- `Repository\\WorkItems::update` receives an *optional* expected revision, checked **inside the already existing Work Item mutation row lock**. `Repository\\Projects::update` receives an *optional* expected revision and invokes the same canonical Project update under a WorkSqlTransaction row lock. Legacy PHP callers without a revision keep their prior signatures and behavior.
+- `PublicApi\\WorkItemActions::update` and `PublicApi\\ProjectActions::update` accept that optional revision and retain the same Work-owned mutation/audit contract. The M2 AJAX controller performs a preliminary read comparison and returns HTTP 409 on stale data; the underlying repository checks again after acquiring its lock. Other validation failures are not automatically labelled stale.
+- Added billing disposition (hourly / fixed / included / non-billable / unchanged unclassified) using existing `WorkItemShape` normalization, not direct postmeta writes. Existing Work context rules remain authoritative: Internal work stays non-billable.
+- Staged WordPress/MariaDB tests verifying a second stale Work Item metadata mutation is rejected within one timestamp second, and a Project date mutation stale replay is rejected under an existing PHPUnit caller transaction. Added a Level 1 source gate for revision and billing boundaries.
+
+**Remaining M2 Golden blockers:** real Level 1/2 validation; canonical translations for newly introduced Base modal UI strings; full field coverage (especially secure customer picker, assignment controls, context/classification consistency); native Gutenberg block-safe advanced content parity; detached Calendar modal lifecycle and accessible error flow; visual dark/light/narrow viewport; one operator FIELD acceptance; no main merge.

@@ -40,7 +40,7 @@ final class ProjectActions {
 	}
 
 	/** @param array<string,mixed> $input @return array<string,mixed>|\WP_Error */
-	public static function update( int $project_id, array $input ): array|\WP_Error {
+	public static function update( int $project_id, array $input, ?string $expected_revision = null ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) {
 			return $forbidden;
@@ -48,7 +48,7 @@ final class ProjectActions {
 		if ( $project_id <= 0 || null === Projects::get( $project_id ) ) {
 			return new \WP_Error( 'work_project_unavailable' );
 		}
-		if ( ! ProjectRepository::update( $project_id, $input ) ) {
+		if ( ! ProjectRepository::update( $project_id, $input, $expected_revision ) ) {
 			return new \WP_Error( 'work_project_update_failed' );
 		}
 

@@ -6,6 +6,7 @@ use CB\Work\Content\WorkItemMeta;
 use CB\Work\Database\Schema;
 use CB\Work\Domain\WorkItemStatus;
 use CB\Work\Repository\WorkItems;
+use CB\Work\Repository\EditorRevisions;
 
 /**
  * Optional real-WordPress / MariaDB A1 integration. The WordPress PHPUnit
@@ -152,6 +153,19 @@ final class WorkItemMutationIntegrationTest extends WP_UnitTestCase {
 		self::assertInstanceOf( WP_Post::class, $before );
 		self::assertTrue( WorkItems::update( $item_id, [ 'priority' => 'high' ] ) );
 		self::assertSame( $before->post_content, get_post( $item_id )->post_content );
+		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
+	}
+
+	public function test_m2_editor_revisions_catch_stale_metadata_within_same_second(): void {
+		$item_id = $this->seed_work_item();
+		$before = WorkItems::get( $item_id );
+		self::assertIsArray( $before );
+		$revision = EditorRevisions::for_work_item( $before );
+		self::assertSame( 64, strlen( $revision ) );
+		self::assertTrue( WorkItems::update( $item_id, [ 'priority' => 'high' ], null, 0, null, $revision ) );
+		$fresh = WorkItems::get( $item_id );
+		self::assertNotSame( $revision, EditorRevisions::for_work_item( $fresh ) );
+		self::assertFalse( WorkItems::update( $item_id, [ 'priority' => 'urgent' ], null, 0, null, $revision ) );
 		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
 	}
 

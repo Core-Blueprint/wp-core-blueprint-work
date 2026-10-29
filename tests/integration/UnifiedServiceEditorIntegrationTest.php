@@ -6,6 +6,8 @@ use CB\Work\Content\PostTypes;
 use CB\Work\Database\Schema;
 use CB\Work\PublicApi\ServiceActions;
 use CB\Work\PublicApi\ProjectActions;
+use CB\Work\Repository\EditorRevisions;
+use CB\Work\PublicApi\Projects;
 
 final class UnifiedServiceEditorIntegrationTest extends WP_UnitTestCase {
     private array $types_created = [];
@@ -93,6 +95,24 @@ final class UnifiedServiceEditorIntegrationTest extends WP_UnitTestCase {
         self::assertIsArray( $result );
         self::assertSame( 'Planning updated', get_post( $id )->post_title );
         self::assertSame( $before->post_content, get_post( $id )->post_content );
+    }
+
+    public function test_project_modal_revision_rejects_stale_calendar_edit(): void {
+        $project = ProjectActions::create( [ 'title' => 'Revision Project',
+            'work_context' => 'internal' ] );
+        self::assertIsArray( $project );
+        $id = (int) $project['id'];
+        $revision = EditorRevisions::for_project( $project );
+        self::assertSame( 64, strlen( $revision ) );
+        $updated = ProjectActions::update( $id, [ 'due_on' => '2026-11-05' ], $revision );
+        self::assertIsArray( $updated );
+        self::assertSame( '2026-11-05', $updated['due_on'] );
+        self::assertNotSame( $revision, EditorRevisions::for_project( Projects::get( $id ) ) );
+        $stale = ProjectActions::update( $id, [ 'due_on' => '2026-11-06' ], $revision );
+        self::assertWPError( $stale );
+        self::assertSame( '2026-11-05', Projects::get( $id )['due_on'] );
+        global $wpdb;
+        self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
     }
 
     public function test_invalid_amount_and_unprivileged_actor_cannot_create_or_mutate(): void {
