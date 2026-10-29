@@ -272,3 +272,25 @@
 .cb-work-unified .cb-work-uwe__canonical-view .cb-work-view-switcher {
 	display: none;
 }
+
+
+/* Work M1: forms become visible ONLY after the native action lifecycle and
+   the authenticated AJAX submit adapter are both ready. Keep [hidden] absolute. */
+.cb-work-unified .cb-work-uwe__canonical-view[data-cb-work-mutations-ready="1"] form.cb-work-transition-form {
+	display: inline-block;
+}
+.cb-work-unified .cb-work-uwe__canonical-view[data-cb-work-mutations-ready="1"] form.cb-work-transition-form--menu {
+	display: block;
+}
+.cb-work-unified .cb-work-uwe__canonical-view[data-cb-work-mutations-ready="1"] form.cb-work-quick-editor:not([hidden]) {
+	display: block;
+}
+.cb-work-unified .cb-work-uwe__canonical-view[data-cb-work-mutations-ready="1"] form.cb-work-table-bulk:not([hidden]) {
+	display: flex;
+}
+.cb-work-unified .cb-work-uwe__canonical-view[data-cb-work-mutations-ready="1"] form.cb-work-bulk-editor:not([hidden]) {
+	display: block;
+}
+.cb-work-unified [data-cb-work-uwe-mutation-status] {
+	margin: 0 0 var(--cb-space-4, 16px);
+}

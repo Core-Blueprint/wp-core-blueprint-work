@@ -1,6 +1,8 @@
 ( function () {
 	'use strict';
 
+	const dynamicActionControllers = new WeakMap();
+
 	function ready( callback ) {
 		if ( document.readyState === 'loading' ) {
 			document.addEventListener( 'DOMContentLoaded', callback, { once: true } );
@@ -237,7 +239,7 @@
 
 
 
-	function initRowActionMenus( page ) {
+	function initRowActionMenus( page, signal = null ) {
 		const menus = [ ...page.querySelectorAll( '.cb-work-row-actions__more' ) ];
 		if ( menus.length === 0 ) {
 			return;
@@ -275,7 +277,7 @@
 					closeMenu( menu );
 				}
 			} );
-		} );
+		}, signal ? { signal } : undefined );
 
 		document.addEventListener( 'keydown', function ( event ) {
 			if ( event.key !== 'Escape' ) {
@@ -288,8 +290,33 @@
 				event.preventDefault();
 				closeMenu( openMenu, true );
 			}
-		} );
+		}, signal ? { signal } : undefined );
 	}
+
+	/** Rebind native table actions after a canonical view is mounted. */
+	function initCanonicalActions( root ) {
+		const page = root?.matches?.( '.cb-work-items-page' )
+			? root : root?.querySelector?.( '.cb-work-items-page' );
+		if ( ! page || ! page.closest( '[data-cb-work-uwe-canonical]' )
+			|| page.dataset.cbWorkActionsInitialized === '1' ) return;
+		page.dataset.cbWorkActionsInitialized = '1';
+		const controller = new AbortController();
+		dynamicActionControllers.set( page, controller );
+		initTableBulkActions( page );
+		initQuickEdit( page );
+		initRowActionMenus( page, controller.signal );
+	}
+
+	document.addEventListener( 'cb-work:canonical-view-mounted', function ( event ) {
+		initCanonicalActions( event.detail?.root );
+	} );
+	document.addEventListener( 'cb-work:canonical-view-unmount', function ( event ) {
+		const page = event.detail?.root;
+		if ( ! page ) return;
+		dynamicActionControllers.get( page )?.abort();
+		dynamicActionControllers.delete( page );
+		delete page.dataset.cbWorkActionsInitialized;
+	} );
 
 	ready( initWorkItems );
 }() );

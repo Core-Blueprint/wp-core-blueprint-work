@@ -6,6 +6,7 @@
  * No second Table/List/Board/Calendar renderer is implemented here.
  */
 import { canonicalFilterUrl, canonicalLinkUrl } from './canonical-filters.js';
+import { createMutationAdapter } from './canonical-mutations.js';
 
 export const CANONICAL_VIEWS = Object.freeze(['table', 'list', 'kanban', 'calendar']);
 
@@ -86,6 +87,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let current = null;
 	let serial = 0;
 	const document = panel.ownerDocument;
+	const mutationAdapter = createMutationAdapter(destination, panel, browser, () => refresh());
 	let searchTimer = null;
 
 	function navigateFilters(url) {
@@ -209,6 +211,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	function showFallback() {
+		mutationAdapter?.disable();
 		destination.hidden = true;
 		if (oldHeading) oldHeading.hidden = false;
 		fallback.forEach((node, index) => { if (node) node.hidden = originalHidden[index]; });
@@ -221,6 +224,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		const controller = new AbortController();
 		current = controller;
 		const view = readCanonicalView(href, fallbackView);
+		mutationAdapter?.disable();
 		markActive(view);
 		const url = new URL(endpoint, href);
 		for (const [key, value] of canonicalViewParameters(href, action, nonce, fallbackView)) {
@@ -286,6 +290,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 					detail: { root: inserted, view },
 				}));
 			}
+			mutationAdapter?.ready(inserted);
 			if (focusedField) {
 				const field = inserted.querySelector('form.cb-work-items-filters')?.elements?.namedItem?.(focusedField);
 				if (field && typeof field.focus === 'function') {
@@ -316,6 +321,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		if (searchTimer !== null) browser.clearTimeout(searchTimer);
 		searchTimer = null;
 		serial += 1;
+		mutationAdapter?.disable();
 		current?.abort();
 		panel.removeAttribute('aria-busy');
 		if (feedback) feedback.hidden = true;

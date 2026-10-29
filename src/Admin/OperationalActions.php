@@ -13,11 +13,20 @@ use CB\Work\Repository\WorkTypes;
 defined( 'ABSPATH' ) || exit;
 
 final class OperationalActions {
+	/** Last bounded mutation result for the AJAX response; never persisted. */
+	private static array $mutation_report = [];
+
 	public static function init(): void {
 		add_action( 'admin_post_cb_work_transition_work_item', [ self::class, 'transition_work_item' ] );
 		add_action( 'admin_post_cb_work_bulk_transition_work_items', [ self::class, 'bulk_transition_work_items' ] );
 		add_action( 'admin_post_cb_work_quick_edit_work_item', [ self::class, 'quick_edit_work_item' ] );
 		add_action( 'admin_post_cb_work_bulk_edit_work_items', [ self::class, 'bulk_edit_work_items' ] );
+		// The *same* authorized handlers power native form posts and Work M1
+		// AJAX submissions. No second repository, validation or audit path.
+		add_action( 'wp_ajax_cb_work_transition_work_item', [ self::class, 'transition_work_item' ] );
+		add_action( 'wp_ajax_cb_work_bulk_transition_work_items', [ self::class, 'bulk_transition_work_items' ] );
+		add_action( 'wp_ajax_cb_work_quick_edit_work_item', [ self::class, 'quick_edit_work_item' ] );
+		add_action( 'wp_ajax_cb_work_bulk_edit_work_items', [ self::class, 'bulk_edit_work_items' ] );
 		add_action( 'admin_post_cb_work_create_work_type', [ self::class, 'create_work_type' ] );
 		add_action( 'admin_post_cb_work_toggle_work_type', [ self::class, 'toggle_work_type' ] );
 	}
@@ -33,6 +42,7 @@ final class OperationalActions {
 			: $from;
 		if ( $id > 0 && $expected === $from && WorkItems::transition_status( $id, $status, get_current_user_id(), $expected ) ) {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $id, 'from' => $from, 'to' => $status ] );
+			self::$mutation_report = [ 'updated' => 1, 'attempted' => 1 ];
 			self::redirect_work_items( 'work-item-transitioned' );
 		}
 		self::redirect_work_items( 'work-item-transition-invalid' );
@@ -60,6 +70,7 @@ final class OperationalActions {
 			}
 		}
 
+		self::$mutation_report = [ 'updated' => $updated, 'attempted' => count( $ids ) ];
 		self::redirect_work_items( $updated > 0 ? 'work-item-transitioned' : 'work-item-transition-invalid' );
 	}
 
@@ -98,6 +109,7 @@ final class OperationalActions {
 			Audit::record( Events::WORK_ITEM_STATUS_CHANGED, 'notice', [ 'work_item_id' => $id, 'from' => $from, 'to' => $status, 'quick_edit' => true ] );
 		}
 
+		self::$mutation_report = [ 'updated' => 1, 'attempted' => 1 ];
 		self::redirect_work_items( 'work-item-updated' );
 	}
 
@@ -144,6 +156,7 @@ final class OperationalActions {
 			}
 		}
 
+		self::$mutation_report = [ 'updated' => $updated, 'attempted' => count( $ids ) ];
 		self::redirect_work_items( $updated > 0 ? 'work-item-updated' : 'work-item-update-invalid' );
 	}
 
@@ -195,6 +208,19 @@ final class OperationalActions {
 	}
 
 	private static function redirect_work_items( string $notice ): never {
+		if ( wp_doing_ajax() ) {
+			$success = in_array( $notice, [ 'work-item-transitioned', 'work-item-updated' ], true );
+			$data = [
+				'notice' => sanitize_key( $notice ),
+				'updated' => (int) ( self::$mutation_report['updated'] ?? 0 ),
+				'attempted' => (int) ( self::$mutation_report['attempted'] ?? 0 ),
+			];
+			self::$mutation_report = [];
+			if ( $success ) {
+				wp_send_json_success( $data, 200 );
+			}
+			wp_send_json_error( $data, 409 );
+		}
 		$return_state = isset( $_POST['return_state'] ) && is_array( $_POST['return_state'] )
 			? wp_unslash( $_POST['return_state'] )
 			: [];

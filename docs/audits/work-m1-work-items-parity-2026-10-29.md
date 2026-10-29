@@ -69,3 +69,14 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Targeted preference source/runtime checks have been added to Level 1. FULL Golden and WordPress FIELD remain deferred until full M1 acceptance.
 
 - User-configured view order is now rendered by the outer Workspace switcher from the canonical existing preference store, and synchronized from canonical HTML after subsequent preference saves. The inner native view navigation stays hidden while its existing preferences button becomes available.
+
+## Internal development slice 3 — guarded Work Item mutations (SOURCE CANDIDATE)
+
+- The four existing POST handlers (single status transition, Quick Edit, bulk status transition, bulk details edit) are registered for authenticated admin-ajax requests **in addition to** the accepted admin-post routes. Each action still invokes the same OperationalActions method, capability guard, per-action nonce verification, repository mutation, status transition validation and audit calls. Native redirects remain for regular admin-post submissions.
+- OperationalActions emits a bounded JSON result only when WordPress is handling AJAX; it reports success/invalid notices and updated/attempted counts, including partial bulk outcomes. The server remains the sole authority for persistence.
+- The Work-owned canonical-mutations.js module intercepts allowlisted form submissions, forwards the original FormData and _wpnonce to the authenticated admin-ajax endpoint with same-origin POST, guards double submissions, preserves the editing form on 403/409/malformed/network failures, and rehydrates canonically only on server-confirmed success. Unknown POST actions are denied rather than navigating to a legacy endpoint.
+- The existing work-admin.js binds native table selection, Quick Edit row display, and status action menus on canonical mount; document-level menu handlers are owned by an AbortController and removed on canonical unmount. Original native ready() behavior stays.
+- CSS enables mutation forms ONLY when both the original dynamic table handlers and the secure Workspace AJAX adapter are present. The existing filter form and preference controls remain usable.
+- Work Items G0/B1 server renderer, WorkItemViewBridge GET reader, project/service REST, core WorkItems repository, schemas and Base are unchanged.
+- Behavioral Node test verifies exact action allowlist, original nonce forwarding, same-origin, POST, success/partial counts, rejection/network recovery, no optimistic refresh, and fail-closed unknown actions. Source smoke protects legacy and AJAX route equivalence and full Golden wiring.
+- **No WordPress FIELD or Level 1–3 acceptance yet.** This is another internal M1 commit only. Final M1 Golden/FIELD will include negative capability/nonce tests, bulk partial-success data checks, edit and row action parity.

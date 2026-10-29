@@ -95,7 +95,8 @@ final class Assets {
 		$data_client = CB_WORK_DIR . 'assets/js/workspace/data-client.js';
 		$canonical = CB_WORK_DIR . 'assets/js/workspace/canonical-mount.js';
 		$canonical_filters = CB_WORK_DIR . 'assets/js/workspace/canonical-filters.js';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) ) {
+		$canonical_mutations = CB_WORK_DIR . 'assets/js/workspace/canonical-mutations.js';
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) ) {
 			return;
 		}
 
