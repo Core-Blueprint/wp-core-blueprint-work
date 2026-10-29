@@ -165,7 +165,7 @@ final class UnifiedEditorActions {
         return array_values( array_map(
             static fn( array $row ): array => [
                 'id' => (int) ( $row['id'] ?? 0 ),
-                'title' => (string) ( $row['title'] ?? $row['name'] ?? '' ),
+                'title' => (string) ( $row['title'] ?? $row['label'] ?? $row['name'] ?? '' ),
             ],
             $rows
         ) );
