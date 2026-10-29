@@ -47,7 +47,7 @@ final class UnifiedEditorActions {
         $raw = 'POST' === $method ? $_POST : $_GET;
         $entity = isset( $raw['entity'] ) && is_string( $raw['entity'] )
             ? sanitize_key( (string) wp_unslash( $raw['entity'] ) ) : '';
-        if ( ! in_array( $entity, [ 'work-item', 'project' ], true ) ) {
+        if ( ! in_array( $entity, [ 'work-item', 'project', 'work-type' ], true ) ) {
             self::fail( 'work_editor_entity', 400 );
         }
         if ( ! isset( $raw['id'] ) || ! is_scalar( $raw['id'] )
@@ -55,6 +55,28 @@ final class UnifiedEditorActions {
             self::fail( 'work_editor_id', 400 );
         }
         $id = absint( $raw['id'] );
+        if ( 'work-type' === $entity ) {
+            if ( 'GET' !== $method || 0 !== $id ) {
+                self::fail( 'work_editor_entity', 400 );
+            }
+            $types = [];
+            foreach ( WorkTypes::all( true ) as $type ) {
+                $type_id = absint( $type['id'] ?? 0 );
+                $types[] = [
+                    'id' => $type_id,
+                    'label' => (string) ( $type['label'] ?? '' ),
+                    'code' => (string) ( $type['code'] ?? '' ),
+                    'active' => ! empty( $type['is_active'] ),
+                    'nonce' => wp_create_nonce( 'cb_work_toggle_work_type_' . $type_id ),
+                ];
+            }
+            wp_send_json_success( [
+                'entity' => $entity,
+                'item' => [ 'id' => 0 ],
+                'types' => $types,
+                'create_nonce' => wp_create_nonce( 'cb_work_create_work_type' ),
+            ], 200 );
+        }
         $existing = $id > 0 ? self::find( $entity, $id ) : null;
         if ( $id > 0 && null === $existing ) {
             self::fail( 'work_editor_not_found', 404 );
