@@ -484,7 +484,17 @@ const enhanceStatusBoard = (root, options = {}) => {
 					result,
 				});
 			}
-			if (reloadAfterMove) window.location.reload();
+			if (reloadAfterMove) {
+				window.location.reload();
+			} else if (root.closest('[data-cb-work-uwe-canonical]')) {
+				// The server has committed the move. Notify the Workspace only
+				// after local counts and Base callbacks have finished. The
+				// Workspace defers DOM replacement until drag settles.
+				root.dispatchEvent(new CustomEvent('cb-work:canonical-status-committed', {
+					bubbles: true,
+					detail: { itemId: move.itemId, status: String(result.status || move.to.listId) },
+				}));
+			}
 			return true;
 		},
 	});

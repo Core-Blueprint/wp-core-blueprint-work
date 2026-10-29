@@ -66,6 +66,28 @@ export function canonicalViewParameters(href, action, nonce, fallback = 'table')
 	return query;
 }
 
+/**
+ * Debounce canonical rehydration until Base reorder and Base modal lifecycle
+ * have settled. Each view switch cancels pending work and performs its own
+ * authoritative GET read instead.
+ */
+export function createCanonicalStatusSync(browser, callback, delay = 600) {
+	let timer = null;
+	return {
+		request() {
+			if (timer !== null) browser.clearTimeout(timer);
+			timer = browser.setTimeout(() => {
+				timer = null;
+				callback();
+			}, delay);
+		},
+		cancel() {
+			if (timer !== null) browser.clearTimeout(timer);
+			timer = null;
+		},
+	};
+}
+
 export function createCanonicalViewMount(panel, browser, notify) {
 	const destination = panel?.querySelector('[data-cb-work-uwe-canonical]');
 	const switcher = panel?.querySelector('[data-cb-work-uwe-view-switcher]');
@@ -90,6 +112,9 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let serial = 0;
 	const document = panel.ownerDocument;
 	const mutationAdapter = createMutationAdapter(destination, panel, browser, () => refresh());
+	const statusSync = createCanonicalStatusSync(browser, () => {
+		if (!panel.hidden) void refresh();
+	});
 	let searchTimer = null;
 
 	function navigateFilters(url) {
@@ -108,6 +133,10 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		const view = readCanonicalView(browser.location.href, fallbackView);
 		navigateFilters(canonicalFilterUrl(browser.location.href, new FormData(form), view));
 	}
+
+	destination.addEventListener('cb-work:canonical-status-committed', (event) => {
+		if (event.target && destination.contains(event.target)) statusSync.request();
+	});
 
 	destination.addEventListener('cb-work:canonical-preferences-saved', (event) => {
 		if (!event?.target || destination.contains(event.target)) void refresh();
@@ -220,6 +249,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	async function refresh(href = browser.location.href) {
+		statusSync.cancel();
 		serial += 1;
 		const ticket = serial;
 		if (current) current.abort();
@@ -276,6 +306,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			const activeInput = document.activeElement;
 			const focusedField = activeInput?.closest?.('form.cb-work-items-filters')
 				&& outgoing?.contains?.(activeInput) && activeInput.name ? activeInput.name : null;
+			const focusedCardId = !focusedField && outgoing?.contains?.(activeInput)
+				? activeInput?.closest?.('[data-cb-core-reorder-item]')?.dataset?.cbCoreReorderItem : null;
 			const cursor = focusedField === 's' && Number.isInteger(activeInput.selectionStart)
 				? [activeInput.selectionStart, activeInput.selectionEnd] : null;
 			if (outgoing && typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
@@ -302,6 +334,16 @@ export function createCanonicalViewMount(panel, browser, notify) {
 					}
 				}
 			}
+			if (focusedCardId) {
+				const card = [...inserted.querySelectorAll('[data-cb-core-reorder-item]')]
+					.find((item) => item.dataset.cbCoreReorderItem === focusedCardId);
+				const focusTarget = card?.querySelector('a, button, [tabindex]') || card;
+				if (typeof focusTarget?.focus === 'function') {
+					focusTarget.focus({ preventScroll: true });
+				} else {
+					switcher.querySelector('.is-active')?.focus?.({ preventScroll: true });
+				}
+			}
 			if (oldHeading) oldHeading.hidden = true;
 			for (const node of fallback) {
 				if (node) node.hidden = true;
@@ -320,6 +362,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	return { refresh, abort() {
+		statusSync.cancel();
 		if (searchTimer !== null) browser.clearTimeout(searchTimer);
 		searchTimer = null;
 		serial += 1;

@@ -55,7 +55,10 @@ $checks = [
 
 	'Calendar persists modal status moves into the backing day template before reopen' =>
 		str_contains( $calendar, 'syncTemplateMove' )
-		&& str_contains( $calendar, 'onPersistedMove: (move) => syncTemplateMove(template, move)' )
+		&& str_contains( $calendar, 'onPersistedMove: (move) => {' )
+		&& str_contains( $calendar, 'syncTemplateMove(template, move);' )
+		&& str_contains( $calendar, 'statusCommitted = true;' )
+		&& str_contains( $calendar, 'Promise.resolve(pending).then(() => {' )
 		&& str_contains( $calendar, 'target.append(card)' )
 		&& str_contains( $calendar, 'refreshTemplateCounts(template)' ),
 
@@ -63,7 +66,9 @@ $checks = [
 		str_contains( $reorder, 'const enhanceStatusBoard = (root, options = {}) =>' )
 		&& str_contains( $reorder, 'const reloadAfterMove = options.reloadAfterMove !== false;' )
 		&& str_contains( $reorder, "typeof options.onPersistedMove === 'function'" )
-		&& str_contains( $reorder, 'if (reloadAfterMove) window.location.reload();' )
+		&& str_contains( $reorder, 'if (reloadAfterMove) {' )
+		&& str_contains( $reorder, 'window.location.reload();' )
+		&& str_contains( $reorder, "root.dispatchEvent(new CustomEvent('cb-work:canonical-status-committed'" )
 		&& str_contains( $reorder, 'export { enhanceStatusBoard };' )
 		&& ! str_contains( $reorder, 'persistCalendarMove' ),
 

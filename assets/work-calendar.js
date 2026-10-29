@@ -80,6 +80,7 @@ const openDayModal = (trigger) => {
 	if (!(body instanceof HTMLElement)) return;
 
 	const closeLabel = String(calendar?.dataset.closeLabel || 'Close');
+	let statusCommitted = false;
 	const pending = modal.show({
 		title: String(trigger.dataset.modalTitle || ''),
 		body,
@@ -94,11 +95,22 @@ const openDayModal = (trigger) => {
 	if (board instanceof HTMLElement) {
 		enhanceStatusBoard(board, {
 			reloadAfterMove: false,
-			onPersistedMove: (move) => syncTemplateMove(template, move),
+			onPersistedMove: (move) => {
+				syncTemplateMove(template, move);
+				statusCommitted = true;
+			},
 		});
 	}
 
-	void pending;
+	// Keep the Base dialog and its focus lifecycle intact. Calendar
+	// rehydrates the canonical day counts only after the modal has closed.
+	void Promise.resolve(pending).then(() => {
+		if (!statusCommitted || !calendar?.closest('[data-cb-work-uwe-canonical]')) return;
+		calendar.dispatchEvent(new CustomEvent('cb-work:canonical-status-committed', {
+			bubbles: true,
+			detail: { source: 'calendar' },
+		}));
+	}).catch(() => {});
 };
 
 const initCalendarTriggers = (root = document) => {

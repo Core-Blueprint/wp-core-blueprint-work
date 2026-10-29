@@ -91,3 +91,12 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - On a successful mutation, refresh the **currently selected** Work Items view even if the old form was replaced by a user-initiated view switch. If the Work Items tab is hidden, the next tab activation performs the standard refresh.
 - Added Node regressions for all four date ranges reaching the bridge, overlapping submits, an in-flight view switch, partial bulk results, stale response handling and error recovery.
 - No milestone Golden or FIELD acceptance yet; continue M1 parity work on this single branch.
+
+## Internal stabilization — cross-view status consistency (2026-10-29)
+
+- Board remains on existing Base Reorder and `WorkItemBoardActions`. After a server-confirmed drag, the canonical view receives a scoped, bubbling `cb-work:canonical-status-committed` event. Native Work Items keeps its original reload; the Unified Workspace gets an authoritative read after the reorder interaction settles.
+- Calendar reuses its existing Base modal and backing day-template update. Only after a persisted change **and modal promise resolution** does it notify the Workspace to re-read current day counts and canonical cards. No modal is forcibly closed by the Workspace.
+- `createCanonicalStatusSync` in the canonical Work mount coalesces rapid status changes into one refresh; view switches cancel pending scheduled updates and already cause their own authenticated read. Hidden Work tab never receives a forced refresh.
+- Preserve keyboard focus on a matching Board card after canonical rehydration; fall back to the selected view navigation when the moved/filtered card is no longer shown.
+- Source and Node tests cover success-only notification, native-vs-Workspace handling, cancel/debounce and continued original Work domain write contracts. Exact G0/B1 Operations renderer stays immutable. A historical Calendar smoke expectation is updated to check the expanded callback contract without weakening the native behavior requirement.
+- Milestone Level 1/2/3 and WordPress FIELD remain OPEN until M1 parity is complete; no intermediate ZIP or acceptance request.
