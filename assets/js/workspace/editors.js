@@ -76,10 +76,8 @@ function buildEditor(document, root, result) {
 	const entity = result.entity;
 	const body = document.createElement('div');
 	body.className = 'cb-work-m2';
-	const form = document.createElement('form');
+	const form = document.createElement('div');
 	form.className = 'cb-work-m2__form';
-	form.noValidate = false;
-	form.addEventListener('submit', (event) => event.preventDefault());
 	const explanation = document.createElement('p');
 	explanation.className = 'description';
 	explanation.textContent = root.dataset.cbWorkM2Description || '';
@@ -128,8 +126,11 @@ function buildEditor(document, root, result) {
 }
 
 function readFields(form) {
-	if (!form.reportValidity()) return null;
-	return Object.fromEntries(new FormData(form).entries());
+	const controls = [...form.querySelectorAll('input[name], select[name], textarea[name]')];
+	for (const control of controls) {
+		if (typeof control.reportValidity === 'function' && !control.reportValidity()) return null;
+	}
+	return Object.fromEntries(controls.map((input) => [input.name, input.value]));
 }
 
 async function request(root, browser, parameters, body = null) {
@@ -310,9 +311,8 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			list.appendChild(item);
 		}
 		body.appendChild(list);
-		const form = document.createElement('form');
+		const form = document.createElement('div');
 		form.className = 'cb-work-m2__form';
-		form.addEventListener('submit', (event) => event.preventDefault());
 		const label = field(document, root.dataset.cbWorkM2Name || 'Name', 'label', '');
 		label.querySelector('input').required = true;
 		const code = field(document, root.dataset.cbWorkM2Code || 'Code', 'code', '');
@@ -327,7 +327,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			confirmLabel: root.dataset.cbWorkM2Create || 'Create',
 			cancelLabel: root.dataset.cbWorkM2Close || 'Close',
 			onConfirm: async () => {
-				if (!form.reportValidity()) return false;
+				if (!label.querySelector('input').reportValidity()) return false;
 				feedback.hidden = true;
 				try {
 					await postWorkType('cb_work_create_work_type', data.create_nonce, {
