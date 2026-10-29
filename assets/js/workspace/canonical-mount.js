@@ -5,6 +5,8 @@
  * in UWE-03C.3, so the native Work Items screen remains available by link.
  * No second Table/List/Board/Calendar renderer is implemented here.
  */
+import { canonicalFilterUrl, canonicalLinkUrl } from './canonical-filters.js';
+
 export const CANONICAL_VIEWS = Object.freeze(['table', 'list', 'kanban', 'calendar']);
 
 export function readCanonicalView(href, fallback = 'table') {
@@ -84,6 +86,74 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let current = null;
 	let serial = 0;
 	const document = panel.ownerDocument;
+	let searchTimer = null;
+
+	function navigateFilters(url) {
+		if (!url) return;
+		const currentUrl = new URL(browser.location.href);
+		if (url === currentUrl.pathname + currentUrl.search + currentUrl.hash) return;
+		browser.history.pushState({ cbWorkM1Filters: true }, '', url);
+		void notify();
+	}
+
+	function submitFilters(form) {
+		if (searchTimer !== null) {
+			browser.clearTimeout(searchTimer);
+			searchTimer = null;
+		}
+		const view = readCanonicalView(browser.location.href, fallbackView);
+		navigateFilters(canonicalFilterUrl(browser.location.href, new FormData(form), view));
+	}
+
+	destination.addEventListener('submit', (event) => {
+		const form = event.target;
+		if (!form?.matches?.('form.cb-work-items-filters')) return;
+		event.preventDefault();
+		submitFilters(form);
+	});
+
+	destination.addEventListener('change', (event) => {
+		const control = event.target;
+		const form = control?.closest?.('form.cb-work-items-filters');
+		if (!form || control?.name === 's') return;
+		submitFilters(form);
+	});
+
+	destination.addEventListener('input', (event) => {
+		if (event.target?.name !== 's') return;
+		const form = event.target.closest?.('form.cb-work-items-filters');
+		if (!form) return;
+		if (searchTimer !== null) browser.clearTimeout(searchTimer);
+		searchTimer = browser.setTimeout(() => {
+			searchTimer = null;
+			submitFilters(form);
+		}, 300);
+	});
+
+	destination.addEventListener('click', (event) => {
+		const toggle = event.target?.closest?.('.cb-work-more-filters-toggle');
+		if (toggle && event.button === 0) {
+			const form = toggle.closest('form.cb-work-items-filters');
+			const advanced = form?.querySelector('#cb-work-more-filters');
+			if (!advanced) return;
+			event.preventDefault();
+			advanced.hidden = !advanced.hidden;
+			toggle.setAttribute('aria-expanded', String(!advanced.hidden));
+			return;
+		}
+		const link = event.target?.closest?.('a');
+		if (!link || event.defaultPrevented || event.button !== 0
+			|| event.ctrlKey || event.metaKey || event.shiftKey || event.altKey
+			|| link.target === '_blank' || link.hasAttribute('download')) return;
+		// Calendar month links have their own strict month controller below.
+		if (link.matches('.cb-work-calendar-navigation__actions a')) return;
+		const url = canonicalLinkUrl(browser.location.href, link.href,
+			readCanonicalView(browser.location.href, fallbackView));
+		if (!url) return;
+		event.preventDefault();
+		navigateFilters(url);
+	});
+
 	destination.addEventListener('click', (event) => {
 		const anchor = event.target?.closest?.('.cb-work-calendar-navigation__actions a');
 		if (!anchor || event.defaultPrevented || event.button !== 0
@@ -180,6 +250,11 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			const inserted = document.importNode(canonical, true);
 			const outgoing = destination.firstElementChild;
+			const activeInput = document.activeElement;
+			const focusedField = activeInput?.closest?.('form.cb-work-items-filters')
+				&& outgoing?.contains?.(activeInput) && activeInput.name ? activeInput.name : null;
+			const cursor = focusedField === 's' && Number.isInteger(activeInput.selectionStart)
+				? [activeInput.selectionStart, activeInput.selectionEnd] : null;
 			if (outgoing && typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
 				document.dispatchEvent(new CustomEvent('cb-work:canonical-view-unmount', {
 					detail: { root: outgoing },
@@ -193,6 +268,15 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				document.dispatchEvent(new CustomEvent('cb-work:canonical-view-mounted', {
 					detail: { root: inserted, view },
 				}));
+			}
+			if (focusedField) {
+				const field = inserted.querySelector('form.cb-work-items-filters')?.elements?.namedItem?.(focusedField);
+				if (field && typeof field.focus === 'function') {
+					field.focus({ preventScroll: true });
+					if (cursor && typeof field.setSelectionRange === 'function') {
+						field.setSelectionRange(cursor[0], cursor[1]);
+					}
+				}
 			}
 			if (oldHeading) oldHeading.hidden = true;
 			for (const node of fallback) {
@@ -212,6 +296,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	return { refresh, abort() {
+		if (searchTimer !== null) browser.clearTimeout(searchTimer);
+		searchTimer = null;
 		serial += 1;
 		current?.abort();
 		panel.removeAttribute('aria-busy');

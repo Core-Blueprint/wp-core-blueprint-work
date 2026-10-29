@@ -246,6 +246,13 @@
 	display: none;
 }
 
+/* M1: the canonical filter form is a GET-only read surface, not a mutation.
+   Existing bulk/action/quick-edit forms remain hidden pending guarded parity. */
+.cb-work-unified .cb-work-uwe__canonical-view form.cb-work-items-filters {
+	display: block;
+}
+
+
 @media screen and (max-width: 782px) {
 	.cb-work-unified .cb-work-uwe__legacy-link {
 		margin-inline-start: 0;

@@ -2,6 +2,7 @@ import { createWorkspaceRouter, SECTIONS } from './router.js';
 import { apiParameters, dataStateUrl, defaultDataState, readDataState } from './state.js';
 import { createDataClient } from './data-client.js';
 import { createCanonicalViewMount } from './canonical-mount.js';
+import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
 
 /**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.
@@ -27,6 +28,8 @@ export function mountWorkspace(root, browser = window) {
 	let activeSection = new URL(browser.location.href).searchParams.get('section');
 	if (!SECTIONS.includes(activeSection)) activeSection = 'work-items';
 	memory.set(activeSection, readDataState(browser.location.href, activeSection));
+	let workSnapshot = activeSection === 'work-items'
+		? snapshotWorkState(browser.location.href) : new URLSearchParams();
 
 	const fetcher = typeof browser.fetch === 'function' ? browser.fetch.bind(browser) : null;
 	const client = fetcher ? createDataClient({ fetcher, baseHref: browser.location.href }) : null;
@@ -90,6 +93,7 @@ export function mountWorkspace(root, browser = window) {
 
 	async function refresh(section) {
 		if (section === 'work-items' && canonicalMount) {
+			workSnapshot = snapshotWorkState(browser.location.href);
 			memory.set(section, readDataState(browser.location.href, section));
 			await canonicalMount.refresh(browser.location.href);
 			return;
@@ -134,8 +138,15 @@ export function mountWorkspace(root, browser = window) {
 		}
 		if (section !== activeSection) {
 			if (detail?.source === 'push') {
-				memory.set(activeSection, readDataState(browser.location.href, activeSection));
-				const destination = dataStateUrl(browser.location.href, section, memory.get(section));
+				if (activeSection === 'work-items') {
+					workSnapshot = snapshotWorkState(browser.location.href);
+				} else {
+					memory.set(activeSection, readDataState(browser.location.href, activeSection));
+				}
+				const withoutWork = restoreWorkState(browser.location.href);
+				const destination = section === 'work-items'
+					? restoreWorkState(new URL(withoutWork, browser.location.href).href, workSnapshot)
+					: dataStateUrl(new URL(withoutWork, browser.location.href).href, section, memory.get(section));
 				browser.history.replaceState(browser.history.state, '', destination);
 			}
 			activeSection = section;
