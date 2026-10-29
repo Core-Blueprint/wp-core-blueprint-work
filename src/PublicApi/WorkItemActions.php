@@ -9,6 +9,7 @@ use CB\Work\Governance\Events;
 use CB\Work\Repository\WorkItemRelations;
 use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
+use CB\Work\Repository\EditorMutations;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -141,7 +142,17 @@ final class WorkItemActions {
 	}
 
 	/** @param array<string,mixed> $input @return array<string,mixed>|\WP_Error */
-	public static function update( int $work_item_id, array $input, ?string $expected_revision = null ): array|\WP_Error {
+	public static function update( int $work_item_id, array $input ): array|\WP_Error {
+		return self::apply_update( $work_item_id, $input, null );
+	}
+
+	/** M2: additive governed CAS adapter; preserves the existing public update signature. */
+	public static function update_from_editor( int $work_item_id, array $input, string $expected_revision ): array|\WP_Error {
+		return self::apply_update( $work_item_id, $input, $expected_revision );
+	}
+
+	/** @param array<string,mixed> $input @return array<string,mixed>|\WP_Error */
+	private static function apply_update( int $work_item_id, array $input, ?string $expected_revision ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) {
 			return $forbidden;
@@ -149,7 +160,10 @@ final class WorkItemActions {
 		if ( $work_item_id <= 0 || self::contains_source_fields( $input ) ) {
 			return new \WP_Error( 'work_update_invalid' );
 		}
-		if ( ! WorkItemRepository::update( $work_item_id, $input, null, 0, null, $expected_revision ) ) {
+		if ( ! ( null === $expected_revision
+		? WorkItemRepository::update( $work_item_id, $input )
+		: EditorMutations::update_work_item( $work_item_id, $input, $expected_revision )
+		) ) {
 			return new \WP_Error( 'work_update_failed' );
 		}
 		$item = WorkItems::get( $work_item_id );

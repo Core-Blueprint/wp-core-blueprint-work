@@ -107,3 +107,17 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Existing M2 source introduced 16 untranslated PHP `msgid` strings in `UnifiedWorkspace.php`. Added exactly those 16 to `languages/core-blueprint-work.pot` and reviewed translations to all six required PO catalogs (`nl_NL`, `de_DE`, `fr_FR`, `es_ES`, `it_IT`, `pt_PT`). Verified matching 683 source keys in each and no blank translations or fuzzy markers in the in-memory key contract. No i18n tool modifications.
 - **Golden still HOLD:** real canonical `./tools/i18n/check`, `./tools/check`, WordPress/MariaDB Level 2, release ZIP/SHA and browser FIELD have not run here. The canonical `./tools/i18n/update` may normalize references/headers; do not claim a fully reproducible i18n gate from this source-only inspection. No Work main merge or deployment.
 
+
+## B2 Golden compatibility repair — 2026-10-29
+
+**Operator test:** source `ed78b281a4ab6dbe1f7980ccc767aa6e8141dce9`. Canonical `./tools/i18n/check` PASS; `./tools/check` stops at `Work B2 Golden source FAILED: WorkItems canonical public method signatures changed.` `./tools/check-integration`, release build, and FIELD were **not reached**. Do not count this attempt as Level 1/2/3 PASS.
+
+**Root cause:** M2 appended `?string $expected_revision` to the public `Repository\\WorkItems::update()` signature; B2 Golden requires its exact original method signature and all 19 public facade method signatures to stay equal to immutable baseline `5c820a789f0d99a734ef2c2fb3c2f722ad0c49e0`.
+
+**Repair:**
+- Restore `WorkItems::update(int,array,?string,int,?string): bool` and the old public `PublicApi\\WorkItemActions::update(int,array)` signature exactly.
+- Add separate `Repository\\EditorMutations::update_work_item(int,array,string)` that acquires the existing A1 Work Item row lock, verifies `EditorRevisions::for_work_item` while locked, then delegates to unchanged canonical `WorkItems::update()` under its supported nested savepoint. The editor-only additive `WorkItemActions::update_from_editor` calls that adapter, preserves canonical authorization/audit, and returns the existing WP_Error on failure.
+- Update M2 AJAX and the source/integration tests to target the additive editor adapter, **not** an incompatible WorkItems method signature.
+- Source inspection compares all 19 public WorkItems signatures against the already accepted M1 source and confirms **exact equality**. WordPress/DB behavior and full runner remain **NOT EXECUTED** until operator hertest.
+
+**Protected B2 and main:** no changes to `tests/work-b2-architecture-golden-smoke.php`, `src/Admin/Operations.php`, Work `main`, or Base. Golden HOLD pending canonical tests and FIELD.

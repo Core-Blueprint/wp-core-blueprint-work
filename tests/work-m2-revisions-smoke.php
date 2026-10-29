@@ -4,6 +4,7 @@ declare(strict_types=1);
 $root = dirname( __DIR__ );
 $revisions = (string) file_get_contents( $root . '/src/Repository/EditorRevisions.php' );
 $work = (string) file_get_contents( $root . '/src/Repository/WorkItems.php' );
+$editor_mutations = (string) file_get_contents( $root . '/src/Repository/EditorMutations.php' );
 $project = (string) file_get_contents( $root . '/src/Repository/Projects.php' );
 $work_api = (string) file_get_contents( $root . '/src/PublicApi/WorkItemActions.php' );
 $project_api = (string) file_get_contents( $root . '/src/PublicApi/ProjectActions.php' );
@@ -18,8 +19,10 @@ $checks = [
         && str_contains( $revisions, "'customer_provider'" ),
     'Work Item revision checked inside existing FOR UPDATE mutation lock' =>
         str_contains( $work, 'WorkItemMutationTransaction::run(' )
-        && str_contains( $work, 'EditorRevisions::for_work_item( $current )' )
-        && str_contains( $work_api, 'WorkItemRepository::update( $work_item_id, $input, null, 0, null, $expected_revision )' ),
+        && str_contains( $editor_mutations, 'WorkItemMutationTransaction::run(' )
+        && str_contains( $editor_mutations, 'EditorRevisions::for_work_item( $current )' )
+        && str_contains( $editor_mutations, 'WorkItems::update( $id, $input )' )
+        && str_contains( $work_api, 'EditorMutations::update_work_item( $work_item_id, $input, $expected_revision )' ),
     'Project revision checked under a transactional row lock' =>
         str_contains( $project, 'WorkSqlTransaction::run(' )
         && str_contains( $project, 'FOR UPDATE' )
@@ -29,7 +32,7 @@ $checks = [
         str_contains( $ajax, 'EditorRevisions::for_work_item( $existing )' )
         && str_contains( $ajax, 'EditorRevisions::for_project( $existing )' )
         && str_contains( $ajax, "self::fail( 'work_editor_stale', 409 )" )
-        && str_contains( $ajax, 'WorkItemActions::update( $id, $input, $revision )' )
+        && str_contains( $ajax, 'WorkItemActions::update_from_editor( $id, $input, $revision )' )
         && str_contains( $ajax, 'ProjectActions::update( $id, $input, $revision )' )
         && str_contains( $ui, "payload.set('expected_version', String(body.expected_version || ''))" ),
     'Billing disposition is delegated, never written as raw postmeta' =>

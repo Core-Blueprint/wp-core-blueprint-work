@@ -181,7 +181,7 @@ final class UnifiedEditorActions {
             if ( 0 === $id && ! isset( $input['work_context'] ) ) {
                 $input['work_context'] = 'internal';
             }
-            $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update( $id, $input, $revision );
+            $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update_from_editor( $id, $input, $revision );
         } elseif ( 'project' === $entity ) {
             if ( 0 === $id && ! isset( $input['work_context'] ) ) {
                 $input['work_context'] = 'internal';

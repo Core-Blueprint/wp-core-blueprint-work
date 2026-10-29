@@ -14,7 +14,7 @@ $valid = [
         && strpos( $action, 'current_user_can( Capabilities::MANAGE )' ) < strpos( $action, 'wp_send_json_success' ),
     'existing Work domain actions own persistence and audits' =>
         str_contains( $action, 'WorkItemActions::create( $input )' )
-        && str_contains( $action, 'WorkItemActions::update( $id, $input, $revision )' )
+        && str_contains( $action, 'WorkItemActions::update_from_editor( $id, $input, $revision )' )
         && str_contains( $action, 'ProjectActions::create( $input )' )
         && str_contains( $action, 'ProjectActions::update( $id, $input, $revision )' )
         && ! str_contains( $action, 'wp_insert_post' )

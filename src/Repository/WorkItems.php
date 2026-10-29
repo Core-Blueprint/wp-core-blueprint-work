@@ -210,19 +210,15 @@ final class WorkItems {
 	}
 
 	/** @param array<string,mixed> $input */
-	public static function update( int $id, array $input, ?string $transition_to = null, int $actor_user_id = 0, ?string $expected_from = null, ?string $expected_revision = null ): bool {
+	public static function update( int $id, array $input, ?string $transition_to = null, int $actor_user_id = 0, ?string $expected_from = null ): bool {
 		$current = null;
 		$transitioned_from = null;
-		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, $transition_to, $actor_user_id, $expected_from, $expected_revision, &$current, &$transitioned_from ): bool {
+		$updated = WorkItemMutationTransaction::run( $id, static function () use ( $id, $input, $transition_to, $actor_user_id, $expected_from, &$current, &$transitioned_from ): bool {
 			$current = self::get( $id );
 			if ( null === $current || ! self::schema_ready() || ( null !== $expected_from && (string) $current['status'] !== $expected_from ) ) {
 				return false;
 			}
 			if ( null !== $transition_to && ! WorkItemStatus::can_transition( (string) $current['status'], sanitize_key( $transition_to ) ) ) {
-				return false;
-			}
-			if ( null !== $expected_revision
-				&& ( '' === $expected_revision || ! hash_equals( EditorRevisions::for_work_item( $current ), $expected_revision ) ) ) {
 				return false;
 			}
 			$normalized = self::normalize_write( $input, $current );
