@@ -105,6 +105,10 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		navigateFilters(canonicalFilterUrl(browser.location.href, new FormData(form), view));
 	}
 
+	destination.addEventListener('cb-work:canonical-preferences-saved', (event) => {
+		if (!event?.target || destination.contains(event.target)) void refresh();
+	});
+
 	destination.addEventListener('submit', (event) => {
 		const form = event.target;
 		if (!form?.matches?.('form.cb-work-items-filters')) return;

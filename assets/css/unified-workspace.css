@@ -258,3 +258,8 @@
 		margin-inline-start: 0;
 	}
 }
+
+/* M1 presentation preferences are the existing secured Work controls. */
+.cb-work-unified .cb-work-uwe__canonical-view .cb-work-view-preferences__trigger {
+	display: inline-flex;
+}

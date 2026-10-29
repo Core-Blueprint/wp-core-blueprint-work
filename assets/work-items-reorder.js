@@ -87,7 +87,19 @@ const persist = async (root, operation, policy = null) => {
 	return payload.data?.policy || policy;
 };
 
+const tableLifecycle = new WeakMap();
+
+const savedPreferences = (root) => {
+	const page = root.closest('.cb-work-items-page');
+	if (page?.closest('[data-cb-work-uwe-canonical]')) {
+		page.dispatchEvent(new CustomEvent('cb-work:canonical-preferences-saved', { bubbles: true }));
+	} else {
+		window.location.reload();
+	}
+};
+
 const initTablePreferences = (root) => {
+	if (root.dataset.cbWorkTablePrefMounted === '1') return;
 	const table = root.querySelector('[data-cb-work-items-table]');
 	const panel = root.querySelector('[data-cb-work-table-columns-panel]');
 	const toggle = panel?.id
@@ -103,6 +115,9 @@ const initTablePreferences = (root) => {
 	const displayWrapper = displayToggle?.closest('.cb-work-table-display') || null;
 
 	if (!(table instanceof HTMLTableElement) || !panel || !toggle || !reorderRoot || !reorder?.enhance) return;
+	root.dataset.cbWorkTablePrefMounted = '1';
+	const lifecycle = new AbortController();
+	tableLifecycle.set(root, { lifecycle, controller: null });
 
 	let currentPolicy = policyFromPanel(root);
 
@@ -120,6 +135,8 @@ const initTablePreferences = (root) => {
 			}
 		},
 	});
+
+	if (controller?.destroy) tableLifecycle.set(root, { lifecycle, controller });
 
 	reorderRoot.addEventListener('cb:reorder:error', () => {
 		applyTablePolicy(table, policyFromPanel(root));
@@ -217,7 +234,7 @@ const initTablePreferences = (root) => {
 				|| displayWrapper?.contains(event.target)
 			) return;
 			closeDisplay();
-		});
+		}, { signal: lifecycle.signal });
 
 		displayPanel.addEventListener('keydown', (event) => {
 			if (event.key !== 'Escape') return;
@@ -229,7 +246,7 @@ const initTablePreferences = (root) => {
 	reset?.addEventListener('click', async () => {
 		try {
 			await persist(root, 'reset');
-			window.location.reload();
+			savedPreferences(root);
 		} catch {
 			// Status copy is handled by persist(); keep the current valid UI state.
 		}
@@ -241,7 +258,10 @@ const initTablePreferences = (root) => {
 	void controller;
 };
 
-document.querySelectorAll('[data-cb-work-table-preferences]').forEach(initTablePreferences);
+const initTables = (scope = document) => {
+	scope?.querySelectorAll?.('[data-cb-work-table-preferences]').forEach(initTablePreferences);
+};
+initTables(document);
 
 
 const listDisplayPolicy = (root) => {
@@ -290,13 +310,18 @@ const persistListDisplay = async (root, policy) => {
 	return payload.data.policy;
 };
 
+const listLifecycle = new WeakMap();
 const initListDisplay = (root) => {
+	if (root.dataset.cbWorkListDisplayMounted === '1') return;
 	const toggle = root.querySelector('[data-cb-work-list-display-toggle]');
 	const panel = root.querySelector('[data-cb-work-list-display-panel]');
 	const groupButtons = [...root.querySelectorAll('[data-cb-work-list-group]')];
 	const orderButtons = [...root.querySelectorAll('[data-cb-work-list-project-order]')];
 
 	if (!(toggle instanceof HTMLButtonElement) || !(panel instanceof HTMLElement)) return;
+	root.dataset.cbWorkListDisplayMounted = '1';
+	const lifecycle = new AbortController();
+	listLifecycle.set(root, lifecycle);
 
 	let currentPolicy = listDisplayPolicy(root);
 
@@ -308,7 +333,7 @@ const initListDisplay = (root) => {
 		try {
 			currentPolicy = await persistListDisplay(root, listDisplayPolicy(root));
 			syncListDisplay(root, currentPolicy);
-			window.location.reload();
+			savedPreferences(root);
 		} catch (error) {
 			syncListDisplay(root, currentPolicy);
 			window.alert(error instanceof Error ? error.message : root.dataset.error || '');
@@ -345,7 +370,7 @@ const initListDisplay = (root) => {
 	document.addEventListener('click', (event) => {
 		if (panel.hidden || !(event.target instanceof Node) || root.contains(event.target)) return;
 		close();
-	});
+	}, { signal: lifecycle.signal });
 
 	panel.addEventListener('keydown', (event) => {
 		if (event.key !== 'Escape') return;
@@ -356,7 +381,31 @@ const initListDisplay = (root) => {
 	syncListDisplay(root, currentPolicy);
 };
 
-document.querySelectorAll('[data-cb-work-list-display]').forEach(initListDisplay);
+const initListDisplays = (scope = document) => {
+	scope?.querySelectorAll?.('[data-cb-work-list-display]').forEach(initListDisplay);
+};
+initListDisplays(document);
+
+document.addEventListener('cb-work:canonical-view-mounted', (event) => {
+	initTables(event.detail?.root);
+	initListDisplays(event.detail?.root);
+});
+
+document.addEventListener('cb-work:canonical-view-unmount', (event) => {
+	const outgoing = event.detail?.root;
+	outgoing?.querySelectorAll?.('[data-cb-work-table-preferences]').forEach((root) => {
+		const owned = tableLifecycle.get(root);
+		owned?.controller?.destroy?.();
+		owned?.lifecycle?.abort();
+		tableLifecycle.delete(root);
+		delete root.dataset.cbWorkTablePrefMounted;
+	});
+	outgoing?.querySelectorAll?.('[data-cb-work-list-display]').forEach((root) => {
+		listLifecycle.get(root)?.abort();
+		listLifecycle.delete(root);
+		delete root.dataset.cbWorkListDisplayMounted;
+	});
+});
 
 
 const boardCardByReorderId = (root, itemId) => [...root.querySelectorAll('[data-cb-core-reorder-item]')]

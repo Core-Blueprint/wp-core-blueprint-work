@@ -57,3 +57,13 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Dedicated runtime tests verify URL filters, reset, preset, pagination, cross-tab state snapshots, and rejected unsafe links; source test protects G0 and explicit GET-only boundary.
 - The top-level app now snapshots all Work-specific filters (including calendar_month, customer, project, priority, view and uwe_page) before switching to Projects/Services, strips them from those other URLs and restores them on return.
 - No full Golden and no WordPress FIELD evidence for this slice. Continue on the same M1 branch.
+
+## Internal development slice 2 — retained preference contracts
+
+- The existing Work Item Table preference implementation now listens for canonical view mount and unmount; repeated mount is idempotent, and Base reorder controllers/document click listeners are released when the fragment is replaced.
+- The existing List group/order display preferences initialize for each new fragment, with document listeners scoped to an AbortController and one-time per-root registration.
+- The existing View Preferences Base modal initializes dynamically from the imported canonical template. Saved policies still POST to the existing nonce/capability-guarded Work action.
+- Successful saves on the native Work Items route preserve the existing reload flow; saves inside the new Work Workspace emit a scoped refresh event instead. This is view hydration, not a second preferences store.
+- Enqueue the original Work view preference module on the Unified Workspace only alongside the already accepted Base Modal/Reorder module dependencies.
+- Continue hiding Quick Edit, bulk-action and other mutation forms pending the guarded mutation parity slice. No change to Operations.php, domain, schema, or other products.
+- Targeted preference source/runtime checks have been added to Level 1. FULL Golden and WordPress FIELD remain deferred until full M1 acceptance.

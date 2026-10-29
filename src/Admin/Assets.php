@@ -115,7 +115,7 @@ final class Assets {
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
-			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder' ],
+			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE ],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
 	}
@@ -146,6 +146,7 @@ final class Assets {
 		self::enqueue_script();
 		self::enqueue_refinement_assets();
 		self::enqueue_reorder_assets();
+		self::enqueue_view_preferences_assets();
 		self::enqueue_calendar_assets();
 	}
 

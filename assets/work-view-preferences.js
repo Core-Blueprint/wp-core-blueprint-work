@@ -57,7 +57,8 @@ const persist = async (root, policy) => {
 
 const openPreferences = async (trigger) => {
 	const templateId = String(trigger.dataset.templateId || '');
-	const template = document.getElementById(templateId);
+	const template = trigger.closest('.cb-work-items-page')?.querySelector('#' + CSS.escape(templateId))
+		|| document.getElementById(templateId);
 	const modal = window.cbCore?.modal;
 	const reorder = window.cbCore?.reorder;
 	if (!(template instanceof HTMLTemplateElement) || !modal?.show || !reorder?.enhance) return;
@@ -86,11 +87,27 @@ const openPreferences = async (trigger) => {
 		},
 	});
 
-	if (result === true) window.location.reload();
+	if (result === true) {
+		const page = trigger.closest('.cb-work-items-page');
+		if (page?.closest('[data-cb-work-uwe-canonical]')) {
+			page.dispatchEvent(new CustomEvent('cb-work:canonical-preferences-saved', { bubbles: true }));
+		} else {
+			window.location.reload();
+		}
+	}
 };
 
-document.querySelectorAll('[data-cb-work-view-preferences-open]').forEach((trigger) => {
-	trigger.addEventListener('click', () => {
-		void openPreferences(trigger);
+const initViewPreferences = (scope = document) => {
+	scope?.querySelectorAll?.('[data-cb-work-view-preferences-open]').forEach((trigger) => {
+		if (trigger.dataset.cbWorkViewPrefsMounted === '1') return;
+		trigger.dataset.cbWorkViewPrefsMounted = '1';
+		trigger.addEventListener('click', () => {
+			void openPreferences(trigger);
+		});
 	});
+};
+
+document.addEventListener('cb-work:canonical-view-mounted', (event) => {
+	initViewPreferences(event.detail?.root);
 });
+initViewPreferences(document);
