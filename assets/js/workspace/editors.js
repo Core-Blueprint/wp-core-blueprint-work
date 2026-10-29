@@ -7,7 +7,7 @@ import '@cb-core/modal';
  * public action contracts. The modal itself belongs to Base; no custom
  * dialog, focus trap, retry engine, or second persistence mechanism.
  */
-const SUPPORTED = new Set(['work-item', 'project']);
+const SUPPORTED = new Set(['work-item', 'project', 'service']);
 
 export function nativeWorkItemTarget(href, baseHref) {
 	const url = new URL(href, baseHref);
@@ -100,11 +100,52 @@ function buildEditor(document, root, result) {
 			'estimated_minutes', item.estimated_minutes, 'number'));
 		grid.appendChild(field(document, root.dataset.cbWorkM2Scheduled || 'Scheduled',
 			'scheduled_on', item.scheduled_on, 'date'));
-	} else {
+	} else if (entity === 'project') {
 		grid.appendChild(field(document, root.dataset.cbWorkM2Start || 'Start',
 			'starts_on', item.starts_on, 'date'));
+		grid.appendChild(field(document, root.dataset.cbWorkM2Due || 'Due',
+			'due_on', item.due_on, 'date'));
+	} else if (entity === 'service') {
+		const price = item.pricing || {};
+		grid.appendChild(select(document, root.dataset.cbWorkM2PricingModel || 'Pricing model',
+			'pricing_model', price.pricing_model || 'fixed', [
+				{ id: 'hourly', title: root.dataset.cbWorkM2Hourly || 'Hourly' },
+				{ id: 'fixed', title: root.dataset.cbWorkM2Fixed || 'Fixed price' },
+				{ id: 'recurring', title: root.dataset.cbWorkM2Recurring || 'Recurring' },
+			], null));
+		const periods = select(document, root.dataset.cbWorkM2RecurringPeriod || 'Recurring period',
+			'recurring_period', price.recurring_period || 'monthly', [
+				{ id: 'weekly', title: root.dataset.cbWorkM2Weekly || 'Weekly' },
+				{ id: 'monthly', title: root.dataset.cbWorkM2Monthly || 'Monthly' },
+				{ id: 'quarterly', title: root.dataset.cbWorkM2Quarterly || 'Quarterly' },
+				{ id: 'yearly', title: root.dataset.cbWorkM2Yearly || 'Yearly' },
+			], null);
+		grid.appendChild(periods);
+		grid.appendChild(field(document, root.dataset.cbWorkM2Price || 'Standard price',
+			'amount', item.amount_display || ''));
+		grid.appendChild(field(document, root.dataset.cbWorkM2Currency || 'Currency',
+			'currency', price.currency || 'EUR'));
+		grid.appendChild(select(document, root.dataset.cbWorkM2TaxMode || 'VAT',
+			'tax_mode', price.tax_mode || 'exclusive', [
+				{ id: 'exclusive', title: root.dataset.cbWorkM2Exclusive || 'Excluding VAT' },
+				{ id: 'inclusive', title: root.dataset.cbWorkM2Inclusive || 'Including VAT' },
+				{ id: 'exempt', title: root.dataset.cbWorkM2Exempt || 'VAT exempt / no VAT' },
+			], null));
+		const tax = select(document, root.dataset.cbWorkM2TaxRate || 'VAT rate',
+			'tax_rate_id', price.tax_rate_id || 0, result.tax_rates || [],
+			root.dataset.cbWorkM2NoRate || 'No VAT rate');
+		grid.appendChild(tax);
+		const syncServiceFields = () => {
+			const recurring = form.querySelector('[name="pricing_model"]').value === 'recurring';
+			periods.hidden = !recurring;
+			periods.querySelector('select').disabled = !recurring;
+			const taxable = form.querySelector('[name="tax_mode"]').value !== 'exempt';
+			tax.hidden = !taxable;
+			tax.querySelector('select').disabled = !taxable;
+		};
+		form.addEventListener('change', syncServiceFields);
+		syncServiceFields();
 	}
-	grid.appendChild(field(document, root.dataset.cbWorkM2Due || 'Due', 'due_on', item.due_on, 'date'));
 	form.appendChild(grid);
 	if (Number(item.id) > 0) {
 		const advanced = document.createElement('a');
@@ -126,7 +167,8 @@ function buildEditor(document, root, result) {
 }
 
 function readFields(form) {
-	const controls = [...form.querySelectorAll('input[name], select[name], textarea[name]')];
+	const controls = [...form.querySelectorAll('input[name], select[name], textarea[name]')]
+		.filter((control) => !control.disabled);
 	for (const control of controls) {
 		if (typeof control.reportValidity === 'function' && !control.reportValidity()) return null;
 	}
@@ -148,6 +190,7 @@ async function request(root, browser, parameters, body = null) {
 			payload.set('fields[' + key + ']', String(value));
 		}
 		payload.set('expected_updated_at', String(body.expected_updated_at || ''));
+		payload.set('expected_version', String(body.expected_version || ''));
 		options = { method: 'POST', credentials: 'same-origin', body: payload };
 	} else {
 		url.search = new URLSearchParams({
@@ -189,13 +232,15 @@ export function mountUnifiedEditors(root, browser, refresh) {
 		}
 		opening = false;
 		const { body, form, message } = buildEditor(document, root, data);
-		const owner = root.querySelector('[data-cb-work-uwe-panel="' + (entity === 'project' ? 'projects' : 'work-items') + '"]');
+		const ownerSection = entity === 'project' ? 'projects' : entity === 'service' ? 'services' : 'work-items';
+		const owner = root.querySelector('[data-cb-work-uwe-panel="' + ownerSection + '"]');
 		if (owner?.id) {
 			body.setAttribute('data-cb-work-uwe-modal', '');
 			body.dataset.cbWorkUweOwner = owner.id;
 		}
 		const noun = entity === 'project'
 			? (root.dataset.cbWorkM2Project || 'Project')
+			: entity === 'service' ? (root.dataset.cbWorkM2Service || 'Service')
 			: (root.dataset.cbWorkM2WorkItem || 'Work Item');
 		const title = (id > 0 ? root.dataset.cbWorkM2Edit || 'Edit' : root.dataset.cbWorkM2Add || 'Add') + ' ' + noun;
 		const result = await modal.show({
@@ -209,7 +254,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 				message.hidden = true;
 				try {
 					await request(root, browser, { entity, id }, {
-						fields, expected_updated_at: data.item.updated_at,
+						fields, expected_updated_at: data.item.updated_at, expected_version: data.item.version,
 					});
 					return true;
 				} catch (error) {
@@ -230,7 +275,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			},
 		});
 		if (result === true) {
-			void refresh(entity === 'project' ? 'projects' : 'work-items');
+			void refresh(entity === 'project' ? 'projects' : entity === 'service' ? 'services' : 'work-items');
 		}
 	}
 

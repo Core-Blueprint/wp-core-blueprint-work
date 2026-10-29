@@ -23,6 +23,7 @@ use CB\Work\Admin\TimerHud;
 use CB\Work\Admin\Workspace;
 use CB\Work\Admin\WorkItems as WorkItemsAdmin;
 use CB\Work\Admin\WorkItemViewBridge;
+use CB\Work\Admin\UnifiedEditorActions;
 use CB\Work\Admin\WorkItemListPreferences;
 use CB\Work\Admin\WorkItemTablePreferences;
 use CB\Work\Admin\WorkItemViewPreferences;

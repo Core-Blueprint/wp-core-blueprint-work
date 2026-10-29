@@ -121,11 +121,12 @@ final class Projects {
 			return false;
 		}
 
-		$result = wp_update_post( [
-			'ID'           => $id,
-			'post_title'   => $title,
-			'post_content' => wp_kses_post( $description ),
-		], true );
+		// Partial Project updates must retain Gutenberg content verbatim.
+		$post_update = [ 'ID' => $id, 'post_title' => $title ];
+		if ( array_key_exists( 'description', $input ) ) {
+			$post_update['post_content'] = wp_kses_post( $description );
+		}
+		$result = wp_update_post( $post_update, true );
 		if ( is_wp_error( $result ) || $result <= 0 || ! ProjectMeta::save( $id, $meta ) ) {
 			return false;
 		}

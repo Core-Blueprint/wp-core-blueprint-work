@@ -226,11 +226,13 @@ final class WorkItems {
 				return false;
 			}
 
-			$result = wp_update_post( [
-				'ID'           => $id,
-				'post_title'   => $normalized['title'],
-				'post_content' => wp_kses_post( $normalized['description'] ),
-			], true );
+			// A partial modal/quick edit must never round-trip Gutenberg blocks
+			// through wp_kses_post. Change content only when explicitly asked.
+			$post_update = [ 'ID' => $id, 'post_title' => $normalized['title'] ];
+			if ( array_key_exists( 'description', $input ) ) {
+				$post_update['post_content'] = wp_kses_post( $normalized['description'] );
+			}
+			$result = wp_update_post( $post_update, true );
 			if ( is_wp_error( $result ) || $result <= 0 ) {
 				return false;
 			}

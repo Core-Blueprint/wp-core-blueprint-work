@@ -5,6 +5,8 @@ namespace CB\Work\Admin;
 
 use CB\Work\Capabilities;
 use CB\Work\PublicApi\ProjectActions;
+use CB\Work\PublicApi\ServiceActions;
+use CB\Work\Repository\TaxRates;
 use CB\Work\PublicApi\WorkItemActions;
 use CB\Work\Repository\Projects;
 use CB\Work\Repository\WorkItems;
@@ -47,7 +49,7 @@ final class UnifiedEditorActions {
         $raw = 'POST' === $method ? $_POST : $_GET;
         $entity = isset( $raw['entity'] ) && is_string( $raw['entity'] )
             ? sanitize_key( (string) wp_unslash( $raw['entity'] ) ) : '';
-        if ( ! in_array( $entity, [ 'work-item', 'project', 'work-type' ], true ) ) {
+        if ( ! in_array( $entity, [ 'work-item', 'project', 'service', 'work-type' ], true ) ) {
             self::fail( 'work_editor_entity', 400 );
         }
         if ( ! isset( $raw['id'] ) || ! is_scalar( $raw['id'] )
@@ -90,6 +92,16 @@ final class UnifiedEditorActions {
                 $result['services'] = self::options( Services::all( 250 ) );
                 $result['work_types'] = self::options( WorkTypes::all() );
             }
+            if ( 'service' === $entity ) {
+                $selected = (int) ( $item['pricing']['tax_rate_id'] ?? 0 );
+                $rates = array_values( array_filter( TaxRates::all( true ),
+                    static fn( array $rate ): bool => (int) $rate['id'] === $selected || TaxRates::is_available( $rate )
+                ) );
+                $result['tax_rates'] = array_map( static fn( array $rate ): array => [
+                    'id' => (int) $rate['id'],
+                    'title' => TaxRates::display_label( $rate ),
+                ], $rates );
+            }
             wp_send_json_success( $result, 200 );
         }
 
@@ -98,9 +110,11 @@ final class UnifiedEditorActions {
             self::fail( 'work_editor_fields', 422 );
         }
         $raw_fields = wp_unslash( $raw_fields );
-        $allowed = 'work-item' === $entity
-            ? [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on' ]
-            : [ 'title', 'starts_on', 'due_on' ];
+        $allowed = match ( $entity ) {
+            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on' ],
+            'project' => [ 'title', 'starts_on', 'due_on' ],
+            'service' => [ 'title', 'amount', 'currency', 'pricing_model', 'recurring_period', 'tax_mode', 'tax_rate_id' ],
+        };
         $input = [];
         foreach ( $raw_fields as $name => $value ) {
             if ( ! is_string( $name ) || ! in_array( $name, $allowed, true )
@@ -115,14 +129,14 @@ final class UnifiedEditorActions {
         }
         // No metadata is overwritten on a stale editor. The canonical domain
         // actions still own validation, transaction and event/audit behavior.
-        if ( $id > 0 ) {
+        if ( $id > 0 && 'service' !== $entity ) {
             $version = isset( $_POST['expected_updated_at'] ) && is_string( $_POST['expected_updated_at'] )
                 ? sanitize_text_field( (string) wp_unslash( $_POST['expected_updated_at'] ) ) : '';
             if ( '' === $version || ! hash_equals( (string) $existing['updated_at'], $version ) ) {
                 self::fail( 'work_editor_stale', 409 );
             }
         }
-        foreach ( [ 'project_id', 'service_id', 'work_type_id', 'estimated_minutes' ] as $key ) {
+        foreach ( [ 'project_id', 'service_id', 'work_type_id', 'estimated_minutes', 'tax_rate_id' ] as $key ) {
             if ( array_key_exists( $key, $input ) ) {
                 if ( ! ctype_digit( (string) $input[ $key ] ) || strlen( (string) $input[ $key ] ) > 10 ) {
                     self::fail( 'work_editor_fields', 422 );
@@ -142,14 +156,20 @@ final class UnifiedEditorActions {
                 $input['work_context'] = 'internal';
             }
             $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update( $id, $input );
-        } else {
+        } elseif ( 'project' === $entity ) {
             if ( 0 === $id ) {
                 $input['work_context'] = 'internal';
             }
             $saved = 0 === $id ? ProjectActions::create( $input ) : ProjectActions::update( $id, $input );
+        } else {
+            $revision = isset( $_POST['expected_version'] ) && is_string( $_POST['expected_version'] )
+                ? sanitize_text_field( (string) wp_unslash( $_POST['expected_version'] ) ) : '';
+            $saved = ServiceActions::save( $id, $input, $revision );
         }
         if ( is_wp_error( $saved ) ) {
-            self::fail( sanitize_key( $saved->get_error_code() ), 422 );
+            $error = $saved->get_error_data();
+            $status = is_array( $error ) ? (int) ( $error['status'] ?? 422 ) : 422;
+            self::fail( sanitize_key( $saved->get_error_code() ), in_array( $status, [ 403, 404, 409, 422, 503 ], true ) ? $status : 422 );
         }
         wp_send_json_success( [
             'entity' => $entity,
@@ -159,26 +179,37 @@ final class UnifiedEditorActions {
 
     /** @return array<string,mixed>|null */
     private static function find( string $entity, int $id ): ?array {
-        return 'work-item' === $entity ? WorkItems::get( $id ) : Projects::get( $id );
+        return match ( $entity ) {
+            'work-item' => WorkItems::get( $id ),
+            'project' => Projects::get( $id ),
+            'service' => ServiceActions::get( $id ),
+        };
     }
 
     /** @return array<string,mixed> */
     private static function defaults( string $entity ): array {
-        return 'work-item' === $entity
-            ? [ 'id' => 0, 'title' => '', 'work_context' => 'internal', 'project_id' => 0,
-                'service_id' => 0, 'work_type_id' => 0, 'priority' => 'normal',
-                'estimated_minutes' => 0, 'scheduled_on' => '', 'due_on' => '',
-                'status' => 'planned', 'updated_at' => '' ]
-            : [ 'id' => 0, 'title' => '', 'work_context' => 'internal',
-                'starts_on' => '', 'due_on' => '', 'updated_at' => '' ];
+        return match ( $entity ) {
+            'work-item' => [ 'id' => 0, 'title' => '', 'work_context' => 'internal',
+                'project_id' => 0, 'service_id' => 0, 'work_type_id' => 0,
+                'priority' => 'normal', 'estimated_minutes' => 0,
+                'scheduled_on' => '', 'due_on' => '', 'status' => 'planned', 'updated_at' => '' ],
+            'project' => [ 'id' => 0, 'title' => '', 'work_context' => 'internal',
+                'starts_on' => '', 'due_on' => '', 'updated_at' => '' ],
+            'service' => [ 'id' => 0, 'title' => '', 'updated_at' => '', 'version' => '',
+                'pricing' => [ 'amount_minor' => null, 'currency' => 'EUR',
+                    'pricing_model' => 'fixed', 'recurring_period' => '',
+                    'tax_mode' => 'exclusive', 'tax_rate_id' => 0 ] ],
+        };
     }
 
     /** Only fields actually supported by this dialog may be exposed. */
     private static function projection( string $entity, array $item ): array {
-        $keys = 'work-item' === $entity
-            ? [ 'id', 'title', 'work_context', 'project_id', 'service_id', 'work_type_id',
-                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'updated_at' ]
-            : [ 'id', 'title', 'work_context', 'starts_on', 'due_on', 'updated_at' ];
+        $keys = match ( $entity ) {
+            'work-item' => [ 'id', 'title', 'work_context', 'project_id', 'service_id', 'work_type_id',
+                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'updated_at' ],
+            'project' => [ 'id', 'title', 'work_context', 'starts_on', 'due_on', 'updated_at' ],
+            'service' => [ 'id', 'title', 'pricing', 'amount_display', 'version', 'updated_at' ],
+        };
         return array_intersect_key( $item, array_flip( $keys ) );
     }
 

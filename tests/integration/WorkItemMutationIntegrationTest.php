@@ -144,6 +144,17 @@ final class WorkItemMutationIntegrationTest extends WP_UnitTestCase {
 		self::assertSame( WorkItemStatus::BLOCKED, get_post_meta( $item_id, WorkItemMeta::STATUS, true ) );
 	}
 
+	public function test_m2_partial_work_item_edit_preserves_existing_gutenberg_content(): void {
+		$item_id = $this->seed_work_item();
+		$blocks = '<!-- wp:paragraph --><p>Preserve this block.</p><!-- /wp:paragraph -->';
+		wp_update_post( [ 'ID' => $item_id, 'post_content' => $blocks ] );
+		$before = get_post( $item_id );
+		self::assertInstanceOf( WP_Post::class, $before );
+		self::assertTrue( WorkItems::update( $item_id, [ 'priority' => 'high' ] ) );
+		self::assertSame( $before->post_content, get_post( $item_id )->post_content );
+		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
+	}
+
 	private function seed_work_item(): int {
 		$id = self::factory()->post->create( [
 			'post_type'   => PostTypes::WORK_ITEM,

@@ -65,11 +65,11 @@ export function mountWorkspace(root, browser = window) {
 		const title = document.createElement('span');
 		title.className = 'cb-work-uwe__record-title';
 		title.textContent = String(record?.title ?? '');
-		if (section === 'projects' && Number(record?.id) > 0) {
+		if (['projects', 'services'].includes(section) && Number(record?.id) > 0) {
 			const button = document.createElement('button');
 			button.type = 'button';
 			button.className = 'cb-work-uwe__record-title--button';
-			button.dataset.cbWorkM2Edit = 'project';
+			button.dataset.cbWorkM2Edit = section === 'projects' ? 'project' : 'service';
 			button.dataset.cbWorkM2Id = String(record.id);
 			button.textContent = title.textContent;
 			title.replaceWith(button);
