@@ -36,6 +36,10 @@ function element(hidden = false) {
 		},
 		setAttribute(name, value) { this.attributes.set(name, String(value)); },
 		removeAttribute(name) { this.attributes.delete(name); },
+		addEventListener(name, listener) {
+			this.listeners ??= {};
+			this.listeners[name] = listener;
+		},
 		querySelector: () => null,
 	};
 }
