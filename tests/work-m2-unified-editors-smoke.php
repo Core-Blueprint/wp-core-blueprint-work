@@ -30,6 +30,14 @@ $valid = [
         && str_contains( $shell, 'Open advanced editor' )
         && str_contains( $asset, "self::enqueue_unified_canonical_view_styles();" )
         && str_contains( $plugin, 'UnifiedEditorActions::init();' ),
+    'Work Types preserve canonical nonce/handler and native redirect fallback' =>
+        str_contains( $shell, 'data-cb-work-m2-types' )
+        && str_contains( $action, "'work-type' === \\$entity" )
+        && str_contains( $action, "wp_create_nonce( 'cb_work_create_work_type' )" )
+        && str_contains( $action, "wp_create_nonce( 'cb_work_toggle_work_type_' ." )
+        && str_contains( (string) file_get_contents( $root . '/src/Admin/OperationalActions.php' ), "add_action( 'wp_ajax_cb_work_toggle_work_type'" )
+        && str_contains( (string) file_get_contents( $root . '/src/Admin/OperationalActions.php' ), "add_action( 'wp_ajax_cb_work_create_work_type'" )
+        && str_contains( (string) file_get_contents( $root . '/src/Admin/OperationalActions.php' ), 'wp_safe_redirect(' ),
     'Level 1 registers new focused runtime test' =>
         str_contains( $check, 'work-m2-unified-editors-runtime.mjs' ),
 ];
