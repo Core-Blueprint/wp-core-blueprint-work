@@ -215,6 +215,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 				} catch (error) {
 					if (error.status === 401 || error.status === 403) {
 						const text = root.dataset.cbWorkM2Denied || 'Your session no longer permits this edit. Close the editor.';
+						form.replaceChildren();
 						body.replaceChildren(message);
 						message.textContent = text;
 						message.hidden = false;
