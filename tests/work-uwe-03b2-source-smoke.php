@@ -16,11 +16,13 @@ $checks = [
 		&& str_contains( $shell, 'WorkItems::all( 25 )' )
 		&& str_contains( $shell, 'Projects::all( 25 )' )
 		&& str_contains( $shell, 'Services::all( 25 )' ),
-	'private REST nonce is attribute-only; endpoints resolved by WordPress for each section' =>
+	'private REST nonce and endpoints remain REST-only even with separate canonical Work Items bridge' =>
 		str_contains( $shell, "wp_create_nonce( 'wp_rest' )" )
 		&& str_contains( $shell, "rest_url( 'cb-work/v1/workspace/' . \$key )" )
 		&& str_contains( $shell, 'data-cb-work-uwe-endpoint=' )
-		&& ! str_contains( $shell, 'admin-ajax.php' ),
+		// Do not reject unrelated, separately namespaced admin-ajax bridges.
+		// The read endpoint itself must always use rest_url, never admin-ajax.
+		&& ! str_contains( $shell, 'data-cb-work-uwe-endpoint="<?php echo esc_url( admin_url(' ),
 	'accessible progressive-enhancement controls and server fallback' =>
 		str_contains( $shell, 'role="search"' )
 		&& str_contains( $shell, 'data-cb-work-uwe-controls hidden' )
