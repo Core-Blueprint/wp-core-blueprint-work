@@ -97,3 +97,23 @@
 .cb-work-unified .cb-work-uwe__canonical-view .cb-work-page-header {
 	display: none;
 }
+
+/* M2 plain-description subset: no silent Gutenberg/HTML conversion. */
+.cb-work-m2__description textarea {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 9rem;
+	resize: vertical;
+	padding: .7rem .8rem;
+	font: inherit;
+	line-height: 1.5;
+	color: inherit;
+	background: var(--cb-surface, transparent);
+	border: 1px solid var(--cb-border, currentColor);
+	border-radius: .35rem;
+}
+.cb-work-m2__description .description,
+.cb-work-m2__rich-notice {
+	margin: 0;
+	opacity: .85;
+}

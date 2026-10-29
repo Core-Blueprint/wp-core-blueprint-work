@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 
 const root = new URL('../', import.meta.url);
 const source = readFileSync(new URL('assets/js/workspace/editors.js', root), 'utf8');
-const code = source.replace("import '@cb-core/modal';", '')
+const code = source.replace(/^import .+;$/gm, '')
 	.replace(/^export /gm, '') + '\n;globalThis.exposed = { nativeWorkItemTarget };';
 const context = { URL, Number, Set, Map };
 runInNewContext(code, context);
@@ -28,9 +28,9 @@ assert.match(source, /control\.reportValidity\(\)/);
 assert.doesNotMatch(source, /document\.createElement\('form'\)/);
 assert.match(source, /root\.addEventListener\('click'/);
 assert.match(source, /event\.stopPropagation\(\)/);
-assert.match(source, /'@cb-core\\/modal'/);
-assert.match(source, /postWorkType\\('cb_work_toggle_work_type'/);
-assert.match(source, /postWorkType\\('cb_work_create_work_type'/);
+assert.ok(source.includes("import '@cb-core/modal';"));
+assert.ok(source.includes("postWorkType('cb_work_toggle_work_type'"));
+assert.ok(source.includes("postWorkType('cb_work_create_work_type'"));
 assert.match(source, /data-cb-work-uwe-modal/);
 assert.doesNotMatch(source, /window\.location\.reload\(/);
 assert.doesNotMatch(source, /innerHTML\s*=/);

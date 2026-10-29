@@ -20,7 +20,7 @@ $valid = [
         && ! str_contains( $action, 'wp_insert_post' )
         && ! str_contains( $action, 'wp_update_post' )
         && ! str_contains( $action, 'update_post_meta' ),
-    'whitelist scalar fields, stale rejection and no content editing' =>
+    'whitelist scalar fields, stale rejection and controlled plain-content editing' =>
         str_contains( $action, 'in_array( $name, $allowed, true )' )
         && str_contains( $action, 'hash_equals(' )
         && str_contains( $action, "'work_editor_stale'" )

@@ -70,6 +70,21 @@ final class ServiceActions {
             }
         }
 
+        $description_requested = array_key_exists( 'description', $input );
+        $description = $description_requested && is_string( $input['description'] )
+            ? $input['description'] : '';
+        if ( $description_requested && (
+            ! is_string( $input['description'] )
+            || strlen( $description ) > 16000
+            || str_contains( $description, '<' )
+            || ! preg_match( '//u', $description )
+        ) ) {
+            return new \WP_Error( 'work_service_description_advanced_required', '', [ 'status' => 422 ] );
+        }
+        if ( $description_requested ) {
+            $description = sanitize_textarea_field( $description );
+        }
+
         $expected = [
             'amount_minor' => $amount,
             'currency' => $currency,
@@ -81,7 +96,7 @@ final class ServiceActions {
         $created_id = 0;
         $pricing_changed = false;
         $saved = WorkSqlTransaction::run(
-            static function () use ( $id, $title, $expected_version, $expected, &$created_id, &$pricing_changed ): array|false|\WP_Error {
+            static function () use ( $id, $title, $expected_version, $expected, $description_requested, $description, &$created_id, &$pricing_changed ): array|false|\WP_Error {
                 global $wpdb;
                 $original_content = '';
                 if ( $id > 0 ) {
@@ -100,8 +115,17 @@ final class ServiceActions {
                         return new \WP_Error( 'work_service_stale', '', [ 'status' => 409 ] );
                     }
                     $original_content = (string) $current['description'];
-                    if ( $current['title'] !== $title ) {
-                        $result = wp_update_post( [ 'ID' => $id, 'post_title' => $title ], true );
+                    if ( $description_requested && ( strlen( $original_content ) > 16000
+                        || str_contains( $original_content, '<' )
+                        || ! preg_match( '//u', $original_content ) ) ) {
+                        return new \WP_Error( 'work_service_description_advanced_required', '', [ 'status' => 422 ] );
+                    }
+                    if ( $current['title'] !== $title || ( $description_requested && $description !== $original_content ) ) {
+                        $post_update = [ 'ID' => $id, 'post_title' => $title ];
+                        if ( $description_requested ) {
+                            $post_update['post_content'] = $description;
+                        }
+                        $result = wp_update_post( $post_update, true );
                         if ( is_wp_error( $result ) || (int) $result !== $id ) {
                             return false;
                         }
@@ -112,7 +136,7 @@ final class ServiceActions {
                         'post_type' => PostTypes::SERVICE,
                         'post_status' => 'publish',
                         'post_title' => $title,
-                        'post_content' => '',
+                        'post_content' => $description_requested ? $description : '',
                         'post_author' => get_current_user_id(),
                     ], true );
                     if ( is_wp_error( $result ) || (int) $result <= 0 ) {
@@ -141,8 +165,9 @@ final class ServiceActions {
                 clean_post_cache( $service_id );
                 wp_cache_delete( $service_id, 'post_meta' );
                 $actual = self::get( $service_id );
+                $expected_content = $description_requested ? $description : $original_content;
                 if ( null === $actual || $actual['title'] !== $title || $actual['pricing'] !== $expected
-                    || ( $id > 0 && $actual['description'] !== $original_content ) ) {
+                    || $actual['description'] !== $expected_content ) {
                     return false;
                 }
                 return $actual;

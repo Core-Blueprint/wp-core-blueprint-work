@@ -96,6 +96,7 @@ final class UnifiedEditorActions {
             if ( in_array( $entity, [ 'work-item', 'project' ], true ) ) {
                 $result['pickers'] = UnifiedEditorPickers::model( $entity, $item );
             }
+            $result['description_editor'] = UnifiedEditorDescription::model( (string) ( $item['description'] ?? '' ) );
             if ( 'service' === $entity ) {
                 $selected = (int) ( $item['pricing']['tax_rate_id'] ?? 0 );
                 $rates = array_values( array_filter( TaxRates::all( true ),
@@ -115,21 +116,32 @@ final class UnifiedEditorActions {
         }
         $raw_fields = wp_unslash( $raw_fields );
         $allowed = match ( $entity ) {
-            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'billing_disposition', 'work_context', 'customer', 'assigned_user_ids' ],
-            'project' => [ 'title', 'starts_on', 'due_on', 'work_context', 'customer' ],
-            'service' => [ 'title', 'amount', 'currency', 'pricing_model', 'recurring_period', 'tax_mode', 'tax_rate_id' ],
+            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'billing_disposition', 'work_context', 'customer', 'assigned_user_ids', 'description' ],
+            'project' => [ 'title', 'starts_on', 'due_on', 'work_context', 'customer', 'description' ],
+            'service' => [ 'title', 'amount', 'currency', 'pricing_model', 'recurring_period', 'tax_mode', 'tax_rate_id', 'description' ],
         };
         $input = [];
         foreach ( $raw_fields as $name => $value ) {
             if ( ! is_string( $name ) || ! in_array( $name, $allowed, true )
-                || ! is_scalar( $value ) || strlen( (string) $value ) > ( 'assigned_user_ids' === $name ? 2048 : 500 ) ) {
+                || ! is_scalar( $value ) || strlen( (string) $value ) > ( 'description' === $name ? UnifiedEditorDescription::MAX_LENGTH : ( 'assigned_user_ids' === $name ? 2048 : 500 ) ) ) {
                 self::fail( 'work_editor_fields', 422 );
             }
-            $input[ $name ] = sanitize_text_field( (string) $value );
+            $input[ $name ] = 'description' === $name
+                ? (string) $value : sanitize_text_field( (string) $value );
         }
         $title = trim( (string) ( $input['title'] ?? '' ) );
         if ( '' === $title || strlen( $title ) > 200 ) {
             self::fail( 'work_editor_title_required', 422 );
+        }
+        if ( array_key_exists( 'description', $input ) ) {
+            $body = UnifiedEditorDescription::normalize(
+                (string) $input['description'],
+                $id > 0 ? (string) ( $existing['description'] ?? '' ) : null
+            );
+            if ( is_wp_error( $body ) ) {
+                self::fail( sanitize_key( $body->get_error_code() ), 422 );
+            }
+            $input['description'] = $body;
         }
         // Fast read check for helpful conflict feedback. Work Item/Project
         // mutations repeat the semantic fingerprint under their row lock.

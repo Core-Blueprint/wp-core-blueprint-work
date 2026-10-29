@@ -209,6 +209,35 @@ function buildEditor(document, root, result, pickerAvailable) {
 	} else {
 		form.appendChild(grid);
 	}
+	// Work Item and Project grids previously existed only as detached nodes.
+	// Always attach the editable controls before opening the Base dialog.
+	if (entity === 'work-item' || entity === 'project') {
+		form.appendChild(grid);
+	}
+	const descriptionInfo = result.description_editor || { mode: 'advanced', value: '' };
+	if (descriptionInfo.mode === 'plain') {
+		const description = document.createElement('label');
+		description.className = 'cb-work-m2__field cb-work-m2__description';
+		const caption = document.createElement('span');
+		caption.textContent = root.dataset.cbWorkM2DescriptionLabel || 'Description';
+		const textarea = document.createElement('textarea');
+		textarea.name = 'description';
+		textarea.rows = 6;
+		textarea.maxLength = 16000;
+		textarea.value = String(descriptionInfo.value ?? '');
+		textarea.dataset.cbWorkM2Initial = textarea.value;
+		const hint = document.createElement('small');
+		hint.className = 'description';
+		hint.textContent = root.dataset.cbWorkM2PlainDescription || 'Plain text only. Use the advanced editor for formatting.';
+		description.append(caption, textarea, hint);
+		form.appendChild(description);
+	} else {
+		const richNotice = document.createElement('p');
+		richNotice.className = 'description cb-work-m2__rich-notice';
+		richNotice.textContent = root.dataset.cbWorkM2RichDescription
+			|| 'This record contains rich content. Open the advanced editor to change its description.';
+		form.appendChild(richNotice);
+	}
 	// Work-owned customer identity and assignments use the existing Base
 	// Object Picker plus canonical Work search actions. Never expose arbitrary
 	// provider/type/id text inputs as a substitute for the CRM resolver.
@@ -268,7 +297,9 @@ function buildEditor(document, root, result, pickerAvailable) {
 
 function readFields(form) {
 	const controls = [...form.querySelectorAll('input[name], select[name], textarea[name]')]
-		.filter((control) => !control.disabled);
+		.filter((control) => !control.disabled && !(
+			control.name === 'description' && control.value === control.dataset.cbWorkM2Initial
+		));
 	for (const control of controls) {
 		if (typeof control.reportValidity === 'function' && !control.reportValidity()) return null;
 	}

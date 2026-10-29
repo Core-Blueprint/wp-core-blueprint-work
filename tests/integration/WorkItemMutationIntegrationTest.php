@@ -169,6 +169,20 @@ final class WorkItemMutationIntegrationTest extends WP_UnitTestCase {
 		self::assertSame( 'high', get_post_meta( $item_id, WorkItemMeta::PRIORITY, true ) );
 	}
 
+	public function test_m2_plain_description_updates_without_damaging_followup_metadata_edit(): void {
+		$item_id = $this->seed_work_item();
+		$start = WorkItems::get( $item_id );
+		self::assertIsArray( $start );
+		$revision = EditorRevisions::for_work_item( $start );
+		self::assertTrue( WorkItems::update(
+			$item_id, [ 'description' => "Check one\nCheck two" ],
+			null, 0, null, $revision
+		) );
+		self::assertSame( "Check one\nCheck two", get_post( $item_id )->post_content );
+		self::assertTrue( WorkItems::update( $item_id, [ 'priority' => 'high' ] ) );
+		self::assertSame( "Check one\nCheck two", get_post( $item_id )->post_content );
+	}
+
 	private function seed_work_item(): int {
 		$id = self::factory()->post->create( [
 			'post_type'   => PostTypes::WORK_ITEM,

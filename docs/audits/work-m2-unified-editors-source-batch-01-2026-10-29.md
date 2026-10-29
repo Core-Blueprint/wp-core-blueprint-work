@@ -83,3 +83,16 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Current source checks in authoring environment: JS parse and pure picker/field serialization PASS. **No canonical Level 1 PHP/Node execution or WordPress Level 2/3, ZIP or FIELD validation.**
 - **Golden still blocked:** complete canonical seven-language POT/PO synchronization, customer picker + assignee keyboard/manual FIELD acceptance, rich content/Gutenberg parity, documented service pricing verification, and full operator acceptance. Old WordPress editors remain available.
 
+
+## M2 internal batch 05 — lossless description boundary and modal mount fix
+
+**SOURCE implementation, not a WordPress FIELD-tested candidate.**
+
+- Found and fixed a critical Work Item / Project UI bug: both branches built an editor grid but never attached it to the DOM. Their controls are now explicitly mounted before opening the Base dialog. The existing Service grid mounting remains unchanged.
+- Added `Admin\\UnifiedEditorDescription` as a conservative text-only boundary. Plain descriptions under 16,000 bytes and without markup may be edited as text; any HTML, Gutenberg block, malformed HTML marker or over-limit body is treated as **advanced-only**, never round-tripped through a textarea. Rich description content stays intact, and the existing native advanced editor is retained.
+- The AJAX transport accepts a bounded `description` field for Work Items, Projects and Services. It validates existing content before allowing mutation; newline-preserving sanitization is applied only to deliberate plain-text edits. Service writes happen through existing ServiceActions CPT + pricing transaction, with per-write readback of the desired content.
+- Modal dirty-field logic omits an unchanged plain description from the mutation payload. A deliberate clear sends an empty string. When the current body is rich, the modal presents read-only guidance instead of a lossy editor.
+- Corrected two pre-existing M2 Node source checks that only stripped the `@cb-core/modal` import before evaluating the editor code. The editor now also imports Base Object Picker, so tests must remove all static imports for their isolated VM checks.
+- Added targeted `UnifiedEditorDescriptionIntegrationTest`, Service and Project/Work Item multiline content integration cases, a Node dirty-description/grid-attachment runtime check, and a PHP source smoke. The checks are registered through the existing Level 1 `tools/check` entry point.
+- **Golden still HOLD:** no PHP/Node canonical Level 1 or WordPress/MariaDB Level 2/Level 3 executed on this source; no ZIP, operator FIELD or complete i18n catalog sync. The new localized description guidance and earlier M2 labels have not been propagated through canonical POT and six PO locales. Rich document editing within the modal is intentionally unsupported until a shared, lossless, accessible Base-backed rich editor contract is reviewed.
+

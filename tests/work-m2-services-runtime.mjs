@@ -4,7 +4,7 @@ import { runInNewContext } from 'node:vm';
 
 const root = new URL('../', import.meta.url);
 const source = readFileSync(new URL('assets/js/workspace/editors.js', root), 'utf8');
-const stripped = source.replace("import '@cb-core/modal';", '').replace(/^export /gm, '')
+const stripped = source.replace(/^import .+;$/gm, '').replace(/^export /gm, '')
     + '\n;globalThis.workM2Runtime = { readFields, SUPPORTED };';
 const environment = { Set, Map, URL, URLSearchParams, Number, Object };
 runInNewContext(stripped, environment);

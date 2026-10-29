@@ -115,6 +115,53 @@ final class UnifiedServiceEditorIntegrationTest extends WP_UnitTestCase {
         self::assertSame( 1, (int) $wpdb->get_var( 'SELECT @@in_transaction' ) );
     }
 
+    public function test_service_plain_description_updates_and_rich_document_overwrite_is_denied(): void {
+        $input = $this->input( 'Description Service' );
+        $input['description'] = "Maintenance scope\nMonthly review";
+        $created = ServiceActions::save( 0, $input );
+        self::assertIsArray( $created );
+        $id = (int) $created['id'];
+        self::assertSame( $input['description'], get_post( $id )->post_content );
+
+        $revision = $created['version'];
+        $update = $this->input( 'Description Service' );
+        $update['description'] = "Revised scope\nMonthly review";
+        $updated = ServiceActions::save( $id, $update, $revision );
+        self::assertIsArray( $updated );
+        self::assertSame( $update['description'], get_post( $id )->post_content );
+
+        $markup = $this->input( 'Description Service' );
+        $markup['description'] = '<p>Attempt markup injection</p>';
+        $rejected = ServiceActions::save( $id, $markup, $updated['version'] );
+        self::assertWPError( $rejected );
+        self::assertSame( 'work_service_description_advanced_required', $rejected->get_error_code() );
+        self::assertSame( $update['description'], get_post( $id )->post_content );
+
+        $blocks = '<!-- wp:paragraph --><p>Existing blocks</p><!-- /wp:paragraph -->';
+        wp_update_post( [ 'ID' => $id, 'post_content' => $blocks ] );
+        $version = ServiceActions::get( $id )['version'];
+        $change = $this->input( 'Description Service' );
+        $change['description'] = 'Dangerous overwrite';
+        $blocked = ServiceActions::save( $id, $change, $version );
+        self::assertWPError( $blocked );
+        self::assertSame( 'work_service_description_advanced_required', $blocked->get_error_code() );
+        self::assertSame( $blocks, get_post( $id )->post_content );
+    }
+
+    public function test_project_plain_content_can_change_without_block_conversion(): void {
+        $created = ProjectActions::create( [
+            'title' => 'Simple Project', 'work_context' => 'internal',
+            'description' => "Simple line\nSecond line",
+        ] );
+        self::assertIsArray( $created );
+        $id = (int) $created['id'];
+        self::assertSame( "Simple line\nSecond line", get_post( $id )->post_content );
+        $updated = ProjectActions::update( $id, [ 'description' => 'New simple description' ],
+            EditorRevisions::for_project( $created ) );
+        self::assertIsArray( $updated );
+        self::assertSame( 'New simple description', get_post( $id )->post_content );
+    }
+
     public function test_invalid_amount_and_unprivileged_actor_cannot_create_or_mutate(): void {
         $invalid = ServiceActions::save( 0, $this->input( 'Invalid', '8.999' ) );
         self::assertWPError( $invalid );
