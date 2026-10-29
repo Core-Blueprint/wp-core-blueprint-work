@@ -144,9 +144,12 @@ function buildEditor(document, root, result) {
 			tax.querySelector('select').disabled = !taxable;
 		};
 		form.addEventListener('change', syncServiceFields);
+		// Run after the controls enter the form DOM.
+		form.appendChild(grid);
 		syncServiceFields();
+	} else {
+		form.appendChild(grid);
 	}
-	form.appendChild(grid);
 	if (Number(item.id) > 0) {
 		const advanced = document.createElement('a');
 		advanced.className = 'cb-work-m2__advanced';
