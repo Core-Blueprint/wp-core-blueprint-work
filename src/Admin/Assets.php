@@ -102,6 +102,8 @@ final class Assets {
 			return;
 		}
 
+		\CoreBlueprint\Core\UI\Assets::enqueue_object_picker();
+
 		$editor_modified = filemtime( $editor_style );
 		wp_enqueue_style( 'cb-work-unified-editors', CB_WORK_URL . 'assets/css/unified-editors.css', [ 'cb-work-unified-workspace' ], false === $editor_modified ? CB_WORK_VERSION : (string) $editor_modified );
 
@@ -121,7 +123,7 @@ final class Assets {
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
-			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE, '@cb-core/modal' ],
+			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE, '@cb-core/modal', '@cb-core/object-picker' ],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
 	}

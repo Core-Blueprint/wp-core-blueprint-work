@@ -145,6 +145,8 @@ node --experimental-default-type=module "$ROOT/tests/work-m2-unified-editors-run
 php "$ROOT/tests/work-m2-services-smoke.php"
 node --experimental-default-type=module "$ROOT/tests/work-m2-services-runtime.mjs"
 php "$ROOT/tests/work-m2-revisions-smoke.php"
+php "$ROOT/tests/work-m2-object-picker-smoke.php"
+node --experimental-default-type=module "$ROOT/tests/work-m2-object-picker-runtime.mjs"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"
 php "$ROOT/tests/work-item-list-preferences-smoke.php"
 php "$ROOT/tests/work-item-view-preferences-smoke.php"

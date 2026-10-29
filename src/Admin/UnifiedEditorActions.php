@@ -93,6 +93,9 @@ final class UnifiedEditorActions {
                 $result['services'] = self::options( Services::all( 250 ) );
                 $result['work_types'] = self::options( WorkTypes::all() );
             }
+            if ( in_array( $entity, [ 'work-item', 'project' ], true ) ) {
+                $result['pickers'] = UnifiedEditorPickers::model( $entity, $item );
+            }
             if ( 'service' === $entity ) {
                 $selected = (int) ( $item['pricing']['tax_rate_id'] ?? 0 );
                 $rates = array_values( array_filter( TaxRates::all( true ),
@@ -112,14 +115,14 @@ final class UnifiedEditorActions {
         }
         $raw_fields = wp_unslash( $raw_fields );
         $allowed = match ( $entity ) {
-            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'billing_disposition' ],
-            'project' => [ 'title', 'starts_on', 'due_on' ],
+            'work-item' => [ 'title', 'project_id', 'service_id', 'work_type_id', 'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'billing_disposition', 'work_context', 'customer', 'assigned_user_ids' ],
+            'project' => [ 'title', 'starts_on', 'due_on', 'work_context', 'customer' ],
             'service' => [ 'title', 'amount', 'currency', 'pricing_model', 'recurring_period', 'tax_mode', 'tax_rate_id' ],
         };
         $input = [];
         foreach ( $raw_fields as $name => $value ) {
             if ( ! is_string( $name ) || ! in_array( $name, $allowed, true )
-                || ! is_scalar( $value ) || strlen( (string) $value ) > 500 ) {
+                || ! is_scalar( $value ) || strlen( (string) $value ) > ( 'assigned_user_ids' === $name ? 2048 : 500 ) ) {
                 self::fail( 'work_editor_fields', 422 );
             }
             $input[ $name ] = sanitize_text_field( (string) $value );
@@ -155,13 +158,20 @@ final class UnifiedEditorActions {
                 self::fail( 'work_editor_date', 422 );
             }
         }
+        if ( in_array( $entity, [ 'work-item', 'project' ], true ) ) {
+            $normalized = UnifiedEditorPickers::normalize( $entity, $input );
+            if ( is_wp_error( $normalized ) ) {
+                self::fail( sanitize_key( $normalized->get_error_code() ), 422 );
+            }
+            $input = $normalized;
+        }
         if ( 'work-item' === $entity ) {
-            if ( 0 === $id ) {
+            if ( 0 === $id && ! isset( $input['work_context'] ) ) {
                 $input['work_context'] = 'internal';
             }
             $saved = 0 === $id ? WorkItemActions::create( $input ) : WorkItemActions::update( $id, $input, $revision );
         } elseif ( 'project' === $entity ) {
-            if ( 0 === $id ) {
+            if ( 0 === $id && ! isset( $input['work_context'] ) ) {
                 $input['work_context'] = 'internal';
             }
             $saved = 0 === $id ? ProjectActions::create( $input ) : ProjectActions::update( $id, $input, $revision );
@@ -217,8 +227,8 @@ final class UnifiedEditorActions {
     private static function projection( string $entity, array $item ): array {
         $keys = match ( $entity ) {
             'work-item' => [ 'id', 'title', 'work_context', 'project_id', 'service_id', 'work_type_id',
-                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'billing_disposition', 'updated_at' ],
-            'project' => [ 'id', 'title', 'work_context', 'starts_on', 'due_on', 'updated_at' ],
+                'priority', 'estimated_minutes', 'scheduled_on', 'due_on', 'status', 'billing_disposition', 'customer_provider', 'customer_type', 'customer_id', 'assigned_user_ids', 'updated_at' ],
+            'project' => [ 'id', 'title', 'work_context', 'customer_provider', 'customer_type', 'customer_id', 'starts_on', 'due_on', 'updated_at' ],
             'service' => [ 'id', 'title', 'pricing', 'amount_display', 'version', 'updated_at' ],
         };
         $projection = array_intersect_key( $item, array_flip( $keys ) );

@@ -1,4 +1,5 @@
 import '@cb-core/modal';
+import '@cb-core/object-picker';
 
 /**
  * M2 coherent editor slice for Work Items and Projects.
@@ -71,7 +72,57 @@ function select(document, label, key, selected, options, emptyLabel) {
 	return wrapper;
 }
 
-function buildEditor(document, root, result) {
+function objectPicker(document, root, label, name, multiple, config, action, placeholder, emptyMessage) {
+	const wrap = document.createElement('div');
+	wrap.className = 'cb-work-m2__field cb-work-m2__field--picker';
+	const caption = document.createElement('span');
+	caption.className = 'cb-work-m2__field-caption';
+	caption.textContent = label;
+	const picker = document.createElement('div');
+	picker.className = 'cb-core-object-picker';
+	picker.setAttribute('data-cb-core-object-picker', '');
+	picker.dataset.searchAction = action;
+	picker.dataset.searchNonce = String(config.nonce || '');
+	picker.dataset.searchContext = '{}';
+	picker.dataset.selected = JSON.stringify(config.selected || []);
+	picker.dataset.multiple = multiple ? '1' : '0';
+	picker.dataset.emptyMessage = emptyMessage;
+	const input = document.createElement('input');
+	input.type = 'text';
+	input.name = name;
+	input.className = 'regular-text code cb-core-object-picker__input';
+	input.setAttribute('data-cb-core-object-picker-input', '');
+	input.value = (config.selected || []).map((item) => String(item.id)).join(',');
+	const enhanced = document.createElement('div');
+	enhanced.className = 'cb-core-object-picker__enhanced';
+	enhanced.hidden = true;
+	enhanced.setAttribute('data-cb-core-object-picker-enhanced', '');
+	const selected = document.createElement('div');
+	selected.className = 'cb-core-object-picker__selected';
+	selected.setAttribute('data-cb-core-object-picker-selected', '');
+	const searchLabel = document.createElement('label');
+	searchLabel.className = 'screen-reader-text';
+	searchLabel.textContent = label;
+	const search = document.createElement('input');
+	search.type = 'search';
+	search.className = 'regular-text cb-core-object-picker__search';
+	search.placeholder = placeholder;
+	search.autocomplete = 'off';
+	search.setAttribute('data-cb-core-object-picker-search', '');
+	const searchId = 'cb-work-m2-search-' + name + '-' + String(root.dataset.cbWorkM2Instance || '1');
+	search.id = searchId;
+	searchLabel.htmlFor = searchId;
+	const results = document.createElement('div');
+	results.className = 'cb-core-object-picker__results';
+	results.hidden = true;
+	results.setAttribute('data-cb-core-object-picker-results', '');
+	enhanced.append(selected, searchLabel, search, results);
+	picker.append(input, enhanced);
+	wrap.append(caption, picker);
+	return { wrap, input };
+}
+
+function buildEditor(document, root, result, pickerAvailable) {
 	const item = result.item;
 	const entity = result.entity;
 	const body = document.createElement('div');
@@ -158,6 +209,44 @@ function buildEditor(document, root, result) {
 	} else {
 		form.appendChild(grid);
 	}
+	// Work-owned customer identity and assignments use the existing Base
+	// Object Picker plus canonical Work search actions. Never expose arbitrary
+	// provider/type/id text inputs as a substitute for the CRM resolver.
+	if (pickerAvailable && (entity === 'project' || entity === 'work-item')) {
+		const configs = result.pickers || {};
+		const customer = configs.customer || {};
+		const projectControl = entity === 'work-item' ? form.querySelector('[name="project_id"]') : null;
+		if (customer.enabled && (Number(item.id) === 0 || item.work_context === 'internal' || item.work_context === 'customer')) {
+			const context = select(document, root.dataset.cbWorkM2Context || 'Work context',
+				'work_context', item.work_context || 'internal', [
+					{ id: 'internal', title: root.dataset.cbWorkM2Internal || 'Internal' },
+					{ id: 'customer', title: root.dataset.cbWorkM2CustomerWork || 'Customer' },
+				], null);
+			const identity = objectPicker(document, root, root.dataset.cbWorkM2Customer || 'Customer',
+				'customer', false, customer, 'cb_work_search_customers',
+				root.dataset.cbWorkM2CustomerSearch || 'Search contacts and organizations…',
+				root.dataset.cbWorkM2CustomerEmpty || 'No matching CRM customers found.');
+			form.append(context, identity.wrap);
+			const syncCustomer = () => {
+				const inherited = projectControl && Number(projectControl.value) > 0;
+				const selectedContext = context.querySelector('select');
+				selectedContext.disabled = !!inherited;
+				const active = !inherited && selectedContext.value === 'customer';
+				identity.wrap.hidden = !active;
+				identity.input.disabled = !active;
+			};
+			form.addEventListener('change', syncCustomer);
+			syncCustomer();
+		}
+		if (entity === 'work-item' && configs.assignees) {
+			const assignees = objectPicker(document, root,
+				root.dataset.cbWorkM2Assignees || 'Assignees',
+				'assigned_user_ids', true, configs.assignees, 'cb_work_search_users',
+				root.dataset.cbWorkM2UserSearch || 'Search WordPress users…',
+				root.dataset.cbWorkM2UserEmpty || 'No matching users found.');
+			form.appendChild(assignees.wrap);
+		}
+	}
 	if (Number(item.id) > 0) {
 		const advanced = document.createElement('a');
 		advanced.className = 'cb-work-m2__advanced';
@@ -242,7 +331,8 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			return;
 		}
 		opening = false;
-		const { body, form, message } = buildEditor(document, root, data);
+		const { body, form, message } = buildEditor(document, root, data,
+			!!browser.cbCore?.objectPicker?.init);
 		const ownerSection = entity === 'project' ? 'projects' : entity === 'service' ? 'services' : 'work-items';
 		const owner = root.querySelector('[data-cb-work-uwe-panel="' + ownerSection + '"]');
 		if (owner?.id) {
@@ -254,7 +344,7 @@ export function mountUnifiedEditors(root, browser, refresh) {
 			: entity === 'service' ? (root.dataset.cbWorkM2Service || 'Service')
 			: (root.dataset.cbWorkM2WorkItem || 'Work Item');
 		const title = (id > 0 ? root.dataset.cbWorkM2Edit || 'Edit' : root.dataset.cbWorkM2Add || 'Add') + ' ' + noun;
-		const result = await modal.show({
+		const modalPromise = modal.show({
 			title, body, size: 'workspace', expandable: true,
 			confirmLabel: root.dataset.cbWorkM2Save || 'Save',
 			cancelLabel: root.dataset.cbWorkM2Cancel || 'Cancel',
@@ -285,6 +375,12 @@ export function mountUnifiedEditors(root, browser, refresh) {
 				}
 			},
 		});
+		// Modal body is attached by Base. Initialize Base's public picker API
+		// on that dynamic subtree, never a second Work picker implementation.
+		if (browser.cbCore?.objectPicker?.init) {
+			browser.setTimeout(() => browser.cbCore.objectPicker.init(body), 0);
+		}
+		const result = await modalPromise;
 		if (result === true) {
 			void refresh(entity === 'project' ? 'projects' : entity === 'service' ? 'services' : 'work-items');
 		}

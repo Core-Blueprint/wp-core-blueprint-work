@@ -67,3 +67,19 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Staged WordPress/MariaDB tests verifying a second stale Work Item metadata mutation is rejected within one timestamp second, and a Project date mutation stale replay is rejected under an existing PHPUnit caller transaction. Added a Level 1 source gate for revision and billing boundaries.
 
 **Remaining M2 Golden blockers:** real Level 1/2 validation; canonical translations for newly introduced Base modal UI strings; full field coverage (especially secure customer picker, assignment controls, context/classification consistency); native Gutenberg block-safe advanced content parity; detached Calendar modal lifecycle and accessible error flow; visual dark/light/narrow viewport; one operator FIELD acceptance; no main merge.
+
+
+## M2 internal batch 04 — CRM customer and assignee selection through Base Object Picker
+
+**Status: internal source slice; M2 Golden still HOLD.**
+
+- The Unified Workspace now loads the public Base Object Picker Foundation via `Assets::enqueue_object_picker()` and imports `@cb-core/object-picker`. Work supplies only the scoped search action, nonce, selected states, and Work-specific validation.
+- The new `Admin\\UnifiedEditorPickers` adapter uses the existing `Integration\\CRMCustomers::selected/reference` API to resolve opaque `crm:contact:N` and `crm:organization:N` identifiers. Work Items with a linked Project do not expose a writable independent customer reference; the canonical Work Item model inherits the Project customer.
+- Manager-only existing Work AJAX search handlers `cb_work_search_customers` and `cb_work_search_users` remain authoritative; new pickers use their dedicated `cb_work_object_picker` nonce. No new search endpoint or Base modifications.
+- Work Item assignees are selected with Base multiple picker and validated by `Repository\\WorkItemLinks::normalize_assignments`. Existing selections larger than the bounded modal transport (100 users or 2,048 bytes) remain unchanged and require the native advanced editor.
+- New Work/Project context selector enables Internal or Customer where CRM is available and current ownership is supported. For existing legacy-unclassified or non-CRM customer records the modal does not silently overwrite context. Engagement ownership safeguards remain in `ProjectMeta::normalize`.
+- All client nodes are built with DOM methods and `textContent`, avoiding unsanitized HTML; dynamic dialog content is initialized through the documented `window.cbCore.objectPicker.init(body)` Foundation API only after Base attaches the modal body.
+- Added bounded PHP source checks, a Node runtime/DOM-mock picker test, and WordPress/MariaDB integration coverage for valid user selections, malformed IDs, unavailable CRM, inherited Project ownership and invalid context.
+- Current source checks in authoring environment: JS parse and pure picker/field serialization PASS. **No canonical Level 1 PHP/Node execution or WordPress Level 2/3, ZIP or FIELD validation.**
+- **Golden still blocked:** complete canonical seven-language POT/PO synchronization, customer picker + assignee keyboard/manual FIELD acceptance, rich content/Gutenberg parity, documented service pricing verification, and full operator acceptance. Old WordPress editors remain available.
+
