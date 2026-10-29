@@ -61,6 +61,11 @@ cp -R "$ROOT/src" "$STAGE/src"
 cp -R "$ROOT/assets" "$STAGE/assets"
 cp -R "$ROOT/languages" "$STAGE/languages"
 
+# Rewrite only the temporary release copy with immutable, hashed relative
+# modules. ZIP timestamp normalization would otherwise make bare "./editors.js"
+# browser caches stale across installations, even if the entry module changes.
+python3 "$ROOT/tools/prepare-workspace-modules.py" "$STAGE"
+
 # Runtime artifacts are generated from reviewed PO source during release staging.
 find "$STAGE/languages" -type f \( -name '*.mo' -o -name '*.l10n.php' \) -delete
 for locale in "${LOCALES[@]}"; do

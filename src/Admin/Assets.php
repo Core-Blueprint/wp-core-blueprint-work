@@ -104,31 +104,31 @@ final class Assets {
 
 		\CoreBlueprint\Core\UI\Assets::enqueue_object_picker();
 
-		$editor_modified = filemtime( $editor_style );
-		wp_enqueue_style( 'cb-work-unified-editors', CB_WORK_URL . 'assets/css/unified-editors.css', [ 'cb-work-unified-workspace' ], false === $editor_modified ? CB_WORK_VERSION : (string) $editor_modified );
+		$editor_modified = hash_file( 'sha256', $editor_style );
+		wp_enqueue_style( 'cb-work-unified-editors', CB_WORK_URL . 'assets/css/unified-editors.css', [ 'cb-work-unified-workspace' ], ( false === $editor_modified ? CB_WORK_VERSION : substr( $editor_modified, 0, 16 ) ) );
 
 		// UWE-03C.2 renders canonical markup inside the Workspace, without
 		// running the old DOMContentLoaded-only mutation scripts until 03C.3.
 		self::enqueue_unified_canonical_view_styles();
 
-		$css_modified = filemtime( $style );
+		$css_modified = hash_file( 'sha256', $style );
 		wp_enqueue_style(
 			'cb-work-unified-workspace',
 			CB_WORK_URL . 'assets/css/unified-workspace.css',
 			[ self::WORKSPACE_STYLE_HANDLE ],
-			false === $css_modified ? CB_WORK_VERSION : (string) $css_modified
+			false === $css_modified ? CB_WORK_VERSION : substr( $css_modified, 0, 16 )
 		);
 
-		$app_modified = filemtime( $app );
+		$app_modified = hash_file( 'sha256', $app );
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
 			// Keep the frozen M1 module dependency declaration unchanged.
-// Base Modal is loaded by enqueue_view_preferences_assets() and
-// enqueue_calendar_assets(); Base Object Picker is enqueued above.
-// The M2 editor submodule imports both through their registered IDs.
+			// Base Modal is enqueued by the canonical view assets.
+			// Base Object Picker is a separate optional root module; it is
+			// intentionally NOT statically imported by M2 editors.
 			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE ],
-			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
+			false === $app_modified ? CB_WORK_VERSION : substr( $app_modified, 0, 16 )
 		);
 	}
 

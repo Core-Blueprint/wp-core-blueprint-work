@@ -152,6 +152,7 @@ node --experimental-default-type=module "$ROOT/tests/work-m2-description-runtime
 node --experimental-default-type=module "$ROOT/tests/work-m2-calendar-edit-handoff-runtime.mjs"
 php "$ROOT/tests/work-m2-workspace-view-routing-smoke.php"
 node --experimental-vm-modules --experimental-default-type=module "$ROOT/tests/work-m2-workspace-module-boot-runtime.mjs"
+python3 "$ROOT/tests/work-immutable-module-graph.py"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"
 php "$ROOT/tests/work-item-list-preferences-smoke.php"
 php "$ROOT/tests/work-item-view-preferences-smoke.php"

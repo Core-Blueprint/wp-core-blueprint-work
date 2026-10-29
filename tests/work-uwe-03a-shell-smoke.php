@@ -11,8 +11,10 @@ $checks = [
 	'new Work-only route registered with management capability' =>
 		str_contains( $menu, "UNIFIED_WORKSPACE_SLUG = 'core-blueprint-work-workspace'" )
 		&& str_contains( $menu, "Capabilities::MANAGE, self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class, 'render' ]" ),
-	'preview route hidden, existing menus remain accessible' =>
-		str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::UNIFIED_WORKSPACE_SLUG )' )
+	'visible Work route replaces old manager navigation, contextual pages retained' =>
+		! str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::UNIFIED_WORKSPACE_SLUG )' )
+		&& str_contains( $menu, 'self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class' )
+		&& str_contains( $menu, 'remove_submenu_page( self::TOP_LEVEL_SLUG, self::WORK_ITEMS_SLUG )' )
 		&& str_contains( $menu, 'self::WORK_ITEMS_SLUG, [ Operations::class' ),
 	'workspace context registered with Base Admin Theme' =>
 		str_contains( $menu, 'CONTEXT_UNIFIED_WORKSPACE' )

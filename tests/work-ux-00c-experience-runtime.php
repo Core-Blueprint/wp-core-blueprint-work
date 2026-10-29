@@ -107,7 +107,7 @@ namespace {
         $GLOBALS['ux00c_removed'] = [];
     };
 
-    // Existing native WordPress navigation stays unchanged; UWE adds one hidden, manager-only preview route.
+    // M4 navigation exposes Overview and Work; advanced native routes stay registered but hidden.
     $role( 'manager' );
     Menu::register();
     $expect( 1 === count( $GLOBALS['ux00c_menu'] ), 'manager has one Work top-level menu' );
@@ -116,15 +116,16 @@ namespace {
 
     $expected = [
         [ 'Overview', Menu::TOP_LEVEL_SLUG, 5 ],
-        [ 'Projects', Menu::projects_path(), 10 ],
-        [ 'Work Items', Menu::WORK_ITEMS_SLUG, 15 ],
-        [ 'Time', Menu::TIME_SLUG, 20 ],
-        [ 'Service Operations', Menu::SERVICE_OPERATIONS_SLUG, 25 ],
-        [ 'Recurring Work', Menu::RECURRENCE_SLUG, 30 ],
-        [ 'Services', Menu::services_path(), 35 ],
-        [ 'Work Types', Menu::WORK_TYPES_SLUG, 40 ],
+        [ 'Work', Menu::UNIFIED_WORKSPACE_SLUG, 10 ],
+        [ 'Projects', Menu::projects_path(), 20 ],
+        [ 'Work Items', Menu::WORK_ITEMS_SLUG, 25 ],
+        [ 'Time', Menu::TIME_SLUG, 30 ],
+        [ 'Service Operations', Menu::SERVICE_OPERATIONS_SLUG, 35 ],
+        [ 'Recurring Work', Menu::RECURRENCE_SLUG, 40 ],
+        [ 'Services', Menu::services_path(), 45 ],
+        [ 'Work Types', Menu::WORK_TYPES_SLUG, 50 ],
     ];
-    $expect( 11 === count( $GLOBALS['ux00c_submenu'] ), 'manager keeps eight visible and three contextual routes' );
+    $expect( 11 === count( $GLOBALS['ux00c_submenu'] ), 'manager has two visible and nine contextual routes' );
     foreach ( $expected as $index => [ $label, $slug, $position ] ) {
         $args = $GLOBALS['ux00c_submenu'][ $index ];
         $expect( Menu::TOP_LEVEL_SLUG === $args[0]
@@ -133,21 +134,27 @@ namespace {
             && $slug === $args[4]
             && $position === $args[6], 'manager order/route/capability for ' . $label );
     }
-    $uwe = $GLOBALS['ux00c_submenu'][10] ?? [];
+    $uwe = $GLOBALS['ux00c_submenu'][1] ?? [];
     $expect(
         Menu::TOP_LEVEL_SLUG === ( $uwe[0] ?? null )
         && 'Work' === ( $uwe[2] ?? null )
         && Capabilities::MANAGE === ( $uwe[3] ?? null )
         && Menu::UNIFIED_WORKSPACE_SLUG === ( $uwe[4] ?? null )
         && [ 'CB\\Work\\Admin\\UnifiedWorkspace', 'render' ] === ( $uwe[5] ?? null ),
-        'UWE preview is registered as a manager-only contextual Work route'
+        'Work is the manager-only primary route'
     );
     Menu::hide_contextual_submenu_pages();
     $expect( [
         [ Menu::TOP_LEVEL_SLUG, Menu::PROJECT_WORKSPACE_SLUG ],
         [ Menu::TOP_LEVEL_SLUG, Menu::PROJECT_IMPORT_SLUG ],
-        [ Menu::TOP_LEVEL_SLUG, Menu::UNIFIED_WORKSPACE_SLUG ],
-    ] === $GLOBALS['ux00c_removed'], 'manager contextual pages hidden after registration' );
+        [ Menu::TOP_LEVEL_SLUG, Menu::projects_path() ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::WORK_ITEMS_SLUG ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::TIME_SLUG ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::SERVICE_OPERATIONS_SLUG ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::RECURRENCE_SLUG ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::services_path() ],
+        [ Menu::TOP_LEVEL_SLUG, Menu::WORK_TYPES_SLUG ],
+    ] === $GLOBALS['ux00c_removed'], 'manager contextual routes hidden but Work stays visible' );
     $expect( str_contains( Menu::time_url(), 'page=' . Menu::TIME_SLUG ), 'manager Time URL stays subordinate' );
 
     // Tracker-only users must land in Time, without any management links.
@@ -171,17 +178,17 @@ namespace {
     // class. Contextual native CPT screens must stay under Work's parent menu.
     $screen_cases = [
         [ 'manager', Menu::TOP_LEVEL_SLUG, '', Menu::CONTEXT_OVERVIEW, Menu::TOP_LEVEL_SLUG ],
-        [ 'manager', Menu::WORK_ITEMS_SLUG, '', Menu::CONTEXT_WORK_ITEMS, Menu::WORK_ITEMS_SLUG ],
-        [ 'manager', Menu::UNIFIED_WORKSPACE_SLUG, '', Menu::CONTEXT_UNIFIED_WORKSPACE, Menu::WORK_ITEMS_SLUG ],
-        [ 'manager', Menu::TIME_SLUG, '', Menu::CONTEXT_TIME, Menu::TIME_SLUG ],
-        [ 'manager', Menu::SERVICE_OPERATIONS_SLUG, '', Menu::CONTEXT_SERVICE_OPERATIONS, Menu::SERVICE_OPERATIONS_SLUG ],
-        [ 'manager', Menu::RECURRENCE_SLUG, '', Menu::CONTEXT_RECURRENCE, Menu::RECURRENCE_SLUG ],
-        [ 'manager', Menu::WORK_TYPES_SLUG, '', Menu::CONTEXT_WORK_TYPES, Menu::WORK_TYPES_SLUG ],
-        [ 'manager', Menu::PROJECT_WORKSPACE_SLUG, '', Menu::CONTEXT_PROJECTS, Menu::projects_path() ],
-        [ 'manager', Menu::PROJECT_IMPORT_SLUG, '', Menu::CONTEXT_PROJECTS, Menu::projects_path() ],
-        [ 'manager', '', PostTypes::PROJECT, Menu::CONTEXT_PROJECTS, Menu::projects_path() ],
-        [ 'manager', '', PostTypes::SERVICE, Menu::CONTEXT_SERVICES, Menu::services_path() ],
-        [ 'manager', '', PostTypes::WORK_ITEM, Menu::CONTEXT_WORK_ITEMS, Menu::WORK_ITEMS_SLUG ],
+        [ 'manager', Menu::WORK_ITEMS_SLUG, '', Menu::CONTEXT_WORK_ITEMS, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::UNIFIED_WORKSPACE_SLUG, '', Menu::CONTEXT_UNIFIED_WORKSPACE, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::TIME_SLUG, '', Menu::CONTEXT_TIME, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::SERVICE_OPERATIONS_SLUG, '', Menu::CONTEXT_SERVICE_OPERATIONS, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::RECURRENCE_SLUG, '', Menu::CONTEXT_RECURRENCE, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::WORK_TYPES_SLUG, '', Menu::CONTEXT_WORK_TYPES, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::PROJECT_WORKSPACE_SLUG, '', Menu::CONTEXT_PROJECTS, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', Menu::PROJECT_IMPORT_SLUG, '', Menu::CONTEXT_PROJECTS, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', '', PostTypes::PROJECT, Menu::CONTEXT_PROJECTS, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', '', PostTypes::SERVICE, Menu::CONTEXT_SERVICES, Menu::UNIFIED_WORKSPACE_SLUG ],
+        [ 'manager', '', PostTypes::WORK_ITEM, Menu::CONTEXT_WORK_ITEMS, Menu::UNIFIED_WORKSPACE_SLUG ],
         [ 'tracker', Menu::TOP_LEVEL_SLUG, '', Menu::CONTEXT_TIME, Menu::TOP_LEVEL_SLUG ],
         [ 'tracker', Menu::UNIFIED_WORKSPACE_SLUG, '', '', 'index.php' ],
         [ 'tracker', Menu::TIME_SLUG, '', Menu::CONTEXT_TIME, Menu::TOP_LEVEL_SLUG ],

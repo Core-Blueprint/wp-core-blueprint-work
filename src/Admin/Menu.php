@@ -47,20 +47,24 @@ final class Menu {
 
 		if ( $can_manage ) {
 			add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 'dashicons-clipboard', 26.5 );
+			// Managers have two primary entry points: Overview and Work.
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Overview', 'core-blueprint-work' ), __( 'Overview', 'core-blueprint-work' ), Capabilities::MANAGE, self::TOP_LEVEL_SLUG, [ Overview::class, 'render' ], 5 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 10 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 15 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 20 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Service Operations', 'core-blueprint-work' ), __( 'Service Operations', 'core-blueprint-work' ), Capabilities::MANAGE, self::SERVICE_OPERATIONS_SLUG, [ ServiceOperations::class, 'render' ], 25 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 30 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 35 );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 40 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class, 'render' ], 10 );
+
+			// Contextual routes must remain registered and permission checked:
+			// advanced Gutenberg, Time and Service Operations are not yet at
+			// parity with the M3 Workspace. Their submenu entries are hidden.
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Projects', 'core-blueprint-work' ), __( 'Projects', 'core-blueprint-work' ), Capabilities::MANAGE, self::projects_path(), '', 20 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Items', 'core-blueprint-work' ), __( 'Work Items', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_ITEMS_SLUG, [ Operations::class, 'render_work_items' ], 25 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::MANAGE, self::TIME_SLUG, [ Time::class, 'render' ], 30 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Service Operations', 'core-blueprint-work' ), __( 'Service Operations', 'core-blueprint-work' ), Capabilities::MANAGE, self::SERVICE_OPERATIONS_SLUG, [ ServiceOperations::class, 'render' ], 35 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Recurring Work', 'core-blueprint-work' ), __( 'Recurring Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::RECURRENCE_SLUG, [ Recurrence::class, 'render' ], 40 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Services', 'core-blueprint-work' ), __( 'Services', 'core-blueprint-work' ), Capabilities::MANAGE, self::services_path(), '', 45 );
+			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work Types', 'core-blueprint-work' ), __( 'Work Types', 'core-blueprint-work' ), Capabilities::MANAGE, self::WORK_TYPES_SLUG, [ Operations::class, 'render_work_types' ], 50 );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Project Workspace', 'core-blueprint-work' ), __( 'Project Workspace', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_WORKSPACE_SLUG, [ ProjectWorkspace::class, 'render' ] );
 			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Import Work Project', 'core-blueprint-work' ), __( 'Import Work Project', 'core-blueprint-work' ), Capabilities::MANAGE, self::PROJECT_IMPORT_SLUG, [ ProjectDataExchange::class, 'render_import' ] );
-			add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::MANAGE, self::UNIFIED_WORKSPACE_SLUG, [ UnifiedWorkspace::class, 'render' ] );
 			return;
 		}
-
 		add_menu_page( __( 'Work', 'core-blueprint-work' ), __( 'Work', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 'dashicons-clipboard', 26.5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TOP_LEVEL_SLUG, [ Time::class, 'render' ], 5 );
 		add_submenu_page( self::TOP_LEVEL_SLUG, __( 'Time', 'core-blueprint-work' ), __( 'Time', 'core-blueprint-work' ), Capabilities::TRACK_TIME, self::TIME_SLUG, [ Time::class, 'render' ] );
@@ -75,7 +79,13 @@ final class Menu {
 		if ( current_user_can( Capabilities::MANAGE ) ) {
 			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_WORKSPACE_SLUG );
 			remove_submenu_page( self::TOP_LEVEL_SLUG, self::PROJECT_IMPORT_SLUG );
-			remove_submenu_page( self::TOP_LEVEL_SLUG, self::UNIFIED_WORKSPACE_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::projects_path() );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::WORK_ITEMS_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::TIME_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::SERVICE_OPERATIONS_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::RECURRENCE_SLUG );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::services_path() );
+			remove_submenu_page( self::TOP_LEVEL_SLUG, self::WORK_TYPES_SLUG );
 			return;
 		}
 
@@ -201,14 +211,14 @@ final class Menu {
 	private static function submenu_slug( string $context ): string {
 		return match ( $context ) {
 			self::CONTEXT_OVERVIEW   => self::TOP_LEVEL_SLUG,
-			self::CONTEXT_WORK_ITEMS => self::WORK_ITEMS_SLUG,
-			self::CONTEXT_UNIFIED_WORKSPACE => self::WORK_ITEMS_SLUG,
-			self::CONTEXT_RECURRENCE => self::RECURRENCE_SLUG,
-			self::CONTEXT_SERVICE_OPERATIONS => self::SERVICE_OPERATIONS_SLUG,
-			self::CONTEXT_TIME       => current_user_can( Capabilities::MANAGE ) ? self::TIME_SLUG : self::TOP_LEVEL_SLUG,
-			self::CONTEXT_PROJECTS   => self::projects_path(),
-			self::CONTEXT_SERVICES   => self::services_path(),
-			self::CONTEXT_WORK_TYPES => self::WORK_TYPES_SLUG,
+			self::CONTEXT_WORK_ITEMS => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_UNIFIED_WORKSPACE => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_RECURRENCE => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_SERVICE_OPERATIONS => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_TIME       => current_user_can( Capabilities::MANAGE ) ? self::UNIFIED_WORKSPACE_SLUG : self::TOP_LEVEL_SLUG,
+			self::CONTEXT_PROJECTS   => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_SERVICES   => self::UNIFIED_WORKSPACE_SLUG,
+			self::CONTEXT_WORK_TYPES => self::UNIFIED_WORKSPACE_SLUG,
 			default                  => '',
 		};
 	}

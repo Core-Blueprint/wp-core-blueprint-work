@@ -222,7 +222,7 @@
 	font-weight: 600;
 }
 
-.cb-work-unified .cb-work-uwe__legacy-link {
+.cb-work-unified .cb-work-uwe__related {
 	margin-inline-start: auto;
 }
 
@@ -254,7 +254,7 @@
 
 
 @media screen and (max-width: 782px) {
-	.cb-work-unified .cb-work-uwe__legacy-link {
+	.cb-work-unified .cb-work-uwe__related {
 		margin-inline-start: 0;
 	}
 }
@@ -308,7 +308,23 @@
 		flex: 0 0 auto;
 		min-height: 44px;
 	}
-	.cb-work-unified .cb-work-uwe__legacy-link {
+	.cb-work-unified .cb-work-uwe__related {
+		flex: 0 0 auto;
+	}
+}
+
+/* M4 preview: contextual Time/Recurring/Service Operations actions remain
+   available within Work until their M3 in-place experiences are complete. */
+.cb-work-unified .cb-work-uwe__related {
+	display: inline-flex;
+	gap: var(--cb-space-2, 8px);
+	align-items: center;
+}
+.cb-work-unified .cb-work-uwe__related .button {
+	white-space: nowrap;
+}
+@media screen and (max-width: 782px) {
+	.cb-work-unified .cb-work-uwe__related {
 		flex: 0 0 auto;
 	}
 }

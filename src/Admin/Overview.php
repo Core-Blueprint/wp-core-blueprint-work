@@ -205,6 +205,6 @@ final class Overview {
 
 	/** @param array<string,string|int> $args */
 	private static function work_items_url( array $args = [] ): string {
-		return add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, ...$args ], admin_url( 'admin.php' ) );
+		return add_query_arg( [ 'page' => Menu::UNIFIED_WORKSPACE_SLUG, 'section' => 'work-items', ...$args ], admin_url( 'admin.php' ) );
 	}
 }

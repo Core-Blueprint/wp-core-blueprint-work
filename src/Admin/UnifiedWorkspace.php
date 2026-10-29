@@ -107,7 +107,11 @@ final class UnifiedWorkspace {
 									<?php if ( $view_id === $preferred_view ) : ?>aria-current="page"<?php endif; ?>
 								><?php echo esc_html( $view_label ); ?></a>
 							<?php endforeach; ?>
-							<a class="button cb-work-uwe__legacy-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Menu::WORK_ITEMS_SLUG ) ); ?>"><?php esc_html_e( 'Open Work Items', 'core-blueprint-work' ); ?></a>
+							<span class="cb-work-uwe__related" aria-label="<?php esc_attr_e( 'Work', 'core-blueprint-work' ); ?>">
+								<a class="button" href="<?php echo esc_url( Menu::time_url() ); ?>"><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></a>
+								<a class="button" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::SERVICE_OPERATIONS_SLUG ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Service Operations', 'core-blueprint-work' ); ?></a>
+								<a class="button" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?></a>
+							</span>
 						</nav>
 					<?php endif; ?>
 					<div class="cb-work-uwe__heading-row"><h2 data-cb-work-uwe-heading><?php echo esc_html( $section['label'] ); ?></h2><?php if ( in_array( $key, [ 'work-items', 'projects', 'services' ], true ) ) : ?><button type="button" class="button button-primary" data-cb-work-m2-add="<?php echo esc_attr( 'work-items' === $key ? 'work-item' : ( 'projects' === $key ? 'project' : 'service' ) ); ?>"><?php echo esc_html( 'work-items' === $key ? __( 'Add Work Item', 'core-blueprint-work' ) : ( 'projects' === $key ? __( 'Add Project', 'core-blueprint-work' ) : __( 'Add Service', 'core-blueprint-work' ) ) ); ?></button><?php endif; ?><?php if ( 'work-items' === $key ) : ?><button type="button" class="button" data-cb-work-m2-types><?php esc_html_e( 'Work Types', 'core-blueprint-work' ); ?></button><?php endif; ?></div>
