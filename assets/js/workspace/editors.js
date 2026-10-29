@@ -188,6 +188,11 @@ export function mountUnifiedEditors(root, browser, refresh) {
 		}
 		opening = false;
 		const { body, form, message } = buildEditor(document, root, data);
+		const owner = root.querySelector('[data-cb-work-uwe-panel="' + (entity === 'project' ? 'projects' : 'work-items') + '"]');
+		if (owner?.id) {
+			body.setAttribute('data-cb-work-uwe-modal', '');
+			body.dataset.cbWorkUweOwner = owner.id;
+		}
 		const noun = entity === 'project'
 			? (root.dataset.cbWorkM2Project || 'Project')
 			: (root.dataset.cbWorkM2WorkItem || 'Work Item');
@@ -207,6 +212,13 @@ export function mountUnifiedEditors(root, browser, refresh) {
 					});
 					return true;
 				} catch (error) {
+					if (error.status === 401 || error.status === 403) {
+						const text = root.dataset.cbWorkM2Denied || 'Your session no longer permits this edit. Close the editor.';
+						body.replaceChildren(message);
+						message.textContent = text;
+						message.hidden = false;
+						return false;
+					}
 					message.textContent = error.status === 409
 						? (root.dataset.cbWorkM2Stale || 'The record changed. Close and reopen it.')
 						: (root.dataset.cbWorkM2Error || 'Could not save. Review the fields and try again.');
@@ -249,6 +261,11 @@ export function mountUnifiedEditors(root, browser, refresh) {
 		opening = false;
 		const body = document.createElement('div');
 		body.className = 'cb-work-m2 cb-work-m2--types';
+		const owner = root.querySelector('[data-cb-work-uwe-panel="work-items"]');
+		if (owner?.id) {
+			body.setAttribute('data-cb-work-uwe-modal', '');
+			body.dataset.cbWorkUweOwner = owner.id;
+		}
 		const intro = document.createElement('p');
 		intro.className = 'description';
 		intro.textContent = root.dataset.cbWorkM2TypesHelp || '';
