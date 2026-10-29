@@ -92,9 +92,12 @@ final class UnifiedWorkspace {
 							'calendar' => __( 'Calendar', 'core-blueprint-work' ),
 						];
 						$preferred_view = WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() );
+						$preferred_order = WorkItemViewPreferences::get( get_current_user_id() )['order'];
 						?>
 						<nav class="cb-work-uwe__view-switcher" data-cb-work-uwe-view-switcher data-cb-work-uwe-default-view="<?php echo esc_attr( $preferred_view ); ?>" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
-							<?php foreach ( $canonical_views as $view_id => $view_label ) : ?>
+							<?php foreach ( $preferred_order as $view_id ) : ?>
+								<?php if ( ! isset( $canonical_views[ $view_id ] ) ) { continue; } ?>
+								<?php $view_label = $canonical_views[ $view_id ]; ?>
 								<a
 									class="cb-work-uwe__view-link<?php echo $view_id === $preferred_view ? ' is-active' : ''; ?>"
 									href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'view' => $view_id ], admin_url( 'admin.php' ) ) ); ?>"

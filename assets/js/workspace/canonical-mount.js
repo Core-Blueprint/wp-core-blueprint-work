@@ -187,6 +187,18 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		navigate(view);
 	});
 
+	function syncPreferredOrder(canonical) {
+		const inner = canonical.querySelector('.cb-work-view-switcher');
+		const legacy = switcher.querySelector('.cb-work-uwe__legacy-link');
+		if (!inner || !legacy) return;
+		const links = new Map([...switcher.querySelectorAll('[data-cb-work-uwe-view]')].map((link) => [link.dataset.cbWorkUweView, link]));
+		for (const option of inner.querySelectorAll('a.cb-work-view-switcher__option')) {
+			const view = new URL(option.href, browser.location.href).searchParams.get('view');
+			const link = links.get(view);
+			if (link) switcher.insertBefore(link, legacy);
+		}
+	}
+
 	function markActive(view) {
 		switcher.querySelectorAll('[data-cb-work-uwe-view]').forEach((link) => {
 			const selected = link.dataset.cbWorkUweView === view;
@@ -252,6 +264,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			if (canonical.querySelector('script, iframe, object, embed')) {
 				throw new TypeError('Unexpected active content in canonical Work Items HTML');
 			}
+			syncPreferredOrder(canonical);
 			const inserted = document.importNode(canonical, true);
 			const outgoing = destination.firstElementChild;
 			const activeInput = document.activeElement;

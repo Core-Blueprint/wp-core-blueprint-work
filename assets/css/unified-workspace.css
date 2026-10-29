@@ -263,3 +263,12 @@
 .cb-work-unified .cb-work-uwe__canonical-view .cb-work-view-preferences__trigger {
 	display: inline-flex;
 }
+
+/* Keep only one visible view switcher; expose the existing Base preferences button. */
+.cb-work-unified .cb-work-uwe__canonical-view .cb-work-view-switcher-shell {
+	display: flex;
+	justify-content: flex-end;
+}
+.cb-work-unified .cb-work-uwe__canonical-view .cb-work-view-switcher {
+	display: none;
+}

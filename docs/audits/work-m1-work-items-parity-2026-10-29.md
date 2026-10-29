@@ -67,3 +67,5 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Enqueue the original Work view preference module on the Unified Workspace only alongside the already accepted Base Modal/Reorder module dependencies.
 - Continue hiding Quick Edit, bulk-action and other mutation forms pending the guarded mutation parity slice. No change to Operations.php, domain, schema, or other products.
 - Targeted preference source/runtime checks have been added to Level 1. FULL Golden and WordPress FIELD remain deferred until full M1 acceptance.
+
+- User-configured view order is now rendered by the outer Workspace switcher from the canonical existing preference store, and synchronized from canonical HTML after subsequent preference saves. The inner native view navigation stays hidden while its existing preferences button becomes available.

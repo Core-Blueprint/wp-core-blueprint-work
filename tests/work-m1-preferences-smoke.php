@@ -9,6 +9,7 @@ $assets = (string) file_get_contents( $root . '/src/Admin/Assets.php' );
 $css = (string) file_get_contents( $root . '/assets/css/unified-workspace.css' );
 $operations = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
 $check = (string) file_get_contents( $root . '/tools/check' );
+$shell = (string) file_get_contents( $root . '/src/Admin/UnifiedWorkspace.php' );
 
 $checks = [
 	'Exact protected G0/B1 Work Items HTML renderer remains unchanged' =>
@@ -44,6 +45,13 @@ $checks = [
 		str_contains( $css, '.cb-work-unified .cb-work-uwe__canonical-view form,' )
 		&& str_contains( $css, 'form.cb-work-items-filters {' )
 		&& str_contains( $css, '.cb-work-uwe__canonical-view .cb-work-view-preferences__trigger' ),
+	'User-selected view order controls the visible workspace switcher, not a second preference store' =>
+		str_contains( $shell, "WorkItemViewPreferences::get( get_current_user_id() )['order']" )
+		&& str_contains( $shell, 'foreach ( $preferred_order as $view_id )' )
+		&& str_contains( $mount, 'syncPreferredOrder(canonical);' )
+		&& str_contains( $mount, "canonical.querySelector('.cb-work-view-switcher')" )
+		&& str_contains( $css, '.cb-work-uwe__canonical-view .cb-work-view-switcher-shell' )
+		&& str_contains( $css, '.cb-work-uwe__canonical-view .cb-work-view-switcher {'),
 	'Behavioral tests connected to Work Level 1' =>
 		str_contains( $check, 'tests/work-m1-preferences-smoke.php' )
 		&& str_contains( $check, 'tests/work-m1-preference-lifecycle-runtime.mjs' ),
