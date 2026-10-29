@@ -259,17 +259,22 @@ function statusFromLane( lane, strings ) {
 		} );
 	}
 
-	function init() {
-		const page = document.querySelector( '.cb-work-items-page' );
+	function init( root = document ) {
+		const page = root?.matches?.( '.cb-work-items-page' )
+			? root : root?.querySelector?.( '.cb-work-items-page' );
 		const form = page ? page.querySelector( '.cb-work-items-filters' ) : null;
-		if ( ! page || ! form ) {
+		if ( ! page || ! form || page.dataset?.cbWorkRefinementInitialized === '1' ) {
 			return;
 		}
+		if ( page.dataset ) page.dataset.cbWorkRefinementInitialized = '1';
 		const strings = window.cbWorkAdminUx || {};
 		refineBoard( page, form, strings );
 		refineCalendar( page, form, strings );
 		initListProgressiveDisclosure( page );
 	}
 
+	document.addEventListener?.( 'cb-work:canonical-view-mounted', function ( event ) {
+		init( event.detail?.root );
+	} );
 	ready( init );
 }() );

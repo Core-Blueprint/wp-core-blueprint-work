@@ -101,6 +101,16 @@ const openDayModal = (trigger) => {
 	void pending;
 };
 
-document.querySelectorAll('[data-cb-work-calendar-day-open]').forEach((trigger) => {
-	trigger.addEventListener('click', () => openDayModal(trigger));
+const initCalendarTriggers = (root = document) => {
+	root?.querySelectorAll?.('[data-cb-work-calendar-day-open]').forEach((trigger) => {
+		if (trigger.dataset.cbWorkCalendarInitialized === '1') return;
+		trigger.dataset.cbWorkCalendarInitialized = '1';
+		trigger.addEventListener('click', () => openDayModal(trigger));
+	});
+};
+
+document.addEventListener?.('cb-work:canonical-view-mounted', (event) => {
+	initCalendarTriggers(event.detail?.root);
 });
+
+initCalendarTriggers(document);

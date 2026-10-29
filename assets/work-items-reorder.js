@@ -400,12 +400,15 @@ const persistBoardTransition = async (root, card, targetStatus) => {
 	return payload.data || {};
 };
 
+const boardControllers = new WeakMap();
+
 const enhanceStatusBoard = (root, options = {}) => {
 	const reloadAfterMove = options.reloadAfterMove !== false;
 	const reorder = window.cbCore?.reorder;
-	if (!reorder?.enhance) return;
+	if (!reorder?.enhance || root.dataset.cbWorkBoardInitialized === '1') return;
+	root.dataset.cbWorkBoardInitialized = '1';
 
-	reorder.enhance(root, {
+	const controller = reorder.enhance(root, {
 		crossList: true,
 
 		canMove(move) {
@@ -437,6 +440,8 @@ const enhanceStatusBoard = (root, options = {}) => {
 		},
 	});
 
+	if (controller?.destroy) boardControllers.set(root, controller);
+
 	root.addEventListener('cb:reorder:error', () => {
 		refreshBoardCounts(root);
 	});
@@ -448,7 +453,26 @@ const enhanceStatusBoard = (root, options = {}) => {
 	refreshBoardCounts(root);
 };
 
-document.querySelectorAll('[data-cb-work-board-reorder]').forEach((root) => enhanceStatusBoard(root));
+const initCanonicalBoards = (scope = document) => {
+	scope?.querySelectorAll?.('[data-cb-work-board-reorder]').forEach((root) => {
+		const inWorkspace = Boolean(root.closest('[data-cb-work-uwe-canonical]'));
+		enhanceStatusBoard(root, { reloadAfterMove: !inWorkspace });
+	});
+};
+
+document.addEventListener('cb-work:canonical-view-mounted', (event) => {
+	initCanonicalBoards(event.detail?.root);
+});
+
+document.addEventListener('cb-work:canonical-view-unmount', (event) => {
+	event.detail?.root?.querySelectorAll?.('[data-cb-work-board-reorder]').forEach((root) => {
+		boardControllers.get(root)?.destroy();
+		boardControllers.delete(root);
+		delete root.dataset.cbWorkBoardInitialized;
+	});
+});
+
+initCanonicalBoards(document);
 
 
 export { enhanceStatusBoard };

@@ -21,6 +21,21 @@ export function canonicalViewUrl(href, view) {
 	return url.pathname + url.search + url.hash;
 }
 
+/**
+ * Convert the existing Calendar month links to the persistent Work route.
+ * The native renderer still produces the original links for no-JS fallback.
+ */
+export function calendarMonthUrl(href, target) {
+	const current = new URL(href);
+	const requested = new URL(target, href);
+	const month = requested.searchParams.get('calendar_month');
+	if (requested.origin !== current.origin || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month ?? '')) return null;
+	current.searchParams.set('view', 'calendar');
+	current.searchParams.set('calendar_month', month);
+	current.searchParams.delete('uwe_page');
+	return current.pathname + current.search + current.hash;
+}
+
 export function canonicalViewParameters(href, action, nonce, fallback = 'table') {
 	const url = new URL(href);
 	const query = new URLSearchParams();
@@ -69,6 +84,16 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let current = null;
 	let serial = 0;
 	const document = panel.ownerDocument;
+	destination.addEventListener('click', (event) => {
+		const anchor = event.target?.closest?.('.cb-work-calendar-navigation__actions a');
+		if (!anchor || event.defaultPrevented || event.button !== 0
+			|| event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+		const url = calendarMonthUrl(browser.location.href, anchor.href);
+		if (!url) return;
+		event.preventDefault();
+		browser.history.pushState({ cbWorkUweCalendarMonth: true }, '', url);
+		void refresh();
+	});
 
 	function navigate(view) {
 		const url = canonicalViewUrl(browser.location.href, view);
@@ -153,8 +178,22 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			if (canonical.querySelector('script, iframe, object, embed')) {
 				throw new TypeError('Unexpected active content in canonical Work Items HTML');
 			}
-			destination.replaceChildren(document.importNode(canonical, true));
+			const inserted = document.importNode(canonical, true);
+			const outgoing = destination.firstElementChild;
+			if (outgoing && typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+				document.dispatchEvent(new CustomEvent('cb-work:canonical-view-unmount', {
+					detail: { root: outgoing },
+				}));
+			}
+			destination.replaceChildren(inserted);
 			destination.hidden = false;
+			// Modules own their existing handlers. Mount merely announces
+			// the exact imported fragment; it never duplicates interactions.
+			if (typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+				document.dispatchEvent(new CustomEvent('cb-work:canonical-view-mounted', {
+					detail: { root: inserted, view },
+				}));
+			}
 			if (oldHeading) oldHeading.hidden = true;
 			for (const node of fallback) {
 				if (node) node.hidden = true;

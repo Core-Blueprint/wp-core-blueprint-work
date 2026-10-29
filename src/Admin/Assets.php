@@ -114,7 +114,7 @@ final class Assets {
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
-			[],
+			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder' ],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
 	}
@@ -139,6 +139,13 @@ final class Assets {
 		}
 		self::enqueue_board_efficiency_style();
 		self::enqueue_toolbar_golden_style();
+		// Reuse the native Work modules, but mount their listeners only when a
+		// canonical view fragment is inserted. This screen never runs the
+		// native editor or submits hidden forms.
+		self::enqueue_script();
+		self::enqueue_refinement_assets();
+		self::enqueue_reorder_assets();
+		self::enqueue_calendar_assets();
 	}
 
 	/** Shared Base Toast Foundation on Work-owned admin screens only. */
