@@ -125,3 +125,18 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - **Shortcut parity:** keep the original vanilla-JS `/` focus-search fast path on native Work Items, but resolve the active canonical `.cb-work-items-page` dynamically so it works after AJAX mounts; do not steal focus while typing in an input or while Projects/Services is active. Enqueue the original fast-path asset via the existing Work asset helper; no second shortcut implementation.
 - Added a focused actual-module runtime test for detached form capture, nonce forwarding, 409/403 behavior, no premature modal refresh, native form isolation and shortcut lifecycle; a source contract protects the guarded routing and protected G0 renderer. Level 1 wiring updated.
 - **Status:** internal M1 source slice, not FIELD or full Golden acceptance. Continue comprehensive parity validation and audit.
+
+## Internal M1 parity — keyboard and responsive navigation (2026-10-29)
+
+- The Work Item Table/List/Board/Calendar switcher now supports ArrowLeft, ArrowRight, Home, and End. Navigation respects the user's **actual saved view order**, not the renderer's hardcoded default order, and restores keyboard focus to the selected view link. No second view-preferences store.
+- The canonical GET mount cancels a pending debounced search whenever a navigation/refetch starts, preventing an old Table search from overwriting a newly selected Board or Calendar view. The original native forms are unchanged.
+- Focus restoration recognizes a matching element ID in the newly imported canonical HTML, preserving keyboard context across filters/sorts/pagination; if the element no longer exists, focus falls back to the currently selected view tab. Board card-specific and search caret restoration remain intact.
+- On narrow viewports, the user-ordered view navigation becomes a horizontally scrollable single row with touch-size targets rather than stacked tab bands. Removed the obsolete visible `UWE-03C` developer label from the Work page. No generated images, no Base UI override.
+- Extended the existing canonical UWE runtime tests to exercise keyboard navigation and stale-search timer cancellation, and added source guards to the existing M1 filter contract. All full Golden, cross-product integration and WordPress FIELD acceptance remain **OPEN** until the M1 milestone is ready.
+
+## M1 filter-safe read recovery and acceptance evidence (2026-10-29)
+
+- Hardened transient-recovery parity: retained Work Items HTML is valid only when **both** the view and exact canonical server query (filters, sorting, calendar month and paging) match the successful prior GET. A new query that fails never masquerades stale data as the requested results.
+- If a new query or view cannot load, the JS app shows the existing accessible error/Retry state while hiding the initial, unfiltered SSR bootstrap list; that bootstrap remains available for genuine no-JS progressive enhancement. When access is revoked, the existing 401/403 purge remains authoritative.
+- Added focused runtime assertions for identical-query retention, differing-filter fallback and hidden stale SSR results. Updated read-recovery source regression accordingly; existing work-m1 tests remain in the full Level 1 gate.
+- Source-only audit and targeted pure-function runtime review are *not* equivalent to Level 1/2/3 or FIELD evidence. M1 remains IN DEVELOPMENT; complete execution and WordPress acceptance are still pending.

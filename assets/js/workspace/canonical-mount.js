@@ -10,6 +10,23 @@ import { createMutationAdapter } from './canonical-mutations.js';
 
 export const CANONICAL_VIEWS = Object.freeze(['table', 'list', 'kanban', 'calendar']);
 
+/**
+ * Keyboard navigation uses each user's actual saved view order, rather
+ * than the fixed Table/List/Board/Calendar source declaration.
+ */
+export function keyboardViewTarget(key, current, order = CANONICAL_VIEWS) {
+	const available = [...order].filter((view) => CANONICAL_VIEWS.includes(view));
+	if (!available.length) return null;
+	const position = Math.max(0, available.indexOf(current));
+	switch (key) {
+		case 'ArrowRight': return available[(position + 1) % available.length];
+		case 'ArrowLeft': return available[(position + available.length - 1) % available.length];
+		case 'Home': return available[0];
+		case 'End': return available[available.length - 1];
+		default: return null;
+	}
+}
+
 export function readCanonicalView(href, fallback = 'table') {
 	const requested = new URL(href).searchParams.get('view');
 	return CANONICAL_VIEWS.includes(requested) ? requested
@@ -103,9 +120,11 @@ export function syncAdvancedFilters(root, expanded) {
  * A last valid Work Items view is safe to retain only for transient failures
  * on that SAME view. Permission loss must never expose cached privileged HTML.
  */
-export function canonicalReadFailureMode(status, requestedView, renderedView, hasContent) {
+export function canonicalReadFailureMode(status, requestedView, renderedView, hasContent,
+	requestedQuery = null, renderedQuery = null) {
 	if (status === 401 || status === 403) return 'unauthorized';
-	return hasContent && renderedView === requestedView ? 'retain' : 'fallback';
+	const sameQuery = requestedQuery === null || requestedQuery === renderedQuery;
+	return hasContent && renderedView === requestedView && sameQuery ? 'retain' : 'fallback';
 }
 
 export function createCanonicalViewMount(panel, browser, notify) {
@@ -131,6 +150,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let current = null;
 	let serial = 0;
 	let renderedView = null;
+	let renderedQuery = null;
 	let authorizationDenied = false;
 	const document = panel.ownerDocument;
 	const mutationAdapter = createMutationAdapter(destination, panel, browser, () => refresh());
@@ -261,6 +281,21 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		navigate(view);
 	});
 
+	switcher.addEventListener('keydown', (event) => {
+		if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+		const link = event.target?.closest?.('[data-cb-work-uwe-view]');
+		if (!link || !switcher.contains(link)) return;
+		const views = [...switcher.querySelectorAll('[data-cb-work-uwe-view]')];
+		const nextView = keyboardViewTarget(
+			event.key, link.dataset.cbWorkUweView, views.map((item) => item.dataset.cbWorkUweView)
+		);
+		if (!nextView) return;
+		event.preventDefault();
+		const target = views.find((item) => item.dataset.cbWorkUweView === nextView);
+		target?.focus?.({ preventScroll: true });
+		navigate(nextView);
+	});
+
 	function syncPreferredOrder(canonical) {
 		const inner = canonical.querySelector('.cb-work-view-switcher');
 		const legacy = switcher.querySelector('.cb-work-uwe__legacy-link');
@@ -294,6 +329,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	function clearUnauthorized() {
 		authorizationDenied = true;
 		renderedView = null;
+		renderedQuery = null;
 		mutationAdapter?.disable();
 		const outgoing = destination.firstElementChild;
 		if (outgoing && typeof document.dispatchEvent === 'function'
@@ -308,6 +344,10 @@ export function createCanonicalViewMount(panel, browser, notify) {
 
 	async function refresh(href = browser.location.href) {
 		statusSync.cancel();
+		// A delayed search from the previous view may not overwrite a new
+		// navigation (including Back/Forward and Calendar month changes).
+		if (searchTimer !== null) browser.clearTimeout(searchTimer);
+		searchTimer = null;
 		serial += 1;
 		const ticket = serial;
 		if (current) current.abort();
@@ -317,7 +357,9 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		mutationAdapter?.disable();
 		markActive(view);
 		const url = new URL(endpoint, href);
-		for (const [key, value] of canonicalViewParameters(href, action, nonce, fallbackView)) {
+		const parameters = canonicalViewParameters(href, action, nonce, fallbackView);
+		const requestQuery = parameters.toString();
+		for (const [key, value] of parameters) {
 			url.searchParams.set(key, value);
 		}
 		if (error) error.hidden = true;
@@ -369,6 +411,9 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			const activeInput = document.activeElement;
 			const focusedField = activeInput?.closest?.('form.cb-work-items-filters')
 				&& outgoing?.contains?.(activeInput) && activeInput.name ? activeInput.name : null;
+			const focusedId = outgoing?.contains?.(activeInput)
+				? String(activeInput?.id || '') : '';
+			const wasFocusedInside = Boolean(outgoing?.contains?.(activeInput));
 			const focusedCardId = !focusedField && outgoing?.contains?.(activeInput)
 				? activeInput?.closest?.('[data-cb-core-reorder-item]')?.dataset?.cbCoreReorderItem : null;
 			const cursor = focusedField === 's' && Number.isInteger(activeInput.selectionStart)
@@ -382,6 +427,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			destination.hidden = false;
 			authorizationDenied = false;
 			renderedView = view;
+			renderedQuery = requestQuery;
 			// Modules own their existing handlers. Mount merely announces
 			// the exact imported fragment; it never duplicates interactions.
 			if (typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
@@ -399,7 +445,16 @@ export function createCanonicalViewMount(panel, browser, notify) {
 					}
 				}
 			}
-			if (focusedCardId) {
+			let didRestoreFocus = false;
+			if (focusedId) {
+				const savedControl = [...inserted.querySelectorAll('[id]')]
+					.find((node) => node.id === focusedId);
+				if (typeof savedControl?.focus === 'function') {
+					savedControl.focus({ preventScroll: true });
+					didRestoreFocus = true;
+				}
+			}
+			if (focusedCardId && !didRestoreFocus) {
 				const card = [...inserted.querySelectorAll('[data-cb-core-reorder-item]')]
 					.find((item) => item.dataset.cbCoreReorderItem === focusedCardId);
 				const focusTarget = card?.querySelector('a, button, [tabindex]') || card;
@@ -409,6 +464,9 @@ export function createCanonicalViewMount(panel, browser, notify) {
 					switcher.querySelector('.is-active')?.focus?.({ preventScroll: true });
 				}
 			}
+			if (wasFocusedInside && !focusedField && !didRestoreFocus && !focusedCardId) {
+				switcher.querySelector('.is-active')?.focus?.({ preventScroll: true });
+			}
 			if (oldHeading) oldHeading.hidden = true;
 			for (const node of fallback) {
 				if (node) node.hidden = true;
@@ -417,7 +475,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			if (ticket !== serial || controller.signal.aborted || failure?.name === 'AbortError') return;
 			const mode = canonicalReadFailureMode(
 				failure?.status, view, renderedView,
-				!destination.hidden && Boolean(destination.firstElementChild)
+				!destination.hidden && Boolean(destination.firstElementChild),
+				requestQuery, renderedQuery
 			);
 			if (mode === 'unauthorized') {
 				clearUnauthorized();
@@ -428,6 +487,12 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				destination.hidden = false;
 			} else {
 				showFallback();
+				// The server SSR bootstrap is not guaranteed to reflect the
+				// requested view/filter/page. With JavaScript active, never
+				// misrepresent that unfiltered preview as fresh results.
+				for (const node of fallback) {
+					if (node) node.hidden = true;
+				}
 			}
 			if (error) error.hidden = false;
 		} finally {

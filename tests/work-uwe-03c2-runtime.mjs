@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
 	CANONICAL_VIEWS, readCanonicalView, canonicalViewUrl,
-	canonicalViewParameters, createCanonicalViewMount, canonicalReadFailureMode,
+	canonicalViewParameters, createCanonicalViewMount, canonicalReadFailureMode, keyboardViewTarget,
 } from '../assets/js/workspace/canonical-mount.js';
 
 const base = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-workspace';
@@ -12,6 +12,14 @@ assert.equal(canonicalReadFailureMode(503, 'calendar', 'table', true), 'fallback
 assert.equal(canonicalReadFailureMode(503, 'calendar', 'calendar', false), 'fallback');
 assert.equal(canonicalReadFailureMode(401, 'table', 'table', true), 'unauthorized');
 assert.equal(canonicalReadFailureMode(403, 'calendar', 'calendar', true), 'unauthorized');
+assert.equal(canonicalReadFailureMode(503, 'table', 'table', true, 'view=table&search=a', 'view=table&search=a'), 'retain');
+assert.equal(canonicalReadFailureMode(503, 'table', 'table', true, 'view=table&search=b', 'view=table&search=a'), 'fallback');
+const customOrder = ['kanban', 'calendar', 'table', 'list'];
+assert.equal(keyboardViewTarget('ArrowRight', 'kanban', customOrder), 'calendar');
+assert.equal(keyboardViewTarget('ArrowLeft', 'kanban', customOrder), 'list');
+assert.equal(keyboardViewTarget('Home', 'list', customOrder), 'kanban');
+assert.equal(keyboardViewTarget('End', 'calendar', customOrder), 'list');
+assert.equal(keyboardViewTarget(' ', 'table', customOrder), null);
 assert.equal(readCanonicalView(base), 'table');
 assert.equal(readCanonicalView(base + '&view=invalid', 'kanban'), 'kanban');
 assert.equal(readCanonicalView(base + '&view=calendar'), 'calendar');
@@ -61,10 +69,12 @@ globalThis.DOMParser = class {
 		} };
 	}
 };
-let onClick;
+let onClick, onKeydown;
+let focusedView = null;
 const viewLinks = Object.fromEntries(CANONICAL_VIEWS.map((view) => {
 	const link = element();
 	link.dataset.cbWorkUweView = view;
+	link.focus = () => { focusedView = view; };
 	return [view, link];
 }));
 const switcher = element();
@@ -73,7 +83,12 @@ switcher.querySelectorAll = () => Object.values(viewLinks);
 switcher.querySelector = () => ({
 	textContent: 'Table',
 });
-switcher.addEventListener = (name, handler) => { assert.equal(name, 'click'); onClick = handler; };
+switcher.contains = (target) => Object.values(viewLinks).includes(target);
+switcher.addEventListener = (name, handler) => {
+	if (name === 'click') onClick = handler;
+	else if (name === 'keydown') onKeydown = handler;
+	else assert.fail('Unexpected view navigation listener ' + name);
+};
 const destination = element(true);
 destination.replaceChildren = (...nodes) => { destination.children = nodes; destination.firstElementChild = nodes[0] ?? null; };
 const heading = element(false);
@@ -101,8 +116,12 @@ panel.ownerDocument = { importNode: (node, deep) => {
 	assert.equal(deep, true);
 	return node;
 } };
+const queuedSearch = new Map();
+let nextTimer = 0;
 const browser = {
 	location: { href: base },
+	setTimeout(fn) { const id = ++nextTimer; queuedSearch.set(id, fn); return id; },
+	clearTimeout(id) { queuedSearch.delete(id); },
 	history: { pushState(_state, _title, target) { browser.location.href = new URL(target, base).href; } },
 	fetch: async (url, options) => {
 		browser.lastRequest = { url, options };
@@ -126,6 +145,11 @@ assert.equal(list.hidden, true);
 assert.equal(feedback.hidden, true);
 assert.equal(panel.attributes.has('aria-busy'), false);
 
+// A debounced search from Table cannot override a subsequent view switch.
+destination.listeners.input({ target: {
+	name: 's', closest: () => ({ method: 'get' }),
+} });
+assert.equal(queuedSearch.size, 1);
 let prevented = false;
 onClick({
 	target: { closest: () => viewLinks.calendar },
@@ -135,6 +159,7 @@ onClick({
 	preventDefault() { prevented = true; },
 });
 assert.equal(prevented, true);
+assert.equal(queuedSearch.size, 0, 'Pending search must be cancelled by a view switch');
 assert.equal(navigations, 1);
 assert.equal(new URL(browser.location.href).searchParams.get('view'), 'calendar');
 await Promise.resolve();
@@ -142,6 +167,30 @@ await Promise.resolve();
 await Promise.resolve();
 assert.equal(new URL(browser.lastRequest.url).searchParams.get('view'), 'calendar');
 assert.equal(viewLinks.calendar.attributes.get('aria-current'), 'page');
+
+// Arrow navigation follows the rendered view order and is fully operable
+// without a pointer; the chosen view receives native keyboard focus.
+let keyboardPrevented = false;
+onKeydown({
+	target: { closest: () => viewLinks.calendar },
+	key: 'ArrowRight', defaultPrevented: false,
+	ctrlKey: false, metaKey: false, shiftKey: false, altKey: false,
+	preventDefault() { keyboardPrevented = true; },
+});
+assert.equal(keyboardPrevented, true);
+assert.equal(focusedView, 'table');
+assert.equal(new URL(browser.location.href).searchParams.get('view'), 'table');
+await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+assert.equal(new URL(browser.lastRequest.url).searchParams.get('view'), 'table');
+onKeydown({
+	target: { closest: () => viewLinks.table },
+	key: 'ArrowLeft', defaultPrevented: false,
+	ctrlKey: false, metaKey: false, shiftKey: false, altKey: false,
+	preventDefault() {},
+});
+await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+assert.equal(new URL(browser.location.href).searchParams.get('view'), 'calendar');
+assert.equal(new URL(browser.lastRequest.url).searchParams.get('view'), 'calendar');
 
 // A temporary same-view failure must preserve the last valid canonical DOM,
 // with an alert. It must NOT expose the older REST SSR fallback instead.
@@ -184,6 +233,15 @@ assert.equal(destination.firstElementChild, canonical);
 assert.equal(error.hidden, true);
 assert.equal(heading.hidden, true);
 
+// A changed filter must not re-display previous results after a network
+// outage, even when the selected view (Calendar) is unchanged.
+browser.location.href = base + '&view=calendar&search=another-project';
+browser.fetch = async () => { throw new Error('filtered view unavailable'); };
+await mount.refresh();
+assert.equal(destination.hidden, true);
+assert.equal(list.hidden, true);
+assert.equal(error.hidden, false);
+
 // When a different view fails, do not represent the previous view as new
 // results. The user gets the existing fallback and a retry alert.
 browser.location.href = base + '&view=list';
@@ -191,7 +249,7 @@ browser.fetch = async () => { throw new Error('different view offline'); };
 await mount.refresh();
 assert.equal(destination.hidden, true);
 assert.equal(heading.hidden, false);
-assert.equal(list.hidden, false);
+assert.equal(list.hidden, true, 'Do not substitute stale unfiltered SSR results for a failed view');
 assert.equal(error.hidden, false);
 assert.equal(panel.attributes.has('aria-busy'), false);
 mount.abort();

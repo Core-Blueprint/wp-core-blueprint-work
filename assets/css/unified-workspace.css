@@ -294,3 +294,21 @@
 .cb-work-unified [data-cb-work-uwe-mutation-status] {
 	margin: 0 0 var(--cb-space-4, 16px);
 }
+
+/* M1 keyboard/touch parity: keep user-ordered view navigation on one
+   scrollable row at narrow widths instead of breaking it into many bands. */
+@media screen and (max-width: 782px) {
+	.cb-work-unified .cb-work-uwe__view-switcher {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		overscroll-behavior-inline: contain;
+		scrollbar-width: thin;
+	}
+	.cb-work-unified .cb-work-uwe__view-link {
+		flex: 0 0 auto;
+		min-height: 44px;
+	}
+	.cb-work-unified .cb-work-uwe__legacy-link {
+		flex: 0 0 auto;
+	}
+}

@@ -49,7 +49,6 @@ final class UnifiedWorkspace {
 			<header class="cb-work-uwe__header">
 				<div>
 					<h1><?php esc_html_e( 'Work', 'core-blueprint-work' ); ?></h1>
-					<p class="description">UWE-03C</p>
 				</div>
 			</header>
 			<nav class="cb-work-uwe__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Work', 'core-blueprint-work' ); ?>">

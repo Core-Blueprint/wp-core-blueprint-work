@@ -6,6 +6,7 @@ $router = (string) file_get_contents( $root . '/assets/js/workspace/canonical-fi
 $mount = (string) file_get_contents( $root . '/assets/js/workspace/canonical-mount.js' );
 $style = (string) file_get_contents( $root . '/assets/css/unified-workspace.css' );
 $assets = (string) file_get_contents( $root . '/src/Admin/Assets.php' );
+$shell = (string) file_get_contents( $root . '/src/Admin/UnifiedWorkspace.php' );
 $canonical = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
 $check = (string) file_get_contents( $root . '/tools/check' );
 
@@ -45,6 +46,17 @@ $rules = [
 		&& str_contains( $mount, "if (event.key !== 'Escape') return;" )
 		&& str_contains( $mount, "toggle?.focus?.({ preventScroll: true });" )
 		&& str_contains( $mount, "advanced.querySelector('input, select, button" ),
+	'view keyboard navigation follows user preferences and cancels stale search' =>
+		str_contains( $mount, 'export function keyboardViewTarget(' )
+		&& str_contains( $mount, "switcher.addEventListener('keydown'" )
+		&& str_contains( $mount, 'views.map((item) => item.dataset.cbWorkUweView)' )
+		&& str_contains( $mount, "target?.focus?.({ preventScroll: true });" )
+		&& str_contains( $mount, 'navigate(nextView);' )
+		&& str_contains( $mount, 'if (searchTimer !== null) browser.clearTimeout(searchTimer);' )
+		&& str_contains( $mount, 'const focusedId = outgoing?.contains?.(activeInput)' )
+		&& str_contains( $mount, "inserted.querySelectorAll('[id]')" )
+		&& str_contains( $style, 'scrollbar-width: thin;' )
+		&& ! str_contains( $shell, '<p class="description">UWE-03C</p>' ),
 	'new runtime behavioral test is wired into canonical Level 1' =>
 		str_contains( $check, 'work-m1-filter-contract-smoke.php' )
 		&& str_contains( $check, 'work-m1-canonical-filters-runtime.mjs' ),

@@ -15,10 +15,17 @@ $checks = [
 			=== sha1( 'blob ' . strlen( $operations ) . "\0" . $operations ),
 	'Transient same-view errors retain the last canonical view only' =>
 		str_contains( $mount, 'export function canonicalReadFailureMode(' )
-		&& str_contains( $mount, "renderedView === requestedView ? 'retain' : 'fallback'" )
+		&& str_contains( $mount, 'renderedView === requestedView && sameQuery' )
+		&& str_contains( $mount, 'requestedQuery === renderedQuery' )
+		&& str_contains( $mount, 'const requestQuery = parameters.toString();' )
+		&& str_contains( $mount, 'renderedQuery = requestQuery;' )
 		&& str_contains( $mount, "mode === 'retain'" )
 		&& str_contains( $mount, "destination.hidden = false;" )
 		&& str_contains( $mount, "mutationAdapter?.disable();" ),
+	'Failed navigation or different filters do not expose unrelated SSR bootstrap records' =>
+		str_contains( $mount, "const sameQuery = requestedQuery === null || requestedQuery === renderedQuery;" )
+		&& str_contains( $mount, 'for (const node of fallback) {' )
+		&& str_contains( $mount, 'if (node) node.hidden = true;' ),
 	'401/403 removes private HTML, suppresses SSR fallback and dispatches unmount' =>
 		str_contains( $mount, "status === 401 || status === 403" )
 		&& str_contains( $mount, "mode === 'unauthorized'" )
