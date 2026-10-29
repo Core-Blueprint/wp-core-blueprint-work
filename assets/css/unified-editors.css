@@ -63,3 +63,31 @@
 		grid-template-columns: minmax(0, 1fr);
 	}
 }
+
+.cb-work-m2__type-list {
+	display: grid;
+	gap: .5rem;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+.cb-work-m2__type-list > li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	padding: .6rem .75rem;
+	border: 1px solid var(--cb-border, #c3c4c7);
+	border-radius: 5px;
+}
+.cb-work-m2--types {
+	display: grid;
+	gap: 1rem;
+}
+.cb-work-m2--types .description {
+	margin: 0;
+}
+.cb-work-m2--types .cb-work-m2__form {
+	border-top: 1px solid var(--cb-border, #c3c4c7);
+	padding-top: 1rem;
+}
