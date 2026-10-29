@@ -49,7 +49,8 @@ $checks = [
 		str_contains( $refine, 'initListProgressiveDisclosure( page );' )
 		&& str_contains( $refine, 'refineBoard( page, form, strings );' )
 		&& str_contains( $refine, "cb-work:canonical-view-mounted" )
-		&& str_contains( $refine, "page.dataset.cbWorkRefinementInitialized === '1'" )
+		&& str_contains( $refine, "page.dataset?.cbWorkRefinementInitialized === '1'" )
+		&& str_contains( $refine, "if ( page.dataset ) page.dataset.cbWorkRefinementInitialized = '1';" )
 		&& str_contains( $refine, 'ready( init );' ),
 	'Calendar prev/next month stays on the same WordPress workspace route' =>
 		str_contains( $mount, 'export function calendarMonthUrl(' )
