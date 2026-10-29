@@ -96,9 +96,14 @@ final class Assets {
 		$canonical = CB_WORK_DIR . 'assets/js/workspace/canonical-mount.js';
 		$canonical_filters = CB_WORK_DIR . 'assets/js/workspace/canonical-filters.js';
 		$canonical_mutations = CB_WORK_DIR . 'assets/js/workspace/canonical-mutations.js';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) ) {
+		$editors = CB_WORK_DIR . 'assets/js/workspace/editors.js';
+		$editor_style = CB_WORK_DIR . 'assets/css/unified-editors.css';
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) || ! is_file( $editors ) || ! is_file( $editor_style ) ) {
 			return;
 		}
+
+		$editor_modified = filemtime( $editor_style );
+		wp_enqueue_style( 'cb-work-unified-editors', CB_WORK_URL . 'assets/css/unified-editors.css', [ 'cb-work-unified-workspace' ], false === $editor_modified ? CB_WORK_VERSION : (string) $editor_modified );
 
 		// UWE-03C.2 renders canonical markup inside the Workspace, without
 		// running the old DOMContentLoaded-only mutation scripts until 03C.3.
@@ -116,7 +121,7 @@ final class Assets {
 		wp_enqueue_script_module(
 			'@cb-work/unified-workspace',
 			CB_WORK_URL . 'assets/js/workspace/app.js',
-			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE ],
+			[ '@cb-work/work-calendar', '@cb-work/work-items-reorder', self::VIEW_PREFERENCES_SCRIPT_HANDLE, '@cb-core/modal' ],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
 	}

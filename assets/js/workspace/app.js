@@ -3,6 +3,7 @@ import { apiParameters, dataStateUrl, defaultDataState, readDataState } from './
 import { createDataClient } from './data-client.js';
 import { createCanonicalViewMount } from './canonical-mount.js';
 import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
+import { mountUnifiedEditors } from './editors.js';
 
 /**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.
@@ -58,12 +59,23 @@ export function mountWorkspace(root, browser = window) {
 		if (status) status.value = state.status;
 	}
 
-	function createRecord(record) {
+	function createRecord(record, section) {
 		const row = document.createElement('li');
 		row.className = 'cb-work-uwe__record';
 		const title = document.createElement('span');
 		title.className = 'cb-work-uwe__record-title';
 		title.textContent = String(record?.title ?? '');
+		if (section === 'projects' && Number(record?.id) > 0) {
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'cb-work-uwe__record-title--button';
+			button.dataset.cbWorkM2Edit = 'project';
+			button.dataset.cbWorkM2Id = String(record.id);
+			button.textContent = title.textContent;
+			title.replaceWith(button);
+			row.appendChild(button);
+			return row;
+		}
 		row.appendChild(title);
 		return row;
 	}
@@ -78,7 +90,7 @@ export function mountWorkspace(root, browser = window) {
 		const pageLabel = panel.querySelector('[data-cb-work-uwe-page-label]');
 		const count = panel.querySelector('[data-cb-work-uwe-count]');
 		if (!list || !empty || !pages || !previous || !next || !pageLabel) return;
-		const rows = result.items.map(createRecord);
+		const rows = result.items.map((record) => createRecord(record, section));
 		list.replaceChildren(...rows);
 		list.hidden = rows.length === 0;
 		empty.hidden = rows.length > 0;
@@ -175,6 +187,7 @@ export function mountWorkspace(root, browser = window) {
 
 	const router = createWorkspaceRouter(browser, showSection);
 	showSection(router.section());
+	mountUnifiedEditors(root, browser, refresh);
 
 	function updateState(section, nextState) {
 		if (activeSection !== section) return;

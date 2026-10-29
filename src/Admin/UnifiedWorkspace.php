@@ -45,7 +45,7 @@ final class UnifiedWorkspace {
 			],
 		];
 		?>
-		<div class="wrap cb-work-unified" data-cb-work-uwe data-readonly="true" data-cb-work-uwe-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>">
+		<div class="wrap cb-work-unified" data-cb-work-uwe data-readonly="true" data-cb-work-m2-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-cb-work-m2-admin-url="<?php echo esc_url( admin_url() ); ?>" data-cb-work-m2-nonce="<?php echo esc_attr( wp_create_nonce( UnifiedEditorActions::NONCE_ACTION ) ); ?>" data-cb-work-m2-description="<?php esc_attr_e( 'Planning fields are editable here. Use the advanced editor for descriptions, customer bindings, pricing and other specialized settings.', 'core-blueprint-work' ); ?>" data-cb-work-m2-advanced="<?php esc_attr_e( 'Open advanced editor', 'core-blueprint-work' ); ?>" data-cb-work-m2-title="<?php esc_attr_e( 'Title', 'core-blueprint-work' ); ?>" data-cb-work-m2-work-item="<?php esc_attr_e( 'Work Item', 'core-blueprint-work' ); ?>" data-cb-work-m2-project="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>" data-cb-work-m2-service="<?php esc_attr_e( 'Service', 'core-blueprint-work' ); ?>" data-cb-work-m2-type="<?php esc_attr_e( 'Work Type', 'core-blueprint-work' ); ?>" data-cb-work-m2-priority="<?php esc_attr_e( 'Priority', 'core-blueprint-work' ); ?>" data-cb-work-m2-estimate="<?php esc_attr_e( 'Estimated minutes', 'core-blueprint-work' ); ?>" data-cb-work-m2-scheduled="<?php esc_attr_e( 'Scheduled', 'core-blueprint-work' ); ?>" data-cb-work-m2-start="<?php esc_attr_e( 'Start date', 'core-blueprint-work' ); ?>" data-cb-work-m2-due="<?php esc_attr_e( 'Due', 'core-blueprint-work' ); ?>" data-cb-work-m2-no-project="<?php esc_attr_e( 'No Project', 'core-blueprint-work' ); ?>" data-cb-work-m2-no-service="<?php esc_attr_e( 'No service', 'core-blueprint-work' ); ?>" data-cb-work-m2-no-type="<?php esc_attr_e( 'No Work Type', 'core-blueprint-work' ); ?>" data-cb-work-m2-add="<?php esc_attr_e( 'Add', 'core-blueprint-work' ); ?>" data-cb-work-m2-edit="<?php esc_attr_e( 'Edit', 'core-blueprint-work' ); ?>" data-cb-work-m2-save="<?php esc_attr_e( 'Save', 'core-blueprint-work' ); ?>" data-cb-work-m2-cancel="<?php esc_attr_e( 'Cancel', 'core-blueprint-work' ); ?>" data-cb-work-m2-stale="<?php esc_attr_e( 'This record changed. Close and reopen the editor before saving.', 'core-blueprint-work' ); ?>" data-cb-work-m2-error="<?php esc_attr_e( 'Could not save. Review the fields and try again.', 'core-blueprint-work' ); ?>" data-cb-work-uwe-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>">
 			<header class="cb-work-uwe__header">
 				<div>
 					<h1><?php esc_html_e( 'Work', 'core-blueprint-work' ); ?></h1>
@@ -110,7 +110,7 @@ final class UnifiedWorkspace {
 							<a class="button cb-work-uwe__legacy-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Menu::WORK_ITEMS_SLUG ) ); ?>"><?php esc_html_e( 'Open Work Items', 'core-blueprint-work' ); ?></a>
 						</nav>
 					<?php endif; ?>
-					<h2 data-cb-work-uwe-heading><?php echo esc_html( $section['label'] ); ?></h2>
+					<div class="cb-work-uwe__heading-row"><h2 data-cb-work-uwe-heading><?php echo esc_html( $section['label'] ); ?></h2><?php if ( in_array( $key, [ 'work-items', 'projects' ], true ) ) : ?><button type="button" class="button button-primary" data-cb-work-m2-add="<?php echo esc_attr( 'work-items' === $key ? 'work-item' : 'project' ); ?>"><?php echo esc_html( 'work-items' === $key ? __( 'Add Work Item', 'core-blueprint-work' ) : __( 'Add Project', 'core-blueprint-work' ) ); ?></button><?php endif; ?></div>
 					<form class="cb-work-uwe__controls" data-cb-work-uwe-controls hidden role="search">
 						<label class="cb-work-uwe__field" for="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>">
 							<span><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>
@@ -157,7 +157,7 @@ final class UnifiedWorkspace {
 					<ul class="cb-work-uwe__collection" data-cb-work-uwe-list <?php echo [] === $section['items'] ? 'hidden' : ''; ?>>
 						<?php foreach ( $section['items'] as $item ) : ?>
 							<li class="cb-work-uwe__record">
-								<span class="cb-work-uwe__record-title"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></span>
+								<?php if ( 'projects' === $key ) : ?><button class="cb-work-uwe__record-title--button" type="button" data-cb-work-m2-edit="project" data-cb-work-m2-id="<?php echo esc_attr( (string) ( $item['id'] ?? 0 ) ); ?>"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></button><?php else : ?><span class="cb-work-uwe__record-title"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></span><?php endif; ?>
 							</li>
 						<?php endforeach; ?>
 					</ul>

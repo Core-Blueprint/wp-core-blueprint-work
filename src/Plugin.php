@@ -76,6 +76,7 @@ final class Plugin {
 			ProjectDataExchange::init();
 			WorkItemsAdmin::init();
 			WorkItemViewBridge::init();
+			UnifiedEditorActions::init();
 			WorkItemListPreferences::init();
 			WorkItemTablePreferences::init();
 			WorkItemViewPreferences::init();

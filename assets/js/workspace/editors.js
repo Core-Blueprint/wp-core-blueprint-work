@@ -1,0 +1,250 @@
+import '@cb-core/modal';
+
+/**
+ * M2 coherent editor slice for Work Items and Projects.
+ *
+ * All writes go through one guarded Work endpoint backed by the existing
+ * public action contracts. The modal itself belongs to Base; no custom
+ * dialog, focus trap, retry engine, or second persistence mechanism.
+ */
+const SUPPORTED = new Set(['work-item', 'project']);
+
+export function nativeWorkItemTarget(href, baseHref) {
+	const url = new URL(href, baseHref);
+	const base = new URL(baseHref);
+	if (url.origin !== base.origin) return null;
+	const path = url.pathname.split('/').pop();
+	if (path === 'post-new.php' && url.searchParams.get('post_type') === 'cb_work_item') {
+		return { entity: 'work-item', id: 0 };
+	}
+	if (path === 'post.php' && url.searchParams.get('action') === 'edit') {
+		const id = url.searchParams.get('post');
+		if (id && /^[1-9]\d*$/.test(id) && Number.isSafeInteger(Number(id))) {
+			return { entity: 'work-item', id: Number(id) };
+		}
+	}
+	return null;
+}
+
+function field(document, label, key, value, type = 'text') {
+	const wrapper = document.createElement('label');
+	wrapper.className = 'cb-work-m2__field';
+	const name = document.createElement('span');
+	name.textContent = label;
+	const input = document.createElement('input');
+	input.name = key;
+	input.type = type;
+	input.value = String(value ?? '');
+	if (key === 'title') {
+		input.required = true;
+		input.maxLength = 200;
+	}
+	if (key === 'estimated_minutes') {
+		input.min = '0';
+		input.max = '2147483647';
+	}
+	wrapper.append(name, input);
+	return wrapper;
+}
+
+function select(document, label, key, selected, options, emptyLabel) {
+	const wrapper = document.createElement('label');
+	wrapper.className = 'cb-work-m2__field';
+	const name = document.createElement('span');
+	name.textContent = label;
+	const control = document.createElement('select');
+	control.name = key;
+	if (emptyLabel) {
+		const empty = document.createElement('option');
+		empty.value = '0';
+		empty.textContent = emptyLabel;
+		control.appendChild(empty);
+	}
+	for (const option of options) {
+		const item = document.createElement('option');
+		item.value = String(option.id);
+		item.textContent = String(option.title);
+		control.appendChild(item);
+	}
+	control.value = String(selected ?? (emptyLabel ? 0 : ''));
+	wrapper.append(name, control);
+	return wrapper;
+}
+
+function buildEditor(document, root, result) {
+	const item = result.item;
+	const entity = result.entity;
+	const body = document.createElement('div');
+	body.className = 'cb-work-m2';
+	const form = document.createElement('form');
+	form.className = 'cb-work-m2__form';
+	form.noValidate = false;
+	form.addEventListener('submit', (event) => event.preventDefault());
+	const explanation = document.createElement('p');
+	explanation.className = 'description';
+	explanation.textContent = root.dataset.cbWorkM2Description || '';
+	form.appendChild(explanation);
+	form.appendChild(field(document, root.dataset.cbWorkM2Title || 'Title', 'title', item.title));
+	const grid = document.createElement('div');
+	grid.className = 'cb-work-m2__grid';
+	if (entity === 'work-item') {
+		grid.appendChild(select(document, root.dataset.cbWorkM2Project || 'Project', 'project_id',
+			item.project_id, result.projects || [], root.dataset.cbWorkM2NoProject || 'No Project'));
+		grid.appendChild(select(document, root.dataset.cbWorkM2Service || 'Service', 'service_id',
+			item.service_id, result.services || [], root.dataset.cbWorkM2NoService || 'No service'));
+		grid.appendChild(select(document, root.dataset.cbWorkM2Type || 'Work Type', 'work_type_id',
+			item.work_type_id, result.work_types || [], root.dataset.cbWorkM2NoType || 'No Work Type'));
+		grid.appendChild(select(document, root.dataset.cbWorkM2Priority || 'Priority', 'priority',
+			item.priority, ['low', 'normal', 'high', 'urgent'].map((value) => ({
+				id: value, title: root.dataset['cbWorkM2Priority' + value[0].toUpperCase() + value.slice(1)] || value,
+			})), null));
+		grid.appendChild(field(document, root.dataset.cbWorkM2Estimate || 'Estimate (minutes)',
+			'estimated_minutes', item.estimated_minutes, 'number'));
+		grid.appendChild(field(document, root.dataset.cbWorkM2Scheduled || 'Scheduled',
+			'scheduled_on', item.scheduled_on, 'date'));
+	} else {
+		grid.appendChild(field(document, root.dataset.cbWorkM2Start || 'Start',
+			'starts_on', item.starts_on, 'date'));
+	}
+	grid.appendChild(field(document, root.dataset.cbWorkM2Due || 'Due', 'due_on', item.due_on, 'date'));
+	form.appendChild(grid);
+	if (Number(item.id) > 0) {
+		const advanced = document.createElement('a');
+		advanced.className = 'cb-work-m2__advanced';
+		advanced.href = new URL('post.php?post=' + encodeURIComponent(String(item.id)) + '&action=edit',
+			root.dataset.cbWorkM2AdminUrl).href;
+		advanced.target = '_blank';
+		advanced.rel = 'noopener noreferrer';
+		advanced.textContent = root.dataset.cbWorkM2Advanced || 'Open advanced editor';
+		form.appendChild(advanced);
+	}
+	const message = document.createElement('p');
+	message.className = 'cb-work-m2__message';
+	message.setAttribute('role', 'alert');
+	message.hidden = true;
+	form.appendChild(message);
+	body.appendChild(form);
+	return { body, form, message };
+}
+
+function readFields(form) {
+	if (!form.reportValidity()) return null;
+	return Object.fromEntries(new FormData(form).entries());
+}
+
+async function request(root, browser, parameters, body = null) {
+	const endpoint = root.dataset.cbWorkM2Endpoint;
+	const nonce = root.dataset.cbWorkM2Nonce;
+	const url = new URL(endpoint, browser.location.href);
+	const fetcher = browser.fetch.bind(browser);
+	let options;
+	if (body) {
+		const payload = new FormData();
+		payload.set('action', 'cb_work_uwe_editor');
+		payload.set('nonce', nonce);
+		for (const [key, value] of Object.entries(parameters)) payload.set(key, String(value));
+		for (const [key, value] of Object.entries(body.fields)) {
+			payload.set('fields[' + key + ']', String(value));
+		}
+		payload.set('expected_updated_at', String(body.expected_updated_at || ''));
+		options = { method: 'POST', credentials: 'same-origin', body: payload };
+	} else {
+		url.search = new URLSearchParams({
+			action: 'cb_work_uwe_editor', nonce,
+			entity: String(parameters.entity), id: String(parameters.id),
+		}).toString();
+		options = { method: 'GET', credentials: 'same-origin' };
+	}
+	const response = await fetcher(url.href, options);
+	const json = await response.json().catch(() => null);
+	if (!response.ok || json?.success !== true || !json?.data?.item) {
+		const err = new Error(String(json?.data?.code || 'work_editor_unavailable'));
+		err.status = response.status;
+		throw err;
+	}
+	return json.data;
+}
+
+export function mountUnifiedEditors(root, browser, refresh) {
+	if (!root || root.dataset.cbWorkM2Mounted === '1') return;
+	if (!root.dataset.cbWorkM2Endpoint || !root.dataset.cbWorkM2Nonce) return;
+	root.dataset.cbWorkM2Mounted = '1';
+	const document = root.ownerDocument;
+	let opening = false;
+
+	async function open(entity, id, trigger) {
+		if (!SUPPORTED.has(entity) || opening) return;
+		const modal = browser.cbCore?.modal;
+		if (!modal?.show) return;
+		opening = true;
+		let data;
+		try {
+			data = await request(root, browser, { entity, id });
+		} catch (_) {
+			opening = false;
+			// Fail closed: leave the original WordPress editor link accessible.
+			if (trigger?.href) browser.location.assign(trigger.href);
+			return;
+		}
+		opening = false;
+		const { body, form, message } = buildEditor(document, root, data);
+		const noun = entity === 'project'
+			? (root.dataset.cbWorkM2Project || 'Project')
+			: (root.dataset.cbWorkM2WorkItem || 'Work Item');
+		const title = (id > 0 ? root.dataset.cbWorkM2Edit || 'Edit' : root.dataset.cbWorkM2Add || 'Add') + ' ' + noun;
+		const result = await modal.show({
+			title, body, size: 'workspace', expandable: true,
+			confirmLabel: root.dataset.cbWorkM2Save || 'Save',
+			cancelLabel: root.dataset.cbWorkM2Cancel || 'Cancel',
+			initialFocus: '[name="title"]',
+			onConfirm: async () => {
+				const fields = readFields(form);
+				if (!fields) return false;
+				message.hidden = true;
+				try {
+					await request(root, browser, { entity, id }, {
+						fields, expected_updated_at: data.item.updated_at,
+					});
+					return true;
+				} catch (error) {
+					message.textContent = error.status === 409
+						? (root.dataset.cbWorkM2Stale || 'The record changed. Close and reopen it.')
+						: (root.dataset.cbWorkM2Error || 'Could not save. Review the fields and try again.');
+					message.hidden = false;
+					return false;
+				}
+			},
+		});
+		if (result === true) {
+			void refresh(entity === 'project' ? 'projects' : 'work-items');
+		}
+	}
+
+	root.addEventListener('click', (event) => {
+		if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.shiftKey
+			|| event.altKey || event.metaKey) return;
+		let trigger = event.target?.closest?.('[data-cb-work-m2-add], [data-cb-work-m2-edit]');
+		let entity, id;
+		if (trigger) {
+			entity = trigger.dataset.cbWorkM2Add || trigger.dataset.cbWorkM2Edit;
+			id = Number(trigger.dataset.cbWorkM2Id || 0);
+		} else {
+			const link = event.target?.closest?.('a[href]');
+			if (!link || link.target === '_blank' || link.hasAttribute('download')
+				|| !link.closest('[data-cb-work-uwe-canonical]')) return;
+			// Intercept only the canonical Work Item title links, not unrelated
+			// Project, Calendar, filter, menu or administration destinations.
+			if (!link.closest('.cb-work-item-cell__title, .cb-work-list-item__title, .cb-work-board__title')) return;
+			const destination = nativeWorkItemTarget(link.href, browser.location.href);
+			if (!destination) return;
+			trigger = link;
+			entity = destination.entity;
+			id = destination.id;
+		}
+		if (!SUPPORTED.has(entity) || !Number.isSafeInteger(id) || id < 0) return;
+		if (!browser.cbCore?.modal?.show) return;
+		event.preventDefault();
+		event.stopPropagation();
+		void open(entity, id, trigger);
+	}, true);
+}
