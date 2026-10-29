@@ -93,9 +93,14 @@ final class Assets {
 		$router = CB_WORK_DIR . 'assets/js/workspace/router.js';
 		$state = CB_WORK_DIR . 'assets/js/workspace/state.js';
 		$data_client = CB_WORK_DIR . 'assets/js/workspace/data-client.js';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) ) {
+		$canonical = CB_WORK_DIR . 'assets/js/workspace/canonical-mount.js';
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) ) {
 			return;
 		}
+
+		// UWE-03C.2 renders canonical markup inside the Workspace, without
+		// running the old DOMContentLoaded-only mutation scripts until 03C.3.
+		self::enqueue_unified_canonical_view_styles();
 
 		$css_modified = filemtime( $style );
 		wp_enqueue_style(
@@ -112,6 +117,28 @@ final class Assets {
 			[],
 			false === $app_modified ? CB_WORK_VERSION : (string) $app_modified
 		);
+	}
+
+	/** Canonical Work Items view-only styles. Existing golden JS stays on the native route. */
+	private static function enqueue_unified_canonical_view_styles(): void {
+		self::enqueue_style();
+		\CoreBlueprint\Core\UI\Assets::enqueue_segmented_control();
+
+		$styles = [
+			[ self::REFINEMENT_STYLE_HANDLE, 'assets/work-items-refinement.css', [ self::STYLE_HANDLE ] ],
+			[ self::FAST_PATH_STYLE_HANDLE, 'assets/work-fast-paths.css', [ self::REFINEMENT_STYLE_HANDLE ] ],
+			[ 'cb-work-calendar-golden', 'assets/work-calendar-golden.css', [ self::REFINEMENT_STYLE_HANDLE ] ],
+		];
+		foreach ( $styles as [ $handle, $path, $dependencies ] ) {
+			$file = CB_WORK_DIR . $path;
+			if ( ! is_file( $file ) ) {
+				continue;
+			}
+			$modified = filemtime( $file );
+			wp_enqueue_style( $handle, CB_WORK_URL . $path, $dependencies, false === $modified ? CB_WORK_VERSION : (string) $modified );
+		}
+		self::enqueue_board_efficiency_style();
+		self::enqueue_toolbar_golden_style();
 	}
 
 	/** Shared Base Toast Foundation on Work-owned admin screens only. */

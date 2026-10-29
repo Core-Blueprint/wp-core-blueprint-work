@@ -49,7 +49,7 @@ final class UnifiedWorkspace {
 			<header class="cb-work-uwe__header">
 				<div>
 					<h1><?php esc_html_e( 'Work', 'core-blueprint-work' ); ?></h1>
-					<p class="description">UWE-03B</p>
+					<p class="description">UWE-03C</p>
 				</div>
 			</header>
 			<nav class="cb-work-uwe__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Work', 'core-blueprint-work' ); ?>">
@@ -83,7 +83,29 @@ final class UnifiedWorkspace {
 					data-cb-work-uwe-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/' . $key ) ); ?>"
 					<?php echo $active !== $key ? 'hidden' : ''; ?>
 				>
-					<h2><?php echo esc_html( $section['label'] ); ?></h2>
+					<?php if ( 'work-items' === $key ) : ?>
+						<?php
+						$canonical_views = [
+							'table' => __( 'Table', 'core-blueprint-work' ),
+							'list' => __( 'List', 'core-blueprint-work' ),
+							'kanban' => __( 'Board', 'core-blueprint-work' ),
+							'calendar' => __( 'Calendar', 'core-blueprint-work' ),
+						];
+						$preferred_view = WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() );
+						?>
+						<nav class="cb-work-uwe__view-switcher" data-cb-work-uwe-view-switcher data-cb-work-uwe-default-view="<?php echo esc_attr( $preferred_view ); ?>" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+							<?php foreach ( $canonical_views as $view_id => $view_label ) : ?>
+								<a
+									class="cb-work-uwe__view-link<?php echo $view_id === $preferred_view ? ' is-active' : ''; ?>"
+									href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::WORK_ITEMS_SLUG, 'view' => $view_id ], admin_url( 'admin.php' ) ) ); ?>"
+									data-cb-work-uwe-view="<?php echo esc_attr( $view_id ); ?>"
+									<?php if ( $view_id === $preferred_view ) : ?>aria-current="page"<?php endif; ?>
+								><?php echo esc_html( $view_label ); ?></a>
+							<?php endforeach; ?>
+							<a class="button cb-work-uwe__legacy-link" href="<?php echo esc_url( admin_url( 'admin.php?page=' . Menu::WORK_ITEMS_SLUG ) ); ?>"><?php esc_html_e( 'Open Work Items', 'core-blueprint-work' ); ?></a>
+						</nav>
+					<?php endif; ?>
+					<h2 data-cb-work-uwe-heading><?php echo esc_html( $section['label'] ); ?></h2>
 					<form class="cb-work-uwe__controls" data-cb-work-uwe-controls hidden role="search">
 						<label class="cb-work-uwe__field" for="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>">
 							<span><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>
@@ -118,6 +140,9 @@ final class UnifiedWorkspace {
 						<button type="button" class="button" data-cb-work-uwe-clear><?php esc_html_e( 'Clear filters', 'core-blueprint-work' ); ?></button>
 						<span class="cb-work-uwe__count" data-cb-work-uwe-count aria-live="polite"></span>
 					</form>
+					<?php if ( 'work-items' === $key ) : ?>
+						<div class="cb-work-uwe__canonical-view" data-cb-work-uwe-canonical hidden></div>
+					<?php endif; ?>
 					<div class="cb-work-uwe__feedback" hidden data-cb-work-uwe-feedback role="status" aria-live="polite"></div>
 					<div class="cb-work-uwe__error" hidden data-cb-work-uwe-error role="alert">
 						<span><?php esc_html_e( 'Work storage unavailable', 'core-blueprint-work' ); ?></span>

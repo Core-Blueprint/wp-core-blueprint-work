@@ -1,6 +1,7 @@
 import { createWorkspaceRouter, SECTIONS } from './router.js';
 import { apiParameters, dataStateUrl, defaultDataState, readDataState } from './state.js';
 import { createDataClient } from './data-client.js';
+import { createCanonicalViewMount } from './canonical-mount.js';
 
 /**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.
@@ -32,6 +33,11 @@ export function mountWorkspace(root, browser = window) {
 	const timers = new Map();
 	let refreshSequence = 0;
 	const document = root.ownerDocument;
+	const canonicalMount = createCanonicalViewMount(
+		panels.get('work-items'),
+		browser,
+		() => refresh('work-items')
+	);
 
 	function panelControls(section) {
 		const panel = panels.get(section);
@@ -83,6 +89,11 @@ export function mountWorkspace(root, browser = window) {
 	}
 
 	async function refresh(section) {
+		if (section === 'work-items' && canonicalMount) {
+			memory.set(section, readDataState(browser.location.href, section));
+			await canonicalMount.refresh(browser.location.href);
+			return;
+		}
 		const panel = panels.get(section);
 		const endpoint = panel.dataset.cbWorkUweEndpoint;
 		if (!client || !nonce || !endpoint) return; // No JavaScript/API: keep SSR fallback.
@@ -118,6 +129,9 @@ export function mountWorkspace(root, browser = window) {
 	}
 
 	function showSection(section, detail = null) {
+		if (section !== activeSection && activeSection === 'work-items') {
+			canonicalMount?.abort();
+		}
 		if (section !== activeSection) {
 			if (detail?.source === 'push') {
 				memory.set(activeSection, readDataState(browser.location.href, activeSection));
