@@ -220,9 +220,126 @@ export function mountUnifiedEditors(root, browser, refresh) {
 		}
 	}
 
+
+	async function postWorkType(action, nonce, data) {
+		const payload = new FormData();
+		payload.set('action', action);
+		payload.set('_wpnonce', nonce);
+		for (const [key, value] of Object.entries(data)) payload.set(key, String(value));
+		const response = await browser.fetch(root.dataset.cbWorkM2Endpoint, {
+			method: 'POST', body: payload, credentials: 'same-origin',
+		});
+		const json = await response.json().catch(() => null);
+		if (!response.ok || json?.success !== true) {
+			throw new Error(String(json?.data?.notice || 'work_type_update_invalid'));
+		}
+	}
+
+	async function openWorkTypes() {
+		const modal = browser.cbCore?.modal;
+		if (!modal?.show || opening) return;
+		opening = true;
+		let data;
+		try {
+			data = await request(root, browser, { entity: 'work-type', id: 0 });
+		} catch (_) {
+			opening = false;
+			return;
+		}
+		opening = false;
+		const body = document.createElement('div');
+		body.className = 'cb-work-m2 cb-work-m2--types';
+		const intro = document.createElement('p');
+		intro.className = 'description';
+		intro.textContent = root.dataset.cbWorkM2TypesHelp || '';
+		body.appendChild(intro);
+		const list = document.createElement('ul');
+		list.className = 'cb-work-m2__type-list';
+		const feedback = document.createElement('p');
+		feedback.setAttribute('role', 'status');
+		feedback.setAttribute('aria-live', 'polite');
+		feedback.hidden = true;
+		let changed = false;
+		for (const type of data.types || []) {
+			const item = document.createElement('li');
+			const name = document.createElement('span');
+			name.textContent = String(type.label);
+			const toggle = document.createElement('button');
+			toggle.type = 'button';
+			toggle.className = 'button button-small';
+			toggle.textContent = type.active
+				? (root.dataset.cbWorkM2Deactivate || 'Deactivate')
+				: (root.dataset.cbWorkM2Activate || 'Activate');
+			toggle.addEventListener('click', async () => {
+				toggle.disabled = true;
+				feedback.hidden = true;
+				try {
+					await postWorkType('cb_work_toggle_work_type', type.nonce, {
+						work_type_id: type.id, active: type.active ? '0' : '1',
+					});
+					type.active = !type.active;
+					changed = true;
+					toggle.textContent = type.active
+						? (root.dataset.cbWorkM2Deactivate || 'Deactivate')
+						: (root.dataset.cbWorkM2Activate || 'Activate');
+				} catch (_) {
+					feedback.textContent = root.dataset.cbWorkM2Error || 'Could not save.';
+					feedback.hidden = false;
+				} finally {
+					toggle.disabled = false;
+				}
+			});
+			item.append(name, toggle);
+			list.appendChild(item);
+		}
+		body.appendChild(list);
+		const form = document.createElement('form');
+		form.className = 'cb-work-m2__form';
+		form.addEventListener('submit', (event) => event.preventDefault());
+		const label = field(document, root.dataset.cbWorkM2Name || 'Name', 'label', '');
+		label.querySelector('input').required = true;
+		const code = field(document, root.dataset.cbWorkM2Code || 'Code', 'code', '');
+		code.querySelector('input').maxLength = 64;
+		form.append(label, code);
+		body.append(form, feedback);
+		const result = await modal.show({
+			title: root.dataset.cbWorkM2ManageTypes || 'Work Types',
+			body,
+			size: 'default',
+			initialFocus: '[name="label"]',
+			confirmLabel: root.dataset.cbWorkM2Create || 'Create',
+			cancelLabel: root.dataset.cbWorkM2Close || 'Close',
+			onConfirm: async () => {
+				if (!form.reportValidity()) return false;
+				feedback.hidden = true;
+				try {
+					await postWorkType('cb_work_create_work_type', data.create_nonce, {
+						'work_type[label]': label.querySelector('input').value,
+						'work_type[code]': code.querySelector('input').value,
+					});
+					changed = true;
+					return true;
+				} catch (_) {
+					feedback.textContent = root.dataset.cbWorkM2Error || 'Could not save.';
+					feedback.hidden = false;
+					return false;
+				}
+			},
+		});
+		if (changed || result === true) void refresh('work-items');
+	}
+
 	root.addEventListener('click', (event) => {
 		if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.shiftKey
 			|| event.altKey || event.metaKey) return;
+		const typesTrigger = event.target?.closest?.('[data-cb-work-m2-types]');
+		if (typesTrigger) {
+			if (!browser.cbCore?.modal?.show) return;
+			event.preventDefault();
+			event.stopPropagation();
+			void openWorkTypes();
+			return;
+		}
 		let trigger = event.target?.closest?.('[data-cb-work-m2-add], [data-cb-work-m2-edit]');
 		let entity, id;
 		if (trigger) {
