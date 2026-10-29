@@ -23,17 +23,21 @@ $checks = [
         && str_contains( $editor_mutations, 'EditorRevisions::for_work_item( $current )' )
         && str_contains( $editor_mutations, 'WorkItems::update( $id, $input )' )
         && str_contains( $work_api, 'EditorMutations::update_work_item( $work_item_id, $input, $expected_revision )' ),
-    'Project revision checked under a transactional row lock' =>
-        str_contains( $project, 'WorkSqlTransaction::run(' )
-        && str_contains( $project, 'FOR UPDATE' )
-        && str_contains( $project, 'EditorRevisions::for_project( $fresh )' )
-        && str_contains( $project_api, 'ProjectRepository::update( $project_id, $input, $expected_revision )' ),
+    'Project revision locked outside WordPress-native Projects repository' =>
+        ! str_contains( $project, '$wpdb' )
+        && ! str_contains( $project, 'Schema::' )
+        && str_contains( $editor_mutations, 'Projects::update( $id, $input )' )
+        && 
+        str_contains( $editor_mutations, 'WorkSqlTransaction::run(' )
+        && str_contains( $editor_mutations, 'FOR UPDATE' )
+        && str_contains( $editor_mutations, 'EditorRevisions::for_project( $current )' )
+        && str_contains( $project_api, 'EditorMutations::update_project( $project_id, $input, $expected_revision )' ),
     'AJAX fast-check is repeated by the underlying domains' =>
         str_contains( $ajax, 'EditorRevisions::for_work_item( $existing )' )
         && str_contains( $ajax, 'EditorRevisions::for_project( $existing )' )
         && str_contains( $ajax, "self::fail( 'work_editor_stale', 409 )" )
         && str_contains( $ajax, 'WorkItemActions::update_from_editor( $id, $input, $revision )' )
-        && str_contains( $ajax, 'ProjectActions::update( $id, $input, $revision )' )
+        && str_contains( $ajax, 'ProjectActions::update_from_editor( $id, $input, $revision )' )
         && str_contains( $ui, "payload.set('expected_version', String(body.expected_version || ''))" ),
     'Billing disposition is delegated, never written as raw postmeta' =>
         str_contains( $ajax, "'billing_disposition'" )

@@ -104,11 +104,11 @@ final class UnifiedServiceEditorIntegrationTest extends WP_UnitTestCase {
         $id = (int) $project['id'];
         $revision = EditorRevisions::for_project( $project );
         self::assertSame( 64, strlen( $revision ) );
-        $updated = ProjectActions::update( $id, [ 'due_on' => '2026-11-05' ], $revision );
+        $updated = ProjectActions::update_from_editor( $id, [ 'due_on' => '2026-11-05' ], $revision );
         self::assertIsArray( $updated );
         self::assertSame( '2026-11-05', $updated['due_on'] );
         self::assertNotSame( $revision, EditorRevisions::for_project( Projects::get( $id ) ) );
-        $stale = ProjectActions::update( $id, [ 'due_on' => '2026-11-06' ], $revision );
+        $stale = ProjectActions::update_from_editor( $id, [ 'due_on' => '2026-11-06' ], $revision );
         self::assertWPError( $stale );
         self::assertSame( '2026-11-05', Projects::get( $id )['due_on'] );
         global $wpdb;
@@ -156,7 +156,7 @@ final class UnifiedServiceEditorIntegrationTest extends WP_UnitTestCase {
         self::assertIsArray( $created );
         $id = (int) $created['id'];
         self::assertSame( "Simple line\nSecond line", get_post( $id )->post_content );
-        $updated = ProjectActions::update( $id, [ 'description' => 'New simple description' ],
+        $updated = ProjectActions::update_from_editor( $id, [ 'description' => 'New simple description' ],
             EditorRevisions::for_project( $created ) );
         self::assertIsArray( $updated );
         self::assertSame( 'New simple description', get_post( $id )->post_content );

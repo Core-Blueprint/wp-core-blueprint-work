@@ -7,6 +7,7 @@ use CB\Work\Governance\DeferredEvents;
 use CB\Work\Capabilities;
 use CB\Work\Governance\Events;
 use CB\Work\Repository\Projects as ProjectRepository;
+use CB\Work\Repository\EditorMutations;
 use CB\Work\Repository\RecurrenceRules;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 
@@ -40,7 +41,17 @@ final class ProjectActions {
 	}
 
 	/** @param array<string,mixed> $input @return array<string,mixed>|\WP_Error */
-	public static function update( int $project_id, array $input, ?string $expected_revision = null ): array|\WP_Error {
+	public static function update( int $project_id, array $input ): array|\WP_Error {
+		return self::apply_update( $project_id, $input, null );
+	}
+
+	/** M2 additive revision-aware editor entry point. Existing API remains stable. */
+	public static function update_from_editor( int $project_id, array $input, string $expected_revision ): array|\WP_Error {
+		return self::apply_update( $project_id, $input, $expected_revision );
+	}
+
+	/** @param array<string,mixed> $input @return array<string,mixed>|\WP_Error */
+	private static function apply_update( int $project_id, array $input, ?string $expected_revision ): array|\WP_Error {
 		$forbidden = self::authorize_manage();
 		if ( null !== $forbidden ) {
 			return $forbidden;
@@ -48,7 +59,10 @@ final class ProjectActions {
 		if ( $project_id <= 0 || null === Projects::get( $project_id ) ) {
 			return new \WP_Error( 'work_project_unavailable' );
 		}
-		if ( ! ProjectRepository::update( $project_id, $input, $expected_revision ) ) {
+		if ( ! ( null === $expected_revision
+		? ProjectRepository::update( $project_id, $input )
+		: EditorMutations::update_project( $project_id, $input, $expected_revision )
+		) ) {
 			return new \WP_Error( 'work_project_update_failed' );
 		}
 

@@ -121,3 +121,13 @@ Do not merge Work main, modify Base, run CI/deploy, change schema or remove lega
 - Source inspection compares all 19 public WorkItems signatures against the already accepted M1 source and confirms **exact equality**. WordPress/DB behavior and full runner remain **NOT EXECUTED** until operator hertest.
 
 **Protected B2 and main:** no changes to `tests/work-b2-architecture-golden-smoke.php`, `src/Admin/Operations.php`, Work `main`, or Base. Golden HOLD pending canonical tests and FIELD.
+
+## D1.2 Project storage Golden repair (2026-10-29)
+
+**Operator result on M2 `4d845ff13c6e7feea43e113028b58e5e9a1a235f`:** i18n check PASS, B2 Golden PASS, Work Item Mutation A1 Golden PASS. `./tools/check` then stops at `D1.2 schema smoke failed: Project repository remains WordPress-native`. Level 1 was interrupted; no Level 2/3/build/FIELD acceptance.
+
+**Cause:** M2 had inserted direct `$wpdb` row locking and `WorkSqlTransaction::run` into `Repository\\Projects::update`, violating the immutable D1.2 boundary (Projects must be WP CPT/meta-native).
+
+**Repair:** Restore `Projects::update(int,array): bool` and remove the entire SQL/CAS branch from Projects. Add `EditorMutations::update_project(int,array,string)` next to the M2 Work Item editor adapter. It uses `WorkSqlTransaction::run`, WordPress post row `SELECT ... FOR UPDATE`, fresh post/meta cache invalidation, and semantic `EditorRevisions::for_project` verification under the lock, then delegates to the canonical WordPress-native `Projects::update`. Keep the existing public `ProjectActions::update(int,array)` unchanged; add `ProjectActions::update_from_editor(int,array,string)` that shares existing capability, audit and relationship sync handling. M2 AJAX and its source/integration tests use only that additive editor action. No change to the protected D1.2/B2 tests, migrations, or WordPress CPT/model.
+
+**Source inspection:** D1.2 condition is restored (`Projects.php` contains neither `$wpdb` nor `Schema::`), while locked revision enforcement remains in `EditorMutations`. Canonical PHP/DB validation must be executed by operator on the new commit; this audit does not assert a test PASS.

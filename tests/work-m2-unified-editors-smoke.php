@@ -16,7 +16,7 @@ $valid = [
         str_contains( $action, 'WorkItemActions::create( $input )' )
         && str_contains( $action, 'WorkItemActions::update_from_editor( $id, $input, $revision )' )
         && str_contains( $action, 'ProjectActions::create( $input )' )
-        && str_contains( $action, 'ProjectActions::update( $id, $input, $revision )' )
+        && str_contains( $action, 'ProjectActions::update_from_editor( $id, $input, $revision )' )
         && ! str_contains( $action, 'wp_insert_post' )
         && ! str_contains( $action, 'wp_update_post' )
         && ! str_contains( $action, 'update_post_meta' ),

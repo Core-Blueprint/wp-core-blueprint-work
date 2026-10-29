@@ -98,33 +98,7 @@ final class Projects {
 
 
 	/** @param array<string,mixed> $input */
-	public static function update( int $id, array $input, ?string $expected_revision = null ): bool {
-		if ( null !== $expected_revision ) {
-			// M2 revision verification and canonical Project update run under one
-			// Work-owned row lock. Legacy PHP callers keep their existing API.
-			$changed = WorkSqlTransaction::run( static function () use ( $id, $input, $expected_revision ): bool {
-				global $wpdb;
-				$locked = $wpdb->get_row( $wpdb->prepare(
-					"SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_type = %s AND post_status NOT IN ('trash','auto-draft') FOR UPDATE",
-					$id, PostTypes::PROJECT
-				), ARRAY_A );
-				if ( ! is_array( $locked ) || (int) $locked['ID'] !== $id ) {
-					return false;
-				}
-				clean_post_cache( $id );
-				wp_cache_delete( $id, 'post_meta' );
-				$fresh = self::get( $id );
-				if ( null === $fresh || '' === $expected_revision
-					|| ! hash_equals( EditorRevisions::for_project( $fresh ), $expected_revision ) ) {
-					return false;
-				}
-				return self::update( $id, $input );
-			}, false );
-			clean_post_cache( $id );
-			wp_cache_delete( $id, 'post_meta' );
-			return true === $changed;
-		}
-
+	public static function update( int $id, array $input ): bool {
 		$current = self::get( $id );
 		if ( null === $current ) {
 			return false;
