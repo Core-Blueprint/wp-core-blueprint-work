@@ -153,7 +153,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	let renderedQuery = null;
 	let authorizationDenied = false;
 	const document = panel.ownerDocument;
-	const mutationAdapter = createMutationAdapter(destination, panel, browser, () => refresh());
+	const mutationAdapter = createMutationAdapter(destination, panel, browser,
+		() => refresh(), () => clearUnauthorized());
 	const statusSync = createCanonicalStatusSync(browser, () => {
 		if (!panel.hidden) void refresh();
 	});

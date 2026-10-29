@@ -32,7 +32,7 @@ export function mutationResponse(payload) {
 	return { success: true, updated, attempted, notice: String(payload.data.notice || '') };
 }
 
-export function createMutationAdapter(destination, panel, browser, refresh) {
+export function createMutationAdapter(destination, panel, browser, refresh, invalidateAccess = null) {
 	const endpointText = panel?.dataset.cbWorkUweClassicEndpoint || '';
 	if (!destination || !endpointText || typeof browser.fetch !== 'function'
 		|| typeof refresh !== 'function') return null;
@@ -99,8 +99,10 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 				// The detached Base dialog is outside the canonical HTML
 				// mount; purge its private records before rechecking access.
 				if (modalBody) modalBody.replaceChildren();
-				// A denied write may indicate revoked capabilities. Re-check
-				// the canonical read boundary; it owns the fail-closed purge.
+				// Purge cached privileged content immediately even when Work is
+				// not the active tab. Only a visible Work tab needs a new GET;
+				// the normal section activation already rechecks a hidden tab.
+				if (typeof invalidateAccess === 'function') invalidateAccess();
 				if (!panel.hidden) await refresh();
 				return;
 			}

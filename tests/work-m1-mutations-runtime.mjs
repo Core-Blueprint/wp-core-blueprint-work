@@ -66,7 +66,9 @@ const browser = {
 	},
 };
 let refreshes = 0;
-const adapter = createMutationAdapter(destination, panel, browser, async () => { refreshes++; });
+let invalidations = 0;
+const adapter = createMutationAdapter(destination, panel, browser,
+	async () => { refreshes++; }, () => { invalidations++; });
 assert.ok(adapter);
 adapter.ready({ dataset: { cbWorkActionsInitialized: '1' } });
 assert.equal(destination.dataset.cbWorkMutationsReady, '1');
@@ -161,6 +163,15 @@ try {
 	send(second);
 	await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(refreshes, 3, '403 write denial rechecks the canonical permission boundary');
+	assert.equal(invalidations, 1, '403 invalidates privileged content before the new GET');
+	// A rejected POST may finish while Projects or Services is active. It
+	// must still purge stale Work HTML without forcing a hidden GET.
+	panel.hidden = true;
+	send(second);
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.equal(invalidations, 2, 'Hidden 403 still invalidates Work cache');
+	assert.equal(refreshes, 3, 'Hidden Work must not force a new GET');
+	panel.hidden = false;
 	assert.equal(inserted[0].attrs.role, 'alert');
 	assert.equal(inserted[0].textContent, 'Update unsuccessful');
 	assert.equal(destination.attrs['aria-busy'], undefined);
