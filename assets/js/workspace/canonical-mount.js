@@ -88,6 +88,17 @@ export function createCanonicalStatusSync(browser, callback, delay = 600) {
 	};
 }
 
+/** Reapply native disclosure state across canonical HTML replacements. */
+export function syncAdvancedFilters(root, expanded) {
+	const form = root?.querySelector?.('form.cb-work-items-filters');
+	const advanced = form?.querySelector?.('#cb-work-more-filters');
+	const toggle = form?.querySelector?.('.cb-work-more-filters-toggle');
+	if (!advanced || !toggle) return false;
+	advanced.hidden = !expanded;
+	toggle.setAttribute('aria-expanded', String(expanded));
+	return true;
+}
+
 export function createCanonicalViewMount(panel, browser, notify) {
 	const destination = panel?.querySelector('[data-cb-work-uwe-canonical]');
 	const switcher = panel?.querySelector('[data-cb-work-uwe-view-switcher]');
@@ -116,6 +127,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		if (!panel.hidden) void refresh();
 	});
 	let searchTimer = null;
+	let advancedOpen = false;
 
 	function navigateFilters(url) {
 		if (!url) return;
@@ -156,6 +168,19 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		submitFilters(form);
 	});
 
+	destination.addEventListener('keydown', (event) => {
+		if (event.key !== 'Escape') return;
+		const advanced = event.target?.closest?.('#cb-work-more-filters');
+		if (!advanced || advanced.hidden) return;
+		event.preventDefault();
+		advancedOpen = false;
+		advanced.hidden = true;
+		const toggle = advanced.closest('form.cb-work-items-filters')
+			?.querySelector('.cb-work-more-filters-toggle');
+		toggle?.setAttribute('aria-expanded', 'false');
+		toggle?.focus?.({ preventScroll: true });
+	});
+
 	destination.addEventListener('input', (event) => {
 		if (event.target?.name !== 's') return;
 		const form = event.target.closest?.('form.cb-work-items-filters');
@@ -174,8 +199,13 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			const advanced = form?.querySelector('#cb-work-more-filters');
 			if (!advanced) return;
 			event.preventDefault();
-			advanced.hidden = !advanced.hidden;
-			toggle.setAttribute('aria-expanded', String(!advanced.hidden));
+			advancedOpen = advanced.hidden;
+			advanced.hidden = !advancedOpen;
+			toggle.setAttribute('aria-expanded', String(advancedOpen));
+			if (advancedOpen) {
+				advanced.querySelector('input, select, button, [tabindex]:not([tabindex="-1"])')
+					?.focus?.({ preventScroll: true });
+			}
 			return;
 		}
 		const link = event.target?.closest?.('a');
@@ -302,6 +332,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			syncPreferredOrder(canonical);
 			const inserted = document.importNode(canonical, true);
+			syncAdvancedFilters(inserted, advancedOpen);
 			const outgoing = destination.firstElementChild;
 			const activeInput = document.activeElement;
 			const focusedField = activeInput?.closest?.('form.cb-work-items-filters')

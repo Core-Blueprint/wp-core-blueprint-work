@@ -3,7 +3,7 @@ import {
 	FILTER_FIELDS, canonicalFilterUrl, canonicalLinkUrl, snapshotWorkState, restoreWorkState,
 } from '../assets/js/workspace/canonical-filters.js';
 
-import { canonicalViewParameters } from '../assets/js/workspace/canonical-mount.js';
+import { canonicalViewParameters, syncAdvancedFilters } from '../assets/js/workspace/canonical-mount.js';
 
 const base = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-workspace&section=work-items&view=table&search=old&priority=high&uwe_page=3#work';
 const asUrl = (path) => new URL(path, base);
@@ -97,4 +97,27 @@ assert.equal(dateParams.get('action'), 'cb_work_uwe_render_view');
 assert.equal(dateParams.get('nonce'), 'test-nonce');
 assert.equal(dateParams.get('paged'), '3');
 
-console.log('Work M1 canonical filter router: PASS (search, dates, presets, paging, WP reserved route, unsafe links).');
+const advancedPanel = { hidden: true };
+const advancedToggle = {
+	attrs: {},
+	setAttribute(key, value) { this.attrs[key] = value; },
+};
+const disclosureRoot = {
+	querySelector(selector) {
+		if (selector !== 'form.cb-work-items-filters') return null;
+		return { querySelector(target) {
+			return target === '#cb-work-more-filters' ? advancedPanel
+				: target === '.cb-work-more-filters-toggle' ? advancedToggle : null;
+		} };
+	},
+};
+assert.equal(syncAdvancedFilters(disclosureRoot, true), true);
+assert.equal(advancedPanel.hidden, false);
+assert.equal(advancedToggle.attrs['aria-expanded'], 'true');
+assert.equal(syncAdvancedFilters(disclosureRoot, false), true);
+assert.equal(advancedPanel.hidden, true);
+assert.equal(advancedToggle.attrs['aria-expanded'], 'false');
+assert.equal(syncAdvancedFilters({ querySelector() { return null; } }, true), false,
+	'Missing progressive-enhancement markup never causes a crash');
+
+console.log('Work M1 canonical filter router: PASS (search, dates, presets, paging, disclosure state, WP reserved route).');

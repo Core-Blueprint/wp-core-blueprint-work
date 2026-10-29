@@ -38,6 +38,13 @@ $rules = [
 		&& str_contains( $mount, "['scheduled_to', 'scheduled_to']" )
 		&& str_contains( $mount, "['due_from', 'due_from']" )
 		&& str_contains( $mount, "['due_to', 'due_to']" ),
+	'advanced filter disclosure survives rehydrate and preserves keyboard behavior' =>
+		str_contains( $mount, 'export function syncAdvancedFilters(root, expanded)' )
+		&& str_contains( $mount, 'syncAdvancedFilters(inserted, advancedOpen);' )
+		&& str_contains( $mount, "destination.addEventListener('keydown'" )
+		&& str_contains( $mount, "if (event.key !== 'Escape') return;" )
+		&& str_contains( $mount, "toggle?.focus?.({ preventScroll: true });" )
+		&& str_contains( $mount, "advanced.querySelector('input, select, button" ),
 	'new runtime behavioral test is wired into canonical Level 1' =>
 		str_contains( $check, 'work-m1-filter-contract-smoke.php' )
 		&& str_contains( $check, 'work-m1-canonical-filters-runtime.mjs' ),

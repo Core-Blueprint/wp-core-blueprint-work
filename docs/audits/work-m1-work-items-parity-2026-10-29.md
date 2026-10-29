@@ -100,3 +100,10 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Preserve keyboard focus on a matching Board card after canonical rehydration; fall back to the selected view navigation when the moved/filtered card is no longer shown.
 - Source and Node tests cover success-only notification, native-vs-Workspace handling, cancel/debounce and continued original Work domain write contracts. Exact G0/B1 Operations renderer stays immutable. A historical Calendar smoke expectation is updated to check the expanded callback contract without weakening the native behavior requirement.
 - Milestone Level 1/2/3 and WordPress FIELD remain OPEN until M1 parity is complete; no intermediate ZIP or acceptance request.
+
+## Internal stabilization — advanced filter disclosure (2026-10-29)
+
+- Preserve `More Filters` expanded/collapsed state across every canonical GET rehydrate; filter changes no longer collapse the advanced controls unexpectedly.
+- Match native keyboard behavior: opening the panel focuses its first available control, and Escape closes the panel, synchronizes `aria-expanded`, and restores focus to the toggle.
+- Reuse the canonical PHP filter form and markup; the new `syncAdvancedFilters` helper only reapplies local disclosure state to server-rendered HTML. No saved settings, duplicate filters, or additional REST/AJAX endpoints.
+- Extend existing filter runtime and source tests rather than adding a separate acceptance patch. Final M1 Level 1/2/3 + FIELD remain OPEN.
