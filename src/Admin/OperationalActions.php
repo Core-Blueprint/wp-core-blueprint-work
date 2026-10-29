@@ -29,6 +29,9 @@ final class OperationalActions {
 		add_action( 'wp_ajax_cb_work_bulk_edit_work_items', [ self::class, 'bulk_edit_work_items' ] );
 		add_action( 'admin_post_cb_work_create_work_type', [ self::class, 'create_work_type' ] );
 		add_action( 'admin_post_cb_work_toggle_work_type', [ self::class, 'toggle_work_type' ] );
+		// M2 compact modal reuses the same Work Type guards and persistence.
+		add_action( 'wp_ajax_cb_work_create_work_type', [ self::class, 'create_work_type' ] );
+		add_action( 'wp_ajax_cb_work_toggle_work_type', [ self::class, 'toggle_work_type' ] );
 	}
 
 	public static function transition_work_item(): never {
@@ -232,6 +235,14 @@ final class OperationalActions {
 	}
 
 	private static function redirect_work_types( string $notice ): never {
+		if ( wp_doing_ajax() ) {
+			$success = in_array( $notice, [ 'work-type-created', 'work-type-updated' ], true );
+			$data = [ 'notice' => sanitize_key( $notice ) ];
+			if ( $success ) {
+				wp_send_json_success( $data, 200 );
+			}
+			wp_send_json_error( $data, 409 );
+		}
 		wp_safe_redirect( add_query_arg(
 			[ 'page' => Menu::WORK_TYPES_SLUG, 'cb-work-notice' => sanitize_key( $notice ) ],
 			admin_url( 'admin.php' )
