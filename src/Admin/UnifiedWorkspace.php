@@ -80,6 +80,7 @@ final class UnifiedWorkspace {
 						data-cb-work-uwe-classic-action="<?php echo esc_attr( WorkItemViewBridge::ACTION ); ?>"
 						data-cb-work-uwe-classic-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewBridge::NONCE_ACTION ) ); ?>"
 						data-cb-work-uwe-mutation-saved="<?php esc_attr_e( 'Saved', 'core-blueprint-work' ); ?>"
+						data-cb-work-uwe-mutation-saving="<?php esc_attr_e( 'Saving…', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-mutation-failed="<?php esc_attr_e( 'The Work Item status could not be updated.', 'core-blueprint-work' ); ?>"
 					<?php endif; ?>
 					data-cb-work-uwe-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/' . $key ) ); ?>"

@@ -35,6 +35,8 @@ const listeners = {};
 const destination = {
 	dataset: {}, children: new Set(),
 	contains(item) { return this.children.has(item); },
+	setAttribute(key, value) { this.attrs ??= {}; this.attrs[key] = value; },
+	removeAttribute(key) { if (this.attrs) delete this.attrs[key]; },
 	addEventListener(name, callback) { listeners[name] = callback; },
 };
 const inserted = [];
@@ -47,7 +49,8 @@ const doc = {
 const panel = {
 	dataset: {
 		cbWorkUweClassicEndpoint: 'https://example.test/site/wp-admin/admin-ajax.php',
-		cbWorkUweMutationSaved: 'Saved', cbWorkUweMutationFailed: 'Update unsuccessful',
+		cbWorkUweMutationSaved: 'Saved', cbWorkUweMutationSaving: 'Saving…',
+		cbWorkUweMutationFailed: 'Update unsuccessful',
 	},
 	ownerDocument: doc,
 	insertBefore(node, target) { assert.equal(target, destination); inserted.push(node); },
@@ -122,6 +125,33 @@ try {
 	const preflight = browser.requests.length;
 	listeners.submit({ target: suppressed, defaultPrevented: true, preventDefault() { throw new Error('Already cancelled'); } });
 	assert.equal(browser.requests.length, preflight, 'Existing bulk validation veto must be respected');
+	// A second form must never race the first mutation. A successful write
+	// must also refresh the currently selected view when its old form was replaced.
+	const parallel = form('cb_work_quick_edit_work_item');
+	const second = form('cb_work_transition_work_item');
+	destination.children.add(parallel);
+	destination.children.add(second);
+	let finishMutation;
+	let mutationCalls = 0;
+	browser.fetch = () => {
+		mutationCalls++;
+		return new Promise((resolve) => { finishMutation = resolve; });
+	};
+	send(parallel);
+	assert.equal(mutationCalls, 1);
+	assert.equal(destination.attrs['aria-busy'], 'true');
+	send(second);
+	assert.equal(mutationCalls, 1, 'Concurrent mutation must be denied while another is pending');
+	assert.equal(inserted[0].textContent, 'Saving…');
+	destination.children.delete(parallel);
+	finishMutation({ ok: true, json: async () => ({
+		success: true, data: { notice: 'work-item-updated', updated: 1, attempted: 1 },
+	}) });
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.equal(refreshes, 2, 'A completed write refreshes the current view even after the previous form is replaced');
+	assert.equal(destination.attrs['aria-busy'], undefined);
+	assert.equal(inserted[0].textContent, 'Saved');
+
 	const bad = form('not-an-action'); destination.children.add(bad);
 	const prev = browser.requests.length;
 	blocked = false;
@@ -134,4 +164,4 @@ try {
 }
 const untrusted = { ...panel, dataset: { cbWorkUweClassicEndpoint: 'https://attacker.test/admin-ajax.php' } };
 assert.equal(createMutationAdapter(destination, untrusted, browser, async () => {}), null);
-console.log('Work M1 mutation adapter runtime: PASS (allowlist, nonce form, partial bulk, server-confirmed refresh, 409 and network).');
+console.log('Work M1 mutation adapter runtime: PASS (allowlist, nonce, partial bulk, single-flight, changed view, failure recovery).');

@@ -56,6 +56,10 @@ $checks = [
 		&& str_contains( $adapter, 'if (!response.ok || !result.success)' )
 		&& str_contains( $adapter, 'await refresh()' )
 		&& str_contains( $adapter, 'inFlight.has(form)' )
+		&& str_contains( $adapter, 'if (mutationPending)' )
+		&& str_contains( $adapter, "destination.setAttribute('aria-busy', 'true')" )
+		&& str_contains( $adapter, "destination.removeAttribute('aria-busy')" )
+		&& str_contains( $adapter, 'if (!panel.hidden) await refresh();' )
 		&& str_contains( $adapter, 'if (event.defaultPrevented) return;' ),
 	'dynamic UI hooks activate Table bulk Quick Edit and menus, no duplicate native filter handlers' =>
 		str_contains( $ui, 'initTableBulkActions( page );' )
@@ -75,6 +79,7 @@ $checks = [
 	'packaged JS with localized status data and focused behavioral regression' =>
 		str_contains( $assets, "CB_WORK_DIR . 'assets/js/workspace/canonical-mutations.js'" )
 		&& str_contains( $assets, 'is_file( $canonical_mutations )' )
+		&& str_contains( $shell, 'data-cb-work-uwe-mutation-saving=' )
 		&& str_contains( $shell, 'data-cb-work-uwe-mutation-saved=' )
 		&& str_contains( $shell, 'data-cb-work-uwe-mutation-failed=' )
 		&& str_contains( $mount, "from './canonical-mutations.js'" )

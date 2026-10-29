@@ -3,6 +3,8 @@ import {
 	FILTER_FIELDS, canonicalFilterUrl, canonicalLinkUrl, snapshotWorkState, restoreWorkState,
 } from '../assets/js/workspace/canonical-filters.js';
 
+import { canonicalViewParameters } from '../assets/js/workspace/canonical-mount.js';
+
 const base = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-workspace&section=work-items&view=table&search=old&priority=high&uwe_page=3#work';
 const asUrl = (path) => new URL(path, base);
 const native = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-items';
@@ -81,4 +83,18 @@ assert.equal(asUrl(canonicalLinkUrl(base, '/site/wp-admin/admin.php?page=core-bl
 assert.equal(asUrl(canonicalFilterUrl(base, new URLSearchParams([['s','<b>plain text</b>']]))).searchParams.get('search'), '<b>plain text</b>',
 	'Search remains inert URL text; server and DOM own escaping');
 
-console.log('Work M1 canonical filter router: PASS (search, filters, presets, paging, WP reserved route, unsafe links).');
+const dateURL = base.replace('#work',
+	'&scheduled_from=2026-10-01&scheduled_to=2026-10-31&due_from=2026-11-01&due_to=2026-11-30#work');
+const dateParams = canonicalViewParameters(dateURL, 'cb_work_uwe_render_view', 'test-nonce', 'table');
+for (const [name, value] of [
+	['scheduled_from', '2026-10-01'], ['scheduled_to', '2026-10-31'],
+	['due_from', '2026-11-01'], ['due_to', '2026-11-30'],
+]) {
+	assert.equal(dateParams.get(name), value, name + ' must reach canonical WorkItemViewState');
+}
+assert.equal(dateParams.get('page'), null);
+assert.equal(dateParams.get('action'), 'cb_work_uwe_render_view');
+assert.equal(dateParams.get('nonce'), 'test-nonce');
+assert.equal(dateParams.get('paged'), '3');
+
+console.log('Work M1 canonical filter router: PASS (search, dates, presets, paging, WP reserved route, unsafe links).');

@@ -33,6 +33,11 @@ $rules = [
 		str_contains( $router, "native.searchParams.get('page') !== NATIVE_PAGE" )
 		&& str_contains( $router, "native.searchParams.has('action')" )
 		&& str_contains( $router, "CANONICAL_FIELD_MAP = Object.freeze({ s: 'search', paged: 'uwe_page' })" ),
+	'canonical date range filters traverse the actual Work Item renderer bridge' =>
+		str_contains( $mount, "['scheduled_from', 'scheduled_from']" )
+		&& str_contains( $mount, "['scheduled_to', 'scheduled_to']" )
+		&& str_contains( $mount, "['due_from', 'due_from']" )
+		&& str_contains( $mount, "['due_to', 'due_to']" ),
 	'new runtime behavioral test is wired into canonical Level 1' =>
 		str_contains( $check, 'work-m1-filter-contract-smoke.php' )
 		&& str_contains( $check, 'work-m1-canonical-filters-runtime.mjs' ),

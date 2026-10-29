@@ -82,3 +82,12 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - **No WordPress FIELD or Level 1–3 acceptance yet.** This is another internal M1 commit only. Final M1 Golden/FIELD will include negative capability/nonce tests, bulk partial-success data checks, edit and row action parity.
 
 - Additional fail-closed safeguards: the mutation transport respects native form-validation preventDefault, and the original document-ready initializer explicitly skips injected canonical fragments to prevent double attachment.
+
+## Internal stabilization slice — date filters and write serialization (2026-10-29)
+
+- Fixed the only missing canonical bridge query mappings: `scheduled_from`, `scheduled_to`, `due_from`, `due_to`. WorkItemViewState and the GET-only protected renderer remain unchanged.
+- Serialized Work Item form mutations at the Workspace boundary to prevent parallel Quick Edit, bulk and row-action submits from creating confusing stale results. The original nonce/capability-guarded server handlers remain authoritative.
+- Added localized Saving feedback and `aria-busy` during the request. Every success, denial, network failure or malformed payload clears the busy flag. Unsuccessful operations keep the current form state intact.
+- On a successful mutation, refresh the **currently selected** Work Items view even if the old form was replaced by a user-initiated view switch. If the Work Items tab is hidden, the next tab activation performs the standard refresh.
+- Added Node regressions for all four date ranges reaching the bridge, overlapping submits, an in-flight view switch, partial bulk results, stale response handling and error recovery.
+- No milestone Golden or FIELD acceptance yet; continue M1 parity work on this single branch.

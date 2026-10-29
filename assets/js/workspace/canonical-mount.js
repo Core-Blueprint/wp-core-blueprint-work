@@ -52,6 +52,8 @@ export function canonicalViewParameters(href, action, nonce, fallback = 'table')
 		['assignee_id', 'assignee_id'], ['customer', 'customer'],
 		['billing', 'billing'], ['work_context', 'work_context'],
 		['calendar_month', 'calendar_month'],
+		['scheduled_from', 'scheduled_from'], ['scheduled_to', 'scheduled_to'],
+		['due_from', 'due_from'], ['due_to', 'due_to'],
 	];
 	for (const [from, to] of allowed) {
 		const value = url.searchParams.get(from);

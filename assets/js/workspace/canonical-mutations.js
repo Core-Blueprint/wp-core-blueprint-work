@@ -42,6 +42,7 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 	const inFlight = new WeakSet();
 	const document = panel.ownerDocument;
 	let status = null;
+	let mutationPending = false;
 
 	function announce(message, error = false) {
 		if (!status) {
@@ -69,11 +70,18 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 			return;
 		}
 		if (inFlight.has(form)) return;
+		if (mutationPending) {
+			announce(panel.dataset.cbWorkUweMutationSaving || 'Saving…');
+			return;
+		}
+		mutationPending = true;
 		inFlight.add(form);
+		destination.setAttribute('aria-busy', 'true');
 		const submit = event.submitter;
 		if (submit && 'disabled' in submit) submit.disabled = true;
 		form.setAttribute('aria-busy', 'true');
 		try {
+			announce(panel.dataset.cbWorkUweMutationSaving || 'Saving…');
 			const body = new FormData(form);
 			if (body.get('action') !== action) throw new TypeError('Work Item mutation action mismatch');
 			const response = await browser.fetch(endpoint.href, {
@@ -94,12 +102,16 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 				? message : message + ' (' + result.updated + '/' + result.attempted + ')');
 			// Do not perform an optimistic mutation: only server-confirmed
 			// success causes the canonical renderer to rehydrate the view.
-			if (destination.contains(form) && !panel.hidden) await refresh();
+			// The user may have changed views during the mutation. Rehydrate
+			// the CURRENT view rather than silently keeping stale state.
+			if (!panel.hidden) await refresh();
 		} catch {
 			// Network, malformed response and authorization failures keep the
 			// current form/selection available for correction and retry.
 			announce(panel.dataset.cbWorkUweMutationFailed || 'Work Item update failed.', true);
 		} finally {
+			mutationPending = false;
+			destination.removeAttribute('aria-busy');
 			inFlight.delete(form);
 			form.removeAttribute('aria-busy');
 			if (submit && 'disabled' in submit && destination.contains(form)) {
