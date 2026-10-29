@@ -83,6 +83,7 @@ final class ServiceActions {
         $saved = WorkSqlTransaction::run(
             static function () use ( $id, $title, $expected_version, $expected, &$created_id, &$pricing_changed ): array|false|\WP_Error {
                 global $wpdb;
+                $original_content = '';
                 if ( $id > 0 ) {
                     $locked = $wpdb->get_row( $wpdb->prepare(
                         "SELECT ID FROM {$wpdb->posts} WHERE ID = %d AND post_type = %s AND post_status NOT IN ('trash','auto-draft') FOR UPDATE",
@@ -98,6 +99,7 @@ final class ServiceActions {
                         || ! hash_equals( $current['version'], $expected_version ) ) {
                         return new \WP_Error( 'work_service_stale', '', [ 'status' => 409 ] );
                     }
+                    $original_content = (string) $current['description'];
                     if ( $current['title'] !== $title ) {
                         $result = wp_update_post( [ 'ID' => $id, 'post_title' => $title ], true );
                         if ( is_wp_error( $result ) || (int) $result !== $id ) {
@@ -139,7 +141,8 @@ final class ServiceActions {
                 clean_post_cache( $service_id );
                 wp_cache_delete( $service_id, 'post_meta' );
                 $actual = self::get( $service_id );
-                if ( null === $actual || $actual['title'] !== $title || $actual['pricing'] !== $expected ) {
+                if ( null === $actual || $actual['title'] !== $title || $actual['pricing'] !== $expected
+                    || ( $id > 0 && $actual['description'] !== $original_content ) ) {
                     return false;
                 }
                 return $actual;
@@ -148,6 +151,10 @@ final class ServiceActions {
         );
 
         if ( is_wp_error( $saved ) || ! is_array( $saved ) ) {
+            if ( $id > 0 ) {
+                clean_post_cache( $id );
+                wp_cache_delete( $id, 'post_meta' );
+            }
             if ( $created_id > 0 ) {
                 clean_post_cache( $created_id );
                 wp_cache_delete( $created_id, 'post_meta' );
