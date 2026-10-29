@@ -92,6 +92,13 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 				body,
 			});
 			const payload = await response.json().catch(() => null);
+			if (response.status === 401 || response.status === 403) {
+				announce(panel.dataset.cbWorkUweMutationFailed || 'Work Item update failed.', true);
+				// A denied write may indicate revoked capabilities. Re-check
+				// the canonical read boundary; it owns the fail-closed purge.
+				if (!panel.hidden) await refresh();
+				return;
+			}
 			const result = mutationResponse(payload);
 			if (!response.ok || !result.success) {
 				announce(panel.dataset.cbWorkUweMutationFailed || 'Work Item update failed.', true);

@@ -152,6 +152,20 @@ try {
 	assert.equal(destination.attrs['aria-busy'], undefined);
 	assert.equal(inserted[0].textContent, 'Saved');
 
+	// A write permission denial must trigger a new authenticated GET so
+	// the canonical renderer can remove cached privileged data on 403.
+	browser.fetch = async () => ({
+		ok: false, status: 403,
+		json: async () => { throw new SyntaxError('Forbidden HTML response'); },
+	});
+	send(second);
+	await new Promise((resolve) => setImmediate(resolve));
+	assert.equal(refreshes, 3, '403 write denial rechecks the canonical permission boundary');
+	assert.equal(inserted[0].attrs.role, 'alert');
+	assert.equal(inserted[0].textContent, 'Update unsuccessful');
+	assert.equal(destination.attrs['aria-busy'], undefined);
+	assert.equal(submitter.disabled, false);
+
 	const bad = form('not-an-action'); destination.children.add(bad);
 	const prev = browser.requests.length;
 	blocked = false;

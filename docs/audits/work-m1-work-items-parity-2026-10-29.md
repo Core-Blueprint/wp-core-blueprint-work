@@ -107,3 +107,13 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Match native keyboard behavior: opening the panel focuses its first available control, and Escape closes the panel, synchronizes `aria-expanded`, and restores focus to the toggle.
 - Reuse the canonical PHP filter form and markup; the new `syncAdvancedFilters` helper only reapplies local disclosure state to server-rendered HTML. No saved settings, duplicate filters, or additional REST/AJAX endpoints.
 - Extend existing filter runtime and source tests rather than adding a separate acceptance patch. Final M1 Level 1/2/3 + FIELD remain OPEN.
+
+## Internal stabilization — read recovery and authorization safety (2026-10-29)
+
+- For a **transient GET failure on the same Work Items view**, keep the last successfully rendered canonical HTML and its filter/read controls visible alongside the existing accessible error and retry control. Disable mutation forms until a fresh, authenticated canonical GET succeeds. This avoids replacing live content with outdated SSR workspace records during a network hiccup.
+- For an **initial GET failure or a failed navigation to a different view**, use the existing SSR fallback plus error, rather than presenting another view as current.
+- For **HTTP 401/403**, immediately unmount and clear cached canonical Work Items markup, disable mutations, and suppress the potentially privileged SSR fallback. Subsequent offline retries must never reveal the old SSR records. Only an authorized successful GET restores the Work Items view.
+- A **401/403 POST** also forces a permission-boundary re-read, which will purge the cached UI if the user no longer has read access. Ordinary 409/transport write failures keep the form available for correction.
+- Existing canonical bridge, Base components, DOM-safe parsing, nonce and capability boundaries, golden Operations renderer, Projects and Services code remain unchanged.
+- UWE-03C.2 runtime is extended to exercise same-view transient retention, cross-view fallback, denial purge, offline-after-denial and authorized retry; Work M1 mutation runtime adds 403 write reauthorization. Source test is wired to Level 1.
+- No full Golden, integration WordPress or FIELD acceptance yet. Continue under the same M1 featurebranch until complete product parity.

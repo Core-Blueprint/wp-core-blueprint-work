@@ -99,6 +99,15 @@ export function syncAdvancedFilters(root, expanded) {
 	return true;
 }
 
+/**
+ * A last valid Work Items view is safe to retain only for transient failures
+ * on that SAME view. Permission loss must never expose cached privileged HTML.
+ */
+export function canonicalReadFailureMode(status, requestedView, renderedView, hasContent) {
+	if (status === 401 || status === 403) return 'unauthorized';
+	return hasContent && renderedView === requestedView ? 'retain' : 'fallback';
+}
+
 export function createCanonicalViewMount(panel, browser, notify) {
 	const destination = panel?.querySelector('[data-cb-work-uwe-canonical]');
 	const switcher = panel?.querySelector('[data-cb-work-uwe-view-switcher]');
@@ -121,6 +130,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	const error = panel.querySelector('[data-cb-work-uwe-error]');
 	let current = null;
 	let serial = 0;
+	let renderedView = null;
+	let authorizationDenied = false;
 	const document = panel.ownerDocument;
 	const mutationAdapter = createMutationAdapter(destination, panel, browser, () => refresh());
 	const statusSync = createCanonicalStatusSync(browser, () => {
@@ -275,7 +286,24 @@ export function createCanonicalViewMount(panel, browser, notify) {
 		mutationAdapter?.disable();
 		destination.hidden = true;
 		if (oldHeading) oldHeading.hidden = false;
-		fallback.forEach((node, index) => { if (node) node.hidden = originalHidden[index]; });
+		fallback.forEach((node, index) => {
+			if (node) node.hidden = authorizationDenied ? true : originalHidden[index];
+		});
+	}
+
+	function clearUnauthorized() {
+		authorizationDenied = true;
+		renderedView = null;
+		mutationAdapter?.disable();
+		const outgoing = destination.firstElementChild;
+		if (outgoing && typeof document.dispatchEvent === 'function'
+			&& typeof CustomEvent === 'function') {
+			document.dispatchEvent(new CustomEvent('cb-work:canonical-view-unmount', {
+				detail: { root: outgoing },
+			}));
+		}
+		destination.replaceChildren();
+		showFallback();
 	}
 
 	async function refresh(href = browser.location.href) {
@@ -308,7 +336,11 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				signal: controller.signal,
 			});
 			if (ticket !== serial || controller.signal.aborted) return;
-			if (!response.ok) throw new Error('Canonical Work Items HTTP ' + response.status);
+			if (!response.ok) {
+				const failure = new Error('Canonical Work Items HTTP ' + response.status);
+				failure.status = response.status;
+				throw failure;
+			}
 			const payload = await response.json();
 			if (ticket !== serial || controller.signal.aborted) return;
 			if (payload?.success !== true || payload?.data?.view !== view
@@ -348,6 +380,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			destination.replaceChildren(inserted);
 			destination.hidden = false;
+			authorizationDenied = false;
+			renderedView = view;
 			// Modules own their existing handlers. Mount merely announces
 			// the exact imported fragment; it never duplicates interactions.
 			if (typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
@@ -381,8 +415,20 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 		} catch (failure) {
 			if (ticket !== serial || controller.signal.aborted || failure?.name === 'AbortError') return;
-			// The fallback is always available and never replaced on a failed load.
-			showFallback();
+			const mode = canonicalReadFailureMode(
+				failure?.status, view, renderedView,
+				!destination.hidden && Boolean(destination.firstElementChild)
+			);
+			if (mode === 'unauthorized') {
+				clearUnauthorized();
+			} else if (mode === 'retain') {
+				// Keep the last same-view GET result and filter controls
+				// readable, but disable mutations until an authorized retry.
+				mutationAdapter?.disable();
+				destination.hidden = false;
+			} else {
+				showFallback();
+			}
 			if (error) error.hidden = false;
 		} finally {
 			if (ticket === serial) {

@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
 import {
 	CANONICAL_VIEWS, readCanonicalView, canonicalViewUrl,
-	canonicalViewParameters, createCanonicalViewMount,
+	canonicalViewParameters, createCanonicalViewMount, canonicalReadFailureMode,
 } from '../assets/js/workspace/canonical-mount.js';
 
 const base = 'https://example.test/site/wp-admin/admin.php?page=core-blueprint-work-workspace';
 assert.deepEqual(CANONICAL_VIEWS, ['table', 'list', 'kanban', 'calendar']);
+assert.equal(canonicalReadFailureMode(503, 'calendar', 'calendar', true), 'retain');
+assert.equal(canonicalReadFailureMode(undefined, 'table', 'table', true), 'retain');
+assert.equal(canonicalReadFailureMode(503, 'calendar', 'table', true), 'fallback');
+assert.equal(canonicalReadFailureMode(503, 'calendar', 'calendar', false), 'fallback');
+assert.equal(canonicalReadFailureMode(401, 'table', 'table', true), 'unauthorized');
+assert.equal(canonicalReadFailureMode(403, 'calendar', 'calendar', true), 'unauthorized');
 assert.equal(readCanonicalView(base), 'table');
 assert.equal(readCanonicalView(base + '&view=invalid', 'kanban'), 'kanban');
 assert.equal(readCanonicalView(base + '&view=calendar'), 'calendar');
@@ -69,7 +75,7 @@ switcher.querySelector = () => ({
 });
 switcher.addEventListener = (name, handler) => { assert.equal(name, 'click'); onClick = handler; };
 const destination = element(true);
-destination.replaceChildren = (...nodes) => { destination.children = nodes; };
+destination.replaceChildren = (...nodes) => { destination.children = nodes; destination.firstElementChild = nodes[0] ?? null; };
 const heading = element(false);
 const controls = element(true), list = element(false), empty = element(true), pagination = element(true);
 const feedback = element(true), error = element(true);
@@ -137,15 +143,56 @@ await Promise.resolve();
 assert.equal(new URL(browser.lastRequest.url).searchParams.get('view'), 'calendar');
 assert.equal(viewLinks.calendar.attributes.get('aria-current'), 'page');
 
+// A temporary same-view failure must preserve the last valid canonical DOM,
+// with an alert. It must NOT expose the older REST SSR fallback instead.
 browser.fetch = async () => { throw new Error('network offline'); };
-// Mount binds browser.fetch at creation? It accesses the live property, so fallback works.
+await mount.refresh();
+assert.equal(destination.hidden, false);
+assert.equal(destination.firstElementChild, canonical);
+assert.equal(heading.hidden, true);
+assert.equal(list.hidden, true);
+assert.equal(error.hidden, false);
+assert.equal(panel.attributes.has('aria-busy'), false);
+
+// A revoked permission is not a transient network error: all cached private
+// Work Item HTML and the SSR fallback must be hidden immediately.
+browser.fetch = async () => ({ ok: false, status: 403 });
+await mount.refresh();
+assert.equal(destination.hidden, true);
+assert.equal(destination.firstElementChild, null);
+assert.equal(list.hidden, true);
+assert.equal(controls.hidden, true);
+assert.equal(error.hidden, false);
+// A later transport failure cannot accidentally reveal the old SSR fallback.
+browser.fetch = async () => { throw new Error('offline after permission loss'); };
+await mount.refresh();
+assert.equal(destination.hidden, true);
+assert.equal(list.hidden, true);
+
+// A successful authenticated retry must restore canonical Work Items.
+browser.fetch = async (url) => ({
+	ok: true, json: async () => ({
+		success: true, data: {
+			view: new URL(url).searchParams.get('view'),
+			html: '<div class="cb-work-items-page"></div>',
+		},
+	}),
+});
+await mount.refresh();
+assert.equal(destination.hidden, false);
+assert.equal(destination.firstElementChild, canonical);
+assert.equal(error.hidden, true);
+assert.equal(heading.hidden, true);
+
+// When a different view fails, do not represent the previous view as new
+// results. The user gets the existing fallback and a retry alert.
+browser.location.href = base + '&view=list';
+browser.fetch = async () => { throw new Error('different view offline'); };
 await mount.refresh();
 assert.equal(destination.hidden, true);
 assert.equal(heading.hidden, false);
 assert.equal(list.hidden, false);
-assert.equal(empty.hidden, true);
-assert.equal(controls.hidden, true);
 assert.equal(error.hidden, false);
 assert.equal(panel.attributes.has('aria-busy'), false);
 mount.abort();
-console.log('UWE-03C.2 runtime: PASS (view routing, AJAX security, mounting, error fallback).');
+console.log('UWE-03C.2 runtime: PASS (view routing, transient retention, 403 purge, retry recovery, fallback).');
