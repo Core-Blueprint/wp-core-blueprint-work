@@ -13,7 +13,8 @@
 
 	function initWorkItems() {
 		const page = document.querySelector( '.cb-work-items-page' );
-		if ( ! page ) {
+		if ( ! page || page.closest( '[data-cb-work-uwe-canonical]' ) ) {
+			// Dynamic Work views have an explicit mount lifecycle below.
 			return;
 		}
 

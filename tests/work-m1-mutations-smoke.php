@@ -55,7 +55,8 @@ $checks = [
 		&& str_contains( $adapter, "response.json()" )
 		&& str_contains( $adapter, 'if (!response.ok || !result.success)' )
 		&& str_contains( $adapter, 'await refresh()' )
-		&& str_contains( $adapter, 'inFlight.has(form)' ),
+		&& str_contains( $adapter, 'inFlight.has(form)' )
+		&& str_contains( $adapter, 'if (event.defaultPrevented) return;' ),
 	'dynamic UI hooks activate Table bulk Quick Edit and menus, no duplicate native filter handlers' =>
 		str_contains( $ui, 'initTableBulkActions( page );' )
 		&& str_contains( $ui, 'initQuickEdit( page );' )
@@ -63,6 +64,7 @@ $checks = [
 		&& str_contains( $ui, "cb-work:canonical-view-unmount" )
 		&& str_contains( $ui, 'dynamicActionControllers.get( page )?.abort()' )
 		&& str_contains( $ui, 'ready( initWorkItems );' )
+		&& str_contains( $ui, "page.closest( '[data-cb-work-uwe-canonical]' )" )
 		&& ! str_contains( $ui, 'fetch(' ),
 	'mutation forms display exclusively after verified secure JS lifecycle' =>
 		str_contains( $css, '[data-cb-work-mutations-ready="1"] form.cb-work-transition-form' )

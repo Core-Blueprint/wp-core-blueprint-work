@@ -117,6 +117,11 @@ try {
 	await new Promise((resolve) => setImmediate(resolve));
 	assert.equal(refreshes, 1);
 	assert.equal(inserted[0].textContent, 'Update unsuccessful');
+	const suppressed = form('cb_work_quick_edit_work_item');
+	destination.children.add(suppressed);
+	const preflight = browser.requests.length;
+	listeners.submit({ target: suppressed, defaultPrevented: true, preventDefault() { throw new Error('Already cancelled'); } });
+	assert.equal(browser.requests.length, preflight, 'Existing bulk validation veto must be respected');
 	const bad = form('not-an-action'); destination.children.add(bad);
 	const prev = browser.requests.length;
 	blocked = false;

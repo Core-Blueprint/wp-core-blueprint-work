@@ -57,6 +57,7 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 	}
 
 	async function handle(event) {
+		if (event.defaultPrevented) return;
 		const form = event.target;
 		if (!form || !destination.contains(form) || String(form.method || '').toLowerCase() !== 'post') return;
 		// Fail closed: unexpected native admin-post actions must never navigate
@@ -93,7 +94,7 @@ export function createMutationAdapter(destination, panel, browser, refresh) {
 				? message : message + ' (' + result.updated + '/' + result.attempted + ')');
 			// Do not perform an optimistic mutation: only server-confirmed
 			// success causes the canonical renderer to rehydrate the view.
-			if (destination.contains(form)) await refresh();
+			if (destination.contains(form) && !panel.hidden) await refresh();
 		} catch {
 			// Network, malformed response and authorization failures keep the
 			// current form/selection available for correction and retry.

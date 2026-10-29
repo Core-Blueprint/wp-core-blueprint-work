@@ -80,3 +80,5 @@ During development run targeted PHP/JS behavioral and integration checks. Comple
 - Work Items G0/B1 server renderer, WorkItemViewBridge GET reader, project/service REST, core WorkItems repository, schemas and Base are unchanged.
 - Behavioral Node test verifies exact action allowlist, original nonce forwarding, same-origin, POST, success/partial counts, rejection/network recovery, no optimistic refresh, and fail-closed unknown actions. Source smoke protects legacy and AJAX route equivalence and full Golden wiring.
 - **No WordPress FIELD or Level 1–3 acceptance yet.** This is another internal M1 commit only. Final M1 Golden/FIELD will include negative capability/nonce tests, bulk partial-success data checks, edit and row action parity.
+
+- Additional fail-closed safeguards: the mutation transport respects native form-validation preventDefault, and the original document-ready initializer explicitly skips injected canonical fragments to prevent double attachment.
