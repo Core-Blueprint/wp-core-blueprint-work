@@ -672,3 +672,16 @@
 @media screen and (max-width: 782px) {
 	.cb-work-ux2-dialog { max-width: 100%; }
 }
+
+/* M3-B4-A: Recurring is a first-class, read-only Workspace section. */
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__record {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--cb-space-1, 4px);
+}
+.cb-work-unified .cb-work-uwe__recurring-facts {
+	font-size: .8125rem;
+	line-height: 1.5;
+	color: var(--cb-work-text-muted, inherit);
+}

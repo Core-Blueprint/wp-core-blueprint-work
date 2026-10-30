@@ -2,7 +2,7 @@
  * UWE-03A: Work-only URL and navigation state. No network writes or framework.
  * The browser URL remains the source of truth for the selected section.
  */
-export const SECTIONS = Object.freeze([ 'work-items', 'projects', 'services' ]);
+export const SECTIONS = Object.freeze([ 'work-items', 'projects', 'services', 'recurring' ]);
 
 export function readSection(href) {
 	const requested = new URL(href).searchParams.get('section');

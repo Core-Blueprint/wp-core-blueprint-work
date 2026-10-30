@@ -80,6 +80,27 @@ export function mountWorkspace(root, browser = window) {
 			row.appendChild(button);
 			return row;
 		}
+		if (section === 'recurring' && Number(record?.id) > 0) {
+			const panel = panels.get(section);
+			const base = panel?.dataset.cbWorkB4Native || '';
+			try {
+				const url = new URL(base, browser.location.href);
+				if (url.origin !== new URL(browser.location.href).origin) throw new TypeError('Cross-origin native fallback');
+				url.searchParams.set('rule_id', String(record.id));
+				const anchor = document.createElement('a');
+				anchor.href = url.href;
+				anchor.className = 'cb-work-uwe__record-title--button';
+				anchor.textContent = title.textContent;
+				row.appendChild(anchor);
+			} catch {
+				row.appendChild(title);
+			}
+			const facts = document.createElement('small');
+			facts.className = 'cb-work-uwe__recurring-facts';
+			facts.textContent = [record.is_active ? 'Active' : 'Inactive', record.frequency || '', record.next_occurrence_on || ''].filter(Boolean).join(' · ');
+			row.appendChild(facts);
+			return row;
+		}
 		row.appendChild(title);
 		return row;
 	}

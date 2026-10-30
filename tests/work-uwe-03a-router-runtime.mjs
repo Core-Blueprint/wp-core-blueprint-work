@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { createWorkspaceRouter, readSection, sectionUrl, SECTIONS } from '../assets/js/workspace/router.js';
 
 const base = 'https://example.test/wp-admin/admin.php?page=core-blueprint-work-workspace';
-assert.deepEqual(SECTIONS, ['work-items', 'projects', 'services']);
+assert.deepEqual(SECTIONS, ['work-items', 'projects', 'services', 'recurring']);
 assert.equal(readSection(base), 'work-items');
 assert.equal(readSection(base + '&section=projects'), 'projects');
 assert.equal(readSection(base + '&section=unknown'), 'work-items');
 assert.equal(readSection(base + '&section=services'), 'services');
+assert.equal(readSection(base + '&section=recurring'), 'recurring');
+assert.match(sectionUrl(base, 'recurring'), /section=recurring/);
 assert.equal(sectionUrl(base + '&filter=active#panel', 'projects'), '/wp-admin/admin.php?page=core-blueprint-work-workspace&filter=active&section=projects#panel');
 assert.equal(sectionUrl(base + '&section=services', 'work-items'), '/wp-admin/admin.php?page=core-blueprint-work-workspace');
 assert.throws(() => sectionUrl(base, 'invalid'), TypeError);

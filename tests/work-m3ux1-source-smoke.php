@@ -12,7 +12,7 @@ $checks = [
 	'one workspace with real tabs and native Recurring fallback' =>
 		str_contains( $shell, 'cb-work-uwe__primary-navigation' ) &&
 		str_contains( $shell, 'role="tablist"' ) &&
-		str_contains( $shell, 'data-cb-work-ux1-recurring-fallback' ) &&
+		str_contains( $shell, "'recurring' === \$key" ) &&
 		str_contains( $shell, 'Menu::RECURRENCE_SLUG' ) &&
 		str_contains( $shell, 'WorkspaceOperationsPanel::render();' ),
 	'only authenticated canonical Work Items mount hides duplicate shell create' =>

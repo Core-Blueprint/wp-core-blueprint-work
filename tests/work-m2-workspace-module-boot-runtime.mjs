@@ -56,7 +56,7 @@ assert.equal(typeof entry.namespace.mountWorkspace, 'function');
 // Verify actual entrypoint hydration executes without the picker importmap
 // key. In this pure VM mock, no network exists, so it must retain SSR but
 // must still attach Workspace event listeners and route its own sections.
-const sections = ['work-items', 'projects', 'services'];
+const sections = ['work-items', 'projects', 'services', 'recurring'];
 const listeners = new Map();
 const tabs = sections.map((key) => ({
 	dataset: { cbWorkUweTab: key },

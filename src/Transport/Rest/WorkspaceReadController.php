@@ -11,6 +11,7 @@ use CB\Work\PublicApi\Projects;
 use CB\Work\PublicApi\Services;
 use CB\Work\Query\WorkItemQuery;
 use CB\Work\Repository\WorkItems;
+use CB\Work\Repository\RecurrenceRules;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class WorkspaceReadController {
 	public const NAMESPACE = 'cb-work/v1';
-	public const ROUTE = '/workspace/(?P<section>work-items|projects|services)';
+	public const ROUTE = '/workspace/(?P<section>work-items|projects|services|recurring)';
 	private const MAX_PAGE_SIZE = 100;
 	private const POST_STATUSES = [ 'publish', 'draft', 'pending', 'private', 'future' ];
 
@@ -40,8 +41,8 @@ final class WorkspaceReadController {
 				'page' => [ 'type' => 'integer', 'minimum' => 1, 'default' => 1 ],
 				'per_page' => [ 'type' => 'integer', 'minimum' => 1, 'maximum' => self::MAX_PAGE_SIZE, 'default' => 25 ],
 				'search' => [ 'type' => 'string', 'maxLength' => 160, 'default' => '' ],
-				'sort' => [ 'type' => 'string', 'enum' => WorkItemQuery::sorts() ],
-				'status' => [ 'type' => 'string', 'enum' => WorkItemStatus::all() ],
+				'sort' => [ 'type' => 'string', 'enum' => array_values( array_unique( array_merge( WorkItemQuery::sorts(), [ 'next_occurrence', 'status', 'created' ] ) ) ) ],
+				'status' => [ 'type' => 'string', 'enum' => array_merge( WorkItemStatus::all(), [ 'active', 'inactive' ] ) ],
 				'priority' => [ 'type' => 'string', 'enum' => WorkItemPriority::all() ],
 				'project_id' => [ 'type' => 'integer', 'minimum' => 0 ],
 			],
@@ -68,14 +69,14 @@ final class WorkspaceReadController {
 		}
 
 		$section = (string) $request->get_param( 'section' );
-		if ( ! in_array( $section, [ 'work-items', 'projects', 'services' ], true ) ) {
+		if ( ! in_array( $section, [ 'work-items', 'projects', 'services', 'recurring' ], true ) ) {
 			return new \WP_Error( 'rest_no_route', '', [ 'status' => 404 ] );
 		}
 		$page = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page = max( 1, min( self::MAX_PAGE_SIZE, (int) $request->get_param( 'per_page' ) ) );
 		$search = sanitize_text_field( (string) ( $request->get_param( 'search' ) ?? '' ) );
 		$sort_input = $request->get_param( 'sort' );
-		$sort = is_string( $sort_input ) ? $sort_input : ( 'work-items' === $section ? WorkItemQuery::SORT_WORKLOAD : WorkItemQuery::SORT_TITLE );
+		$sort = is_string( $sort_input ) ? $sort_input : ( 'recurring' === $section ? 'next_occurrence' : ( 'work-items' === $section ? WorkItemQuery::SORT_WORKLOAD : WorkItemQuery::SORT_TITLE ) );
 
 		if ( 'work-items' === $section ) {
 			$criteria = [
@@ -98,6 +99,26 @@ final class WorkspaceReadController {
 			}
 			$result = WorkItems::search( $criteria );
 			$items = array_map( [ self::class, 'work_item_projection' ], $result['items'] );
+		} elseif ( 'recurring' === $section ) {
+			// RecurrenceRules owns bounded SQL filtering and authoritative schedule state.
+			// Never expose private customer identities, descriptions or assignments.
+			$status = (string) ( $request->get_param( 'status' ) ?? '' );
+			$result = RecurrenceRules::search_page( [
+				'page' => $page,
+				'search' => substr( $search, 0, 160 ),
+				'status' => in_array( $status, [ 'active', 'inactive' ], true ) ? $status : '',
+				'sort' => in_array( $sort, [ 'title', 'next_occurrence', 'status', 'created' ], true ) ? $sort : 'next_occurrence',
+			] );
+			$items = array_map( static fn( array $rule ): array => [
+				'id' => (int) $rule['id'],
+				'title' => (string) $rule['title'],
+				'frequency' => (string) $rule['frequency'],
+				'interval_count' => (int) $rule['interval_count'],
+				'next_occurrence_on' => (string) ( $rule['next_occurrence_on'] ?? '' ),
+				'is_active' => (bool) $rule['is_active'],
+			], $result['rows'] );
+			$page = (int) $result['page'];
+			$per_page = (int) $result['per_page'];
 		} else {
 			$result = self::catalog_page( 'projects' === $section ? PostTypes::PROJECT : PostTypes::SERVICE, $page, $per_page, $search, $sort );
 			$items = array_map(

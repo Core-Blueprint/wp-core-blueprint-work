@@ -4,11 +4,16 @@
  * Preserves unrelated WordPress/admin query arguments and hash fragments.
  */
 export const DATA_KEYS = Object.freeze(['search', 'sort', 'status', 'uwe_page', 'per_page']);
-const SORTS = Object.freeze(['workload', 'due', 'scheduled', 'updated', 'title']);
+const SORTS = Object.freeze(['workload', 'due', 'scheduled', 'updated', 'title', 'next_occurrence', 'status']);
 const STATUSES = Object.freeze(['planned', 'in_progress', 'blocked', 'completed', 'skipped', 'cancelled']);
+const RECURRENCE_STATUSES = Object.freeze(['active', 'inactive']);
+export function allowedSort(section, sort) {
+	return SORTS.includes(sort) && (section === 'work-items'
+		|| (section === 'recurring' ? ['title', 'next_occurrence', 'status'].includes(sort) : ['title', 'updated'].includes(sort)));
+}
 
 export function defaultSort(section) {
-	return section === 'work-items' ? 'workload' : 'title';
+	return section === 'work-items' ? 'workload' : section === 'recurring' ? 'next_occurrence' : 'title';
 }
 
 export function defaultDataState(section) {
@@ -28,9 +33,10 @@ export function readDataState(href, section) {
 	const status = params.get('status');
 	return {
 		search: (params.get('search') ?? '').trim().slice(0, 160),
-		sort: SORTS.includes(sort) && (section === 'work-items' || ['title', 'updated'].includes(sort))
+		sort: allowedSort(section, sort)
 			? sort : defaults.sort,
-		status: section === 'work-items' && STATUSES.includes(status) ? status : '',
+		status: section === 'work-items' && STATUSES.includes(status) ? status
+			: section === 'recurring' && RECURRENCE_STATUSES.includes(status) ? status : '',
 		page: boundedInteger(params.get('uwe_page'), 1, 100000, 1),
 		per_page: boundedInteger(params.get('per_page'), 1, 100, 25),
 	};
@@ -42,11 +48,13 @@ export function dataStateUrl(href, section, input) {
 	const state = { ...defaultDataState(section), ...input };
 	const search = String(state.search ?? '').trim().slice(0, 160);
 	if (search) url.searchParams.set('search', search);
-	if (SORTS.includes(state.sort) && state.sort !== defaultSort(section)
-		&& (section === 'work-items' || ['title', 'updated'].includes(state.sort))) {
+	if (allowedSort(section, state.sort) && state.sort !== defaultSort(section)) {
 		url.searchParams.set('sort', state.sort);
 	}
-	if (section === 'work-items' && STATUSES.includes(state.status)) url.searchParams.set('status', state.status);
+	if ((section === 'work-items' && STATUSES.includes(state.status))
+		|| (section === 'recurring' && RECURRENCE_STATUSES.includes(state.status))) {
+		url.searchParams.set('status', state.status);
+	}
 	if (Number.isSafeInteger(state.page) && state.page > 1 && state.page <= 100000) {
 		url.searchParams.set('uwe_page', String(state.page));
 	}
