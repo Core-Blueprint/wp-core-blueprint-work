@@ -168,6 +168,7 @@ node --experimental-default-type=module "$ROOT/tests/work-m3b3-billing-runtime.m
 php "$ROOT/tests/work-m3c1-time-source-smoke.php"
 php "$ROOT/tests/work-m3c2-time-source-smoke.php"
 php "$ROOT/tests/work-m3c2-time-runtime.php"
+node --experimental-default-type=module "$ROOT/tests/work-m3c2-time-runtime.mjs"
 php "$ROOT/tests/work-m3c1-time-runtime.php"
 node --experimental-default-type=module "$ROOT/tests/work-m3c1-time-runtime.mjs"
 php "$ROOT/tests/work-items-ux-refinement-smoke.php"
