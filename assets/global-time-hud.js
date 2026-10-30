@@ -203,6 +203,9 @@
     window.setInterval(clock, 1000);
     window.setInterval(() => { if (Date.now() - lastSync > 55000) sync(); }, 60000);
     window.addEventListener('focus', sync);
+    // Unified Work's Time controls changed the canonical timer: re-read the
+    // authoritative HUD endpoint instead of sharing a second client store.
+    window.addEventListener('cb-work-time:changed', sync);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') sync();
     });

@@ -33,13 +33,14 @@ final class WorkspaceOperationsPanel {
 				<span><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?></span>
 				<span class="cb-work-m3-operations__metric" data-cb-work-m3-count="recurrence" hidden></span>
 			</a>
-			<a class="cb-work-m3-operations__item" href="<?php echo esc_url( Menu::time_url() ); ?>">
+			<a class="cb-work-m3-operations__item" data-cb-work-m3-time-link href="<?php echo esc_url( Menu::time_url() ); ?>">
 				<span><?php esc_html_e( 'Time', 'core-blueprint-work' ); ?></span>
 				<span class="cb-work-m3-operations__metric" data-cb-work-m3-timer hidden><?php esc_html_e( 'Timer running', 'core-blueprint-work' ); ?></span>
 			</a>
 			<span class="screen-reader-text" role="status" aria-live="polite" data-cb-work-m3-status></span>
 		</nav>
 		<?php WorkspaceEngagementsPanel::render(); ?>
+		<?php WorkspaceTimePanel::render(); ?>
 		<?php
 	}
 

@@ -6,6 +6,7 @@ import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
 import { mountUnifiedEditors } from './editors.js';
 import { mountWorkspaceOperations } from './operations.js';
 import { mountWorkspaceEngagements } from './engagements.js';
+import { mountWorkspaceTime } from './time.js';
 
 /**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.
@@ -192,6 +193,7 @@ export function mountWorkspace(root, browser = window) {
 	mountUnifiedEditors(root, browser, refresh);
 	const operationsSummary = mountWorkspaceOperations(root, browser);
 	mountWorkspaceEngagements(root, browser, () => operationsSummary?.refresh());
+	mountWorkspaceTime(root, browser, () => operationsSummary?.refresh());
 
 	function updateState(section, nextState) {
 		if (activeSection !== section) return;
