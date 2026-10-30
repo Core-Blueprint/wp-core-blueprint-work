@@ -28,13 +28,13 @@ $checks = [
 		str_contains( $engagements, 'refresh, collapse,' ) &&
 		str_contains( $time, 'refresh, lookup, mutate, collapse,' ),
 	'protected Golden renderer unchanged' =>
-		sha1( 'blob ' . strlen( $operations ) . "\\0" . $operations ) ===
+		sha1( 'blob ' . strlen( $operations ) . "\0" . $operations ) ===
 			'92a4814f24b43f96d16e3d96ce61a49ee9f21500',
 ];
 foreach ( $checks as $name => $pass ) {
 	if ( ! $pass ) {
-		fwrite( STDERR, "Work M3-UX1 source FAIL: {$name}\\n" );
+		fwrite( STDERR, "Work M3-UX1 source FAIL: {$name}\n" );
 		exit( 1 );
 	}
 }
-echo "Work M3-UX1 source: PASS (IA, single CTA, Operations, protected renderer).\\n";
+echo "Work M3-UX1 source: PASS (IA, single CTA, Operations, protected renderer).\n";
