@@ -62,6 +62,7 @@ export function createOperationDialog(panel, browser, { title, onOpen } = {}) {
 			parent.insertBefore(panel, marker.nextSibling);
 			panel.hidden = true;
 			active = false;
+			if (disposed) marker.remove();
 		}
 		const next = pending;
 		pending = null;
