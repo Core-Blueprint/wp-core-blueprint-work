@@ -25,7 +25,7 @@ final class WorkspaceOperationsPanel {
 			data-cb-work-m3-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>"
 			data-cb-work-m3-unavailable="<?php esc_attr_e( 'Work storage unavailable', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-active="<?php esc_attr_e( 'Active', 'core-blueprint-work' ); ?>">
-			<a class="cb-work-m3-operations__item" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::SERVICE_OPERATIONS_SLUG ], admin_url( 'admin.php' ) ) ); ?>">
+			<a class="cb-work-m3-operations__item" data-cb-work-m3-service-link href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::SERVICE_OPERATIONS_SLUG ], admin_url( 'admin.php' ) ) ); ?>">
 				<span><?php esc_html_e( 'Service Operations', 'core-blueprint-work' ); ?></span>
 				<span class="cb-work-m3-operations__metric" data-cb-work-m3-count="services" hidden></span>
 			</a>
@@ -39,6 +39,7 @@ final class WorkspaceOperationsPanel {
 			</a>
 			<span class="screen-reader-text" role="status" aria-live="polite" data-cb-work-m3-status></span>
 		</nav>
+		<?php WorkspaceEngagementsPanel::render(); ?>
 		<?php
 	}
 

@@ -41,6 +41,7 @@ use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Transport\Rest\WorkspaceReadController;
 use CB\Work\Transport\Rest\WorkspaceOperationsController;
+use CB\Work\Transport\Rest\WorkspaceEngagementsController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -66,6 +67,7 @@ final class Plugin {
 		Scheduler::init();
 		WorkspaceReadController::init();
 		WorkspaceOperationsController::init();
+		WorkspaceEngagementsController::init();
 
 		if ( is_admin() ) {
 			Assets::init();
