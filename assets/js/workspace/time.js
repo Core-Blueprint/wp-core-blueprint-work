@@ -1,4 +1,5 @@
 import { createTimeEntryDialog } from './time-entry.js';
+import { createOperationDialog } from './operation-dialog.js';
 
 /**
  * M3-C1 Time manager surface. Native Time remains authoritative for advanced
@@ -42,6 +43,14 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	panel.dataset.cbWorkM3TimeMounted = '1';
 	let destroyed = false, busy = false, page = 1, pages = 1, epoch = 0, searchEpoch = 0;
 	let controller = null, searchController = null, searchTimeout = null;
+	const host = createOperationDialog(panel, browser, {
+		title: panel.querySelector('h2')?.textContent || 'Time',
+		onOpen: () => { void refresh(1); },
+	});
+	function openChild(task) {
+		if (host) host.transition(task);
+		else void task();
+	}
 	const doc = root.ownerDocument;
 	const element = (tag, content = '') => {
 		const result = doc.createElement(tag);
@@ -101,7 +110,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 				const correct = element('button', panel.dataset.cbWorkM3TimeCorrect);
 				correct.type = 'button';
 				correct.className = 'button';
-				correct.addEventListener('click', () => { void entryDialog.open(record.id, correct); });
+				correct.addEventListener('click', () => { openChild(() => entryDialog.open(record.id, correct)); });
 				li.append(correct);
 			} else if (panel.dataset.cbWorkM3TimeNative) {
 				const fallback = element('a', panel.dataset.cbWorkM3TimeCorrect);
@@ -225,16 +234,17 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 		if (!addEntry || !entryDialog || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 		event.preventDefault();
-		void entryDialog.open(0, addEntry);
+		openChild(() => entryDialog.open(0, addEntry));
 	}
 	function onLink(event) {
 		if (destroyed || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 		event.preventDefault();
-		panel.hidden = false;
-		void refresh(1);
+		if (host) void host.open();
+		else { panel.hidden = false; void refresh(1); }
 	}
 	function collapse() {
+		host?.dismiss();
 		controller?.abort(); searchController?.abort(); ++epoch; ++searchEpoch;
 		panel.hidden = true;
 	}
@@ -264,6 +274,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 			destroyed = true; ++epoch; ++searchEpoch;
 			controller?.abort(); searchController?.abort();
 			clearTimeout(searchTimeout); panel.hidden = true;
+			host?.dispose();
 			link.removeEventListener('click', onLink);
 			addEntry?.removeEventListener('click', onAddEntry);
 			entryDialog?.dispose();

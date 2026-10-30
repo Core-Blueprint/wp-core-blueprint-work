@@ -1,5 +1,6 @@
 import { createEngagementRuleDialog } from './engagement-rules.js';
 import { createEngagementBillingDialog } from './engagement-billing.js';
+import { createOperationDialog } from './operation-dialog.js';
 
 /**
  * M3-B1. In-place Engagement list and basic creation, with native advanced
@@ -42,6 +43,14 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	let version = 0;
 	let active = null;
 	let dialogOpen = false;
+	const host = createOperationDialog(panel, browser, {
+		title: panel.querySelector('h2')?.textContent || 'Service Operations',
+		onOpen: () => { void refresh(1); },
+	});
+	function openChild(task) {
+		if (host) host.transition(task);
+		else void task();
+	}
 	panel.dataset.cbWorkM3EngagementsMounted = '1';
 
 	function clear() {
@@ -104,13 +113,13 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 			} else if (billingDialog) {
 				const billing = el('button', panel.dataset.cbWorkM3BillingAction, 'button');
 				billing.type = 'button';
-				billing.addEventListener('click', () => { void billingDialog.open(item, billing); });
+				billing.addEventListener('click', () => { openChild(() => billingDialog.open(item, billing)); });
 				row.appendChild(billing);
 			}
 			if (ruleDialog) {
 				const action = el('button', panel.dataset.cbWorkM3RuleStatus, 'button');
 				action.type = 'button';
-				action.addEventListener('click', () => { void ruleDialog.open(item, action); });
+				action.addEventListener('click', () => { openChild(() => ruleDialog.open(item, action)); });
 				row.appendChild(action);
 			}
 			return row;
@@ -287,10 +296,11 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 		if (disposed || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 		event.preventDefault();
-		panel.hidden = false;
-		void refresh(1);
+		if (host) void host.open();
+		else { panel.hidden = false; void refresh(1); }
 	}
 	function collapse() {
+		host?.dismiss();
 		active?.abort();
 		++version;
 		panel.hidden = true;
@@ -302,7 +312,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	function submit(event) { event.preventDefault(); void refresh(1); }
 	function previous() { if (page > 1) void refresh(page - 1); }
 	function following() { if (page < pages) void refresh(page + 1); }
-	function createClick() { void openCreate(); }
+	function createClick() { openChild(() => openCreate()); }
 
 	link.addEventListener('click', clickLink);
 	close.addEventListener('click', closePanel);
@@ -318,6 +328,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 			active?.abort();
 			++version;
 			panel.hidden = true;
+			host?.dispose();
 			link.removeEventListener('click', clickLink);
 			close.removeEventListener('click', closePanel);
 			form.removeEventListener('submit', submit);

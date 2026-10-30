@@ -650,3 +650,25 @@
 		white-space: nowrap;
 	}
 }
+
+/* M3-UX2: existing Work surfaces inside the public Base workspace dialog. */
+.cb-work-ux2-dialog {
+	min-width: 0;
+	width: 100%;
+}
+.cb-work-ux2-dialog [hidden] { display: none !important; }
+.cb-work-ux2-dialog .cb-work-m3-engagements,
+.cb-work-ux2-dialog .cb-work-m3-time {
+	padding: 0;
+	margin: 0;
+	border: none;
+	background: transparent;
+	border-radius: 0;
+}
+/* Base supplies the modal title/close; Work keeps the original header in its
+   inert, no-Base fallback, but does not render two visible Close actions. */
+.cb-work-ux2-dialog .cb-work-m3-engagements__header,
+.cb-work-ux2-dialog .cb-work-m3-time__header { display: none; }
+@media screen and (max-width: 782px) {
+	.cb-work-ux2-dialog { max-width: 100%; }
+}
