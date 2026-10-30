@@ -10,11 +10,11 @@ $checks = [
 	'own-entry read/write with guarded routes' =>
 		str_contains( $api, "'callback' => [ self::class, 'entry_detail' ]" ) &&
 		str_contains( $api, "'callback' => [ self::class, 'write_entry' ]" ) &&
-		str_contains( $api, "'permission_callback' => $permission" ) &&
+		str_contains( $api, "'permission_callback' => \$permission" ) &&
 		substr_count( $api, 'self::actor( $request )' ) >= 5,
 	'ownership authorization and CAS' =>
-		str_contains( $api, "(int) $entry['user_id'] !== $actor" ) &&
-		str_contains( $api, "(int) $original['user_id'] !== $actor" ) &&
+		str_contains( $api, "(int) \$entry['user_id'] !== \$actor" ) &&
+		str_contains( $api, "(int) \$original['user_id'] !== \$actor" ) &&
 		str_contains( $api, 'Access::can_edit_entry(' ) &&
 		str_contains( $api, 'TimeEntries::update_completed(' ) &&
 		str_contains( $api, "'status' => 409" ),

@@ -119,10 +119,12 @@ namespace {
 	$api::init();
 	$check( 'rest_api_init' === $GLOBALS['m3c_hook'], 'native REST action registration' );
 	$api::register_routes();
-	$check( count( $GLOBALS['m3c_routes'] ) === 3, 'GET state, GET picker, POST timer only' );
+	$check( count( $GLOBALS['m3c_routes'] ) === 5, 'M3-C1 routes retained and M3-C2 entry create/detail added' );
 	$check( $GLOBALS['m3c_routes'][0][2]['methods'] === 'GET'
 		&& $GLOBALS['m3c_routes'][1][2]['methods'] === 'GET'
-		&& $GLOBALS['m3c_routes'][2][2]['methods'] === 'POST', 'no alternate manual/CAS mutation routes' );
+		&& $GLOBALS['m3c_routes'][2][2]['methods'] === 'POST' &&
+		$GLOBALS['m3c_routes'][3][2]['methods'] === 'POST' &&
+		$GLOBALS['m3c_routes'][4][2]['methods'] === 'GET', 'M3-C1 timer route contracts unchanged, M3-C2 added' );
 	$empty = new WP_REST_Request();
 	$GLOBALS['m3c_manager'] = false;
 	$check( is_wp_error( $api::read( $empty ) ) && is_wp_error( $api::search_items( $empty ) )
