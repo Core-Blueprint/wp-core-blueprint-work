@@ -153,9 +153,19 @@ namespace {
 	$check( is_wp_error( $failed ) && $failed->get_error_code() === 'work_service_context_mismatch',
 		'canonical domain rejection code preserved' );
 	$src = (string) file_get_contents( dirname( __DIR__ ) . '/src/Transport/Rest/WorkspaceEngagementsController.php' );
-	$check( ! str_contains( $src, 'Engagements::create(' ) &&
-		str_contains( $src, 'ServiceOperationsActions::create(' ) &&
-		! str_contains( $src, 'Scheduler::' ) && ! str_contains( $src, 'ServiceBilling::' ),
+	// Inspect executable PHP, not prose: the controller documents the
+	// canonical Engagements::create() boundary in a comment. Raw substring
+	// searches incorrectly report that comment as a second domain writer.
+	$executable = '';
+	foreach ( token_get_all( $src ) as $token ) {
+		if ( is_array( $token ) && in_array( $token[0], [ T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING ], true ) ) {
+			continue;
+		}
+		$executable .= is_array( $token ) ? $token[1] : $token;
+	}
+	$check( ! str_contains( $executable, 'Engagements::create(' ) &&
+		str_contains( $executable, 'ServiceOperationsActions::create(' ) &&
+		! str_contains( $executable, 'Scheduler::' ) && ! str_contains( $executable, 'ServiceBilling::' ),
 		'no duplicate domain create, scheduler or billing engine' );
 	echo "Work M3-B1 Engagements API: PASS ({$assertions} assertions; role, bounded list, canonical create, safe identity).\n";
 }
