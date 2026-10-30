@@ -37,7 +37,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	const pageLabel = q('[data-cb-work-m3-time-page]');
 	const addEntry = q('[data-cb-work-m3-time-add-entry]');
 	if ([close, error, activeZone, activeLabel, stopButton, form, search,
-		select, note, startButton, entries, pager, previous, next, pageLabel, addEntry].some((x) => !x)) return null;
+		select, note, startButton, entries, pager, previous, next, pageLabel].some((x) => !x)) return null;
 
 	panel.dataset.cbWorkM3TimeMounted = '1';
 	let destroyed = false, busy = false, page = 1, pages = 1, epoch = 0, searchEpoch = 0;
@@ -222,7 +222,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 		}
 	}
 	function onAddEntry(event) {
-		if (!entryDialog || event.defaultPrevented || event.button !== 0 ||
+		if (!addEntry || !entryDialog || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 		event.preventDefault();
 		void entryDialog.open(0, addEntry);
@@ -248,7 +248,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	function onNext() { if (page < pages) void refresh(page + 1); }
 
 	link.addEventListener('click', onLink);
-	addEntry.addEventListener('click', onAddEntry);
+	addEntry?.addEventListener('click', onAddEntry);
 	close.addEventListener('click', onClose);
 	search.addEventListener('input', onSearch);
 	form.addEventListener('submit', onSubmit);
@@ -262,7 +262,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 			controller?.abort(); searchController?.abort();
 			clearTimeout(searchTimeout); panel.hidden = true;
 			link.removeEventListener('click', onLink);
-			addEntry.removeEventListener('click', onAddEntry);
+			addEntry?.removeEventListener('click', onAddEntry);
 			entryDialog?.dispose();
 			close.removeEventListener('click', onClose);
 			search.removeEventListener('input', onSearch);
