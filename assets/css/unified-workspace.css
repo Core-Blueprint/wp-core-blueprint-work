@@ -552,3 +552,101 @@
 .cb-work-m3-time-editor__field :is(input, select, textarea) { min-width: 0; max-width: 100%; width: 100%; min-height: 44px; }
 .cb-work-m3-time-editor [role="alert"]:not([hidden]) { border: 1px solid var(--cb-work-border, #c3c4c7); padding: var(--cb-space-3, 12px); }
 @media screen and (max-width: 600px) { .cb-work-m3-time-editor__range { grid-template-columns: 1fr; } }
+
+/* M3-UX1: a single quiet Work shell; canonical Work Items markup remains unchanged. */
+.cb-work-workspace-screen .wrap.cb-work-unified {
+	max-width: none;
+	margin-top: var(--cb-space-4, 16px);
+}
+.cb-work-unified .cb-work-uwe__header {
+	align-items: center;
+	margin-bottom: var(--cb-space-2, 8px);
+}
+.cb-work-unified .cb-work-uwe__header h1 {
+	margin-bottom: 0;
+}
+/* Operations are secondary shortcuts, never three competing dashboard tiles. */
+.cb-work-unified .cb-work-m3-operations {
+	align-items: center;
+	gap: var(--cb-space-2, 8px);
+	margin-bottom: var(--cb-space-3, 12px);
+}
+.cb-work-unified .cb-work-m3-operations__item {
+	flex: 0 1 auto;
+	min-height: 40px;
+	padding: var(--cb-space-2, 8px) var(--cb-space-3, 12px);
+	gap: var(--cb-space-2, 8px);
+	background: transparent;
+}
+/* Recurring now occupies the Work navigation hierarchy; the existing
+   native screen remains an explicit progressive fallback until M3-B4. */
+.cb-work-unified .cb-work-m3-operations__item:has([data-cb-work-m3-count="recurrence"]) {
+	display: none;
+}
+.cb-work-unified .cb-work-m3-operations__metric {
+	font-weight: 400;
+	color: var(--cb-work-text-muted, inherit);
+}
+.cb-work-unified .cb-work-uwe__primary-navigation {
+	display: flex;
+	align-items: stretch;
+	gap: var(--cb-space-2, 8px);
+	border-bottom: 1px solid var(--cb-work-border, #c3c4c7);
+	margin-bottom: var(--cb-space-3, 12px);
+}
+.cb-work-unified .cb-work-uwe__tabs {
+	flex: 0 1 auto;
+	border: 0;
+}
+.cb-work-unified .cb-work-uwe__recurrence-link {
+	display: inline-flex;
+	align-items: center;
+	flex: 0 0 auto;
+	min-height: 44px;
+	padding: 8px 16px;
+	color: var(--cb-work-text, inherit);
+	text-decoration: none;
+	border-bottom: 2px solid transparent;
+}
+.cb-work-unified .cb-work-uwe__recurrence-link:is(:hover, :focus-visible) {
+	color: var(--cb-work-text-strong, inherit);
+	border-bottom-color: currentColor;
+}
+.cb-work-unified .cb-work-uwe__panel {
+	margin-top: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	border-radius: 0;
+}
+.cb-work-unified .cb-work-uwe__view-switcher {
+	gap: var(--cb-space-1, 4px);
+	padding-bottom: var(--cb-space-2, 8px);
+	margin-bottom: var(--cb-space-3, 12px);
+}
+/* The canonical Work Items page already contains its own Add action and
+   Work Types control. Only suppress the shell copy after a valid hydration;
+   a failed request/no-JS keeps the shell's own accessible fallback actions. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"]:has(> [data-cb-work-uwe-canonical]:not([hidden]) > .cb-work-items-page) > .cb-work-uwe__heading-row {
+	display: none;
+}
+@media screen and (max-width: 782px) {
+	.cb-work-unified .cb-work-m3-operations {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	.cb-work-unified .cb-work-m3-operations__item {
+		flex: 0 1 auto;
+	}
+	.cb-work-unified .cb-work-uwe__primary-navigation {
+		overflow-x: auto;
+		scrollbar-width: thin;
+		overscroll-behavior-inline: contain;
+	}
+	.cb-work-unified .cb-work-uwe__tabs {
+		flex: 0 0 auto;
+	}
+	.cb-work-unified .cb-work-uwe__recurrence-link {
+		white-space: nowrap;
+	}
+}

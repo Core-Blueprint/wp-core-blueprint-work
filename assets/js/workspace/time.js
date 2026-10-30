@@ -234,9 +234,12 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 		panel.hidden = false;
 		void refresh(1);
 	}
-	function onClose() {
+	function collapse() {
 		controller?.abort(); searchController?.abort(); ++epoch; ++searchEpoch;
-		panel.hidden = true; link.focus?.();
+		panel.hidden = true;
+	}
+	function onClose() {
+		collapse(); link.focus?.();
 	}
 	function onSearch() {
 		clearTimeout(searchTimeout);
@@ -256,7 +259,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	previous.addEventListener('click', onPrevious);
 	next.addEventListener('click', onNext);
 	return {
-		refresh, lookup, mutate,
+		refresh, lookup, mutate, collapse,
 		dispose() {
 			destroyed = true; ++epoch; ++searchEpoch;
 			controller?.abort(); searchController?.abort();

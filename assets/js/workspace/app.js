@@ -9,6 +9,15 @@ import { mountWorkspaceEngagements } from './engagements.js';
 import { mountWorkspaceTime } from './time.js';
 
 /**
+ * M3-UX1 keeps at most one inline Operations surface open until M3-UX2
+ * moves these flows to the shared Base Modal. No second persistence state.
+ */
+export function isolateOperations(kind, views) {
+	if (kind !== 'engagements') views.engagements?.collapse?.();
+	if (kind !== 'time') views.time?.collapse?.();
+}
+
+/**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.
  * All content is rendered using textContent (no HTML interpolation).
  */
@@ -38,6 +47,7 @@ export function mountWorkspace(root, browser = window) {
 	const fetcher = typeof browser.fetch === 'function' ? browser.fetch.bind(browser) : null;
 	const client = fetcher ? createDataClient({ fetcher, baseHref: browser.location.href }) : null;
 	const timers = new Map();
+	const operationalViews = { engagements: null, time: null };
 	let refreshSequence = 0;
 	const document = root.ownerDocument;
 	const canonicalMount = createCanonicalViewMount(
@@ -148,6 +158,7 @@ export function mountWorkspace(root, browser = window) {
 	}
 
 	function showSection(section, detail = null) {
+		if (section !== activeSection) isolateOperations('section', operationalViews);
 		if (section !== activeSection && activeSection === 'work-items') {
 			canonicalMount?.abort();
 		}
@@ -192,8 +203,18 @@ export function mountWorkspace(root, browser = window) {
 	showSection(router.section());
 	mountUnifiedEditors(root, browser, refresh);
 	const operationsSummary = mountWorkspaceOperations(root, browser);
-	mountWorkspaceEngagements(root, browser, () => operationsSummary?.refresh());
-	mountWorkspaceTime(root, browser, () => operationsSummary?.refresh());
+	operationalViews.engagements = mountWorkspaceEngagements(root, browser, () => operationsSummary?.refresh());
+	operationalViews.time = mountWorkspaceTime(root, browser, () => operationsSummary?.refresh());
+	for (const [selector, kind] of [
+		['[data-cb-work-m3-service-link]', 'engagements'],
+		['[data-cb-work-m3-time-link]', 'time'],
+	]) {
+		root.querySelector(selector)?.addEventListener('click', (event) => {
+			if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey ||
+				event.altKey || event.shiftKey) return;
+			isolateOperations(kind, operationalViews);
+		}, true);
+	}
 
 	function updateState(section, nextState) {
 		if (activeSection !== section) return;

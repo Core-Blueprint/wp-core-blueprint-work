@@ -290,10 +290,13 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 		panel.hidden = false;
 		void refresh(1);
 	}
-	function closePanel() {
+	function collapse() {
 		active?.abort();
 		++version;
 		panel.hidden = true;
+	}
+	function closePanel() {
+		collapse();
 		link.focus?.();
 	}
 	function submit(event) { event.preventDefault(); void refresh(1); }
@@ -309,7 +312,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	add.addEventListener('click', createClick);
 
 	return {
-		refresh,
+		refresh, collapse,
 		dispose() {
 			disposed = true;
 			active?.abort();

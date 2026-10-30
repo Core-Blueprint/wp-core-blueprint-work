@@ -52,6 +52,7 @@ final class UnifiedWorkspace {
 				</div>
 			</header>
 			<?php WorkspaceOperationsPanel::render(); ?>
+			<div class="cb-work-uwe__primary-navigation">
 			<nav class="cb-work-uwe__tabs" role="tablist" aria-label="<?php esc_attr_e( 'Work', 'core-blueprint-work' ); ?>">
 				<?php foreach ( $sections as $key => $section ) : ?>
 					<a
@@ -66,6 +67,8 @@ final class UnifiedWorkspace {
 					><?php echo esc_html( $section['label'] ); ?></a>
 				<?php endforeach; ?>
 			</nav>
+			<a class="cb-work-uwe__recurrence-link" data-cb-work-ux1-recurring-fallback href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Recurring Work', 'core-blueprint-work' ); ?><span class="screen-reader-text"> (<?php esc_html_e( 'Open advanced editor', 'core-blueprint-work' ); ?>)</span></a>
+			</div>
 			<p class="screen-reader-text" aria-live="polite" aria-atomic="true" data-cb-work-uwe-status></p>
 			<?php foreach ( $sections as $key => $section ) : ?>
 				<section
