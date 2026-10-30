@@ -46,7 +46,7 @@ final class UnifiedWorkspace {
 			],
 			'recurring' => [
 				'label' => __( 'Recurring Work', 'core-blueprint-work' ),
-				'empty' => __( 'No recurring Work rules found.', 'core-blueprint-work' ),
+				'empty' => __( 'No recurring Work rules configured.', 'core-blueprint-work' ),
 				'items' => RecurrenceRules::search_page( [ 'page' => 1 ] )['rows'],
 			],
 		];
