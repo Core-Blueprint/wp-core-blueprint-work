@@ -4,18 +4,9 @@ import { createDataClient } from './data-client.js';
 import { createCanonicalViewMount } from './canonical-mount.js';
 import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
 import { mountUnifiedEditors } from './editors.js';
-import { mountWorkspaceOperations } from './operations.js';
+import { mountWorkspaceOperations, isolateOperations } from './operations.js';
 import { mountWorkspaceEngagements } from './engagements.js';
 import { mountWorkspaceTime } from './time.js';
-
-/**
- * M3-UX1 keeps at most one inline Operations surface open until M3-UX2
- * moves these flows to the shared Base Modal. No second persistence state.
- */
-export function isolateOperations(kind, views) {
-	if (kind !== 'engagements') views.engagements?.collapse?.();
-	if (kind !== 'time') views.time?.collapse?.();
-}
 
 /**
  * UWE-03B.2: progressively enhance the FIELD-stable server view.

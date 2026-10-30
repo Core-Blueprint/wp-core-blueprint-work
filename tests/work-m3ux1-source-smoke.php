@@ -4,6 +4,7 @@ $root = dirname( __DIR__ );
 $shell = (string) file_get_contents( $root . '/src/Admin/UnifiedWorkspace.php' );
 $style = (string) file_get_contents( $root . '/assets/css/unified-workspace.css' );
 $app = (string) file_get_contents( $root . '/assets/js/workspace/app.js' );
+$operations_module = (string) file_get_contents( $root . '/assets/js/workspace/operations.js' );
 $engagements = (string) file_get_contents( $root . '/assets/js/workspace/engagements.js' );
 $time = (string) file_get_contents( $root . '/assets/js/workspace/time.js' );
 $operations = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
@@ -23,6 +24,8 @@ $checks = [
 		str_contains( $style, '@media screen and (max-width: 782px)' ),
 	'exclusive Operations are UI-only; canonical M1/M2 mounting remains' =>
 		str_contains( $app, "mountWorkspaceOperations(root, browser);" ) &&
+		str_contains( $app, "import { mountWorkspaceOperations, isolateOperations } from './operations.js';" ) &&
+		str_contains( $operations_module, 'export function isolateOperations(kind, views)' ) &&
 		str_contains( $app, 'isolateOperations(kind, operationalViews);' ) &&
 		str_contains( $app, 'mountUnifiedEditors(root, browser, refresh);' ) &&
 		str_contains( $engagements, 'refresh, collapse,' ) &&

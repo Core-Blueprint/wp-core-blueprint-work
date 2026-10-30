@@ -1,4 +1,13 @@
 /**
+ * M3-UX1 keeps at most one inline Operations surface open until M3-UX2
+ * moves these flows to the shared Base Modal. No second persistence state.
+ */
+export function isolateOperations(kind, views) {
+	if (kind !== 'engagements') views.engagements?.collapse?.();
+	if (kind !== 'time') views.time?.collapse?.();
+}
+
+/**
  * M3-A operations read surface. The canonical Service Operations, Recurrence
  * and Time handlers remain the only writers; Work only consumes a bounded
  * permission-checked snapshot and never mirrors mutable domain state.

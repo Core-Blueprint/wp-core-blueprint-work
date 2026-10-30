@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { isolateOperations } from '../assets/js/workspace/app.js';
+import { isolateOperations } from '../assets/js/workspace/operations.js';
 
 const closed = [];
 const views = {
