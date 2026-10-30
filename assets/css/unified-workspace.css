@@ -453,3 +453,33 @@
 	border: 1px solid var(--cb-work-border, #c3c4c7);
 	padding: var(--cb-space-3, 12px);
 }
+
+/* M3-B3: read-authoritative external invoice registration in Base Modal.
+   Scope controls to the Work shell; don't style unrelated WordPress dialogs. */
+.cb-work-m3-billing {
+	display: grid;
+	gap: var(--cb-space-3, 12px);
+}
+.cb-work-m3-billing__form {
+	display: grid;
+	gap: var(--cb-space-3, 12px);
+}
+.cb-work-m3-billing__field {
+	display: grid;
+	gap: var(--cb-space-2, 8px);
+}
+.cb-work-m3-billing__field > input,
+.cb-work-m3-billing__field > select {
+	width: 100%;
+	min-height: 44px;
+	max-width: 100%;
+}
+.cb-work-m3-billing [role="status"] { font-weight: 600; }
+.cb-work-m3-billing [role="alert"] {
+	border: 1px solid var(--cb-work-border, #c3c4c7);
+	color: var(--cb-work-text, inherit);
+	padding: var(--cb-space-3, 12px);
+}
+.cb-work-unified .cb-work-m3-engagements__record > .cb-work-m3-engagements__meta {
+	overflow-wrap: anywhere;
+}

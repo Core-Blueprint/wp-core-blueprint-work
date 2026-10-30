@@ -43,6 +43,7 @@ use CB\Work\Transport\Rest\WorkspaceReadController;
 use CB\Work\Transport\Rest\WorkspaceOperationsController;
 use CB\Work\Transport\Rest\WorkspaceEngagementsController;
 use CB\Work\Transport\Rest\WorkspaceEngagementRulesController;
+use CB\Work\Transport\Rest\WorkspaceEngagementBillingController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -70,6 +71,7 @@ final class Plugin {
 		WorkspaceOperationsController::init();
 		WorkspaceEngagementsController::init();
 		WorkspaceEngagementRulesController::init();
+		WorkspaceEngagementBillingController::init();
 
 		if ( is_admin() ) {
 			Assets::init();
