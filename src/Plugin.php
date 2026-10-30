@@ -40,6 +40,7 @@ use CB\Work\Repository\PortableIdentities;
 use CB\Work\Repository\WorkItemSources;
 use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Transport\Rest\WorkspaceReadController;
+use CB\Work\Transport\Rest\WorkspaceOperationsController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -64,6 +65,7 @@ final class Plugin {
 		ServicePricingDomain::init();
 		Scheduler::init();
 		WorkspaceReadController::init();
+		WorkspaceOperationsController::init();
 
 		if ( is_admin() ) {
 			Assets::init();

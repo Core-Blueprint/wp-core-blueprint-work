@@ -14,8 +14,7 @@ $check = (string) file_get_contents( $root . '/tools/check' );
 $start = strpos( $shell, '<nav class="cb-work-uwe__view-switcher"' );
 $end = false === $start ? false : strpos( $shell, '</nav>', $start );
 $nav = false === $start || false === $end ? '' : substr( $shell, $start, $end + 6 - $start );
-$related = strpos( $nav, 'cb-work-uwe__related' );
-$view_links = false === $related ? '' : substr( $nav, 0, $related );
+$view_links = $nav;
 
 $checks = [
     'All four view tabs point back to the persistent Work workspace' =>
@@ -24,11 +23,9 @@ $checks = [
         && str_contains( $view_links, "'section' => 'work-items'" )
         && str_contains( $view_links, "'view' => \$view_id" )
         && ! str_contains( $view_links, "Menu::WORK_ITEMS_SLUG" ),
-    'M3 contextual operations remain accessible without legacy main navigation' =>
-        str_contains( $nav, 'cb-work-uwe__related' )
-        && str_contains( $nav, 'Menu::time_url()' )
-        && str_contains( $nav, 'Menu::SERVICE_OPERATIONS_SLUG' )
-        && str_contains( $nav, 'Menu::RECURRENCE_SLUG' )
+    'M3 operations links are consolidated into the persistent Work shell' =>
+        str_contains( $shell, 'WorkspaceOperationsPanel::render();' )
+        && ! str_contains( $nav, 'cb-work-uwe__related' )
         && ! str_contains( $nav, 'cb-work-uwe__legacy-link' ),
     'Canonical view clicks are intercepted for same-page navigation' =>
         str_contains( $mount, "switcher.addEventListener('click', (event) => {" )

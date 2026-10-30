@@ -18,8 +18,7 @@ $switcher_start = strpos( $shell, '<nav class="cb-work-uwe__view-switcher"' );
 $switcher_end = false === $switcher_start ? false : strpos( $shell, '</nav>', $switcher_start );
 $switcher = false === $switcher_start || false === $switcher_end
 	? '' : substr( $shell, $switcher_start, $switcher_end - $switcher_start + strlen( '</nav>' ) );
-$related_index = strpos( $switcher, 'cb-work-uwe__related' );
-$primary_tabs = false === $related_index ? '' : substr( $switcher, 0, $related_index );
+$primary_tabs = $switcher;
 
 $checks = [
 	'canonical Work Item views declared once with safe Unified Workspace URLs' =>
@@ -34,10 +33,8 @@ $checks = [
 		&& str_contains( $primary_tabs, "'section' => 'work-items'" )
 		&& str_contains( $primary_tabs, "'view' => \$view_id" )
 		&& ! str_contains( $primary_tabs, 'Menu::WORK_ITEMS_SLUG' )
-		&& str_contains( $switcher, 'cb-work-uwe__related' )
-		&& str_contains( $switcher, 'Menu::time_url()' )
-		&& str_contains( $switcher, 'Menu::SERVICE_OPERATIONS_SLUG' )
-		&& str_contains( $switcher, 'Menu::RECURRENCE_SLUG' ),
+		&& ! str_contains( $switcher, 'cb-work-uwe__related' )
+		&& str_contains( $shell, 'WorkspaceOperationsPanel::render();' ),
 	'canonical HTML mount point is Work Items-only and does not remove SSR' =>
 		str_contains( $shell, "if ( 'work-items' === \$key )" )
 		&& str_contains( $shell, 'data-cb-work-uwe-canonical hidden' )
