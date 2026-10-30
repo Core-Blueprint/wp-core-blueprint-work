@@ -22,7 +22,7 @@ $checks = [
 		&& str_contains( $api, "'/workspace/time/timer'" )
 		&& str_contains( $api, 'WP_REST_Server::READABLE' )
 		&& str_contains( $api, 'WP_REST_Server::CREATABLE' )
-		&& str_contains( $api, "'permission_callback' => $permission" )
+		&& str_contains( $api, "'permission_callback' => \$permission" )
 		&& str_contains( $api, 'self::actor( $request )' ),
 	'Manager-only current user and canonical schema gate, time-only roles preserved on native screen' =>
 		str_contains( $api, 'current_user_can( Capabilities::MANAGE )' )

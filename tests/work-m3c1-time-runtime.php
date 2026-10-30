@@ -183,8 +183,19 @@ namespace {
 		'work_item_id'=>15 ] ) ) ), 'domain start conflict not reported successful' );
 	$check( count( $GLOBALS['m3c_events'] ) === 2, 'failed timer mutations do not audit false success' );
 	$src = (string) file_get_contents( dirname( __DIR__ ) . '/src/Transport/Rest/WorkspaceTimeController.php' );
-	$check( ! str_contains( $src, 'WorkSqlTransaction::' ) && ! str_contains( $src, 'TimeEntries::update_completed(' )
-		&& str_contains( $src, 'Timers::start(' ) && str_contains( $src, 'Timers::stop(' ),
+	// M3-C2 legitimately delegates completed-entry corrections to the canonical
+	// TimeEntries::update_completed() API. Enforce the M3-C1 invariant on the
+	// actual timer method, not unrelated controller operations.
+	$timer_method = new \ReflectionMethod( $api, 'timer' );
+	$timer_lines = explode( "\n", $src );
+	$timer_source = implode( "\n", array_slice( $timer_lines,
+		$timer_method->getStartLine() - 1,
+		$timer_method->getEndLine() - $timer_method->getStartLine() + 1
+	) );
+	$check( ! str_contains( $timer_source, 'WorkSqlTransaction::' )
+		&& ! str_contains( $timer_source, 'TimeEntries::update_completed(' )
+		&& str_contains( $timer_source, 'Timers::start(' )
+		&& str_contains( $timer_source, 'Timers::stop(' ),
 		'canonical timer transactions not duplicated' );
 	echo "Work M3-C1 Time PHP: PASS ({$count} assertions; roles, actor, bounded reads, timer audit, failures).\n";
 }
