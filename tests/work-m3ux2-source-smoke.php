@@ -7,14 +7,21 @@ $time = (string) file_get_contents( $root . '/assets/js/workspace/time.js' );
 $stage = (string) file_get_contents( $root . '/tools/prepare-workspace-modules.py' );
 $assets = (string) file_get_contents( $root . '/src/Admin/Assets.php' );
 $styles = (string) file_get_contents( $root . '/assets/css/unified-workspace.css' );
+// Check JavaScript statements, not explanatory comments. A comment documenting
+// that direct dialog.close() is forbidden must not trip the invariant itself.
+$host_code = preg_replace( '~\\/\\*[\\s\\S]*?\\*\\/|(?<!:)\\/\\/[^\\r\\n]*~', '', $host );
+if ( null === $host_code ) {
+	fwrite( STDERR, "Work M3-UX2 SOURCE FAIL: cannot tokenize host comments\\n" );
+	exit( 1 );
+}
 $checks = [
 	'Base-only modal host uses documented workspace, expandable and confirmation' =>
-		str_contains( $host, 'modal.show({' ) &&
-		str_contains( $host, "size: 'workspace', expandable: true" ) &&
-		str_contains( $host, 'onConfirm: async () => true' ) &&
-		str_contains( $host, 'form.requestSubmit()' ) &&
-		! str_contains( $host, 'dialog.close(' ) &&
-		! str_contains( $host, 'innerHTML' ),
+		str_contains( $host_code, 'modal.show({' ) &&
+		str_contains( $host_code, "size: 'workspace', expandable: true" ) &&
+		str_contains( $host_code, 'onConfirm: async () => true' ) &&
+		str_contains( $host_code, 'form.requestSubmit()' ) &&
+		! str_contains( $host_code, 'dialog.close(' ) &&
+		! str_contains( $host_code, 'innerHTML' ),
 	'child action is deferred until parent settles, original panel reattached' =>
 		str_contains( $host, 'await modal.show(' ) &&
 		str_contains( $host, 'parent.insertBefore(panel, marker.nextSibling)' ) &&
