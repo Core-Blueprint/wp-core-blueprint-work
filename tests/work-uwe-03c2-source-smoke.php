@@ -11,15 +11,33 @@ $css = (string) file_get_contents( $root . '/assets/css/unified-workspace.css' )
 $operations = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
 $check = (string) file_get_contents( $root . '/tools/check' );
 
+// Navigation was intentionally unified on the M4 feature branch. The
+// canonical renderer stays protected; the primary tabs must NEVER escape
+// to the old native Work Items page, even when JS does not hydrate.
+$switcher_start = strpos( $shell, '<nav class="cb-work-uwe__view-switcher"' );
+$switcher_end = false === $switcher_start ? false : strpos( $shell, '</nav>', $switcher_start );
+$switcher = false === $switcher_start || false === $switcher_end
+	? '' : substr( $shell, $switcher_start, $switcher_end - $switcher_start + strlen( '</nav>' ) );
+$related_index = strpos( $switcher, 'cb-work-uwe__related' );
+$primary_tabs = false === $related_index ? '' : substr( $switcher, 0, $related_index );
+
 $checks = [
-	'canonical Work Item views declared once using existing translations and native fallback' =>
+	'canonical Work Item views declared once with safe Unified Workspace URLs' =>
 		str_contains( $shell, "'table' => __( 'Table'" )
 		&& str_contains( $shell, "'list' => __( 'List'" )
 		&& str_contains( $shell, "'kanban' => __( 'Board'" )
 		&& str_contains( $shell, "'calendar' => __( 'Calendar'" )
 		&& str_contains( $shell, 'WorkItemViewPreferences::resolve_request_view' )
 		&& str_contains( $shell, 'data-cb-work-uwe-view-switcher' )
-		&& str_contains( $shell, 'Menu::WORK_ITEMS_SLUG' ),
+		&& str_contains( $primary_tabs, 'foreach ( $preferred_order as $view_id )' )
+		&& str_contains( $primary_tabs, "'page' => Menu::UNIFIED_WORKSPACE_SLUG" )
+		&& str_contains( $primary_tabs, "'section' => 'work-items'" )
+		&& str_contains( $primary_tabs, "'view' => $view_id" )
+		&& ! str_contains( $primary_tabs, 'Menu::WORK_ITEMS_SLUG' )
+		&& str_contains( $switcher, 'cb-work-uwe__related' )
+		&& str_contains( $switcher, 'Menu::time_url()' )
+		&& str_contains( $switcher, 'Menu::SERVICE_OPERATIONS_SLUG' )
+		&& str_contains( $switcher, 'Menu::RECURRENCE_SLUG' ),
 	'canonical HTML mount point is Work Items-only and does not remove SSR' =>
 		str_contains( $shell, "if ( 'work-items' === \$key )" )
 		&& str_contains( $shell, 'data-cb-work-uwe-canonical hidden' )

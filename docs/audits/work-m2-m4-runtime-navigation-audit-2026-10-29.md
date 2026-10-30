@@ -36,3 +36,14 @@ While M3 parity is incomplete, **Time**, **Service Operations** and **Recurring 
 SOURCE staged only. Run canonical i18n, Level 1/2, release build and archive checksum. Do not infer FIELD from a successful build. Sandbox FIELD must prove the actual installed packaged `app.js?ver=<hash>` imports content-addressed workspace modules, has no unresolved import specifier, and mounts four distinct views in-place. Then validate M2 modal CRUD, Base pickers, permission failures, keyboards, responsiveness and Time/Service Operations/Recurring contextual access.
 
 No change to Work main, Base, production, schema, or public release. This stage does **not** declare M3 integration complete or M2 FIELD Golden.
+
+
+## UWE-03C.2 source Golden compatibility — 2026-10-30
+
+The operator's M2/M4 release run on `8ecbc521e6cce9d9c8bcb3b30f68425db346570a` passed the focused Overview fixtures, immutable ESM graph and earlier Level 1 gates, including manager navigation and UX-00C role contracts. It then stopped at `UWE-03C.2 canonical view mounting FAIL: canonical Work Item views declared once using existing translations and native fallback`.
+
+Root cause: the old UWE-03C.2 source test asserted `Menu::WORK_ITEMS_SLUG` must appear anywhere in `UnifiedWorkspace.php`, relying on an intentional old native Work Items link. Following the owner's explicit M4 navigation promotion, only Overview and Work remain visible; the primary four view URLs must not redirect to old Work Items. The unified Workspace retains SSR as an accessible **rendering fallback**, not a native **navigation escape**.
+
+The adjusted source test keeps all canonical view IDs/translations, existing SSR fallback collection, protected WorkItemViewBridge, request serialization/cancellation, unsafe-script rejection, immutable G0 renderer and the Level 1 runtime registration checks. It replaces the contradictory old-native-route assertion with stronger checks that Table/List/Board/Calendar URLs target `Menu::UNIFIED_WORKSPACE_SLUG` in the Work Items section, and the separate contextual Time/Service Operations/Recurring Work actions remain reachable.
+
+**Source-only compatibility repair.** Does not modify the PHP renderer, router, Base, underlying B2/A1/D1.2 Golden source, schema or Work `main`. Full PHP/Node Level 1, WordPress Level 2, packaged ZIP, archive checksum and WordPress FIELD require operator revalidation on the new source commit.
