@@ -417,3 +417,39 @@
 	.cb-work-unified [data-cb-work-m3-engagements-filter] label { flex: 1 1 100%; }
 	.cb-work-unified .cb-work-m3-engagements { padding: var(--cb-space-3, 12px); }
 }
+
+/* M3-B2: Base Modal recurrence status and safe rule chooser. */
+.cb-work-unified .cb-work-m3-engagements__record > button {
+	align-self: flex-start;
+	min-height: 36px;
+}
+.cb-work-m3-rules {
+	display: grid;
+	gap: var(--cb-space-3, 12px);
+}
+.cb-work-m3-rules > label {
+	display: flex;
+	flex-direction: column;
+	gap: var(--cb-space-2, 8px);
+}
+.cb-work-m3-rules input,
+.cb-work-m3-rules select {
+	width: 100%;
+	min-height: 44px;
+	max-width: 100%;
+}
+.cb-work-m3-rules > [role="status"] {
+	font-weight: 600;
+	margin: 0;
+}
+.cb-work-m3-rules__pages {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--cb-space-3, 12px);
+}
+.cb-work-m3-rules [role="alert"] {
+	color: var(--cb-work-text, inherit);
+	border: 1px solid var(--cb-work-border, #c3c4c7);
+	padding: var(--cb-space-3, 12px);
+}

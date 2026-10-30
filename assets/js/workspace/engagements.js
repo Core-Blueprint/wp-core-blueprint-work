@@ -1,3 +1,5 @@
+import { createEngagementRuleDialog } from './engagement-rules.js';
+
 /**
  * M3-B1. In-place Engagement list and basic creation, with native advanced
  * Service Operations as a real fallback. Uses only existing Work APIs.
@@ -84,6 +86,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 		}
 		return response.json();
 	}
+	const ruleDialog = createEngagementRuleDialog(root, browser, request, async () => { await refresh(page); });
 	function paint(data) {
 		if (!validPage(data)) throw new TypeError('Invalid engagements payload');
 		list.replaceChildren(...data.items.map((item) => {
@@ -94,6 +97,12 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 				item.starts_on,
 			].filter(Boolean).join(' · '), 'cb-work-m3-engagements__meta');
 			row.append(title, detail);
+			if (ruleDialog) {
+				const action = el('button', panel.dataset.cbWorkM3RuleStatus, 'button');
+				action.type = 'button';
+				action.addEventListener('click', () => { void ruleDialog.open(item, action); });
+				row.appendChild(action);
+			}
 			return row;
 		}));
 		page = data.page;

@@ -19,6 +19,7 @@ final class WorkspaceEngagementsPanel {
 		?>
 		<section class="cb-work-m3-engagements" data-cb-work-m3-engagements hidden
 			data-cb-work-m3-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/engagements' ) ); ?>"
+			data-cb-work-m3-rule-endpoint="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/engagements/__id__/rules' ) ); ?>"
 			data-cb-work-m3-projects="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/projects' ) ); ?>"
 			data-cb-work-m3-services="<?php echo esc_url( rest_url( 'cb-work/v1/workspace/services' ) ); ?>"
 			data-cb-work-m3-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>"
@@ -33,7 +34,20 @@ final class WorkspaceEngagementsPanel {
 			data-cb-work-m3-create="<?php esc_attr_e( 'Create', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-cancel="<?php esc_attr_e( 'Cancel', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-context-internal="<?php esc_attr_e( 'Internal', 'core-blueprint-work' ); ?>"
-			data-cb-work-m3-context-customer="<?php esc_attr_e( 'Customer', 'core-blueprint-work' ); ?>">
+			data-cb-work-m3-context-customer="<?php esc_attr_e( 'Customer', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-action="<?php esc_attr_e( 'Link recurring work', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-month="<?php esc_attr_e( 'Period', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-status="<?php esc_attr_e( 'Execution status', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-scheduled="<?php esc_attr_e( 'Scheduled', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-completed="<?php esc_attr_e( 'Completed', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-overdue="<?php esc_attr_e( 'Overdue', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-search="<?php esc_attr_e( 'Search', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-empty="<?php esc_attr_e( 'No recurring Work rules configured.', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-from="<?php esc_attr_e( 'Effective from', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-save="<?php esc_attr_e( 'Save', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-prev="<?php esc_attr_e( 'Previous', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-next="<?php esc_attr_e( 'Next', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-rule-statuses="<?php echo esc_attr( wp_json_encode( ServiceOperations::statuses() ) ); ?>">
 			<header class="cb-work-m3-engagements__header">
 				<h2><?php esc_html_e( 'Service Operations', 'core-blueprint-work' ); ?></h2>
 				<button type="button" class="button" data-cb-work-m3-engagements-close><?php esc_html_e( 'Close', 'core-blueprint-work' ); ?></button>

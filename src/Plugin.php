@@ -42,6 +42,7 @@ use CB\Work\Repository\WorkItems as WorkItemRepository;
 use CB\Work\Transport\Rest\WorkspaceReadController;
 use CB\Work\Transport\Rest\WorkspaceOperationsController;
 use CB\Work\Transport\Rest\WorkspaceEngagementsController;
+use CB\Work\Transport\Rest\WorkspaceEngagementRulesController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -68,6 +69,7 @@ final class Plugin {
 		WorkspaceReadController::init();
 		WorkspaceOperationsController::init();
 		WorkspaceEngagementsController::init();
+		WorkspaceEngagementRulesController::init();
 
 		if ( is_admin() ) {
 			Assets::init();
