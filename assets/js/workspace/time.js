@@ -1,3 +1,5 @@
+import { createTimeEntryDialog } from './time-entry.js';
+
 /**
  * M3-C1 Time manager surface. Native Time remains authoritative for advanced
  * manual/CAS edits and time-only roles; this module never caches domain state.
@@ -33,8 +35,9 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	const previous = q('[data-cb-work-m3-time-prev]');
 	const next = q('[data-cb-work-m3-time-next]');
 	const pageLabel = q('[data-cb-work-m3-time-page]');
+	const addEntry = q('[data-cb-work-m3-time-add-entry]');
 	if ([close, error, activeZone, activeLabel, stopButton, form, search,
-		select, note, startButton, entries, pager, previous, next, pageLabel].some((x) => !x)) return null;
+		select, note, startButton, entries, pager, previous, next, pageLabel, addEntry].some((x) => !x)) return null;
 
 	panel.dataset.cbWorkM3TimeMounted = '1';
 	let destroyed = false, busy = false, page = 1, pages = 1, epoch = 0, searchEpoch = 0;
@@ -55,9 +58,17 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 				...(options.body ? { 'Content-Type': 'application/json' } : {}) },
 			...options,
 		});
-		if (!response.ok) throw new TypeError('Time request failed');
+		if (!response.ok) {
+			const failure = new TypeError('Time request failed');
+			failure.status = response.status;
+			throw failure;
+		}
 		return response.json();
 	}
+	const entryDialog = createTimeEntryDialog(root, panel, browser, request, async () => {
+		await refresh(1);
+		if (typeof onChanged === 'function') await onChanged();
+	});
 	const validTimer = (x) => x === null || (x && Number.isSafeInteger(x.entry_id) && x.entry_id > 0
 		&& Number.isSafeInteger(x.work_item_id) && x.work_item_id > 0
 		&& typeof x.title === 'string' && typeof x.started_at === 'string' && typeof x.note === 'string');
@@ -86,6 +97,20 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 				record.started_at, record.ended_at, String(record.duration_seconds) + ' s'
 			].join(' · '));
 			li.append(heading, info);
+			if (entryDialog) {
+				const correct = element('button', panel.dataset.cbWorkM3TimeCorrect);
+				correct.type = 'button';
+				correct.className = 'button';
+				correct.addEventListener('click', () => { void entryDialog.open(record.id, correct); });
+				li.append(correct);
+			} else if (panel.dataset.cbWorkM3TimeNative) {
+				const fallback = element('a', panel.dataset.cbWorkM3TimeCorrect);
+				fallback.className = 'button';
+				const url = new URL(panel.dataset.cbWorkM3TimeNative, browser.location.href);
+				url.searchParams.set('entry_id', String(record.id));
+				fallback.href = url.href;
+				li.append(fallback);
+			}
 			return li;
 		}));
 		pager.hidden = pages < 2;
@@ -196,6 +221,12 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 			startButton.disabled = false;
 		}
 	}
+	function onAddEntry(event) {
+		if (!entryDialog || event.defaultPrevented || event.button !== 0 ||
+			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+		event.preventDefault();
+		void entryDialog.open(0, addEntry);
+	}
 	function onLink(event) {
 		if (destroyed || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
@@ -217,6 +248,7 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 	function onNext() { if (page < pages) void refresh(page + 1); }
 
 	link.addEventListener('click', onLink);
+	addEntry.addEventListener('click', onAddEntry);
 	close.addEventListener('click', onClose);
 	search.addEventListener('input', onSearch);
 	form.addEventListener('submit', onSubmit);
@@ -230,6 +262,8 @@ export function mountWorkspaceTime(root, browser = window, onChanged = null) {
 			controller?.abort(); searchController?.abort();
 			clearTimeout(searchTimeout); panel.hidden = true;
 			link.removeEventListener('click', onLink);
+			addEntry.removeEventListener('click', onAddEntry);
+			entryDialog?.dispose();
 			close.removeEventListener('click', onClose);
 			search.removeEventListener('input', onSearch);
 			form.removeEventListener('submit', onSubmit);

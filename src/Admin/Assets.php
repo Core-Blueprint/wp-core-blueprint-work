@@ -102,8 +102,9 @@ final class Assets {
 		$engagement_rules = CB_WORK_DIR . 'assets/js/workspace/engagement-rules.js';
 		$engagement_billing = CB_WORK_DIR . 'assets/js/workspace/engagement-billing.js';
 		$time_module = CB_WORK_DIR . 'assets/js/workspace/time.js';
+		$time_editor = CB_WORK_DIR . 'assets/js/workspace/time-entry.js';
 		$editor_style = CB_WORK_DIR . 'assets/css/unified-editors.css';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) || ! is_file( $editors ) || ! is_file( $operations ) || ! is_file( $engagements ) || ! is_file( $engagement_rules ) || ! is_file( $engagement_billing ) || ! is_file( $time_module ) || ! is_file( $editor_style ) ) {
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) || ! is_file( $editors ) || ! is_file( $operations ) || ! is_file( $engagements ) || ! is_file( $engagement_rules ) || ! is_file( $engagement_billing ) || ! is_file( $time_module ) || ! is_file( $time_editor ) || ! is_file( $editor_style ) ) {
 			return;
 		}
 

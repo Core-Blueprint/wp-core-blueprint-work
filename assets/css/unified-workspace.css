@@ -543,3 +543,12 @@
 	.cb-work-unified .cb-work-m3-time { padding: var(--cb-space-3, 12px); }
 	.cb-work-unified .cb-work-m3-time__entries > li { display: grid; }
 }
+
+/* M3-C2: Base Modal controls lifecycle; Work styles only its Time form fields. */
+.cb-work-m3-time__entries-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--cb-space-3, 12px); }
+.cb-work-m3-time-editor, .cb-work-m3-time-editor__range { display: grid; gap: var(--cb-space-3, 12px); }
+.cb-work-m3-time-editor__range { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cb-work-m3-time-editor__field { display: grid; gap: var(--cb-space-2, 8px); min-width: 0; }
+.cb-work-m3-time-editor__field :is(input, select, textarea) { min-width: 0; max-width: 100%; width: 100%; min-height: 44px; }
+.cb-work-m3-time-editor [role="alert"]:not([hidden]) { border: 1px solid var(--cb-work-border, #c3c4c7); padding: var(--cb-space-3, 12px); }
+@media screen and (max-width: 600px) { .cb-work-m3-time-editor__range { grid-template-columns: 1fr; } }
