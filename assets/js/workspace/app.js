@@ -97,7 +97,8 @@ export function mountWorkspace(root, browser = window) {
 			}
 			const facts = document.createElement('small');
 			facts.className = 'cb-work-uwe__recurring-facts';
-			facts.textContent = [record.is_active ? 'Active' : 'Inactive', record.frequency || '', record.next_occurrence_on || ''].filter(Boolean).join(' · ');
+			facts.textContent = [record.is_active ? panel.dataset.cbWorkB4Active : panel.dataset.cbWorkB4Inactive,
+				record.frequency || '', record.next_occurrence_on || ''].filter(Boolean).join(' · ');
 			row.appendChild(facts);
 			return row;
 		}

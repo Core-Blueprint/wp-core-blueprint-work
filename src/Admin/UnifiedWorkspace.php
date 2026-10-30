@@ -83,7 +83,7 @@ final class UnifiedWorkspace {
 					aria-labelledby="cb-work-uwe-tab-<?php echo esc_attr( $key ); ?>"
 					tabindex="0"
 					data-cb-work-uwe-panel="<?php echo esc_attr( $key ); ?>"
-					<?php if ( 'recurring' === $key ) : ?>data-cb-work-b4-native="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>"<?php endif; ?>
+					<?php if ( 'recurring' === $key ) : ?>data-cb-work-b4-native="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>" data-cb-work-b4-active="<?php esc_attr_e( 'Active', 'core-blueprint-work' ); ?>" data-cb-work-b4-inactive="<?php esc_attr_e( 'Inactive', 'core-blueprint-work' ); ?>"<?php endif; ?>
 					<?php if ( 'work-items' === $key ) : ?>
 						data-cb-work-uwe-classic-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 						data-cb-work-uwe-classic-action="<?php echo esc_attr( WorkItemViewBridge::ACTION ); ?>"
@@ -129,15 +129,17 @@ final class UnifiedWorkspace {
 						<label class="cb-work-uwe__field" for="cb-work-uwe-sort-<?php echo esc_attr( $key ); ?>">
 							<span><?php esc_html_e( 'Sort by', 'core-blueprint-work' ); ?></span>
 							<select id="cb-work-uwe-sort-<?php echo esc_attr( $key ); ?>" name="sort">
-								<option value="workload"><?php esc_html_e( 'Workload', 'core-blueprint-work' ); ?></option>
-								<option value="title"><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
-								<option value="updated"><?php esc_html_e( 'Recently updated', 'core-blueprint-work' ); ?></option>
-							<?php if ( 'recurring' === $key ) : ?>
-								<option value="next_occurrence"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></option>
-								<option value="status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></option>
-							<?php endif; ?>
-								<?php if ( 'work-items' === $key ) : ?>
-									<option value="due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></option>
+								<?php if ( 'recurring' === $key ) : ?>
+									<option value="next_occurrence"><?php esc_html_e( 'Next occurrence', 'core-blueprint-work' ); ?></option>
+									<option value="title"><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
+									<option value="status"><?php esc_html_e( 'Status', 'core-blueprint-work' ); ?></option>
+								<?php else : ?>
+									<option value="workload"><?php esc_html_e( 'Workload', 'core-blueprint-work' ); ?></option>
+									<option value="title"><?php esc_html_e( 'Title', 'core-blueprint-work' ); ?></option>
+									<option value="updated"><?php esc_html_e( 'Recently updated', 'core-blueprint-work' ); ?></option>
+									<?php if ( 'work-items' === $key ) : ?>
+										<option value="due"><?php esc_html_e( 'Due date', 'core-blueprint-work' ); ?></option>
+									<?php endif; ?>
 								<?php endif; ?>
 							</select>
 						</label>
