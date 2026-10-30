@@ -32,7 +32,7 @@ $checks = [
 		&& str_contains( $primary_tabs, 'foreach ( $preferred_order as $view_id )' )
 		&& str_contains( $primary_tabs, "'page' => Menu::UNIFIED_WORKSPACE_SLUG" )
 		&& str_contains( $primary_tabs, "'section' => 'work-items'" )
-		&& str_contains( $primary_tabs, "'view' => $view_id" )
+		&& str_contains( $primary_tabs, "'view' => \$view_id" )
 		&& ! str_contains( $primary_tabs, 'Menu::WORK_ITEMS_SLUG' )
 		&& str_contains( $switcher, 'cb-work-uwe__related' )
 		&& str_contains( $switcher, 'Menu::time_url()' )

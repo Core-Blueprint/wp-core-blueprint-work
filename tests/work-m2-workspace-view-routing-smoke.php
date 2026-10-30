@@ -22,7 +22,7 @@ $checks = [
         str_contains( $view_links, 'foreach ( $preferred_order as $view_id )' )
         && str_contains( $view_links, "'page' => Menu::UNIFIED_WORKSPACE_SLUG" )
         && str_contains( $view_links, "'section' => 'work-items'" )
-        && str_contains( $view_links, "'view' => $view_id" )
+        && str_contains( $view_links, "'view' => \$view_id" )
         && ! str_contains( $view_links, "Menu::WORK_ITEMS_SLUG" ),
     'M3 contextual operations remain accessible without legacy main navigation' =>
         str_contains( $nav, 'cb-work-uwe__related' )

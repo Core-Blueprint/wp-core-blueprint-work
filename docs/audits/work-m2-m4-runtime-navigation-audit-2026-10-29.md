@@ -47,3 +47,16 @@ Root cause: the old UWE-03C.2 source test asserted `Menu::WORK_ITEMS_SLUG` must 
 The adjusted source test keeps all canonical view IDs/translations, existing SSR fallback collection, protected WorkItemViewBridge, request serialization/cancellation, unsafe-script rejection, immutable G0 renderer and the Level 1 runtime registration checks. It replaces the contradictory old-native-route assertion with stronger checks that Table/List/Board/Calendar URLs target `Menu::UNIFIED_WORKSPACE_SLUG` in the Work Items section, and the separate contextual Time/Service Operations/Recurring Work actions remain reachable.
 
 **Source-only compatibility repair.** Does not modify the PHP renderer, router, Base, underlying B2/A1/D1.2 Golden source, schema or Work `main`. Full PHP/Node Level 1, WordPress Level 2, packaged ZIP, archive checksum and WordPress FIELD require operator revalidation on the new source commit.
+
+
+## Technical Gate follow-up: false-positive view IDs and stale runtime Time assertion (2026-10-30)
+
+Operator Level 1 on `66a083bdb6f5e0acbfb5077cddcee1b19d43837a` passed canonical i18n, UX-00A/M4, UX-00C, Overview 01A/01B, M1/M2 routing, module-boot and immutable ESM graph, all existing renderer Golden tests and Bootstrap v1. It then stopped at `FAIL: Manager Time navigation remains visible after contextual routes are hidden.` **No complete Level 1/Level 2/release ZIP/FIELD on this commit.**
+
+**Root cause:** the legacy `tests/runtime-smoke.php` still required visible Time in the manager submenu after `admin_head`. The owner-approved two-menu navigation has **Time hidden contextually for managers** and reachable from Work's contextual action, while time-only roles still have their own Time entry. The runtime test was stricter in the wrong direction, contradicting the newly approved UX-00A/M4/UX-00C checks.
+
+**Repair:** explicitly assert that Work is registered before the contextual hide pass, and after `admin_head` exactly `Overview` and `Work` remain visible for managers. Also assert all seven legacy manager entries (Work Items, Time, Recurring Work, Service Operations, Work Types, native Projects and Services) are hidden. Preserve existing assertions that the underlying routes were registered before `admin_head`. Time-only role behavior is still protected by UX-00C.
+
+**Additional test integrity:** Two source assertions, in UWE-03C.2 and M2 Workspace view routing, placed literal `$view_id` inside PHP double-quoted strings. PHP interpolated an undefined variable, emitted warnings, and reduced assertion specificity. Escaping `\$view_id` ensures a literal source comparison (and removes warnings) without changing production code or softening the navigation contract.
+
+**Scope:** tests and this audit note only. No changes to `src/Admin/Menu.php`, `src/Admin/UnifiedWorkspace.php`, Base, G0/B1 protected Operations, M1 router, domain, schema, release builder or Work main. Complete canonical Level 1/2/3 and sandbox FIELD remain HOLD until rerun.

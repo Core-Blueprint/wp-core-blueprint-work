@@ -217,6 +217,7 @@ namespace {
 	assert_true( isset( $GLOBALS['menus']['core-blueprint-work'] ), 'Work owns a normal top-level WP Admin menu.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace remains registered through the WordPress access-check phase.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import remains registered through the WordPress access-check phase.' );
+	assert_true( isset( $GLOBALS['submenus'][ \CB\Work\Admin\Menu::TOP_LEVEL_SLUG ][ \CB\Work\Admin\Menu::UNIFIED_WORKSPACE_SLUG ] ), 'Primary Work workspace remains registered and manager-only.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-items'] ), 'Work Items workspace is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-recurrence'] ), 'Recurring Work is mounted under Work.' );
 	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work'][\CB\Work\Admin\Menu::SERVICE_OPERATIONS_SLUG] ), 'Service Operations is mounted under Work for managers.' );
@@ -228,7 +229,24 @@ namespace {
 	do_action( 'admin_head' );
 	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project'] ), 'Project Workspace is hidden only after WordPress access and title resolution.' );
 	assert_true( ! isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-project-import'] ), 'Project import is hidden only after WordPress access and title resolution.' );
-	assert_true( isset( $GLOBALS['submenus']['core-blueprint-work']['core-blueprint-work-time'] ), 'Manager Time navigation remains visible after contextual routes are hidden.' );
+	$manager_submenus = $GLOBALS['submenus'][ \CB\Work\Admin\Menu::TOP_LEVEL_SLUG ] ?? [];
+	assert_true(
+		[ \CB\Work\Admin\Menu::TOP_LEVEL_SLUG, \CB\Work\Admin\Menu::UNIFIED_WORKSPACE_SLUG ] === array_keys( $manager_submenus ),
+		'Managers see exactly Overview and Work after contextual routes are hidden.'
+	);
+	foreach (
+		[
+			\CB\Work\Admin\Menu::WORK_ITEMS_SLUG,
+			\CB\Work\Admin\Menu::TIME_SLUG,
+			\CB\Work\Admin\Menu::RECURRENCE_SLUG,
+			\CB\Work\Admin\Menu::SERVICE_OPERATIONS_SLUG,
+			\CB\Work\Admin\Menu::WORK_TYPES_SLUG,
+			\CB\Work\Admin\Menu::projects_path(),
+			\CB\Work\Admin\Menu::services_path(),
+		] as $contextual_route
+	) {
+		assert_true( ! isset( $manager_submenus[ $contextual_route ] ), 'Contextual manager route is hidden: ' . $contextual_route );
+	}
 
 	assert_true( str_contains( \CB\Work\Admin\Menu::new_work_item_url( 42 ), 'post-new.php?post_type=cb_work_item&project_id=42' ), 'Work Item creation opens native Gutenberg with optional Project context.' );
 	assert_true( str_contains( \CB\Work\Admin\Menu::edit_work_item_url( 55 ), 'post.php?post=55&action=edit' ), 'Work Item editing opens native Gutenberg.' );
