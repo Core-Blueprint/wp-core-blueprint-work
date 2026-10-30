@@ -97,8 +97,9 @@ final class Assets {
 		$canonical_filters = CB_WORK_DIR . 'assets/js/workspace/canonical-filters.js';
 		$canonical_mutations = CB_WORK_DIR . 'assets/js/workspace/canonical-mutations.js';
 		$editors = CB_WORK_DIR . 'assets/js/workspace/editors.js';
+		$operations = CB_WORK_DIR . 'assets/js/workspace/operations.js';
 		$editor_style = CB_WORK_DIR . 'assets/css/unified-editors.css';
-		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) || ! is_file( $editors ) || ! is_file( $editor_style ) ) {
+		if ( ! is_file( $style ) || ! is_file( $app ) || ! is_file( $router ) || ! is_file( $state ) || ! is_file( $data_client ) || ! is_file( $canonical ) || ! is_file( $canonical_filters ) || ! is_file( $canonical_mutations ) || ! is_file( $editors ) || ! is_file( $operations ) || ! is_file( $editor_style ) ) {
 			return;
 		}
 

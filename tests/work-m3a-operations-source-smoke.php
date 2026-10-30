@@ -6,6 +6,7 @@ $plugin = (string) file_get_contents( $root . '/src/Plugin.php' );
 $api = (string) file_get_contents( $root . '/src/Transport/Rest/WorkspaceOperationsController.php' );
 $snapshot = (string) file_get_contents( $root . '/src/Operations/WorkspaceSnapshot.php' );
 $panel = (string) file_get_contents( $root . '/src/Admin/WorkspaceOperationsPanel.php' );
+$assets = (string) file_get_contents( $root . '/src/Admin/Assets.php' );
 $shell = (string) file_get_contents( $root . '/src/Admin/UnifiedWorkspace.php' );
 $app = (string) file_get_contents( $root . '/assets/js/workspace/app.js' );
 $bridge = (string) file_get_contents( $root . '/assets/js/workspace/operations.js' );
@@ -47,6 +48,7 @@ $checks = [
 		str_contains( $app, "from './operations.js'" )
 		&& str_contains( $app, 'mountWorkspaceOperations(root, browser);' )
 		&& str_contains( $stage, '"operations.js"' )
+		&& str_contains( $assets, 'is_file( $operations )' )
 		&& str_contains( $bridge, "method: 'GET'" )
 		&& str_contains( $bridge, "'same-origin'" )
 		&& str_contains( $bridge, "cache: 'no-store'" )
