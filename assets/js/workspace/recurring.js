@@ -366,6 +366,8 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 			const ticket = ++previewVersion;
 			const fields = schedulePreviewFields(form);
 			if (!fields) {
+				previewButton.disabled = false;
+				preview.setAttribute('aria-busy', 'false');
 				preview.replaceChildren(el(doc, 'p', 'description',
 					panel.dataset.cbWorkRecurringPreviewInvalid || 'Check the schedule fields.'));
 				return;
