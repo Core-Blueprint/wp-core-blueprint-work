@@ -3047,3 +3047,19 @@ msgstr "Aufgaben hier ablegen"
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task"
 msgstr "Aufgabe"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending since"
+msgstr "Ausstehend seit"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending occurrences (preview)"
+msgstr "Ausstehende Ausführungen (Vorschau)"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Activating this rule may generate Work Items for past scheduled dates. Continue?"
+msgstr "Wenn Sie diese Regel aktivieren, können Work Items für vergangene geplante Termine erstellt werden. Fortfahren?"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Work associations"
+msgstr "Arbeitszuordnungen"

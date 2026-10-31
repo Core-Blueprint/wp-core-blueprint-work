@@ -3033,3 +3033,19 @@ msgstr "Sleep taken hierheen"
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task"
 msgstr "Taak"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending since"
+msgstr "Openstaand sinds"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending occurrences (preview)"
+msgstr "Openstaande uitvoeringen (voorbeeld)"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Activating this rule may generate Work Items for past scheduled dates. Continue?"
+msgstr "Als je deze regel activeert, kunnen er Work Items worden aangemaakt voor geplande datums in het verleden. Doorgaan?"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Work associations"
+msgstr "Werkrelaties"

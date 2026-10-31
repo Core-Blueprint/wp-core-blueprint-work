@@ -3049,3 +3049,19 @@ msgstr "Suelta las tareas aquí"
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task"
 msgstr "Tarea"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending since"
+msgstr "Pendiente desde"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending occurrences (preview)"
+msgstr "Ocurrencias pendientes (vista previa)"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Activating this rule may generate Work Items for past scheduled dates. Continue?"
+msgstr "Al activar esta regla, se pueden generar elementos de trabajo para fechas programadas anteriores. ¿Continuar?"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Work associations"
+msgstr "Asociaciones de trabajo"

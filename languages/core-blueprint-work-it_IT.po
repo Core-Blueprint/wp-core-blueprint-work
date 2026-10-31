@@ -3036,3 +3036,19 @@ msgstr "Trascina qui le attività"
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task"
 msgstr "Attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending since"
+msgstr "In sospeso dal"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending occurrences (preview)"
+msgstr "Occorrenze in sospeso (anteprima)"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Activating this rule may generate Work Items for past scheduled dates. Continue?"
+msgstr "L’attivazione di questa regola può creare elementi di lavoro per date pianificate passate. Continuare?"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Work associations"
+msgstr "Associazioni di lavoro"

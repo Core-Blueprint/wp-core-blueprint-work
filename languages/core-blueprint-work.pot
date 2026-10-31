@@ -3048,3 +3048,19 @@ msgstr ""
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task"
 msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending since"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Pending occurrences (preview)"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Activating this rule may generate Work Items for past scheduled dates. Continue?"
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Work associations"
+msgstr ""
