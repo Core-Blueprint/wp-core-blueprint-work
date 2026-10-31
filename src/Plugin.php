@@ -45,6 +45,7 @@ use CB\Work\Transport\Rest\WorkspaceEngagementsController;
 use CB\Work\Transport\Rest\WorkspaceEngagementRulesController;
 use CB\Work\Transport\Rest\WorkspaceEngagementBillingController;
 use CB\Work\Transport\Rest\WorkspaceTimeController;
+use CB\Work\Transport\Rest\WorkspaceRecurrenceEditorController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -74,6 +75,7 @@ final class Plugin {
 		WorkspaceEngagementRulesController::init();
 		WorkspaceEngagementBillingController::init();
 		WorkspaceTimeController::init();
+		WorkspaceRecurrenceEditorController::init();
 
 		if ( is_admin() ) {
 			Assets::init();
