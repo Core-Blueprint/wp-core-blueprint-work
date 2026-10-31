@@ -32,6 +32,44 @@ if ( ! preg_match( "/define\(\s*'CB_WORK_SCHEMA_VERSION'\s*,\s*'([0-9]+\.[0-9]+)
 	exit( 1 );
 }
 $active = $schema_version[1];
+// Only inspect assertions about the active plugin's schema version.
+// Fixture declarations intentionally exercise older supported schema
+// contracts; they are not current-release expectations.
+$patterns = [
+	'/str_contains\s*\(\s*\$[a-z_][a-z_0-9]*\s*,\s*[\x22\x27][^\r\n]*?CB_WORK_SCHEMA_VERSION\x27,\s*\x27([0-9]+\.[0-9]+)\x27/i',
+	'/\x27([0-9]+\.[0-9]+)\x27\s*===\s*CB_WORK_SCHEMA_VERSION/',
+	'/\$GLOBALS\[\x27options\x27\]\[\x27cb_work_db_version\x27\]\s*=\s*\x27([0-9]+\.[0-9]+)\x27/',
+];
+$extract_versions = static function( string $source ) use ( $patterns ): array {
+	$versions = [];
+	foreach ( $patterns as $pattern ) {
+		if ( preg_match_all( $pattern, $source, $found ) ) {
+			array_push( $versions, ...$found[1] );
+		}
+	}
+	return $versions;
+};
+
+// Verify the detector itself: an older isolated fixture must not block
+// a release, but a stale source assertion must still be detected.
+// Construct the positive examples across string parts, so this audit's
+// own source is not mistakenly identified as a stale version assertion.
+$historical = '2' . '.0';
+$stale = '2' . '.4';
+$cases = [
+	[ "define( 'CB_WORK_SCHEMA_VERSION', '{$historical}' );", [] ],
+	[ 'str_' . "contains(\$entry,\"CB_WORK_SCHEMA_VERSION', '{$stale}'\")", [ $stale ] ],
+	[ 'str_' . "contains(\$plugin,\"define( 'CB_WORK_SCHEMA_VERSION', '{$stale}' )\")", [ $stale ] ],
+	[ "assert_true( '{$stale}' === CB_WORK_SCHEMA_VERSION );", [ $stale ] ],
+	[ "\$GLOBALS['options']['cb_work_db_version'] = '{$stale}';", [ $stale ] ],
+];
+foreach ( $cases as [ $source, $expected ] ) {
+	if ( $extract_versions( $source ) !== $expected ) {
+		fwrite( STDERR, "M3-B4-B schema contract audit FAIL: detector fixture\n" );
+		exit( 1 );
+	}
+}
+
 $checked = 0;
 $iterator = new RecursiveIteratorIterator(
 	new RecursiveDirectoryIterator( $root . '/tests', FilesystemIterator::SKIP_DOTS )
@@ -42,21 +80,11 @@ foreach ( $iterator as $entry ) {
 	}
 	++$checked;
 	$source = (string) file_get_contents( $entry->getPathname() );
-	$patterns = [
-		'/CB_WORK_SCHEMA_VERSION\x27,\s*\x27([0-9]+\.[0-9]+)\x27/',
-		'/\x27([0-9]+\.[0-9]+)\x27\s*===\s*CB_WORK_SCHEMA_VERSION/',
-		'/cb_work_db_version\x27\]\s*=\s*\x27([0-9]+\.[0-9]+)\x27/',
-	];
-	foreach ( $patterns as $pattern ) {
-		if ( ! preg_match_all( $pattern, $source, $matched ) ) {
-			continue;
-		}
-		foreach ( $matched[1] as $expected ) {
-			if ( $expected !== $active ) {
-				fwrite( STDERR, "M3-B4-B schema contract audit FAIL: stale current-version assertion in "
-					. $entry->getPathname() . " (expected {$expected}, current {$active})\n" );
-				exit( 1 );
-			}
+	foreach ( $extract_versions( $source ) as $expected ) {
+		if ( $expected !== $active ) {
+			fwrite( STDERR, "M3-B4-B schema contract audit FAIL: stale current-version assertion in "
+				. $entry->getPathname() . " (expected {$expected}, current {$active})\n" );
+			exit( 1 );
 		}
 	}
 }
