@@ -7,12 +7,12 @@ $runner = file_get_contents($root . '/tools/check');
 $needles = [
 	"current_user_can( Capabilities::MANAGE )",
 	"CB_WORK_SCHEMA_VERSION === (string) get_option( Schema::OPTION, '0' )",
-	"RecurrenceRules::get( $id )",
-	"RecurrenceOccurrences::count_for_rule( $id )",
+	'RecurrenceRules::get( $id )',
+	'RecurrenceOccurrences::count_for_rule( $id )',
 	"RecurrenceSchedule::normalize(",
 	"Recurrence::preview_dates(",
 	"CRMCustomers::selected(",
-	"if ( $locked && ! $unchanged )",
+	'if ( $locked && ! $unchanged )',
 	"rest_ensure_response(",
 ];
 foreach ($needles as $needle) {
