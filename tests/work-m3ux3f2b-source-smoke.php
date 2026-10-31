@@ -26,7 +26,9 @@ $checks = [
 		str_contains($mount, 'export function taskCountLabel(') &&
 		str_contains($mount, 'panel.dataset.cbWorkUweSearchPlaceholder') &&
 		str_contains($mount, "canonical.querySelector('#cb-work-filter-search')") &&
-		str_contains($mount, 'resultCount.textContent.trim()'),
+		str_contains($mount, 'resultCount.textContent.trim()') &&
+		str_contains($mount, 'localizeWorkspaceBoard(canonical, {') &&
+		str_contains($shell, 'data-cb-work-uwe-no-tasks'),
 	'View modes segmented; filters and search border corrected in Workspace scope' =>
 		str_contains($css, 'M3-UX3-F2B: coherent dashboard controls') &&
 		str_contains($css, '.cb-work-uwe__view-link.is-active') &&

@@ -121,6 +121,27 @@ export function taskCountLabel(value, one, many) {
 	return typeof unit === 'string' && unit.trim() ? `${count} ${unit}` : '';
 }
 
+export function localizeWorkspaceBoard(canonical, text) {
+	if (!canonical?.querySelectorAll || !text) return 0;
+	let changed = 0;
+	const replaceText = (selector, value) => {
+		if (!value) return;
+		for (const node of canonical.querySelectorAll(selector)) {
+			node.textContent = value;
+			changed++;
+		}
+	};
+	replaceText('.cb-work-board__add > span:last-child', text.add);
+	replaceText('.cb-work-board__empty-title', text.empty);
+	replaceText('.cb-work-board__empty-hint', text.drop);
+	if (text.add) for (const anchor of canonical.querySelectorAll('.cb-work-board__header-add')) {
+		anchor.setAttribute('aria-label', text.add);
+		anchor.setAttribute('title', text.add);
+		changed++;
+	}
+	return changed;
+}
+
 export function stripWorkspaceCanonicalHeader(canonical) {
 	const header = canonical?.querySelector?.(':scope > header.cb-work-page-header');
 	if (!header || typeof header.remove !== 'function') return false;
@@ -454,6 +475,11 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				const taskLabel = canonical.querySelector('label[for="cb-work-filter-search"]');
 				if (taskLabel) taskLabel.textContent = panel.dataset.cbWorkUweSearchLabel || taskSearch.placeholder;
 			}
+			localizeWorkspaceBoard(canonical, {
+				add: panel.dataset.cbWorkUweAddTask,
+				empty: panel.dataset.cbWorkUweNoTasks,
+				drop: panel.dataset.cbWorkUweDropTasks,
+			});
 			stripWorkspaceCanonicalHeader(canonical);
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);

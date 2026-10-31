@@ -3036,3 +3036,11 @@ msgstr ""
 #: src/Admin/UnifiedWorkspace.php
 msgid "Task views"
 msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "No tasks found."
+msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Drop tasks here"
+msgstr ""
