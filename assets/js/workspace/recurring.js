@@ -20,7 +20,7 @@ function control(doc, label, key, value, type = 'text', config = {}) {
 	if (config.maxLength) input.maxLength = config.maxLength;
 	if (config.min !== undefined) input.min = String(config.min);
 	if (config.max !== undefined) input.max = String(config.max);
-	if (type === 'textarea') input.rows = 4;
+	if (type === 'textarea') input.rows = 2;
 	wrap.append(caption, input);
 	return wrap;
 }
@@ -83,6 +83,29 @@ function section(doc, title, content) {
 	const block = el(doc, 'section', 'cb-work-recurring__section');
 	block.append(el(doc, 'h3', '', title), content);
 	return block;
+}
+
+/** Canonical list presentation: site time is determined by PHP, not browser time. */
+export function recurringRecordFacts(record, labels) {
+	const units = {
+		daily:['cbWorkRecurringUnitDaily','cbWorkRecurringUnitsDaily'],
+		weekly:['cbWorkRecurringUnitWeekly','cbWorkRecurringUnitsWeekly'],
+		monthly:['cbWorkRecurringUnitMonthly','cbWorkRecurringUnitsMonthly'],
+		yearly:['cbWorkRecurringUnitYearly','cbWorkRecurringUnitsYearly'],
+	};
+	const interval = Number(record.interval_count);
+	const unit = units[record.frequency];
+	const cadence = unit && Number.isSafeInteger(interval) && interval >= 1 && interval <= 999
+		? [labels.cbWorkRecurringEvery || 'Every', interval === 1 ? '' : String(interval),
+			labels[unit[interval === 1 ? 0 : 1]] || record.frequency].filter(Boolean).join(' ')
+		: '';
+	const state = ['pending','upcoming','complete'].includes(record.occurrence_state)
+		? record.occurrence_state : 'complete';
+	const when = state === 'complete' ? labels.cbWorkRecurringComplete || 'Complete'
+		: (state === 'pending' ? labels.cbWorkRecurringPendingSince || 'Pending since'
+			: labels.cbWorkRecurringNext || 'Next') + ': '
+			+ String(record.next_occurrence_label || record.next_occurrence_on || '');
+	return {cadence, when, state};
 }
 
 function readChanges(form, original, quick = false) {
@@ -181,31 +204,27 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 	const starts = field(root.dataset.cbWorkM2Start || 'Start date', 'start_on',
 		item.start_on || options.today, 'date', {required:true});
 	const endGroup = el(doc, 'div', 'cb-work-recurring__end-group');
-	const endToggle = el(doc, 'label', 'cb-work-recurring__end-toggle');
-	const endCheck = el(doc, 'input');
-	endCheck.type = 'checkbox'; // UI-only; NEVER included in canonical REST writes.
-	endCheck.checked = !!item.end_on;
-	const endCaption = el(doc, 'span', '', labels.cbWorkRecurringEndDate || 'End date');
-	endToggle.append(endCheck, endCaption);
-	const endDate = field(labels.cbWorkRecurringEndDate || 'End date', 'end_on',
-		item.end_on || '', 'date');
+	const endMode = selection(doc, labels.cbWorkRecurringEnds || 'End', '', item.end_on ? 'date' : 'never', [
+		{id:'never',title:labels.cbWorkRecurringNoLimit || 'No date limit'},
+		{id:'date',title:labels.cbWorkRecurringEndDate || 'End date'},
+	]);
+	const endSelect = endMode.querySelector('select');
+	endSelect.removeAttribute('name'); // UI only, never sent to canonical REST.
+	const endDate = field(labels.cbWorkRecurringEndDate || 'End date', 'end_on', item.end_on || '', 'date');
 	endDate.classList.add('cb-work-recurring__end-date');
 	const endInput = endDate.querySelector('input');
-	endInput.setAttribute('aria-label', labels.cbWorkRecurringEndDate || 'End date');
-	const noEnd = el(doc, 'span', 'cb-work-recurring__no-end', labels.cbWorkRecurringNoLimit || 'No date limit');
 	let previousEnd = endInput.value;
 	const syncEnd = () => {
-		const enabled = endCheck.checked;
+		const enabled = endSelect.value === 'date';
 		endDate.hidden = !enabled;
-		noEnd.hidden = enabled;
 		endInput.required = enabled;
 		if (!enabled) {
 			if (endInput.value) previousEnd = endInput.value;
 			endInput.value = '';
 		} else if (!endInput.value) endInput.value = previousEnd;
 	};
-	endCheck.addEventListener('change', syncEnd);
-	endGroup.append(endToggle, endDate, noEnd);
+	endSelect.addEventListener('change', syncEnd);
+	endGroup.append(endMode, endDate);
 	syncEnd();
 	dates.append(starts, endGroup);
 	scheduling.append(dates);
@@ -213,7 +232,7 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 		for (const key of ['frequency','interval_count','start_on','end_on']) {
 			scheduling.querySelector('[name="' + key + '"]').disabled = true;
 		}
-		endCheck.disabled = true;
+		endSelect.disabled = true;
 		scheduling.append(el(doc, 'p', 'description', labels.cbWorkRecurringLock || 'Schedule locked by history.'));
 	}
 	main.append(section(doc, labels.cbWorkRecurringSchedule || 'Schedule', scheduling));
@@ -280,6 +299,7 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 	previewButton.type = 'button';
 	previewButton.dataset.cbWorkRecurringPreview = '1';
 	const previewCard = section(doc, labels.cbWorkRecurringUpcoming || 'Upcoming occurrences (preview)', preview);
+	const previewHeading = previewCard.querySelector('h3');
 	previewCard.classList.add('cb-work-recurring__preview-card');
 	previewCard.append(previewButton, el(doc, 'p', 'description',
 		labels.cbWorkRecurringPreviewHint || 'Dates are a preview only while this rule is inactive.'));
@@ -289,7 +309,7 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 	form.append(layout);
 	capture();
 	form.append(notice); body.append(form);
-	return {body, form, notice, original, preview, previewButton};
+	return {body, form, notice, original, preview, previewButton, previewHeading};
 }
 
 export function mountRecurringWorkspace(root, browser, refresh) {
@@ -350,7 +370,7 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 		item ||= {id:0,title:'',priority:'normal',work_context:'internal'};
 		options ||= {};
 		const view = formView(doc, root, item, options, quick, !!browser.cbCore?.objectPicker?.init);
-		const {body, form, notice, original, preview, previewButton} = view;
+		const {body, form, notice, original, preview, previewButton, previewHeading} = view;
 		const inform = (message) => {
 			notice.textContent = message; notice.hidden = false;
 		};
@@ -381,10 +401,16 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 				if (previewClosed || ticket !== previewVersion) return;
 				preview.replaceChildren();
 				const dates = el(doc, 'ul', 'cb-work-recurring__dates');
-				if (!Array.isArray(data.dates)) throw new TypeError('Invalid recurrence preview');
+				if (!Array.isArray(data.dates) || data.dates.length > 3) throw new TypeError('Invalid recurrence preview');
+				previewHeading.textContent = data.dates.some((date) => date?.pending === true)
+					? panel.dataset.cbWorkRecurringPendingPreview : panel.dataset.cbWorkRecurringUpcoming;
 				for (const value of data.dates) {
-					if (typeof value?.label !== 'string') throw new TypeError('Invalid recurrence preview');
-					dates.append(el(doc, 'li', '', value.label));
+					if (typeof value?.label !== 'string' || typeof value?.iso !== 'string'
+						|| typeof value?.pending !== 'boolean') throw new TypeError('Invalid recurrence preview');
+					const entry = el(doc, 'li', value.pending ? 'is-pending' : '', value.label);
+					entry.setAttribute('aria-label', (value.pending ? panel.dataset.cbWorkRecurringPendingSince
+						: panel.dataset.cbWorkRecurringNext) + ': ' + value.label);
+					dates.append(entry);
 				}
 				if (data.dates.length) preview.append(dates);
 				else preview.append(el(doc, 'p', 'description',
@@ -470,16 +496,20 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 	async function lifecycle(id, revision, action, trigger) {
 		if (dialogActive || pending || !browser.cbCore?.modal?.show) return;
 		if (action === 'quick') { await open(id, true); return; }
-		if (['trash','delete_permanently'].includes(action)) {
+		if ((action === 'activate' && trigger?.dataset.pendingSince) || ['trash','delete_permanently'].includes(action)) {
 			dialogActive = true;
 			let confirmed = false;
 			try {
 				confirmed = await browser.cbCore.modal.show({
-					title: action === 'trash' ? panel.dataset.cbWorkRecurringTrash : panel.dataset.cbWorkRecurringDelete,
+					title: action === 'trash' ? panel.dataset.cbWorkRecurringTrash
+						: action === 'activate' ? panel.dataset.cbWorkRecurringActivate : panel.dataset.cbWorkRecurringDelete,
 					body: action === 'trash' ? panel.dataset.cbWorkRecurringTrashConfirm
-						: panel.dataset.cbWorkRecurringDeleteConfirm,
-					confirmLabel: action === 'trash' ? panel.dataset.cbWorkRecurringTrash : panel.dataset.cbWorkRecurringDelete,
-					confirmVariant: 'danger',
+						: action === 'activate' ? panel.dataset.cbWorkRecurringActivateWarning + ' '
+							+ panel.dataset.cbWorkRecurringPendingSince + ': ' + trigger.dataset.pendingSince
+							: panel.dataset.cbWorkRecurringDeleteConfirm,
+					confirmLabel: action === 'trash' ? panel.dataset.cbWorkRecurringTrash
+						: action === 'activate' ? panel.dataset.cbWorkRecurringActivate : panel.dataset.cbWorkRecurringDelete,
+					...(action === 'activate' ? {} : {confirmVariant: 'danger'}),
 					...(action === 'delete_permanently' ? {
 						confirmCheck: {label:panel.dataset.cbWorkRecurringDeleteAck},
 					} : {}),
@@ -492,7 +522,8 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 		errorBox.hidden = true;
 		try {
 			await request('/rules/' + id + '/lifecycle', 'POST', {
-				revision, action, ...(action === 'delete_permanently' ? {confirmed:true} : {}),
+				revision, action, ...(action === 'delete_permanently'
+					|| (action === 'activate' && !!trigger?.dataset.pendingSince) ? {confirmed:true} : {}),
 			});
 			await refresh('recurring');
 		} catch (error) {
