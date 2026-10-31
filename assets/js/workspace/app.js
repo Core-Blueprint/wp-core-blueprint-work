@@ -4,7 +4,7 @@ import { createDataClient } from './data-client.js';
 import { createCanonicalViewMount } from './canonical-mount.js';
 import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
 import { mountUnifiedEditors } from './editors.js';
-import { mountRecurringWorkspace } from './recurring.js';
+import { mountRecurringWorkspace, recurringRecordFacts } from './recurring.js';
 import { mountWorkspaceOperations, isolateOperations } from './operations.js';
 import { mountWorkspaceEngagements } from './engagements.js';
 import { mountWorkspaceTime } from './time.js';
@@ -100,14 +100,15 @@ export function mountWorkspace(root, browser = window) {
 			const head = document.createElement('div');
 			head.className = 'cb-work-recurring__head';
 			head.append(record.is_trashed ? title : anchor, badge);
-			const facts = document.createElement('small');
+			const facts = document.createElement('div');
 			facts.className = 'cb-work-uwe__recurring-facts';
-			const interval = Number(record.interval_count) > 1 ? String(record.interval_count) + ' × ' : '';
-			facts.textContent = [
-				interval + (record.frequency || ''),
-				record.next_occurrence_on
-					? panel.dataset.cbWorkRecurringNext + ': ' + record.next_occurrence_on : '',
-			].filter(Boolean).join(' · ');
+			const presentation = recurringRecordFacts(record, panel.dataset);
+			const cadence = document.createElement('span');
+			cadence.textContent = presentation.cadence;
+			const occurrence = document.createElement('span');
+			occurrence.className = 'cb-work-recurring__occurrence is-' + presentation.state;
+			occurrence.textContent = presentation.when;
+			facts.append(cadence, occurrence);
 			const actions = document.createElement('div');
 			actions.className = 'cb-work-recurring__actions';
 			const action = (label, key, danger = false) => {
@@ -118,6 +119,9 @@ export function mountWorkspace(root, browser = window) {
 				button.dataset.ruleId = String(record.id);
 				button.dataset.revision = String(record.revision || 0);
 				button.textContent = label;
+				if (key === 'activate' && presentation.state === 'pending' && record.next_occurrence_label) {
+					button.dataset.pendingSince = record.next_occurrence_label;
+				}
 				return button;
 			};
 			if (trash) {
