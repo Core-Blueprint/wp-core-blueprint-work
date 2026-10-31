@@ -2998,3 +2998,31 @@ msgstr "Este registo foi alterado. Feche e volte a abrir o editor antes de guard
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "Não foi possível guardar. Verifique os campos e tente novamente."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Tarefas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Adicionar tarefa"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "tarefa"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "tarefas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Pesquisar tarefas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Pesquisar tarefas…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Vistas de tarefas"

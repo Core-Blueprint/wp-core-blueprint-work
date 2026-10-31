@@ -2993,3 +2993,31 @@ msgstr "Dit item is gewijzigd. Sluit de editor en open hem opnieuw voordat je op
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "Opslaan mislukt. Controleer de velden en probeer het opnieuw."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Taken"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Taak toevoegen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "taak"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "taken"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Taken zoeken"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Taken zoeken…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Taakweergaven"

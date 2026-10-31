@@ -3009,3 +3009,31 @@ msgstr "Este elemento ha cambiado. Cierra y vuelve a abrir el editor antes de gu
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "No se pudo guardar. Revisa los campos e inténtalo de nuevo."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Tareas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Añadir tarea"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "tarea"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "tareas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Buscar tareas"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Buscar tareas…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Vistas de tareas"

@@ -3007,3 +3007,31 @@ msgstr "Dieser Eintrag wurde geändert. Schließen und öffnen Sie den Editor er
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "Speichern fehlgeschlagen. Prüfen Sie die Felder und versuchen Sie es erneut."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Aufgaben"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Aufgabe hinzufügen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "Aufgabe"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "Aufgaben"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Aufgaben suchen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Aufgaben suchen…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Aufgabenansichten"

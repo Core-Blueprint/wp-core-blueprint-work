@@ -2996,3 +2996,31 @@ msgstr "Questo elemento è stato modificato. Chiudi e riapri l’editor prima di
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "Impossibile salvare. Controlla i campi e riprova."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Aggiungi attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Cerca attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Cerca attività…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Viste delle attività"

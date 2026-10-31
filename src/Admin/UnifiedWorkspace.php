@@ -28,9 +28,10 @@ final class UnifiedWorkspace {
 		$requested = isset( $_GET['section'] ) && is_scalar( $_GET['section'] )
 			? sanitize_key( (string) wp_unslash( $_GET['section'] ) ) : '';
 		$active = in_array( $requested, self::SECTIONS, true ) ? $requested : 'work-items';
+		$section_icons = [ 'work-items' => 'yes-alt', 'projects' => 'portfolio', 'services' => 'admin-tools', 'recurring' => 'update' ];
 		$sections = [
 			'work-items' => [
-				'label' => __( 'Work Items', 'core-blueprint-work' ),
+				'label' => __( 'Tasks', 'core-blueprint-work' ),
 				'empty' => __( 'No Work Items found.', 'core-blueprint-work' ),
 				'items' => WorkItems::all( 25 ),
 			],
@@ -66,7 +67,7 @@ final class UnifiedWorkspace {
 						aria-selected="<?php echo $active === $key ? 'true' : 'false'; ?>"
 						tabindex="<?php echo $active === $key ? '0' : '-1'; ?>"
 						data-cb-work-uwe-tab="<?php echo esc_attr( $key ); ?>"
-					><?php echo esc_html( $section['label'] ); ?></a>
+					><span class="dashicons dashicons-<?php echo esc_attr( $section_icons[ $key ] ); ?>" aria-hidden="true"></span><span><?php echo esc_html( $section['label'] ); ?></span></a>
 				<?php endforeach; ?>
 			</nav>
 			</div>
@@ -84,6 +85,10 @@ final class UnifiedWorkspace {
 					data-cb-work-uwe-panel="<?php echo esc_attr( $key ); ?>"
 					<?php if ( 'recurring' === $key ) : ?>data-cb-work-b4-native="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>" data-cb-work-b4-active="<?php esc_attr_e( 'Active', 'core-blueprint-work' ); ?>" data-cb-work-b4-inactive="<?php esc_attr_e( 'Inactive', 'core-blueprint-work' ); ?>"<?php endif; ?>
 					<?php if ( 'work-items' === $key ) : ?>
+						data-cb-work-uwe-task-singular="<?php esc_attr_e( 'task', 'core-blueprint-work' ); ?>"
+						data-cb-work-uwe-task-plural="<?php esc_attr_e( 'tasks', 'core-blueprint-work' ); ?>"
+						data-cb-work-uwe-search-label="<?php esc_attr_e( 'Search tasks', 'core-blueprint-work' ); ?>"
+						data-cb-work-uwe-search-placeholder="<?php esc_attr_e( 'Search tasks…', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-classic-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 						data-cb-work-uwe-classic-action="<?php echo esc_attr( WorkItemViewBridge::ACTION ); ?>"
 						data-cb-work-uwe-classic-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewBridge::NONCE_ACTION ) ); ?>"
@@ -96,7 +101,7 @@ final class UnifiedWorkspace {
 				>
 					<div class="cb-work-uwe__context" data-cb-work-uwe-context>
 						<div class="cb-work-uwe__context-label">
-							<h2><?php echo esc_html( $section['label'] ); ?></h2>
+							<h2<?php echo 'work-items' === $key ? ' class="screen-reader-text"' : ''; ?>><?php echo esc_html( $section['label'] ); ?></h2>
 							<span class="cb-work-uwe__context-count" data-cb-work-uwe-context-count hidden aria-live="polite"></span>
 						</div>
 					<?php if ( 'work-items' === $key ) : ?>
@@ -110,7 +115,7 @@ final class UnifiedWorkspace {
 						$preferred_view = WorkItemViewPreferences::resolve_request_view( $_GET, get_current_user_id() );
 						$preferred_order = WorkItemViewPreferences::get( get_current_user_id() )['order'];
 						?>
-						<nav class="cb-work-uwe__view-switcher" data-cb-work-uwe-view-switcher data-cb-work-uwe-default-view="<?php echo esc_attr( $preferred_view ); ?>" aria-label="<?php esc_attr_e( 'Work Item view', 'core-blueprint-work' ); ?>">
+						<nav class="cb-work-uwe__view-switcher" data-cb-work-uwe-view-switcher data-cb-work-uwe-default-view="<?php echo esc_attr( $preferred_view ); ?>" aria-label="<?php esc_attr_e( 'Task views', 'core-blueprint-work' ); ?>">
 							<?php foreach ( $preferred_order as $view_id ) : ?>
 								<?php if ( ! isset( $canonical_views[ $view_id ] ) ) { continue; } ?>
 								<?php $view_label = $canonical_views[ $view_id ]; ?>
@@ -127,7 +132,7 @@ final class UnifiedWorkspace {
 					<div class="cb-work-uwe__context-actions">
 						<?php if ( 'work-items' === $key ) : ?>
 							<button type="button" class="button cb-work-uwe__types-action" data-cb-work-m2-types><?php esc_html_e( 'Work Types', 'core-blueprint-work' ); ?></button>
-							<a class="button button-primary" data-cb-work-m2-add="work-item" href="<?php echo esc_url( Menu::new_work_item_url() ); ?>"><?php esc_html_e( 'Add Work Item', 'core-blueprint-work' ); ?></a>
+							<a class="button button-primary" data-cb-work-m2-add="work-item" href="<?php echo esc_url( Menu::new_work_item_url() ); ?>"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><span><?php esc_html_e( 'Add Task', 'core-blueprint-work' ); ?></span></a>
 						<?php elseif ( 'projects' === $key || 'services' === $key ) : ?>
 							<button type="button" class="button button-primary" data-cb-work-m2-add="<?php echo esc_attr( 'projects' === $key ? 'project' : 'service' ); ?>"><?php echo esc_html( 'projects' === $key ? __( 'Add Project', 'core-blueprint-work' ) : __( 'Add Service', 'core-blueprint-work' ) ); ?></button>
 						<?php elseif ( 'recurring' === $key ) : ?>

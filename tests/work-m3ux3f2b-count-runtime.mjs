@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { taskCountLabel } from '../assets/js/workspace/canonical-mount.js';
+assert.equal(taskCountLabel('2','task','tasks'),'2 tasks');
+assert.equal(taskCountLabel('1','taak','taken'),'1 taak');
+assert.equal(taskCountLabel('0','task','tasks'),'0 tasks');
+assert.equal(taskCountLabel('-1','task','tasks'),'');
+assert.equal(taskCountLabel('nonsense','task','tasks'),'');
+assert.equal(taskCountLabel('3.5','task','tasks'),'');
+assert.equal(taskCountLabel('2','',''),'');
+console.log('Work M3-UX3-F2B count/runtime: PASS (singular, plural, invalid values).');

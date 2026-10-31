@@ -114,6 +114,13 @@ export function createCanonicalStatusSync(browser, callback, delay = 600) {
  * untouched. Keep the real filter form, result count (used by the context
  * header), toolbar, empty state and item renderers intact.
  */
+export function taskCountLabel(value, one, many) {
+	const count = Number(value);
+	if (!Number.isSafeInteger(count) || count < 0) return '';
+	const unit = count === 1 ? one : many;
+	return typeof unit === 'string' && unit.trim() ? `${count} ${unit}` : '';
+}
+
 export function stripWorkspaceCanonicalHeader(canonical) {
 	const header = canonical?.querySelector?.(':scope > header.cb-work-page-header');
 	if (!header || typeof header.remove !== 'function') return false;
@@ -440,6 +447,13 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			syncPreferredOrder(canonical);
 			composeCanonicalToolbar(canonical);
+			// Workspace-only wording; never rewrite the standalone native page.
+			const taskSearch = canonical.querySelector('#cb-work-filter-search');
+			if (taskSearch && panel.dataset.cbWorkUweSearchPlaceholder) {
+				taskSearch.placeholder = panel.dataset.cbWorkUweSearchPlaceholder;
+				const taskLabel = canonical.querySelector('label[for="cb-work-filter-search"]');
+				if (taskLabel) taskLabel.textContent = panel.dataset.cbWorkUweSearchLabel || taskSearch.placeholder;
+			}
 			stripWorkspaceCanonicalHeader(canonical);
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);
@@ -464,8 +478,10 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
 			const resultCount = inserted.querySelector?.('.cb-work-results-header__count');
 			if (contextCount && resultCount) {
-				contextCount.textContent = resultCount.textContent.trim();
-				contextCount.hidden = false;
+				const label = taskCountLabel(resultCount.textContent.trim(),
+					panel.dataset.cbWorkUweTaskSingular, panel.dataset.cbWorkUweTaskPlural);
+				contextCount.textContent = label;
+				contextCount.hidden = !label;
 			}
 			authorizationDenied = false;
 			renderedView = view;

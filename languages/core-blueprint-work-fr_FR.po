@@ -3008,3 +3008,31 @@ msgstr "Cet élément a été modifié. Fermez puis rouvrez l’éditeur avant d
 #: src/Admin/UnifiedWorkspace.php
 msgid "Could not save. Review the fields and try again."
 msgstr "Enregistrement impossible. Vérifiez les champs et réessayez."
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Tasks"
+msgstr "Tâches"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Add Task"
+msgstr "Ajouter une tâche"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "task"
+msgstr "tâche"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "tasks"
+msgstr "tâches"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks"
+msgstr "Rechercher des tâches"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Search tasks…"
+msgstr "Rechercher des tâches…"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task views"
+msgstr "Vues des tâches"
