@@ -38,8 +38,8 @@ class Node {
 		return nodes.filter((node) => selector === node.tagName);
 	}
 	querySelector(selector) {
-		const name = /^\\[name="([^"]+)"\\]$/.exec(selector);
-		if (name) return this.walk().find((node) => node.name === name[1]) || null;
+		const name = selector.startsWith('[name="') && selector.endsWith('"]') ? selector.slice(7, -2) : null;
+		if (name) return this.walk().find((node) => node.name === name) || null;
 		return this.walk().find((node) => node.tagName === selector) || null;
 	}
 	checkValidity() {
