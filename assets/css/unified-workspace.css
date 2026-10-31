@@ -1236,3 +1236,61 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 	.cb-work-unified .cb-work-uwe__service-views { flex-wrap: wrap; }
 	.cb-work-unified .cb-work-uwe__service-view { min-height: 44px; }
 }
+
+/* M3-B4-B5: responsive Recurring Work toolbar and legible actions.
+   Scoped to Recurring only; Task/Project/Service filters retain native layout. */
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls {
+	display:grid;
+	grid-template-columns:minmax(240px,1fr) minmax(170px,220px) minmax(150px,195px) auto;
+	align-items:end;
+	gap:var(--cb-space-3,12px);
+}
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-uwe__field,
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-uwe__field:has(input[type="search"]) {
+	display:flex; flex-direction:column; align-items:stretch;
+	gap:var(--cb-space-2,8px); min-width:0;
+}
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-uwe__field > span { white-space:nowrap; }
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls :is(input,select) {
+	box-sizing:border-box; min-width:0; width:100%; max-width:100%;
+}
+/* The form stays semantic: Enter submits; typing is already debounced in app.js. */
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-recurring__search-submit { display:none; }
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls [data-cb-work-uwe-clear] { white-space:nowrap; }
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__record--recurring {
+	display:grid; gap:var(--cb-space-3,12px); align-content:start;
+}
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__record-title--button {
+	text-decoration:none; font-weight:600;
+}
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__record-title--button:is(:hover,:focus-visible) { text-decoration:none; }
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__record-title--button:focus-visible {
+	outline:2px solid var(--cb-interactive-focus,currentColor); outline-offset:3px;
+}
+.cb-work-recurring__occurrence { display:block; margin-block-start:4px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.cb-work-recurring__occurrence.is-pending { color:var(--cb-warning,var(--cb-work-text,inherit)); font-weight:600; }
+.cb-work-recurring__actions .button { min-height:36px; padding-inline:12px; text-decoration:none; }
+.cb-work-recurring__actions .button:is(:hover,:focus-visible) { text-decoration:none; }
+.cb-work-recurring__dates li.is-pending { border-inline-start-color:var(--cb-warning,currentColor); font-weight:600; }
+.cb-work-recurring__preview-button { display:inline-flex; margin-block-start:var(--cb-space-3,12px); padding-inline:var(--cb-space-3,12px); }
+.cb-work-recurring__field textarea { min-height:72px; }
+.cb-work-recurring__end-group { display:grid; gap:var(--cb-space-2,8px); align-content:start; }
+.cb-work-recurring__end-date[hidden] { display:none !important; }
+@media (max-width:1120px) {
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls {
+		grid-template-columns:minmax(0,1fr) minmax(170px,220px) minmax(150px,195px);
+	}
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls [data-cb-work-uwe-clear] {
+		grid-column:1/-1; justify-self:end;
+	}
+}
+@media (max-width:782px) {
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-uwe__field:has(input[type="search"]) { grid-column:1/-1; }
+}
+@media (max-width:540px) {
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls { grid-template-columns:minmax(0,1fr); }
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls .cb-work-uwe__field:has(input[type="search"]),
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls [data-cb-work-uwe-clear] { grid-column:auto; }
+	.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__controls [data-cb-work-uwe-clear] { justify-self:stretch; }
+}
