@@ -5,6 +5,7 @@ function node(tag = 'div') {
 	const handlers = new Map();
 	return {
 		tag, textContent: '', value: '', className: '', name: '', hidden: false,
+		classList: { add() {}, remove() {} },
 		disabled: false, dataset: {}, children: [],
 		setAttribute(name, value) { this[name] = value; },
 		append(...children) { this.children.push(...children); },
@@ -49,12 +50,13 @@ panel.dataset = {
 	cbWorkM3ContextCustomer: 'Customer',
 };
 panel.querySelector = (selector) => selectors[selector] ?? null;
-const nav = { querySelector: (selector) => selector === '[data-cb-work-m3-service-link]' ? link : null };
+const nav = { querySelector: () => null };
 const root = {
 	ownerDocument: { createElement: node },
 	querySelector(selector) {
 		return selector === '[data-cb-work-m3-operations]' ? nav
-			: selector === '[data-cb-work-m3-engagements]' ? panel : null;
+			: selector === '[data-cb-work-m3-engagements]' ? panel
+			: selector === '[data-cb-work-m3-service-link]' ? link : null;
 	}
 };
 const responses = [];

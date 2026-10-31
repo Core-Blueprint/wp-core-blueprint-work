@@ -191,6 +191,7 @@ node --experimental-default-type=module "$ROOT/tests/work-m3ux2-operation-runtim
 php "$ROOT/tests/work-m3ux1-source-smoke.php"
 php "$ROOT/tests/work-m3ux4-service-views-source-smoke.php"
 node --experimental-default-type=module "$ROOT/tests/work-m3ux4-service-views-runtime.mjs"
+node --experimental-default-type=module "$ROOT/tests/work-m3ux4-service-inline-runtime.mjs"
 node --experimental-default-type=module "$ROOT/tests/work-m3ux1-operations-runtime.mjs"
 php "$ROOT/tests/work-m3c2-time-source-smoke.php"
 php "$ROOT/tests/work-m3c2-time-runtime.php"
