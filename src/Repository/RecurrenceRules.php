@@ -131,11 +131,30 @@ final class RecurrenceRules {
 
 	/** @param array<string,mixed> $input */
 	public static function update( int $id, array $input ): bool {
+		return true === self::update_with_revision( $id, $input, null );
+	}
+
+	/**
+	 * Optimistic Workspace edits are checked while holding the SAME SQL row
+	 * lock as native writes, so two changes within one second still conflict.
+	 * @param array<string,mixed> $input
+	 */
+	public static function update_if_revision( int $id, array $input, int $expected_revision ): true|\WP_Error {
+		if ( $expected_revision < 1 ) {
+			return new \WP_Error( 'work_recurrence_revision_invalid', '', [ 'status' => 400 ] );
+		}
+		$result = self::update_with_revision( $id, $input, $expected_revision );
+		return true === $result ? true : ( $result instanceof \WP_Error
+			? $result : new \WP_Error( 'work_recurrence_write_failed', '', [ 'status' => 409 ] ) );
+	}
+
+	/** @param array<string,mixed> $input */
+	private static function update_with_revision( int $id, array $input, ?int $expected_revision ): bool|\WP_Error {
 		if ( $id <= 0 || ! self::schema_ready() ) {
 			return false;
 		}
 		global $wpdb;
-		return WorkSqlTransaction::run( static function () use ( $wpdb, $input, $id ): bool {
+		return WorkSqlTransaction::run( static function () use ( $wpdb, $input, $id, $expected_revision ): bool|\WP_Error {
 			$locked = $wpdb->get_var( $wpdb->prepare(
 				'SELECT id FROM ' . Schema::recurrence_rules_table() . ' WHERE id = %d LIMIT 1 FOR UPDATE', $id
 			) );
@@ -143,7 +162,13 @@ final class RecurrenceRules {
 				return false;
 			}
 			$current = self::get( $id );
-			$normalized = null === $current || ! empty( $current['is_trashed'] ) ? null : self::normalize_write( $input, $current );
+			if ( null === $current || ! empty( $current['is_trashed'] ) ) {
+				return false;
+			}
+			if ( null !== $expected_revision && (int) $current['revision'] !== $expected_revision ) {
+				return new \WP_Error( 'work_recurrence_revision_conflict', '', [ 'status' => 409 ] );
+			}
+			$normalized = self::normalize_write( $input, $current );
 			if ( null === $normalized ) {
 				return false;
 			}
@@ -184,13 +209,14 @@ final class RecurrenceRules {
 				$table,
 				[
 					'is_active' => 0,
+					'revision' => (int) $rule['revision'] + 1,
 					'trashed_at' => current_time( 'mysql', true ),
 					'trashed_by' => $actor_user_id,
 					'updated_by' => $actor_user_id,
 					'updated_at' => current_time( 'mysql', true ),
 				],
 				[ 'id' => $id ],
-				[ '%d', '%s', '%d', '%d', '%s' ],
+				[ '%d', '%d', '%s', '%d', '%d', '%s' ],
 				[ '%d' ]
 			);
 			return 1 === $updated;
@@ -219,13 +245,14 @@ final class RecurrenceRules {
 				$table,
 				[
 					'is_active' => 0,
+					'revision' => (int) $rule['revision'] + 1,
 					'trashed_at' => null,
 					'trashed_by' => 0,
 					'updated_by' => $actor_user_id,
 					'updated_at' => current_time( 'mysql', true ),
 				],
 				[ 'id' => $id ],
-				[ '%d', '%s', '%d', '%d', '%s' ],
+				[ '%d', '%d', '%s', '%d', '%d', '%s' ],
 				[ '%d' ]
 			);
 		}, false );
@@ -471,12 +498,13 @@ final class RecurrenceRules {
 			Schema::recurrence_rules_table(),
 			[
 				'next_occurrence_on' => $next,
+				'revision'           => (int) $rule['revision'] + 1,
 				'updated_by'         => max( 0, $actor_user_id ),
 				'updated_at'         => current_time( 'mysql', true ),
 			],
-			[ 'id' => $rule_id, 'next_occurrence_on' => $occurrence_on, 'is_active' => 1, 'trashed_at' => null ],
-			[ '%s', '%d', '%s' ],
-			[ '%d', '%s', '%d', '%s' ]
+			[ 'id' => $rule_id, 'next_occurrence_on' => $occurrence_on, 'is_active' => 1, 'trashed_at' => null, 'revision' => (int) $rule['revision'] ],
+			[ '%s', '%d', '%d', '%s' ],
+			[ '%d', '%s', '%d', '%s', '%d' ]
 		);
 		return 1 === $updated;
 	}
@@ -503,14 +531,20 @@ final class RecurrenceRules {
 			$data['billing_disposition'] = BillingDisposition::NON_BILLABLE;
 			$formats[] = '%s';
 		}
+		// Keep project-driven changes versioned with one atomic UPDATE.
 		global $wpdb;
-		$updated = $wpdb->update(
-			Schema::recurrence_rules_table(),
-			$data,
-			[ 'project_id' => $project_id ],
-			$formats,
-			[ '%d' ]
-		);
+		$set = [];
+		$values = [];
+		foreach ( $data as $column => $value ) {
+			$set[] = $column . ' = ' . $formats[ count( $values ) ];
+			$values[] = $value;
+		}
+		$values[] = $project_id;
+		$updated = $wpdb->query( $wpdb->prepare(
+			'UPDATE ' . Schema::recurrence_rules_table()
+			. ' SET ' . implode( ', ', $set ) . ', revision = revision + 1 WHERE project_id = %d',
+			...$values
+		) );
 		return false !== $updated;
 	}
 
@@ -559,6 +593,9 @@ final class RecurrenceRules {
 		$due_offset_days   = (int) ( $input['due_offset_days'] ?? ( $current['due_offset_days'] ?? 0 ) );
 		$is_active         = array_key_exists( 'is_active', $input ) ? (bool) $input['is_active'] : (bool) ( $current['is_active'] ?? true );
 
+		if ( null !== $current && (int) ( $current['revision'] ?? 0 ) >= 4294967295 ) {
+			return null;
+		}
 		$assignments_changed = array_key_exists( 'assigned_user_ids', $input ) || null === $current;
 		$assignments = $assignments_changed
 			? self::normalize_assignments( $input['assigned_user_ids'] ?? [] )
@@ -676,6 +713,7 @@ final class RecurrenceRules {
 			'create_ahead_days'    => $create_ahead_days,
 			'due_offset_days'      => $due_offset_days,
 			'is_active'            => $is_active,
+			'revision'             => null === $current ? 1 : (int) $current['revision'] + 1,
 			'created_by'           => max( 0, (int) ( $current['created_by'] ?? ( $input['created_by'] ?? get_current_user_id() ) ) ),
 			'updated_by'           => max( 0, (int) ( $input['updated_by'] ?? get_current_user_id() ) ),
 			'assignments'          => $assignments,
@@ -746,6 +784,7 @@ final class RecurrenceRules {
 			'create_ahead_days'    => $normalized['create_ahead_days'],
 			'due_offset_days'      => $normalized['due_offset_days'],
 			'is_active'            => $normalized['is_active'] ? 1 : 0,
+			'revision'             => $normalized['revision'],
 			'updated_by'           => $normalized['updated_by'],
 			'updated_at'           => $now,
 		];
@@ -760,7 +799,7 @@ final class RecurrenceRules {
 	private static function rule_formats( bool $creating = true ): array {
 		$formats = [
 			'%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d',
-			'%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s',
+			'%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%d', '%s',
 		];
 		if ( $creating ) {
 			$formats[] = '%d';
@@ -794,6 +833,7 @@ final class RecurrenceRules {
 			'create_ahead_days'    => (int) $row['create_ahead_days'],
 			'due_offset_days'      => (int) $row['due_offset_days'],
 			'is_active'            => (bool) $row['is_active'],
+			'revision'             => (int) $row['revision'],
 			'is_trashed'           => null !== ( $row['trashed_at'] ?? null ),
 			'trashed_at'           => $row['trashed_at'] ?? null,
 			'trashed_by'           => (int) ( $row['trashed_by'] ?? 0 ),

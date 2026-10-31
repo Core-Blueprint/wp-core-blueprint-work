@@ -69,7 +69,7 @@ namespace CB\Work\Repository {
 				'estimated_minutes'=>45, 'billing_disposition'=>'billable','assigned_user_ids'=>[8],
 				'frequency'=>'monthly','interval_count'=>1,'start_on'=>'2026-10-01','end_on'=>null,
 				'next_occurrence_on'=>'2026-11-01','create_ahead_days'=>14,'due_offset_days'=>2,
-				'is_active'=>true,'updated_at'=>'2026-10-31 10:00:00','is_trashed'=>false,
+				'is_active'=>true,'revision'=>7,'updated_at'=>'2026-10-31 10:00:00','is_trashed'=>false,
 			];
 		}
 	}

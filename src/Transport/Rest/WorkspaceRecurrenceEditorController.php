@@ -111,6 +111,7 @@ final class WorkspaceRecurrenceEditorController {
 			'is_active' => (bool) $rule['is_active'],
 			'schedule_locked' => RecurrenceOccurrences::count_for_rule( $id ) > 0,
 			'updated_at' => (string) $rule['updated_at'],
+			'revision' => (int) $rule['revision'],
 		] );
 	}
 

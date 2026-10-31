@@ -14,8 +14,8 @@ $scheduler = $read( 'src/Recurrence/Scheduler.php' );
 $css = $read( 'assets/css/recurrence-workspace.css' );
 $js = $read( 'assets/recurrence-workspace.js' );
 $checks = [
-	'Schema 2.4 preserves nullable Trash state with actor attribution' =>
-		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.4'" )
+	'Schema 2.5 preserves nullable Trash state with actor attribution' =>
+		str_contains( $bootstrap, "CB_WORK_SCHEMA_VERSION', '2.5'" )
 		&& str_contains( $schema, 'trashed_at datetime NULL' )
 		&& str_contains( $schema, 'trashed_by bigint(20) unsigned NOT NULL DEFAULT 0' ),
 	'Trash and restore use row locks and caller-aware transactions' =>
