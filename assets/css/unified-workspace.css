@@ -1054,7 +1054,8 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 .cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] {
 	max-block-size: var(--cb-work-board-available-block);
 	grid-template-rows: minmax(0, auto);
-	align-items: stretch;
+	/* Native board used start alignment; never stretch short lanes to match long ones. */
+	align-items: start;
 	overflow-x: auto;
 	overflow-y: hidden;
 	overscroll-behavior-inline: contain;
@@ -1064,7 +1065,9 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 	display: flex;
 	flex-direction: column;
 	min-block-size: 0;
-	max-block-size: var(--cb-work-board-available-block);
+	/* Native board keeps Base top/bottom padding; reserve it so the footer
+	 * and horizontal scrollbar are not clipped by overflow-y:hidden. */
+	max-block-size: calc(var(--cb-work-board-available-block) - var(--cb-space-1, 4px) - var(--cb-space-4, 16px));
 	overflow: hidden;
 }
 .cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view

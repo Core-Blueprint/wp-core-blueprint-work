@@ -19,6 +19,8 @@ $checks = [
 	'Native horizontal Board, scrollable canonical list and capped lane use same variable' =>
 		str_contains($css, '.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] {') &&
 		str_contains($css, 'max-block-size: var(--cb-work-board-available-block);') &&
+		str_contains($css, 'align-items: start;') &&
+		str_contains($css, 'max-block-size: calc(var(--cb-work-board-available-block) - var(--cb-space-1, 4px) - var(--cb-space-4, 16px));') &&
 		str_contains($css, 'overflow-x: auto;') &&
 		str_contains($css, 'overflow-y: hidden;') &&
 		str_contains($css, '.cb-work-board__lane > .cb-work-board__list {') &&
