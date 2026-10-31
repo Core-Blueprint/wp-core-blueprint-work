@@ -23,4 +23,43 @@ $checks = [
 foreach($checks as $label=>$ok) {
 	if(!$ok) { fwrite(STDERR, "M3-B4-B revision FAIL: {$label}\n"); exit(1); }
 }
+// The current release schema is a product contract, not a historical
+// fixture version. Detect stale hard-coded expectations across the complete
+// PHP test tree before unrelated Level 1 smokes become serial failures.
+$schema_version = [];
+if ( ! preg_match( "/define\(\s*'CB_WORK_SCHEMA_VERSION'\s*,\s*'([0-9]+\.[0-9]+)'\s*\)/", $bootstrap, $schema_version ) ) {
+	fwrite( STDERR, "M3-B4-B schema contract audit FAIL: missing current schema version\n" );
+	exit( 1 );
+}
+$active = $schema_version[1];
+$checked = 0;
+$iterator = new RecursiveIteratorIterator(
+	new RecursiveDirectoryIterator( $root . '/tests', FilesystemIterator::SKIP_DOTS )
+);
+foreach ( $iterator as $entry ) {
+	if ( ! $entry->isFile() || 'php' !== $entry->getExtension() ) {
+		continue;
+	}
+	++$checked;
+	$source = (string) file_get_contents( $entry->getPathname() );
+	$patterns = [
+		'/CB_WORK_SCHEMA_VERSION\x27,\s*\x27([0-9]+\.[0-9]+)\x27/',
+		'/\x27([0-9]+\.[0-9]+)\x27\s*===\s*CB_WORK_SCHEMA_VERSION/',
+		'/cb_work_db_version\x27\]\s*=\s*\x27([0-9]+\.[0-9]+)\x27/',
+	];
+	foreach ( $patterns as $pattern ) {
+		if ( ! preg_match_all( $pattern, $source, $matched ) ) {
+			continue;
+		}
+		foreach ( $matched[1] as $expected ) {
+			if ( $expected !== $active ) {
+				fwrite( STDERR, "M3-B4-B schema contract audit FAIL: stale current-version assertion in "
+					. $entry->getPathname() . " (expected {$expected}, current {$active})\n" );
+				exit( 1 );
+			}
+		}
+	}
+}
+echo "Work M3-B4-B schema contract audit: PASS ({$checked} PHP test files)\n";
+
 echo "Work M3-B4-B canonical revision foundation: PASS\n";
