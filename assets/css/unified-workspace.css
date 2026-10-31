@@ -1,4 +1,15 @@
 /* UWE-03A: read-only Work application shell, scoped to its private admin route. */
+/* Work-only geometry aliases. Base owns the spacing/control scales and
+ * all theme colours. These knobs tune density without forking Base tokens. */
+.cb-work-unified {
+	--cb-work-view-switch-height: var(--cb-control-height, 32px);
+	--cb-work-view-switch-touch-height: calc(var(--cb-control-height, 32px) + var(--cb-space-3, 12px));
+	--cb-work-view-switch-inset: calc(var(--cb-space-1, 4px) / 2);
+	--cb-work-view-switch-padding-block: var(--cb-button-padding-block-compact, var(--cb-space-1, 4px));
+	--cb-work-view-switch-padding-inline: var(--cb-button-padding-inline-compact, var(--cb-space-3, 12px));
+	--cb-work-view-context-padding-block: var(--cb-space-1, 4px);
+}
+
 .cb-work-workspace-screen .wrap.cb-work-unified {
 	max-width: 1440px;
 	margin-top: var(--cb-space-5, 20px);
@@ -799,14 +810,17 @@
    Native keyboard and URL view state continue to use the same anchors. */
 .cb-work-unified .cb-work-uwe__view-switcher {
 	display: inline-flex; align-items: center; flex-wrap: nowrap;
-	gap: 3px; padding: 3px; margin: 0;
+	gap: var(--cb-work-view-switch-inset);
+	padding: var(--cb-work-view-switch-inset);
+	margin: 0;
 	border: 1px solid var(--cb-border, var(--cb-work-border, #3b4350));
 	border-radius: var(--cb-radius-sm, 8px);
 	background: var(--cb-surface-2, var(--cb-work-surface, rgba(127,127,127,.06)));
 }
 .cb-work-unified .cb-work-uwe__view-link {
 	display: inline-flex; justify-content: center; align-items: center;
-	min-height: 38px; padding: 6px 12px;
+	min-height: var(--cb-work-view-switch-height);
+	padding: var(--cb-work-view-switch-padding-block) var(--cb-work-view-switch-padding-inline);
 	border: 1px solid transparent; border-radius: 6px;
 	box-shadow: none; text-decoration: none;
 	color: var(--cb-text-muted, var(--cb-work-text, inherit));
@@ -850,7 +864,7 @@
 }
 @media (max-width: 782px) {
 	.cb-work-unified .cb-work-uwe__tab { min-height: 44px; }
-	.cb-work-unified .cb-work-uwe__view-link { min-height: 40px; }
+	.cb-work-unified .cb-work-uwe__view-link { min-height: var(--cb-work-view-switch-touch-height); }
 	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-items-page--refined .cb-work-toolbar__search {
 		flex-basis: 100%; min-width: 0;
 	}
@@ -861,6 +875,10 @@
 
 /* M3-UX3-F2C: visual clarity of existing Golden Work controls, Workspace only.
  * No changes to data, native markup, status transitions or reorder contracts. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__context {
+	min-height: 0;
+	padding-block: var(--cb-work-view-context-padding-block);
+}
 .cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__context-label {
 	order: 2;
 }
