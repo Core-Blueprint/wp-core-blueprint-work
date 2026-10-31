@@ -32,7 +32,8 @@ $checks = [
     str_contains($editor, "'pending' => \$date < \$site_today")
     && str_contains($editor, 'Recurrence::preview_dates(')
     && str_contains($js, 'cbWorkRecurringPendingPreview')
-    && str_contains($js, 'value?.pending === true'),
+    && str_contains($js, 'data.dates.some((date) => date?.pending === true)')
+    && str_contains($js, "typeof value?.pending !== 'boolean'"),
   'Four new translatable strings are tracked in POT, protected Base modal unchanged' =>
     str_contains($pot, 'msgid "Pending since"')
     && str_contains($pot, 'msgid "Pending occurrences (preview)"')
