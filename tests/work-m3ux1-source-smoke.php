@@ -14,9 +14,9 @@ $checks = [
 		str_contains( $shell, 'role="tablist"' ) &&
 		str_contains( $shell, "'recurring' === \$key" ) &&
 		str_contains( $shell, 'Menu::RECURRENCE_SLUG' ) &&
-		str_contains( $shell, 'WorkspaceOperationsPanel::render();' ),
+		str_contains( $shell, 'WorkspaceOperationsPanel::render_navigation();' ),
 	'only authenticated canonical Work Items mount hides duplicate shell create' =>
-		str_contains( $style, '[data-cb-work-uwe-panel="work-items"]:has(> [data-cb-work-uwe-canonical]:not([hidden]) > .cb-work-items-page) > .cb-work-uwe__heading-row' ) &&
+		str_contains( $style, '.cb-work-uwe__canonical-view .cb-work-page-header' ) &&
 		str_contains( $shell, 'data-cb-work-m2-add=' ),
 	'compact operations and responsive shell without changing Base tokens' =>
 		str_contains( $style, '.cb-work-unified .cb-work-m3-operations__item' ) &&

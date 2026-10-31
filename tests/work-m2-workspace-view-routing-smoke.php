@@ -24,7 +24,7 @@ $checks = [
         && str_contains( $view_links, "'view' => \$view_id" )
         && ! str_contains( $view_links, "Menu::WORK_ITEMS_SLUG" ),
     'M3 operations links are consolidated into the persistent Work shell' =>
-        str_contains( $shell, 'WorkspaceOperationsPanel::render();' )
+        str_contains( $shell, 'WorkspaceOperationsPanel::render_navigation();' )
         && ! str_contains( $nav, 'cb-work-uwe__related' )
         && ! str_contains( $nav, 'cb-work-uwe__legacy-link' ),
     'Canonical view clicks are intercepted for same-page navigation' =>

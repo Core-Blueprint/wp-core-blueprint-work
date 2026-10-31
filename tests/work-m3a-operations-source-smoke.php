@@ -36,7 +36,7 @@ $checks = [
 		&& ! str_contains( $snapshot, '::stop(' )
 		&& ! str_contains( $snapshot, '::create(' ),
 	'M3-A operational shell is persistent and accessible from all Work views' =>
-		str_contains( $shell, 'WorkspaceOperationsPanel::render();' )
+		str_contains( $shell, 'WorkspaceOperationsPanel::render_navigation();' )
 		&& str_contains( $panel, 'data-cb-work-m3-operations' )
 		&& str_contains( $panel, 'data-cb-work-m3-endpoint' )
 		&& str_contains( $panel, 'data-cb-work-m3-nonce' )

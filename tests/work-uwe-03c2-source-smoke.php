@@ -34,7 +34,7 @@ $checks = [
 		&& str_contains( $primary_tabs, "'view' => \$view_id" )
 		&& ! str_contains( $primary_tabs, 'Menu::WORK_ITEMS_SLUG' )
 		&& ! str_contains( $switcher, 'cb-work-uwe__related' )
-		&& str_contains( $shell, 'WorkspaceOperationsPanel::render();' ),
+		&& str_contains( $shell, 'WorkspaceOperationsPanel::render_navigation();' ),
 	'canonical HTML mount point is Work Items-only and does not remove SSR' =>
 		str_contains( $shell, "if ( 'work-items' === \$key )" )
 		&& str_contains( $shell, 'data-cb-work-uwe-canonical hidden' )

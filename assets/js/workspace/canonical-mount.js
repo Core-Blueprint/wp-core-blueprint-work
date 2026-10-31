@@ -106,6 +106,15 @@ export function createCanonicalStatusSync(browser, callback, delay = 600) {
 }
 
 /** Reapply native disclosure state across canonical HTML replacements. */
+export function composeCanonicalToolbar(canonical) {
+	const shortcuts = canonical?.querySelector?.('.cb-work-fast-paths');
+	const row = canonical?.querySelector?.('.cb-work-toolbar__row');
+	const primary = row?.querySelector?.('.cb-work-toolbar__primary');
+	if (!shortcuts || !row || !primary || !row.insertBefore) return false;
+	row.insertBefore(shortcuts, primary);
+	return true;
+}
+
 export function syncAdvancedFilters(root, expanded) {
 	const form = root?.querySelector?.('form.cb-work-items-filters');
 	const advanced = form?.querySelector?.('#cb-work-more-filters');
@@ -413,6 +422,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				throw new TypeError('Unexpected active content in canonical Work Items HTML');
 			}
 			syncPreferredOrder(canonical);
+			composeCanonicalToolbar(canonical);
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);
 			const outgoing = destination.firstElementChild;
@@ -433,6 +443,12 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			destination.replaceChildren(inserted);
 			destination.hidden = false;
+			const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
+			const resultCount = inserted.querySelector?.('.cb-work-results-header__count');
+			if (contextCount && resultCount) {
+				contextCount.textContent = resultCount.textContent.trim();
+				contextCount.hidden = false;
+			}
 			authorizationDenied = false;
 			renderedView = view;
 			renderedQuery = requestQuery;

@@ -126,6 +126,8 @@ export function mountWorkspace(root, browser = window) {
 		pageLabel.textContent = (pageLabel.dataset.template || '%1$d / %2$d')
 			.replace('%1$d', String(result.page)).replace('%2$d', String(result.pages));
 		if (count) count.textContent = String(result.total);
+		const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
+		if (contextCount) { contextCount.textContent = String(result.total); contextCount.hidden = false; }
 		panel.dataset.cbWorkUwePages = String(result.pages);
 	}
 

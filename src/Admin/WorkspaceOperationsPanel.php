@@ -15,6 +15,11 @@ defined( 'ABSPATH' ) || exit;
  */
 final class WorkspaceOperationsPanel {
 	public static function render(): void {
+		self::render_navigation();
+		self::render_panels();
+	}
+
+	public static function render_navigation(): void {
 		if ( ! current_user_can( Capabilities::MANAGE ) ) {
 			return;
 		}
@@ -39,9 +44,13 @@ final class WorkspaceOperationsPanel {
 			</a>
 			<span class="screen-reader-text" role="status" aria-live="polite" data-cb-work-m3-status></span>
 		</nav>
-		<?php WorkspaceEngagementsPanel::render(); ?>
-		<?php WorkspaceTimePanel::render(); ?>
 		<?php
+	}
+
+	public static function render_panels(): void {
+		if ( ! current_user_can( Capabilities::MANAGE ) ) { return; }
+		WorkspaceEngagementsPanel::render();
+		WorkspaceTimePanel::render();
 	}
 
 	private function __construct() {}
