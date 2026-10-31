@@ -133,5 +133,7 @@ namespace {
 	\CB\Work\Repository\RecurrenceRules::$rule['next_occurrence_on'] = '2026-11-07';
 	$unnecessary = $c::lifecycle(new WP_REST_Request(['id'=>18], ['action'=>'deactivate','revision'=>4,'confirmed'=>true]));
 	$assert($unnecessary instanceof WP_Error && $unnecessary->data['status'] === 400, 'confirmed is not accepted for ordinary lifecycle');
+	$unknown = $c::lifecycle(new WP_REST_Request(['id'=>18], ['action'=>'deactivate','revision'=>4,'unexpected'=>true]));
+	$assert($unknown instanceof WP_Error && $unknown->data['status'] === 400, 'unexpected lifecycle fields rejected');
 	echo "Work M3-B4-B3 REST write transport: PASS\n";
 }

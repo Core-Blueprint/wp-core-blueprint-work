@@ -316,7 +316,8 @@ final class WorkspaceRecurrenceEditorController {
 		$id = self::positive_id( $request->get_param( 'id' ) );
 		$body = $request->get_json_params();
 		if ( null === $id || ! is_array( $body ) || ! isset( $body['action'], $body['revision'] )
-			|| ! is_string( $body['action'] ) || count( $body ) > 3 ) { return self::error( 400 ); }
+			|| ! is_string( $body['action'] ) || count( $body ) > 3
+			|| array_diff( array_keys( $body ), [ 'action', 'revision', 'confirmed' ] ) ) { return self::error( 400 ); }
 		$revision = self::positive_id( $body['revision'] );
 		if ( null === $revision ) { return self::error( 400 ); }
 		$rule = RecurrenceRules::get( $id );
@@ -344,10 +345,12 @@ final class WorkspaceRecurrenceEditorController {
 				Audit::record( Events::RECURRENCE_RULE_STATUS_CHANGED, 'notice', $meta + [ 'active' => $active ] );
 				break;
 			case 'trash':
+				if ( count( $body ) !== 2 ) { return self::error( 400 ); }
 				if ( ! RecurrenceRules::trash( $id, $actor, $revision ) ) { return self::error( 409 ); }
 				Audit::record( Events::RECURRENCE_RULE_TRASHED, 'notice', $meta );
 				break;
 			case 'restore':
+				if ( count( $body ) !== 2 ) { return self::error( 400 ); }
 				if ( ! RecurrenceRules::restore( $id, $actor, $revision ) ) { return self::error( 409 ); }
 				Audit::record( Events::RECURRENCE_RULE_RESTORED, 'notice', $meta );
 				break;
