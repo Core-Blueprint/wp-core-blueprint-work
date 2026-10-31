@@ -20,7 +20,7 @@ RELATIVE_IMPORT = re.compile(
 )
 REQUIRED = (
     "app.js", "router.js", "state.js", "data-client.js", "canonical-mount.js",
-    "canonical-filters.js", "canonical-mutations.js", "editors.js",
+    "canonical-filters.js", "canonical-mutations.js", "board-viewport.js", "editors.js",
     "operations.js", "operation-dialog.js", "engagements.js", "engagement-rules.js", "engagement-billing.js", "time.js", "time-entry.js",
 )
 

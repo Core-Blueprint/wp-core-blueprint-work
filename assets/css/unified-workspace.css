@@ -1043,3 +1043,51 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 		border: 1px solid CanvasText;
 	}
 }
+
+/* M3-UX3-F2E: one native horizontal scrollbar stays at the *visible* Board
+ * bottom; long lists scroll inside their own lanes. The measured viewport
+ * custom property is owned by one short-lived canonical mount controller. */
+.cb-work-unified {
+	--cb-work-board-viewport-min: 260px;
+	--cb-work-board-lane-scroll-gutter: var(--cb-space-2, 8px);
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] {
+	max-block-size: var(--cb-work-board-available-block);
+	grid-template-rows: minmax(0, auto);
+	align-items: stretch;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-inline: contain;
+	scrollbar-gutter: stable;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane {
+	display: flex;
+	flex-direction: column;
+	min-block-size: 0;
+	max-block-size: var(--cb-work-board-available-block);
+	overflow: hidden;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane > .hndle,
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane > .cb-work-board__lane-footer {
+	flex: 0 0 auto;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane > .cb-work-board__list {
+	flex: 1 1 auto;
+	min-block-size: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	overscroll-behavior-block: contain;
+	scrollbar-width: thin;
+	scroll-padding-block: var(--cb-work-board-lane-scroll-gutter);
+}
+@media (forced-colors: active) {
+	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
+	.cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane {
+		border: 1px solid CanvasText;
+	}
+}

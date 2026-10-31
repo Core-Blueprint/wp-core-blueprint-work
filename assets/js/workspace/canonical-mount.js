@@ -7,6 +7,7 @@
  */
 import { canonicalFilterUrl, canonicalLinkUrl } from './canonical-filters.js';
 import { createMutationAdapter } from './canonical-mutations.js';
+import { mountBoardViewport, rememberBoardScroll, restoreBoardScroll } from './board-viewport.js';
 
 export const CANONICAL_VIEWS = Object.freeze(['table', 'list', 'kanban', 'calendar']);
 
@@ -210,6 +211,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	const statusSync = createCanonicalStatusSync(browser, () => {
 		if (!panel.hidden) void refresh();
 	});
+	let stopBoardViewport = null;
+	const stopBoard = () => { stopBoardViewport?.(); stopBoardViewport = null; };
 	let searchTimer = null;
 	let advancedOpen = false;
 
@@ -371,6 +374,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	function showFallback() {
+		stopBoard();
 		mutationAdapter?.disable();
 		const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
 		if (contextCount) { contextCount.textContent = ''; contextCount.hidden = true; }
@@ -382,6 +386,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	function clearUnauthorized() {
+		stopBoard();
 		authorizationDenied = true;
 		renderedView = null;
 		renderedQuery = null;
@@ -484,6 +489,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);
 			const outgoing = destination.firstElementChild;
+			const savedBoard = view === 'kanban' && renderedView === 'kanban'
+				? rememberBoardScroll(outgoing?.querySelector?.('.cb-work-items-kanban')) : null;
 			const activeInput = document.activeElement;
 			const focusedField = activeInput?.closest?.('form.cb-work-items-filters')
 				&& outgoing?.contains?.(activeInput) && activeInput.name ? activeInput.name : null;
@@ -499,6 +506,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 					detail: { root: outgoing },
 				}));
 			}
+			stopBoard();
 			destination.replaceChildren(inserted);
 			destination.hidden = false;
 			const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
@@ -520,6 +528,16 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				}));
 			}
 			mutationAdapter?.ready(inserted);
+			if (view === 'kanban') {
+				const board = inserted.querySelector('.cb-work-items-kanban.cb-work-board');
+				if (board) {
+					stopBoardViewport = mountBoardViewport(board, browser, [
+						inserted.querySelector('.cb-work-toolbar'),
+						panel.querySelector('.cb-work-uwe__context'),
+					]);
+					restoreBoardScroll(board, savedBoard);
+				}
+			}
 			if (focusedField) {
 				const field = inserted.querySelector('form.cb-work-items-filters')?.elements?.namedItem?.(focusedField);
 				if (field && typeof field.focus === 'function') {
@@ -588,6 +606,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 	}
 
 	return { refresh, abort() {
+		stopBoard();
 		statusSync.cancel();
 		if (searchTimer !== null) browser.clearTimeout(searchTimer);
 		searchTimer = null;
