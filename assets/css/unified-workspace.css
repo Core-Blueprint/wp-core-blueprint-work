@@ -1048,7 +1048,6 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
  * bottom; long lists scroll inside their own lanes. The measured viewport
  * custom property is owned by one short-lived canonical mount controller. */
 .cb-work-unified {
-	--cb-work-board-viewport-min: 260px;
 	--cb-work-board-lane-scroll-gutter: var(--cb-space-2, 8px);
 }
 .cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
@@ -1059,7 +1058,6 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 	overflow-x: auto;
 	overflow-y: hidden;
 	overscroll-behavior-inline: contain;
-	scrollbar-gutter: stable;
 }
 .cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view
 .cb-work-items-kanban.cb-work-board[data-cb-work-board-viewport] > .cb-work-board__lane {
