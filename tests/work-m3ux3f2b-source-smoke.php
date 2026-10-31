@@ -13,7 +13,9 @@ $checks = [
 		str_contains($shell, "data-cb-work-m2-work-item=\"<?php esc_attr_e( 'Task'") &&
 		str_contains($shell, 'data-cb-work-m2-add="work-item"') &&
 		str_contains($shell, 'Menu::new_work_item_url()') &&
-		str_contains($shell, "'work-items' => 'yes-alt'") &&
+		// F2C intentionally replaced the completed-like icon with a Tasks clipboard.
+		// This historical F2B smoke must follow the current presentation contract.
+		str_contains($shell, "'work-items' => 'clipboard'") &&
 		str_contains($shell, "esc_html_e( 'Add Task', 'core-blueprint-work' )"),
 	'Top-level tabs and Operations use existing WordPress Dashicons with accessible text' =>
 		str_contains($shell, 'aria-hidden="true"></span><span>') &&
