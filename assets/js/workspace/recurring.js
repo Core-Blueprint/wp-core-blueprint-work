@@ -115,8 +115,7 @@ export function schedulePreviewFields(form) {
 	const start = select('start_on');
 	const end = select('end_on');
 	if (!frequency || !interval || !start || !end ||
-		!frequency.reportValidity() || !interval.reportValidity() ||
-		!start.reportValidity() || !end.reportValidity()) return null;
+		![frequency, interval, start, end].every((field) => field.checkValidity())) return null;
 	const intervalCount = Number(interval.value);
 	if (!Number.isSafeInteger(intervalCount) || intervalCount < 1 || intervalCount > 999 ||
 		!/^\\d{4}-\\d{2}-\\d{2}$/.test(start.value)) return null;
@@ -194,12 +193,16 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 	const endInput = endDate.querySelector('input');
 	endInput.setAttribute('aria-label', labels.cbWorkRecurringEndDate || 'End date');
 	const noEnd = el(doc, 'span', 'cb-work-recurring__no-end', labels.cbWorkRecurringNoLimit || 'No date limit');
+	let previousEnd = endInput.value;
 	const syncEnd = () => {
 		const enabled = endCheck.checked;
 		endDate.hidden = !enabled;
 		noEnd.hidden = enabled;
 		endInput.required = enabled;
-		if (!enabled) endInput.value = '';
+		if (!enabled) {
+			if (endInput.value) previousEnd = endInput.value;
+			endInput.value = '';
+		} else if (!endInput.value) endInput.value = previousEnd;
 	};
 	endCheck.addEventListener('change', syncEnd);
 	endGroup.append(endToggle, endDate, noEnd);
@@ -269,9 +272,6 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 			]));
 	advanced.append(advancedGrid);
 	main.append(advanced);
-	const hint = el(doc, 'p', 'description', 'Closing this dialog without saving discards unsaved edits.');
-	main.append(hint);
-
 	const preview = el(doc, 'div', 'cb-work-recurring__preview');
 	preview.setAttribute('aria-live', 'polite');
 	preview.setAttribute('aria-atomic', 'true');
@@ -354,27 +354,71 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 		const inform = (message) => {
 			notice.textContent = message; notice.hidden = false;
 		};
-		if (previewButton) previewButton.addEventListener('click', async () => {
-			if (pending) return;
-			const fields = readChanges(form, null);
-			if (!fields) { inform('Check the schedule fields.'); return; }
+		let previewTimer = null;
+		let previewVersion = 0;
+		let previewClosed = false;
+		const stopPreviewTimer = () => {
+			if (previewTimer !== null) browser.clearTimeout?.(previewTimer);
+			previewTimer = null;
+		};
+		async function loadPreview() {
+			if (!preview || previewClosed || pending) return;
+			const ticket = ++previewVersion;
+			const fields = schedulePreviewFields(form);
+			if (!fields) {
+				preview.replaceChildren(el(doc, 'p', 'description',
+					panel.dataset.cbWorkRecurringPreviewInvalid || 'Check the schedule fields.'));
+				return;
+			}
 			previewButton.disabled = true;
+			preview.setAttribute('aria-busy', 'true');
+			preview.replaceChildren(el(doc, 'p', 'description',
+				panel.dataset.cbWorkRecurringPreviewLoading || 'Building server preview…'));
 			try {
-				const data = await request('/preview', 'POST', {
-					rule_id: id,
-					frequency: fields.frequency ?? item.frequency,
-					interval_count: fields.interval_count ?? item.interval_count,
-					start_on: fields.start_on ?? item.start_on,
-					end_on: fields.end_on ?? item.end_on ?? null,
-				});
+				const data = await request('/preview', 'POST', {rule_id: id, ...fields});
+				if (previewClosed || ticket !== previewVersion) return;
 				preview.replaceChildren();
 				const dates = el(doc, 'ul', 'cb-work-recurring__dates');
-				for (const value of data.dates || []) dates.append(el(doc, 'li', '', value.label));
-				preview.append(dates);
+				if (!Array.isArray(data.dates)) throw new TypeError('Invalid recurrence preview');
+				for (const value of data.dates) {
+					if (typeof value?.label !== 'string') throw new TypeError('Invalid recurrence preview');
+					dates.append(el(doc, 'li', '', value.label));
+				}
+				if (data.dates.length) preview.append(dates);
+				else preview.append(el(doc, 'p', 'description',
+					panel.dataset.cbWorkRecurringPreviewEmpty || 'not scheduled yet'));
 				notice.hidden = true;
-			} catch (error) { inform(error.status === 409 ? 'The saved schedule is locked.' : error.message); }
-			finally { previewButton.disabled = false; }
-		});
+			} catch (error) {
+				if (previewClosed || ticket !== previewVersion) return;
+				preview.replaceChildren(el(doc, 'p', 'cb-work-recurring__message',
+					error.status === 409 ? panel.dataset.cbWorkRecurringStale : error.message));
+			} finally {
+				if (!previewClosed && ticket === previewVersion) {
+					previewButton.disabled = false;
+					preview.setAttribute('aria-busy', 'false');
+				}
+			}
+		}
+		function schedulePreview() {
+			if (previewClosed) return;
+			++previewVersion; // stale response is invalid immediately on input.
+			stopPreviewTimer();
+			previewTimer = browser.setTimeout?.(() => {
+				previewTimer = null;
+				void loadPreview();
+			}, 350) ?? null;
+		}
+		if (previewButton) {
+			previewButton.addEventListener('click', () => {
+				stopPreviewTimer();
+				void loadPreview();
+			});
+			for (const name of ['input', 'change']) form.addEventListener(name, (event) => {
+				if (['frequency','interval_count','start_on','end_on'].includes(event.target?.name)
+					|| (event.type === 'change' && event.target?.type === 'checkbox')) schedulePreview();
+			});
+		}
+
 		try {
 			const promise = browser.cbCore.modal.show({
 				title: quick ? panel.dataset.cbWorkRecurringQuick : id ? panel.dataset.cbWorkRecurringEditLabel : panel.dataset.cbWorkRecurringAddLabel,
@@ -405,9 +449,18 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 			if (browser.cbCore?.objectPicker?.init) {
 				browser.setTimeout?.(() => browser.cbCore.objectPicker.init(body), 0);
 			}
+			if (previewButton) {
+				previewTimer = browser.setTimeout?.(() => {
+					previewTimer = null;
+					void loadPreview();
+				}, 0) ?? null;
+			}
 			const saved = await promise;
 			if (saved === true) void refresh('recurring');
 		} finally {
+			previewClosed = true;
+			++previewVersion;
+			stopPreviewTimer();
 			dialogActive = false;
 		}
 	}
