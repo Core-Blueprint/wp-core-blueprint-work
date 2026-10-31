@@ -261,6 +261,7 @@ export function mountWorkspace(root, browser = window) {
 			tab.classList.toggle('is-active', selected);
 			panels.get(key).hidden = !selected;
 		}
+		operationalViews.engagements?.sync?.(section);
 		if (detail) {
 			if (announcement) announcement.textContent = tabs.get(section).textContent.trim();
 			const focused = document.activeElement;

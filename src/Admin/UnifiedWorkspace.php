@@ -144,6 +144,13 @@ final class UnifiedWorkspace {
 						<?php endif; ?>
 					</div>
 					</div>
+					<?php if ( 'services' === $key && current_user_can( Capabilities::MANAGE ) ) : ?>
+						<nav class="cb-work-uwe__service-views" aria-label="<?php esc_attr_e( 'Services', 'core-blueprint-work' ); ?>">
+							<button type="button" class="cb-work-uwe__service-view" data-cb-work-m3-service-list aria-pressed="true" hidden><?php esc_html_e( 'Services', 'core-blueprint-work' ); ?></button>
+							<?php WorkspaceOperationsPanel::render_service_link(); ?>
+						</nav>
+						<div data-cb-work-m3-services-inline hidden></div>
+					<?php endif; ?>
 					<form class="cb-work-uwe__controls" data-cb-work-uwe-controls hidden role="search">
 						<label class="cb-work-uwe__field" for="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>">
 							<span><?php esc_html_e( 'Search', 'core-blueprint-work' ); ?></span>

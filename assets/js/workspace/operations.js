@@ -26,7 +26,7 @@ export function mountWorkspaceOperations(root, browser = window) {
 	} catch {
 		return null;
 	}
-	const services = nav.querySelector('[data-cb-work-m3-count="services"]');
+	const services = root.querySelector('[data-cb-work-m3-count="services"]') || nav.querySelector('[data-cb-work-m3-count="services"]');
 	const recurrence = nav.querySelector('[data-cb-work-m3-count="recurrence"]');
 	const timer = nav.querySelector('[data-cb-work-m3-timer]');
 	const status = nav.querySelector('[data-cb-work-m3-status]');
@@ -51,7 +51,7 @@ export function mountWorkspaceOperations(root, browser = window) {
 		}
 		services.textContent = nav.dataset.cbWorkM3Active + ' ' + String(payload.services.active) + ' / ' + String(payload.services.total);
 		recurrence.textContent = nav.dataset.cbWorkM3Active + ' ' + String(payload.recurrence.active) + ' / ' + String(payload.recurrence.total);
-		services.hidden = false;
+		services.hidden = payload.services.total === 0;
 		recurrence.hidden = false;
 		timer.hidden = !payload.time.running;
 		status.textContent = '';

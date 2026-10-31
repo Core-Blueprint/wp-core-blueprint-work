@@ -2,6 +2,24 @@ import { createEngagementRuleDialog } from './engagement-rules.js';
 import { createEngagementBillingDialog } from './engagement-billing.js';
 import { createOperationDialog } from './operation-dialog.js';
 
+// Keep Services subviews in the Work URL without introducing a second router.
+export function isServiceOperationsView(href) {
+	const url = new URL(href);
+	return url.searchParams.get('section') === 'services' && url.searchParams.get('services_view') === 'operations';
+}
+
+export function serviceOperationsUrl(href, showOperations) {
+	const url = new URL(href);
+	if (showOperations) {
+		if (url.searchParams.get('section') !== 'services') throw new TypeError('Services section required');
+		url.searchParams.set('services_view', 'operations');
+	} else {
+		url.searchParams.delete('services_view');
+	}
+	return url.pathname + url.search + url.hash;
+}
+
+
 /**
  * M3-B1. In-place Engagement list and basic creation, with native advanced
  * Service Operations as a real fallback. Uses only existing Work APIs.
@@ -9,7 +27,7 @@ import { createOperationDialog } from './operation-dialog.js';
 export function mountWorkspaceEngagements(root, browser = window, onCreated = null) {
 	const nav = root?.querySelector?.('[data-cb-work-m3-operations]');
 	const panel = root?.querySelector?.('[data-cb-work-m3-engagements]');
-	const link = nav?.querySelector?.('[data-cb-work-m3-service-link]');
+	const link = root?.querySelector?.('[data-cb-work-m3-service-link]');
 	const fetcher = typeof browser.fetch === 'function' ? browser.fetch.bind(browser) : null;
 	const modal = browser.cbCore?.modal;
 	if (!nav || !panel || !link || !fetcher || !modal?.show || panel.dataset.cbWorkM3EngagementsMounted === '1') return null;
@@ -43,10 +61,17 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	let version = 0;
 	let active = null;
 	let dialogOpen = false;
-	const host = createOperationDialog(panel, browser, {
+	const inlineSection = root.querySelector('[data-cb-work-uwe-panel="services"]');
+	const inlineContainer = inlineSection?.querySelector('[data-cb-work-m3-services-inline]');
+	const listButton = inlineSection?.querySelector('[data-cb-work-m3-service-list]');
+	const inlineMode = !!(inlineContainer && listButton);
+	const originalParent = panel.parentNode;
+	const originalNext = panel.nextSibling;
+	const host = inlineMode ? null : createOperationDialog(panel, browser, {
 		title: panel.querySelector('h2')?.textContent || 'Service Operations',
 		onOpen: () => { void refresh(1); },
 	});
+	if (inlineMode) inlineContainer.appendChild(panel);
 	function openChild(task) {
 		if (host) host.transition(task);
 		else void task();
@@ -128,6 +153,9 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 		pages = data.pages;
 		list.hidden = data.items.length === 0;
 		empty.hidden = data.items.length !== 0;
+		empty.textContent = String(search.value || '').trim()
+			? panel.dataset.cbWorkM3EmptySearch || empty.textContent
+			: panel.dataset.cbWorkM3NoServices || empty.textContent;
 		pageLabel.textContent = String(page) + ' / ' + String(pages);
 		paging.hidden = pages < 2;
 		prev.disabled = page <= 1;
@@ -292,10 +320,34 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 			dialogOpen = false;
 		}
 	}
+	function sync(section) {
+		if (!inlineMode) return;
+		const visible = section === 'services' && isServiceOperationsView(browser.location.href);
+		const wasVisible = inlineSection.classList.contains('is-operations-open');
+		inlineSection.classList.toggle('is-operations-open', visible);
+		inlineContainer.hidden = !visible;
+		panel.hidden = !visible;
+		listButton.setAttribute('aria-pressed', String(!visible));
+		if (visible) link.setAttribute('aria-current', 'page');
+		else link.removeAttribute('aria-current');
+		if (visible && !wasVisible) void refresh(1);
+		if (!visible && wasVisible) { active?.abort(); ++version; }
+	}
+	function setInlineView(showOperations) {
+		const destination = serviceOperationsUrl(browser.location.href, showOperations);
+		const current = new URL(browser.location.href);
+		if (destination !== current.pathname + current.search + current.hash) {
+			browser.history.pushState({cbWorkServicesView:true}, '', destination);
+		}
+		sync('services');
+	}
+	const onPopState = () => sync(new URL(browser.location.href).searchParams.get('section'));
+
 	function clickLink(event) {
 		if (disposed || event.defaultPrevented || event.button !== 0 ||
 			event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 		event.preventDefault();
+		if (inlineMode) { setInlineView(true); return; }
 		if (host) void host.open();
 		else { panel.hidden = false; void refresh(1); }
 	}
@@ -304,8 +356,15 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 		active?.abort();
 		++version;
 		panel.hidden = true;
+		if (inlineMode) {
+			inlineSection.classList.remove('is-operations-open');
+			inlineContainer.hidden = true;
+			listButton.setAttribute('aria-pressed', 'true');
+			link.removeAttribute('aria-current');
+		}
 	}
 	function closePanel() {
+		if (inlineMode) { setInlineView(false); listButton.focus?.(); return; }
 		collapse();
 		link.focus?.();
 	}
@@ -313,8 +372,15 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	function previous() { if (page > 1) void refresh(page - 1); }
 	function following() { if (page < pages) void refresh(page + 1); }
 	function createClick() { openChild(() => openCreate()); }
+	function showServiceList() { setInlineView(false); }
 
 	link.addEventListener('click', clickLink);
+	if (inlineMode) {
+		listButton.hidden = false;
+		listButton.addEventListener('click', showServiceList);
+		browser.addEventListener?.('popstate', onPopState);
+		sync(new URL(browser.location.href).searchParams.get('section'));
+	}
 	close.addEventListener('click', closePanel);
 	form.addEventListener('submit', submit);
 	prev.addEventListener('click', previous);
@@ -322,7 +388,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	add.addEventListener('click', createClick);
 
 	return {
-		refresh, collapse,
+		refresh, collapse, sync,
 		dispose() {
 			disposed = true;
 			active?.abort();
@@ -330,6 +396,14 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 			panel.hidden = true;
 			host?.dispose();
 			link.removeEventListener('click', clickLink);
+			if (inlineMode) {
+				listButton.removeEventListener('click', showServiceList);
+				listButton.hidden = true;
+				browser.removeEventListener?.('popstate', onPopState);
+				inlineSection.classList.remove('is-operations-open');
+				inlineContainer.hidden = true;
+				if (originalParent) originalParent.insertBefore(panel, originalNext);
+			}
 			close.removeEventListener('click', closePanel);
 			form.removeEventListener('submit', submit);
 			prev.removeEventListener('click', previous);

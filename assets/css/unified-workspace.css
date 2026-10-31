@@ -339,7 +339,7 @@
 .cb-work-unified .cb-work-m3-operations__item:hover,
 .cb-work-unified .cb-work-m3-operations__item:focus-visible {
 	border-color: currentColor;
-	text-decoration: underline;
+	text-decoration: none;
 }
 .cb-work-unified .cb-work-m3-operations__metric {
 	font-variant-numeric: tabular-nums;
@@ -1129,4 +1129,85 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 @media (max-width: 782px) {
 	.cb-work-recurring__grid { grid-template-columns:minmax(0,1fr); }
 	.cb-work-recurring__actions .button { flex:1 1 auto; }
+}
+
+/* M3-UX4: Services owns Service Operations; Time remains a quiet global utility. */
+.cb-work-unified .cb-work-uwe__service-views {
+	display: flex;
+	align-items: center;
+	gap: var(--cb-space-1, 4px);
+	margin: 0 0 var(--cb-space-3, 12px);
+	padding: 0;
+}
+.cb-work-unified .cb-work-uwe__service-view {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--cb-space-2, 8px);
+	min-height: 40px;
+	padding: var(--cb-space-2, 8px) var(--cb-space-3, 12px);
+	border: 1px solid transparent;
+	border-radius: var(--cb-radius-sm, 7px);
+	background: transparent;
+	color: var(--cb-text-muted, var(--cb-work-text, inherit));
+	font: inherit;
+	font-weight: 500;
+	text-decoration: none;
+	cursor: pointer;
+}
+.cb-work-unified .cb-work-uwe__service-view:is(:hover, :focus-visible) {
+	background: var(--cb-interactive-hover, var(--cb-work-surface));
+	color: var(--cb-text-strong, var(--cb-work-text-strong, inherit));
+	text-decoration: none;
+}
+.cb-work-unified .cb-work-uwe__service-view:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus, var(--cb-work-accent));
+	outline-offset: 2px;
+}
+.cb-work-unified .cb-work-uwe__service-view:is([aria-current="page"], [aria-pressed="true"]) {
+	background: var(--cb-surface-2, var(--cb-work-surface-raised));
+	border-color: var(--cb-border, var(--cb-work-border));
+	color: var(--cb-text-strong, var(--cb-work-text-strong, inherit));
+}
+.cb-work-unified [data-cb-work-uwe-panel="services"].is-operations-open
+	> :not(.cb-work-uwe__context):not(.cb-work-uwe__service-views):not([data-cb-work-m3-services-inline]) {
+	display: none !important;
+}
+.cb-work-unified [data-cb-work-m3-services-inline][hidden] { display: none !important; }
+.cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+}
+.cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements__header,
+.cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements > a.button {
+	display: none;
+}
+.cb-work-unified [data-cb-work-m3-services-inline] [data-cb-work-m3-engagements-empty]:not([hidden]) {
+	display: block;
+	max-width: 640px;
+	padding: var(--cb-space-5, 20px);
+	border: 1px dashed var(--cb-border, var(--cb-work-border));
+	border-radius: var(--cb-radius-md, 8px);
+	background: var(--cb-surface-1, var(--cb-work-surface));
+	color: var(--cb-text-muted, inherit);
+}
+.cb-work-unified .cb-work-m3-operations__item[data-cb-work-m3-time-link] {
+	border-color: transparent;
+	background: transparent;
+	color: var(--cb-text-muted, var(--cb-work-text, inherit));
+}
+.cb-work-unified .cb-work-m3-operations__item[data-cb-work-m3-time-link]:is(:hover, :focus-visible) {
+	background: var(--cb-interactive-hover, var(--cb-work-surface));
+	color: var(--cb-text-strong, var(--cb-work-text-strong, inherit));
+	text-decoration: none;
+}
+/* Link-shaped buttons must not inherit WordPress text-link decoration. */
+.cb-work-unified :is(a.button, button.button, .cb-work-m3-operations__item, .cb-work-uwe__service-view):is(:hover, :focus-visible) {
+	text-decoration: none;
+}
+@media (max-width: 782px) {
+	.cb-work-unified .cb-work-uwe__service-views { flex-wrap: wrap; }
+	.cb-work-unified .cb-work-uwe__service-view { min-height: 44px; }
 }
