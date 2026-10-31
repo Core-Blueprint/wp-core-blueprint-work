@@ -329,6 +329,8 @@ export function createCanonicalViewMount(panel, browser, notify) {
 
 	function showFallback() {
 		mutationAdapter?.disable();
+		const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
+		if (contextCount) { contextCount.textContent = ''; contextCount.hidden = true; }
 		destination.hidden = true;
 		if (oldHeading) oldHeading.hidden = false;
 		fallback.forEach((node, index) => {

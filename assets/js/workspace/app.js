@@ -163,6 +163,21 @@ export function mountWorkspace(root, browser = window) {
 			updateResults(section, result);
 		} catch (failure) {
 			if (failure?.name === 'AbortError' || activeSection !== section || sequence !== refreshSequence) return;
+			if (failure?.status === 401 || failure?.status === 403) {
+				// Permission loss purges the previously hydrated private results and
+				// their new contextual total; never leave stale privileged UI visible.
+				const list = panel.querySelector('[data-cb-work-uwe-list]');
+				list?.replaceChildren();
+				if (list) list.hidden = true;
+				const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
+				if (contextCount) { contextCount.textContent = ''; contextCount.hidden = true; }
+				const inlineCount = panel.querySelector('[data-cb-work-uwe-count]');
+				if (inlineCount) inlineCount.textContent = '';
+				const empty = panel.querySelector('[data-cb-work-uwe-empty]');
+				if (empty) empty.hidden = true;
+				const pagination = panel.querySelector('[data-cb-work-uwe-pagination]');
+				if (pagination) pagination.hidden = true;
+			}
 			if (error) error.hidden = false;
 		} finally {
 			if (activeSection === section && sequence === refreshSequence) {

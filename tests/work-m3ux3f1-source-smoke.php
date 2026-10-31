@@ -28,6 +28,10 @@ $checks = [
 		&& str_contains( $mount, 'composeCanonicalToolbar(canonical);' )
 		&& str_contains( $mount, "destination.addEventListener('submit'" )
 		&& ! str_contains( $mount, 'innerHTML' ),
+	'permission loss purges contextual counts and private list rows' =>
+		str_contains( $mount, "contextCount.textContent = ''; contextCount.hidden = true;" )
+		&& str_contains( $app, "failure?.status === 401 || failure?.status === 403" )
+		&& str_contains( $app, 'list?.replaceChildren()' ),
 	'counts come only from authorized canonical/REST results' =>
 		str_contains( $mount, 'resultCount.textContent.trim()' )
 		&& str_contains( $app, 'contextCount.textContent = String(result.total)' ),
