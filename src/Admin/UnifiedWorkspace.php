@@ -149,7 +149,7 @@ final class UnifiedWorkspace {
 							<button type="button" class="cb-work-uwe__service-view" data-cb-work-m3-service-list aria-pressed="true" hidden><?php esc_html_e( 'Services', 'core-blueprint-work' ); ?></button>
 							<?php WorkspaceOperationsPanel::render_service_link(); ?>
 						</nav>
-						<div data-cb-work-m3-services-inline hidden></div>
+						<div data-cb-work-m3-services-inline role="region" aria-label="<?php esc_attr_e( 'Service Operations', 'core-blueprint-work' ); ?>" hidden></div>
 					<?php endif; ?>
 					<form class="cb-work-uwe__controls" data-cb-work-uwe-controls hidden role="search">
 						<label class="cb-work-uwe__field" for="cb-work-uwe-search-<?php echo esc_attr( $key ); ?>">
