@@ -4,6 +4,7 @@ declare(strict_types=1);
 use CB\Work\Database\Schema;
 use CB\Work\Governance\DeferredEvents;
 use CB\Work\Governance\WorkEventOutbox;
+use CB\Work\Repository\RecurrenceRules;
 use CoreBlueprint\Core\DB;
 use CoreBlueprint\Core\Database\SchemaRegistry;
 
@@ -19,6 +20,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 	private bool $autocommit_changed = false;
 	private mixed $previous_schema = null;
 	private string $sentinel_code = '';
+	private int $migration_rule_id = 0;
 	/** @var string[] */
 	private array $created_event_keys = [];
 	private int $published_hooks = 0;
@@ -60,6 +62,10 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 			$wpdb->query( 'ROLLBACK' );
 		}
 		$table = Schema::outbox_table();
+		if ( $this->migration_rule_id > 0 ) {
+			$wpdb->delete( Schema::recurrence_rules_table(), [ 'id' => $this->migration_rule_id ], [ '%d' ] );
+			$this->migration_rule_id = 0;
+		}
 		foreach ( $this->created_event_keys as $key ) {
 			$wpdb->delete( $table, [ 'event_key' => $key ], [ '%s' ] );
 		}
@@ -148,7 +154,7 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		// Recurring Work lifecycle columns without dropping legacy rows.
 		$recurrence = Schema::recurrence_rules_table();
 		$recurrence_columns = $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $recurrence ) );
-		foreach ( [ 'trashed_at', 'trashed_by' ] as $column ) {
+		foreach ( [ 'trashed_at', 'trashed_by', 'revision' ] as $column ) {
 			self::assertContains( $column, $recurrence_columns, 'Recurrence lifecycle migration must add its recoverable trash state.' );
 		}
 		$recurrence_indexes = $wpdb->get_results( $wpdb->prepare( 'SHOW INDEX FROM %i', $recurrence ), ARRAY_A );
@@ -174,6 +180,56 @@ final class ProjectBundleGoldenAcceptanceIntegrationTest extends \PHPUnit\Framew
 		self::assertSame( 'B3.1 existing Work Type', $wpdb->get_var( $wpdb->prepare(
 			'SELECT label FROM %i WHERE code = %s', Schema::work_types_table(), $this->sentinel_code
 		) ) );
+	}
+
+	/**
+	 * Physical 2.4 -> 2.5 migration against the disposable Work database.
+	 *
+	 * Unlike WordPress test transaction fixtures, this deliberately simulates
+	 * the missing legacy column on the real InnoDB table, then invokes Base's
+	 * governed SchemaRegistry upgrade and checks that existing rule data
+	 * survives with the default revision. No other database is touched.
+	 */
+	public function test_real_schema_24_to_25_adds_recurrence_revision_without_losing_rules(): void {
+		global $wpdb;
+		$table = Schema::recurrence_rules_table();
+		self::assertContains( 'revision', $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $table ) ) );
+
+		$this->migration_rule_id = RecurrenceRules::create( [
+			'title' => 'B4-B2 persisted migration sentinel',
+			'work_context' => 'internal',
+			'frequency' => 'weekly',
+			'interval_count' => 1,
+			'start_on' => '2026-10-31',
+			'is_active' => false,
+		] );
+		self::assertGreaterThan( 0, $this->migration_rule_id );
+
+		// Mark the previous schema *before* changing the disposable table.
+		// Existing tearDown recovery will reconcile even after a test failure.
+		update_option( Schema::OPTION, '2.4' );
+		self::assertSame( '2.4', (string) get_option( Schema::OPTION ) );
+		self::assertNotFalse( $wpdb->query( $wpdb->prepare( 'ALTER TABLE %i DROP COLUMN revision', $table ) ) );
+		self::assertNotContains( 'revision', $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $table ) ) );
+
+		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', false ),
+			'Base must run the real 2.4 to 2.5 dbDelta migration.' );
+		self::assertSame( CB_WORK_SCHEMA_VERSION, (string) get_option( Schema::OPTION ) );
+		self::assertContains( 'revision', $wpdb->get_col( $wpdb->prepare( 'SHOW COLUMNS FROM %i', $table ) ) );
+		$rule = RecurrenceRules::get( $this->migration_rule_id );
+		self::assertIsArray( $rule );
+		self::assertSame( 'B4-B2 persisted migration sentinel', $rule['title'] );
+		self::assertSame( 1, $rule['revision'], 'Legacy rows must acquire the default initial revision.' );
+
+		self::assertTrue( RecurrenceRules::update_if_revision(
+			$this->migration_rule_id,
+			[ 'title' => 'B4-B2 persisted after migration' ],
+			1
+		) );
+		self::assertSame( 2, RecurrenceRules::get( $this->migration_rule_id )['revision'] );
+		self::assertTrue( DB::reconcile_registered_schema( 'core-blueprint-work', true ),
+			'The second reconciliation must be idempotent.' );
+		self::assertSame( 'B4-B2 persisted after migration', RecurrenceRules::get( $this->migration_rule_id )['title'] );
 	}
 
 	public function test_second_connection_sees_only_committed_events_and_drains_once_with_stable_key(): void {

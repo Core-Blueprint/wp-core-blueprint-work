@@ -113,6 +113,7 @@ final class ProjectBundleIntegrityIntegrationTest extends WP_UnitTestCase {
 				customer_id varchar(191) NOT NULL,
 				updated_by bigint unsigned NOT NULL,
 				updated_at datetime NOT NULL,
+				revision int unsigned NOT NULL DEFAULT 1,
 				billing_disposition varchar(32) NOT NULL
 			) ENGINE=InnoDB',
 		];

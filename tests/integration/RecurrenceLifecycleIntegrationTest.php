@@ -45,6 +45,7 @@ final class RecurrenceLifecycleIntegrationTest extends WP_UnitTestCase {
 			create_ahead_days smallint unsigned NOT NULL DEFAULT 14,
 			due_offset_days smallint unsigned NOT NULL DEFAULT 0,
 			is_active tinyint(1) unsigned NOT NULL DEFAULT 1,
+			revision int unsigned NOT NULL DEFAULT 1,
 			trashed_at datetime NULL,
 			trashed_by bigint unsigned NOT NULL DEFAULT 0,
 			created_by bigint unsigned NOT NULL DEFAULT 0,
