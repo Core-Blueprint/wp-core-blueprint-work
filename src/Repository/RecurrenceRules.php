@@ -188,11 +188,11 @@ final class RecurrenceRules {
 	 * Soft trash always pauses generation; the rule, assignments and ledger
 	 * remain intact, so historical Work Items and audit history remain intact.
 	 */
-	public static function trash( int $id, int $actor_user_id ): bool {
+	public static function trash( int $id, int $actor_user_id, ?int $expected_revision = null ): bool {
 		if ( $id <= 0 || $actor_user_id <= 0 || ! self::schema_ready() ) {
 			return false;
 		}
-		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id ): bool {
+		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id, $expected_revision ): bool {
 			global $wpdb;
 			$table = Schema::recurrence_rules_table();
 			$locked = $wpdb->get_var( $wpdb->prepare(
@@ -202,7 +202,7 @@ final class RecurrenceRules {
 				return false;
 			}
 			$rule = self::get( $id );
-			if ( null === $rule || ! empty( $rule['is_trashed'] ) ) {
+			if ( null === $rule || ! empty( $rule['is_trashed'] ) || ( null !== $expected_revision && (int) $rule['revision'] !== $expected_revision ) ) {
 				return false;
 			}
 			$updated = $wpdb->update(
@@ -224,11 +224,11 @@ final class RecurrenceRules {
 	}
 
 	/** Restoring a rule is intentionally always inactive. */
-	public static function restore( int $id, int $actor_user_id ): bool {
+	public static function restore( int $id, int $actor_user_id, ?int $expected_revision = null ): bool {
 		if ( $id <= 0 || $actor_user_id <= 0 || ! self::schema_ready() ) {
 			return false;
 		}
-		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id ): bool {
+		return WorkSqlTransaction::run( static function () use ( $id, $actor_user_id, $expected_revision ): bool {
 			global $wpdb;
 			$table = Schema::recurrence_rules_table();
 			$locked = $wpdb->get_var( $wpdb->prepare(
@@ -238,7 +238,7 @@ final class RecurrenceRules {
 				return false;
 			}
 			$rule = self::get( $id );
-			if ( null === $rule || empty( $rule['is_trashed'] ) ) {
+			if ( null === $rule || empty( $rule['is_trashed'] ) || ( null !== $expected_revision && (int) $rule['revision'] !== $expected_revision ) ) {
 				return false;
 			}
 			return 1 === $wpdb->update(
@@ -263,11 +263,11 @@ final class RecurrenceRules {
 	 * occurrence ledger rows. Never cascade into generated Work Items.
 	 * Lock ordering serializes with generator reservation.
 	 */
-	public static function delete_permanently( int $id ): bool {
+	public static function delete_permanently( int $id, ?int $expected_revision = null ): bool {
 		if ( $id <= 0 || ! self::schema_ready() ) {
 			return false;
 		}
-		return WorkSqlTransaction::run( static function () use ( $id ): bool {
+		return WorkSqlTransaction::run( static function () use ( $id, $expected_revision ): bool {
 			global $wpdb;
 			$table = Schema::recurrence_rules_table();
 			$locked = $wpdb->get_var( $wpdb->prepare(
@@ -277,7 +277,7 @@ final class RecurrenceRules {
 				return false;
 			}
 			$rule = self::get( $id );
-			if ( null === $rule || empty( $rule['is_trashed'] ) || self::has_occurrences( $id ) ) {
+			if ( null === $rule || empty( $rule['is_trashed'] ) || self::has_occurrences( $id ) || ( null !== $expected_revision && (int) $rule['revision'] !== $expected_revision ) ) {
 				return false;
 			}
 			$removed = $wpdb->delete( Schema::recurrence_assignments_table(), [ 'rule_id' => $id ], [ '%d' ] );

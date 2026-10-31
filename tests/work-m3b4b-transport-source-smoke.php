@@ -23,9 +23,9 @@ foreach ($needles as $needle) {
 }
 if (false === strpos((string) $plugin, 'WorkspaceRecurrenceEditorController::init();')
 	|| false === strpos((string) $runner, 'tests/work-m3b4b-transport-runtime.php')
-	|| false !== strpos((string) $transport, 'RecurrenceRules::update(')
-	|| false !== strpos((string) $transport, 'RecurrenceRules::create(')) {
-	fwrite(STDERR, "M3-B4-B transport source FAIL: boot, enrolment, or read-only boundary\n");
+	|| false === strpos((string) $transport, 'RecurrenceRules::update_if_revision(')
+	|| false === strpos((string) $transport, 'RecurrenceRules::create(')) {
+	fwrite(STDERR, "M3-B4-B transport source FAIL: boot, enrolment, or canonical write boundary\n");
 	exit(1);
 }
-echo "Work M3-B4-B read-only editor transport source: PASS\n";
+echo "Work M3-B4-B editor transport source: PASS\n";
