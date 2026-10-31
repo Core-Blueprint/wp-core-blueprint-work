@@ -3032,3 +3032,7 @@ msgstr "Nessuna attività trovata."
 #: src/Admin/UnifiedWorkspace.php
 msgid "Drop tasks here"
 msgstr "Trascina qui le attività"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task"
+msgstr "Attività"

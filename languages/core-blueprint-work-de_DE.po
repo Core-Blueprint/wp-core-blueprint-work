@@ -3043,3 +3043,7 @@ msgstr "Keine Aufgaben gefunden."
 #: src/Admin/UnifiedWorkspace.php
 msgid "Drop tasks here"
 msgstr "Aufgaben hier ablegen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task"
+msgstr "Aufgabe"

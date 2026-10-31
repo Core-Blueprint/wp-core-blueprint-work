@@ -3044,3 +3044,7 @@ msgstr ""
 #: src/Admin/UnifiedWorkspace.php
 msgid "Drop tasks here"
 msgstr ""
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task"
+msgstr ""

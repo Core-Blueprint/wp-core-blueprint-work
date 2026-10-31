@@ -3029,3 +3029,7 @@ msgstr "Geen taken gevonden."
 #: src/Admin/UnifiedWorkspace.php
 msgid "Drop tasks here"
 msgstr "Sleep taken hierheen"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task"
+msgstr "Taak"

@@ -3034,3 +3034,7 @@ msgstr "Não foram encontradas tarefas."
 #: src/Admin/UnifiedWorkspace.php
 msgid "Drop tasks here"
 msgstr "Largue as tarefas aqui"
+
+#: src/Admin/UnifiedWorkspace.php
+msgid "Task"
+msgstr "Tarefa"

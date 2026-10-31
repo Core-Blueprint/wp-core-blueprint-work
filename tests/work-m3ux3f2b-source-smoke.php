@@ -9,6 +9,8 @@ $renderer = (string) file_get_contents( $root . '/src/Admin/Operations.php' );
 $checks = [
 	'Only Workspace label changes to Tasks; native and route unchanged' =>
 		str_contains($shell, "'label' => __( 'Tasks', 'core-blueprint-work' )") &&
+		str_contains($shell, "'empty' => __( 'No tasks found.', 'core-blueprint-work' )") &&
+		str_contains($shell, "data-cb-work-m2-work-item=\"<?php esc_attr_e( 'Task'") &&
 		str_contains($shell, 'data-cb-work-m2-add="work-item"') &&
 		str_contains($shell, 'Menu::new_work_item_url()') &&
 		str_contains($shell, "'work-items' => 'yes-alt'") &&
