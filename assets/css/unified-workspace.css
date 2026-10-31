@@ -1138,6 +1138,7 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 .cb-work-recurring__preview-card h3 { overflow-wrap:anywhere; }
 .cb-work-recurring__preview { margin-block:var(--cb-space-2, 8px); }
 .cb-work-recurring__preview-button { min-height:40px; text-decoration:none; }
+.cb-work-recurring :is(a.button,button.button):is(:hover,:focus-visible) { text-decoration:none; }
 .cb-work-recurring__dates { display:grid; gap:var(--cb-space-2, 8px); padding:0; margin:0; list-style:none; }
 .cb-work-recurring__dates li { border-inline-start:2px solid var(--cb-interactive-border-hover, currentColor); padding:var(--cb-space-2, 8px); overflow-wrap:anywhere; }
 .cb-work-recurring__message { color:var(--cb-danger, #b32d2e); overflow-wrap:anywhere; }
