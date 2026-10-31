@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 
 // Execute the actual shipped pure editor renderer under a minimal DOM facade.
 const js = readFileSync(new URL('../assets/js/workspace/recurring.js', import.meta.url), 'utf8');
-const { formView, readChanges, schedulePreviewFields } =
-	new Function(js.replace(/^export /gm, '') + '\nreturn {formView,readChanges,schedulePreviewFields};')();
+const { formView, readChanges, schedulePreviewFields, recurringRecordFacts } =
+	new Function(js.replace(/^export /gm, '') + '\nreturn {formView,readChanges,schedulePreviewFields,recurringRecordFacts};')();
 
 class Node {
 	constructor(tag) {
@@ -23,6 +23,7 @@ class Node {
 	}
 	append(...nodes) { for (const child of nodes) { this.children.push(child); child.parentNode = this; } }
 	setAttribute(name, value) { this.attrs[name] = value; }
+	removeAttribute(name) { delete this.attrs[name]; if (name === 'name') this.name = ''; }
 	addEventListener(name, listener) { this.listeners.set(name, listener); }
 	emit(name) { this.listeners.get(name)?.({target:this,type:name}); }
 	walk() {
@@ -89,8 +90,8 @@ assert.equal(frequency.children.find((node)=>node.value === 'monthly').textConte
 assert.equal(form.querySelector('[name="interval_count"]').value,'1');
 const endInput = form.querySelector('[name="end_on"]');
 const endLabel = findClass(form,'cb-work-recurring__end-date');
-const endToggle = findClass(form,'cb-work-recurring__end-toggle').querySelector('input');
-assert.equal(endToggle.name,'','UI-only checkbox never enters canonical writer');
+const endMode = findClass(form,'cb-work-recurring__end-group').querySelector('select');
+assert.equal(endMode.name,'','UI-only end-mode select never enters canonical writer');
 assert.equal(endLabel.hidden,true,'optional end hidden when open-ended');
 assert.equal(endInput.value,'');
 assert.equal(draft.preview.getAttribute, undefined);
@@ -101,19 +102,19 @@ assert.equal(createFields.frequency,'weekly');
 assert.equal(createFields.interval_count,1);
 assert.equal(createFields.end_on,'');
 assert.equal(Object.hasOwn(createFields,''),false);
-assert.equal(Object.hasOwn(createFields,'endToggle'),false);
-endToggle.checked = true;
-endToggle.emit('change');
+assert.equal(Object.hasOwn(createFields,'endMode'),false);
+endMode.value = 'date';
+endMode.emit('change');
 assert.equal(endLabel.hidden,false);
 assert.equal(endInput.required,true);
 endInput.value = '2026-12-31';
 assert.equal(schedulePreviewFields(form).end_on,'2026-12-31');
-endToggle.checked = false;
-endToggle.emit('change');
+endMode.value = 'never';
+endMode.emit('change');
 assert.equal(endInput.value,'');
 assert.equal(readChanges(form,null).end_on,'');
-endToggle.checked = true;
-endToggle.emit('change');
+endMode.value = 'date';
+endMode.emit('change');
 assert.equal(endInput.value,'2026-12-31','toggling end date restores unsaved date');
 assert.equal(readChanges(form,null).end_on,'2026-12-31');
 const original = { ...readChanges(form,null) };
@@ -126,8 +127,12 @@ const locked = create({id:17, title:'Locked',frequency:'monthly',interval_count:
 for (const key of ['frequency','interval_count','start_on','end_on']) {
 	assert.equal(locked.form.querySelector('[name="'+key+'"]').disabled,true, key+' locked by occurrence history');
 }
-assert.equal(findClass(locked.form,'cb-work-recurring__end-toggle').querySelector('input').disabled,true);
+assert.equal(findClass(locked.form,'cb-work-recurring__end-group').querySelector('select').disabled,true);
 assert.equal(schedulePreviewFields(locked.form).end_on,'2026-12-01','locked editor still permits read-only preview');
+const cardLabels = {cbWorkRecurringEvery:'Every',cbWorkRecurringUnitWeekly:'week',cbWorkRecurringUnitsWeekly:'weeks', cbWorkRecurringPendingSince:'Pending since',cbWorkRecurringNext:'Next',cbWorkRecurringComplete:'Complete'};
+assert.deepEqual(recurringRecordFacts({frequency:'weekly',interval_count:1,occurrence_state:'pending',next_occurrence_label:'14 Oct 2026'},cardLabels), {cadence:'Every week',when:'Pending since: 14 Oct 2026',state:'pending'});
+assert.deepEqual(recurringRecordFacts({frequency:'weekly',interval_count:2,occurrence_state:'upcoming',next_occurrence_label:'4 Nov 2026'},cardLabels), {cadence:'Every 2 weeks',when:'Next: 4 Nov 2026',state:'upcoming'});
+assert.equal(recurringRecordFacts({frequency:'weekly',interval_count:1,occurrence_state:'complete',next_occurrence_on:''},cardLabels).when,'Complete');
 const quick = formView(doc,root,{title:'Quick',priority:'high'}, {},true,false);
 assert.equal(quick.form.querySelector('[name="frequency"]'),null,'Quick Edit remains minimal');
 assert.deepEqual(Object.keys(readChanges(quick.form, null)).sort(), ['priority','title']);
