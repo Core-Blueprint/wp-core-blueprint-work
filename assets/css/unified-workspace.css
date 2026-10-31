@@ -858,3 +858,170 @@
 @media (prefers-reduced-motion: reduce) {
 	.cb-work-unified .cb-work-uwe__tab { transition: none; }
 }
+
+/* M3-UX3-F2C: visual clarity of existing Golden Work controls, Workspace only.
+ * No changes to data, native markup, status transitions or reorder contracts. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__context-label {
+	order: 2;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__view-switcher {
+	order: 1;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__context-actions {
+	order: 3;
+}
+body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.button-primary) {
+	background: var(--cb-surface-1, var(--cb-work-surface, transparent));
+	border-color: var(--cb-border, var(--cb-work-border, currentColor));
+	color: var(--cb-text-strong, var(--cb-work-text-strong, inherit));
+	box-shadow: none;
+}
+body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.button-primary):hover {
+	background: var(--cb-interactive-hover, var(--cb-work-surface-raised));
+	border-color: var(--cb-interactive-border-hover, var(--cb-work-border));
+}
+body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.button-primary):focus-visible {
+	outline: 2px solid var(--cb-interactive-focus, var(--cb-work-accent, #3584e4));
+	outline-offset: 2px;
+}
+/* Reuse real canonical controls, distinguish search, presets and advanced
+ * filters through alignment/spacing rather than nested boxes or more rules. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar {
+	padding: 8px 10px;
+	border: 1px solid var(--cb-border, var(--cb-work-border));
+	border-radius: var(--cb-radius-md, 8px);
+	background: var(--cb-surface-1, var(--cb-work-surface, transparent));
+	box-shadow: none;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar__row {
+	column-gap: 10px;
+	row-gap: 8px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar__search {
+	flex: 1 1 280px;
+	min-width: min(100%, 240px);
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-fast-paths {
+	gap: 5px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-fast-path {
+	min-height: 38px;
+	padding-inline: 12px;
+	white-space: nowrap;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar__primary {
+	column-gap: 7px;
+	row-gap: 6px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar__head {
+	min-width: 38px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-items-kanban {
+	gap: 12px !important;
+}
+/* Column, card and surface contrast follow the same Base design tokens in
+ * Light and Dark. Keep active drag/drop and focus indicators authoritative. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane {
+	background: var(--cb-surface-1, var(--cb-work-surface, transparent));
+	border: 1px solid var(--cb-border, var(--cb-work-border, currentColor));
+	border-radius: var(--cb-radius-md, var(--cb-work-radius, 8px));
+	box-shadow: none;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane > .hndle {
+	padding: 12px;
+	background: transparent;
+	border-bottom-color: var(--cb-border, var(--cb-work-border));
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane > .hndle .count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px 7px;
+	min-width: 22px;
+	min-height: 20px;
+	background: var(--cb-surface-2, var(--cb-work-surface-raised));
+	border-radius: 999px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane > .inside {
+	padding: 10px 10px 4px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane-footer {
+	padding-inline: 10px;
+	padding-bottom: 10px;
+}
+/* A shorter card preserves identity, meaningful metadata, status, priority,
+ * due date, assignee, native links and the real drag handle/actions. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-items-kanban .cb-work-board__card {
+	padding: 12px !important;
+	background: var(--cb-surface-2, var(--cb-work-surface-raised));
+	border: 1px solid var(--cb-border, var(--cb-work-border));
+	border-radius: var(--cb-radius-sm, 7px);
+	box-shadow: none;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card-header {
+	gap: 6px;
+	margin-bottom: 9px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card-heading {
+	gap: 4px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__title {
+	line-height: 1.4;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__context[hidden] {
+	display: none !important;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__signals {
+	gap: 8px;
+	padding-bottom: 8px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__due {
+	text-align: end;
+	line-height: 1.35;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__footer {
+	min-height: 0;
+	padding-top: 8px;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card-controls .cb-core-icon-control {
+	opacity: .76;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card:is(:hover, :focus-within) .cb-core-icon-control,
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board.is-reordering .cb-work-board__drag-handle {
+	opacity: 1;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card-controls .cb-core-icon-control:focus-visible {
+	outline: 2px solid var(--cb-interactive-focus, var(--cb-work-accent, #3584e4));
+	outline-offset: 2px;
+}
+/* Friendly empty presentation, without hiding the valid Add link or collapsing
+ * the accessible target during reorder. */
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__empty-title {
+	color: var(--cb-text-muted, var(--cb-work-text-muted, inherit));
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane:not(:has(.cb-work-board__card)) .cb-work-board__empty {
+	justify-content: center;
+}
+.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board.is-reordering .cb-work-board__lane:has(.cb-core-reorder__drop-marker) {
+	border-color: var(--cb-interactive-focus, var(--cb-accent));
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--cb-accent) 30%, transparent);
+}
+@media (max-width: 1100px) {
+	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-toolbar__search {
+		flex-basis: 100%;
+		min-width: 0;
+	}
+}
+@media (max-width: 782px) {
+	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card-controls .cb-core-icon-control {
+		opacity: 1;
+	}
+}
+@media (forced-colors: active) {
+	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__card,
+	.cb-work-unified [data-cb-work-uwe-panel="work-items"] .cb-work-uwe__canonical-view .cb-work-board__lane {
+		border: 1px solid CanvasText;
+	}
+}
