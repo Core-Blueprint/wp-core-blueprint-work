@@ -83,7 +83,7 @@ final class UnifiedWorkspace {
 					aria-labelledby="cb-work-uwe-tab-<?php echo esc_attr( $key ); ?>"
 					tabindex="0"
 					data-cb-work-uwe-panel="<?php echo esc_attr( $key ); ?>"
-					<?php if ( 'recurring' === $key ) : ?>data-cb-work-b4-native="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>" data-cb-work-b4-active="<?php esc_attr_e( 'Active', 'core-blueprint-work' ); ?>" data-cb-work-b4-inactive="<?php esc_attr_e( 'Inactive', 'core-blueprint-work' ); ?>"<?php endif; ?>
+					<?php if ( 'recurring' === $key ) : ?>data-cb-work-b4-native="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG ], admin_url( 'admin.php' ) ) ); ?>" data-cb-work-b4-active="<?php esc_attr_e( 'Active', 'core-blueprint-work' ); ?>" data-cb-work-b4-inactive="<?php esc_attr_e( 'Inactive', 'core-blueprint-work' ); ?>" data-cb-work-recurring-view-trash="<?php esc_attr_e( 'View Trash', 'core-blueprint-work' ); ?>" data-cb-work-recurring-view-rules="<?php esc_attr_e( 'View rules', 'core-blueprint-work' ); ?>" data-cb-work-recurring-next="<?php esc_attr_e( 'Next', 'core-blueprint-work' ); ?>" data-cb-work-recurring-trashed="<?php esc_attr_e( 'Trashed', 'core-blueprint-work' ); ?>" data-cb-work-recurring-quick="<?php esc_attr_e( 'Quick Edit', 'core-blueprint-work' ); ?>" data-cb-work-recurring-activate="<?php esc_attr_e( 'Activate', 'core-blueprint-work' ); ?>" data-cb-work-recurring-deactivate="<?php esc_attr_e( 'Deactivate', 'core-blueprint-work' ); ?>" data-cb-work-recurring-trash="<?php esc_attr_e( 'Trash', 'core-blueprint-work' ); ?>" data-cb-work-recurring-restore="<?php esc_attr_e( 'Restore', 'core-blueprint-work' ); ?>" data-cb-work-recurring-delete="<?php esc_attr_e( 'Delete permanently', 'core-blueprint-work' ); ?>"<?php endif; ?>
 					<?php if ( 'work-items' === $key ) : ?>
 						data-cb-work-uwe-task-singular="<?php esc_attr_e( 'task', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-task-plural="<?php esc_attr_e( 'tasks', 'core-blueprint-work' ); ?>"
@@ -139,7 +139,8 @@ final class UnifiedWorkspace {
 						<?php elseif ( 'projects' === $key || 'services' === $key ) : ?>
 							<button type="button" class="button button-primary" data-cb-work-m2-add="<?php echo esc_attr( 'projects' === $key ? 'project' : 'service' ); ?>"><?php echo esc_html( 'projects' === $key ? __( 'Add Project', 'core-blueprint-work' ) : __( 'Add Service', 'core-blueprint-work' ) ); ?></button>
 						<?php elseif ( 'recurring' === $key ) : ?>
-							<a class="button button-primary" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG, 'mode' => 'add' ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a>
+							<a class="button" data-cb-work-recurring-view href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG, 'cb_view' => 'trash' ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'View Trash', 'core-blueprint-work' ); ?></a>
+							<a class="button button-primary" data-cb-work-recurring-add href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG, 'mode' => 'add' ], admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Add Recurring Work Rule', 'core-blueprint-work' ); ?></a>
 						<?php endif; ?>
 					</div>
 					</div>
@@ -199,7 +200,7 @@ final class UnifiedWorkspace {
 						<?php foreach ( $section['items'] as $item ) : ?>
 							<li class="cb-work-uwe__record">
 								<?php if ( 'recurring' === $key ) : ?>
-									<a class="cb-work-uwe__record-title--button" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG, 'rule_id' => (int) ( $item['id'] ?? 0 ) ], admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></a>
+									<a class="cb-work-uwe__record-title--button" data-cb-work-recurring-open="<?php echo esc_attr( (string) ( $item['id'] ?? 0 ) ); ?>" href="<?php echo esc_url( add_query_arg( [ 'page' => Menu::RECURRENCE_SLUG, 'rule_id' => (int) ( $item['id'] ?? 0 ) ], admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></a>
 									<small class="cb-work-uwe__recurring-facts"><?php echo esc_html( ( ! empty( $item['is_active'] ) ? __( 'Active', 'core-blueprint-work' ) : __( 'Inactive', 'core-blueprint-work' ) ) . ' · ' . (string) ( $item['frequency'] ?? '' ) . ' · ' . (string) ( $item['next_occurrence_on'] ?? '' ) ); ?></small>
 								<?php elseif ( in_array( $key, [ 'projects', 'services' ], true ) ) : ?><button class="cb-work-uwe__record-title--button" type="button" data-cb-work-m2-edit="<?php echo esc_attr( 'projects' === $key ? 'project' : 'service' ); ?>" data-cb-work-m2-id="<?php echo esc_attr( (string) ( $item['id'] ?? 0 ) ); ?>"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></button><?php else : ?><span class="cb-work-uwe__record-title"><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></span><?php endif; ?>
 							</li>

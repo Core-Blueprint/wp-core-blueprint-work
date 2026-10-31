@@ -202,6 +202,7 @@ final class WorkspaceRecurrenceEditorController {
 			], $types ),
 			'picker_nonce' => wp_create_nonce( 'cb_work_object_picker' ),
 			'customer_enabled' => CRMCustomers::available(),
+			'today' => current_time( 'Y-m-d' ),
 		] );
 	}
 

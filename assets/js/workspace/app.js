@@ -4,6 +4,7 @@ import { createDataClient } from './data-client.js';
 import { createCanonicalViewMount } from './canonical-mount.js';
 import { restoreWorkState, snapshotWorkState } from './canonical-filters.js';
 import { mountUnifiedEditors } from './editors.js';
+import { mountRecurringWorkspace } from './recurring.js';
 import { mountWorkspaceOperations, isolateOperations } from './operations.js';
 import { mountWorkspaceEngagements } from './engagements.js';
 import { mountWorkspaceTime } from './time.js';
@@ -82,24 +83,54 @@ export function mountWorkspace(root, browser = window) {
 		}
 		if (section === 'recurring' && Number(record?.id) > 0) {
 			const panel = panels.get(section);
-			const base = panel?.dataset.cbWorkB4Native || '';
-			try {
-				const url = new URL(base, browser.location.href);
-				if (url.origin !== new URL(browser.location.href).origin) throw new TypeError('Cross-origin native fallback');
-				url.searchParams.set('rule_id', String(record.id));
-				const anchor = document.createElement('a');
-				anchor.href = url.href;
-				anchor.className = 'cb-work-uwe__record-title--button';
-				anchor.textContent = title.textContent;
-				row.appendChild(anchor);
-			} catch {
-				row.appendChild(title);
-			}
+			const trash = new URL(browser.location.href).searchParams.get('recurring_view') === 'trash';
+			const native = panel?.dataset.cbWorkB4Native || '';
+			const url = new URL(native, browser.location.href);
+			if (url.origin !== new URL(browser.location.href).origin) { row.appendChild(title); return row; }
+			url.searchParams.set('rule_id', String(record.id));
+			const anchor = document.createElement('a');
+			anchor.href = url.href;
+			anchor.className = 'cb-work-uwe__record-title--button';
+			anchor.dataset.cbWorkRecurringOpen = String(record.id);
+			anchor.textContent = title.textContent;
+			const badge = document.createElement('span');
+			badge.className = 'cb-work-recurring__badge';
+			badge.textContent = record.is_trashed ? panel.dataset.cbWorkRecurringTrashed
+				: record.is_active ? panel.dataset.cbWorkB4Active : panel.dataset.cbWorkB4Inactive;
+			const head = document.createElement('div');
+			head.className = 'cb-work-recurring__head';
+			head.append(anchor, badge);
 			const facts = document.createElement('small');
 			facts.className = 'cb-work-uwe__recurring-facts';
-			facts.textContent = [record.is_active ? panel.dataset.cbWorkB4Active : panel.dataset.cbWorkB4Inactive,
-				record.frequency || '', record.next_occurrence_on || ''].filter(Boolean).join(' · ');
-			row.appendChild(facts);
+			const interval = Number(record.interval_count) > 1 ? String(record.interval_count) + ' × ' : '';
+			facts.textContent = [
+				interval + (record.frequency || ''),
+				record.next_occurrence_on
+					? panel.dataset.cbWorkRecurringNext + ': ' + record.next_occurrence_on : '',
+			].filter(Boolean).join(' · ');
+			const actions = document.createElement('div');
+			actions.className = 'cb-work-recurring__actions';
+			const action = (label, key, danger = false) => {
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.className = danger ? 'button cb-work-recurring__danger' : 'button';
+				button.dataset.cbWorkRecurringAction = key;
+				button.dataset.ruleId = String(record.id);
+				button.dataset.revision = String(record.revision || 0);
+				button.textContent = label;
+				return button;
+			};
+			if (trash) {
+				actions.append(action(panel.dataset.cbWorkRecurringRestore, 'restore'));
+				actions.append(action(panel.dataset.cbWorkRecurringDelete, 'delete_permanently', true));
+			} else {
+				actions.append(action(panel.dataset.cbWorkRecurringQuick, 'quick'));
+				actions.append(action(record.is_active ? panel.dataset.cbWorkRecurringDeactivate
+					: panel.dataset.cbWorkRecurringActivate, record.is_active ? 'deactivate' : 'activate'));
+				actions.append(action(panel.dataset.cbWorkRecurringTrash, 'trash', true));
+			}
+			row.classList.add('cb-work-uwe__record--recurring');
+			row.append(head, facts, actions);
 			return row;
 		}
 		row.appendChild(title);
@@ -129,6 +160,14 @@ export function mountWorkspace(root, browser = window) {
 		const contextCount = panel.querySelector('[data-cb-work-uwe-context-count]');
 		if (contextCount) { contextCount.textContent = String(result.total); contextCount.hidden = false; }
 		panel.dataset.cbWorkUwePages = String(result.pages);
+		if (section === 'recurring') {
+			const trash = new URL(browser.location.href).searchParams.get('recurring_view') === 'trash';
+			const link = panel.querySelector('[data-cb-work-recurring-view]');
+			if (link) {
+				link.textContent = trash ? panel.dataset.cbWorkRecurringViewRules : panel.dataset.cbWorkRecurringViewTrash;
+				link.setAttribute('aria-pressed', String(trash));
+			}
+		}
 	}
 
 	async function refresh(section) {
@@ -157,7 +196,12 @@ export function mountWorkspace(root, browser = window) {
 		}
 		panel.setAttribute('aria-busy', 'true');
 		try {
-			const result = await client.load(endpoint, nonce, apiParameters(state));
+			const params = apiParameters(state);
+			if (section === 'recurring' &&
+				new URL(browser.location.href).searchParams.get('recurring_view') === 'trash') {
+				params.set('trash', 'true');
+			}
+			const result = await client.load(endpoint, nonce, params);
 			if (activeSection !== section || sequence !== refreshSequence) return;
 			if (result.section !== section) throw new TypeError('Workspace section mismatch');
 			updateResults(section, result);
@@ -232,6 +276,7 @@ export function mountWorkspace(root, browser = window) {
 	const router = createWorkspaceRouter(browser, showSection);
 	showSection(router.section());
 	mountUnifiedEditors(root, browser, refresh);
+	mountRecurringWorkspace(root, browser, refresh);
 	const operationsSummary = mountWorkspaceOperations(root, browser);
 	operationalViews.engagements = mountWorkspaceEngagements(root, browser, () => operationsSummary?.refresh());
 	operationalViews.time = mountWorkspaceTime(root, browser, () => operationsSummary?.refresh());

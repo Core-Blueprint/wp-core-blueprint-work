@@ -1092,3 +1092,41 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 		border: 1px solid CanvasText;
 	}
 }
+
+
+/* M3-B4-B3: compact Recurring Work scan layer; Base modal retains shell geometry. */
+.cb-work-unified [data-cb-work-uwe-panel="recurring"] .cb-work-uwe__collection {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 315px), 1fr));
+}
+.cb-work-recurring__head {
+	display: flex; align-items: flex-start; justify-content: space-between;
+	flex-wrap: wrap; gap: var(--cb-space-2, 8px);
+}
+.cb-work-recurring__badge {
+	border: 1px solid var(--cb-border, var(--cb-work-border));
+	border-radius: 999px; font-size: .75rem; padding: 2px 8px; white-space: nowrap;
+}
+.cb-work-uwe__record--recurring .cb-work-uwe__recurring-facts {
+	display: block; margin-block: var(--cb-space-3, 12px); color: var(--cb-text-muted, inherit);
+}
+.cb-work-recurring__actions { display:flex; flex-wrap:wrap; gap:6px; }
+.cb-work-recurring__actions .button { min-height:36px; }
+.cb-work-recurring__danger { color:var(--cb-danger, #b32d2e) !important; }
+.cb-work-recurring__workspace-error { color:var(--cb-danger, #b32d2e); }
+.cb-work-recurring__form { display:grid; gap:var(--cb-space-4, 16px); }
+.cb-work-recurring__section { min-width:0; }
+.cb-work-recurring__section h3 { margin:0 0 var(--cb-space-3, 12px); }
+.cb-work-recurring__grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:var(--cb-space-3, 12px); }
+.cb-work-recurring__field { display:flex; flex-direction:column; gap:var(--cb-space-2, 8px); min-width:0; }
+.cb-work-recurring__field>span { font-weight:600; }
+.cb-work-recurring__field :is(input,select,textarea) { width:100%; max-width:100%; min-width:0; }
+.cb-work-recurring__picker { grid-column:1/-1; }
+.cb-work-recurring__advanced>summary { cursor:pointer; font-weight:600; margin-bottom:var(--cb-space-3, 12px); }
+.cb-work-recurring__preview { margin-block:var(--cb-space-2, 8px); }
+.cb-work-recurring__dates { display:flex; gap:8px; flex-wrap:wrap; padding:0; list-style:none; }
+.cb-work-recurring__dates li { border:1px solid var(--cb-border, var(--cb-work-border)); border-radius:6px; padding:5px 8px; }
+.cb-work-recurring__message { color:var(--cb-danger, #b32d2e); }
+@media (max-width: 782px) {
+	.cb-work-recurring__grid { grid-template-columns:minmax(0,1fr); }
+	.cb-work-recurring__actions .button { flex:1 1 auto; }
+}
