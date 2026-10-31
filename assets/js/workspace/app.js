@@ -99,7 +99,7 @@ export function mountWorkspace(root, browser = window) {
 				: record.is_active ? panel.dataset.cbWorkB4Active : panel.dataset.cbWorkB4Inactive;
 			const head = document.createElement('div');
 			head.className = 'cb-work-recurring__head';
-			head.append(anchor, badge);
+			head.append(record.is_trashed ? title : anchor, badge);
 			const facts = document.createElement('small');
 			facts.className = 'cb-work-uwe__recurring-facts';
 			const interval = Number(record.interval_count) > 1 ? String(record.interval_count) + ' × ' : '';

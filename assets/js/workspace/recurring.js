@@ -306,7 +306,7 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 				cancelLabel: root.dataset.cbWorkM2Cancel || 'Cancel',
 				onConfirm: async () => {
 					if (pending) return false;
-					const fields = readChanges(form, original, quick);
+					const fields = readChanges(form, id > 0 ? original : null, quick);
 					if (!fields) { inform('Check the highlighted fields.'); return false; }
 					pending = true;
 					notice.hidden = true;

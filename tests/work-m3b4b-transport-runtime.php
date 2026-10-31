@@ -17,6 +17,7 @@ namespace {
 	}
 	class WP_REST_Response { public function __construct(public array $data) {} }
 	function current_user_can(string $cap): bool { return $GLOBALS['b4b_allow']; }
+	function get_userdata(int $id): object { return (object) ['ID'=>$id,'display_name'=>'Test user','user_login'=>'test']; }
 	function get_current_user_id(): int { return 8; }
 	function cb_work_runtime_ready(): bool { return $GLOBALS['b4b_ready']; }
 	function get_option(string $key, string $fallback = ''): string { return 'schema' === $key ? '2.3' : 'd/m/Y'; }

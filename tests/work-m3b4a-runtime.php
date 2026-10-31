@@ -33,7 +33,7 @@ namespace CB\Work\Repository {
 			return [ 'rows' => [[
 				'id' => 18, 'title' => 'Monthly maintenance', 'frequency' => 'monthly',
 				'interval_count' => 1, 'next_occurrence_on' => '2026-11-01',
-				'is_active' => true, 'customer_id' => 'private-secret',
+				'is_active' => true, 'is_trashed' => false, 'revision' => 5, 'project_id' => 0, 'customer_id' => 'private-secret',
 				'customer_provider' => 'private', 'assigned_user_ids' => [5],
 				'description' => 'private notes',
 			]], 'total' => 1, 'page' => 1, 'pages' => 1, 'per_page' => 25 ];
@@ -56,7 +56,7 @@ namespace {
 	$check($result->data['page'] === 1 && $result->data['per_page'] === 25, 'bounded authoritative paging');
 	$check(count($result->data['items']) === 1, 'single list item');
 	$check(array_keys($result->data['items'][0]) === [
-		'id', 'title', 'frequency', 'interval_count', 'next_occurrence_on', 'is_active'
+		'id', 'title', 'frequency', 'interval_count', 'next_occurrence_on', 'is_active', 'is_trashed', 'revision', 'project_id'
 	], 'no customer identity, assignments or description in list');
 	$check($GLOBALS['b4_filters'][0]['page'] === 2
 		&& $GLOBALS['b4_filters'][0]['status'] === 'active'
