@@ -9,13 +9,9 @@ $board = (string)file_get_contents($root . '/src/Admin/WorkItemBoardRenderer.php
 $checks = [
 	'Tasks icon refers to work list, not completed state' =>
 		str_contains($shell, "'work-items' => 'clipboard'"),
-	'Only localized no-project placeholder is hidden in detached Work Board' =>
-		str_contains($shell, 'data-cb-work-uwe-no-project=') &&
-		str_contains($mount, 'export function minimizeUnassignedBoardContext(') &&
-		str_contains($mount, "canonical.querySelectorAll('.cb-work-board__card')") &&
-		str_contains($mount, 'project?.textContent?.trim() === noProjectLabel') &&
-		strpos($mount, 'minimizeUnassignedBoardContext(canonical, panel.dataset.cbWorkUweNoProject);') <
-		strpos($mount, 'document.importNode(canonical, true)'),
+	'No inference of missing project from display text' =>
+		!str_contains($mount, 'minimizeUnassignedBoardContext') &&
+		!str_contains($shell, 'data-cb-work-uwe-no-project'),
 	'Single compact toolbar, existing filters intact' =>
 		str_contains($css, 'M3-UX3-F2C: visual clarity') &&
 		str_contains($css, '.cb-work-toolbar__search') &&

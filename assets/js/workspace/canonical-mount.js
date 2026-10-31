@@ -142,25 +142,6 @@ export function localizeWorkspaceBoard(canonical, text) {
 	return changed;
 }
 
-/**
- * Only the detached Workspace projection may omit the native "No project"
- * placeholder. The project ID, link targets and native WordPress view are
- * untouched. Never infer missing associations from an empty title.
- */
-export function minimizeUnassignedBoardContext(canonical, noProjectLabel) {
-	if (!canonical?.querySelectorAll || !noProjectLabel) return 0;
-	let hidden = 0;
-	for (const card of canonical.querySelectorAll('.cb-work-board__card')) {
-		const context = card.querySelector?.('.cb-work-board__context');
-		const project = context?.querySelector?.('.cb-work-board__project');
-		if (context && project?.textContent?.trim() === noProjectLabel) {
-			context.hidden = true;
-			hidden++;
-		}
-	}
-	return hidden;
-}
-
 export function stripWorkspaceCanonicalHeader(canonical) {
 	const header = canonical?.querySelector?.(':scope > header.cb-work-page-header');
 	if (!header || typeof header.remove !== 'function') return false;
@@ -499,7 +480,6 @@ export function createCanonicalViewMount(panel, browser, notify) {
 				empty: panel.dataset.cbWorkUweNoTasks,
 				drop: panel.dataset.cbWorkUweDropTasks,
 			});
-			minimizeUnassignedBoardContext(canonical, panel.dataset.cbWorkUweNoProject);
 			stripWorkspaceCanonicalHeader(canonical);
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);

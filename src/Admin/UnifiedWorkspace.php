@@ -92,7 +92,6 @@ final class UnifiedWorkspace {
 						data-cb-work-uwe-add-task="<?php esc_attr_e( 'Add Task', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-no-tasks="<?php esc_attr_e( 'No tasks found.', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-drop-tasks="<?php esc_attr_e( 'Drop tasks here', 'core-blueprint-work' ); ?>"
-						data-cb-work-uwe-no-project="<?php esc_attr_e( 'No project', 'core-blueprint-work' ); ?>"
 						data-cb-work-uwe-classic-endpoint="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 						data-cb-work-uwe-classic-action="<?php echo esc_attr( WorkItemViewBridge::ACTION ); ?>"
 						data-cb-work-uwe-classic-nonce="<?php echo esc_attr( wp_create_nonce( WorkItemViewBridge::NONCE_ACTION ) ); ?>"
