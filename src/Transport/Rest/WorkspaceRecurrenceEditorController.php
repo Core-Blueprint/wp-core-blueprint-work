@@ -15,6 +15,9 @@ use CB\Work\Domain\RecurrenceSchedule;
 use CB\Work\Integration\CRMCustomers;
 use CB\Work\Repository\RecurrenceOccurrences;
 use CB\Work\Repository\RecurrenceRules;
+use CB\Work\Repository\Projects;
+use CB\Work\Repository\WorkTypes;
+use CB\Work\PublicApi\Services;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,6 +30,7 @@ final class WorkspaceRecurrenceEditorController {
 	public const DETAIL_ROUTE = '/workspace/recurring/rules/(?P<id>[1-9][0-9]*)';
 	public const PREVIEW_ROUTE = '/workspace/recurring/preview';
 	public const CREATE_ROUTE = '/workspace/recurring/rules';
+	public const OPTIONS_ROUTE = '/workspace/recurring/options';
 	public const LIFECYCLE_ROUTE = '/workspace/recurring/rules/(?P<id>[1-9][0-9]*)/lifecycle';
 
 	public static function init(): void {
@@ -40,6 +44,11 @@ final class WorkspaceRecurrenceEditorController {
 			'callback' => [ self::class, 'detail' ],
 			'permission_callback' => $permission,
 			'args' => [ 'id' => [ 'type' => 'integer', 'minimum' => 1, 'required' => true ] ],
+		] );
+		register_rest_route( self::NAMESPACE, self::OPTIONS_ROUTE, [
+			'methods' => \WP_REST_Server::READABLE,
+			'callback' => [ self::class, 'options' ],
+			'permission_callback' => $permission,
 		] );
 		register_rest_route( self::NAMESPACE, self::CREATE_ROUTE, [
 			'methods' => \WP_REST_Server::CREATABLE,
@@ -115,6 +124,7 @@ final class WorkspaceRecurrenceEditorController {
 			'description' => (string) $rule['description'],
 			'work_context' => (string) $rule['work_context'],
 			'customer' => $customer,
+			'assignees' => self::selected_assignees( (array) $rule['assigned_user_ids'] ),
 			'project_id' => (int) ( $rule['project_id'] ?? 0 ),
 			'service_id' => (int) ( $rule['service_id'] ?? 0 ),
 			'work_type_id' => (int) ( $rule['work_type_id'] ?? 0 ),
@@ -136,6 +146,64 @@ final class WorkspaceRecurrenceEditorController {
 		] );
 	}
 
+
+
+	/** The Base Object Picker owns UI; Work supplies trusted selected data. */
+	private static function selected_assignees( array $ids ): array {
+		$selected = [];
+		foreach ( $ids as $raw_id ) {
+			$user = get_userdata( (int) $raw_id );
+			if ( ! $user ) { continue; }
+			$selected[] = [
+				'id' => (int) $user->ID,
+				'label' => (string) $user->display_name,
+				'meta' => (string) $user->user_login,
+			];
+		}
+		return $selected;
+	}
+
+	/** Bounded catalogs, with canonical single-record fallback for linked items. */
+	public static function options( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$allowed = self::can_manage( $request );
+		if ( true !== $allowed ) { return $allowed; }
+		$id = self::nonnegative_id( $request->get_param( 'rule_id' ) ?? 0 );
+		if ( null === $id ) { return self::error( 400 ); }
+		$rule = $id > 0 ? RecurrenceRules::get( $id ) : null;
+		if ( $id > 0 && ( null === $rule || ! empty( $rule['is_trashed'] ) ) ) { return self::error( 404 ); }
+		$projects = Projects::all( 500 );
+		$services = Services::all( 250 );
+		$types = WorkTypes::all();
+		if ( $rule ) {
+			$linked = [
+				'project_id' => [ &$projects, [ Projects::class, 'get' ] ],
+				'service_id' => [ &$services, [ Services::class, 'get' ] ],
+				'work_type_id' => [ &$types, [ WorkTypes::class, 'get' ] ],
+			];
+			foreach ( $linked as $field => &$source ) {
+				$selected = (int) ( $rule[$field] ?? 0 );
+				if ( $selected > 0 && ! in_array( $selected, array_map( 'intval', array_column( $source[0], 'id' ) ), true ) ) {
+					$item = call_user_func( $source[1], $selected );
+					if ( is_array( $item ) ) { $source[0][] = $item; }
+				}
+			}
+			unset( $source );
+		}
+		return rest_ensure_response( [
+			'projects' => array_map( static fn( array $r ): array => [
+				'id' => (int) $r['id'], 'title' => (string) $r['title'],
+				'work_context' => (string) ( $r['work_context'] ?? '' ),
+			], $projects ),
+			'services' => array_map( static fn( array $r ): array => [
+				'id' => (int) $r['id'], 'title' => (string) $r['title'],
+			], $services ),
+			'work_types' => array_map( static fn( array $r ): array => [
+				'id' => (int) $r['id'], 'title' => (string) $r['label'],
+			], $types ),
+			'picker_nonce' => wp_create_nonce( 'cb_work_object_picker' ),
+			'customer_enabled' => CRMCustomers::available(),
+		] );
+	}
 
 	/** Strict transport allowlist. All business invariants are rechecked by RecurrenceRules. */
 	private static function fields( mixed $input, bool $creating ): array|\WP_Error {

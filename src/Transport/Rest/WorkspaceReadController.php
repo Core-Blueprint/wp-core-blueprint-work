@@ -45,6 +45,7 @@ final class WorkspaceReadController {
 				'status' => [ 'type' => 'string', 'enum' => array_merge( WorkItemStatus::all(), [ 'active', 'inactive' ] ) ],
 				'priority' => [ 'type' => 'string', 'enum' => WorkItemPriority::all() ],
 				'project_id' => [ 'type' => 'integer', 'minimum' => 0 ],
+				'trash' => [ 'type' => 'boolean', 'default' => false ],
 			],
 		] );
 	}
@@ -108,6 +109,7 @@ final class WorkspaceReadController {
 				'search' => substr( $search, 0, 160 ),
 				'status' => in_array( $status, [ 'active', 'inactive' ], true ) ? $status : '',
 				'sort' => in_array( $sort, [ 'title', 'next_occurrence', 'status', 'created' ], true ) ? $sort : 'next_occurrence',
+				'trash' => true === $request->get_param( 'trash' ),
 			] );
 			$items = array_map( static fn( array $rule ): array => [
 				'id' => (int) $rule['id'],
@@ -116,6 +118,9 @@ final class WorkspaceReadController {
 				'interval_count' => (int) $rule['interval_count'],
 				'next_occurrence_on' => (string) ( $rule['next_occurrence_on'] ?? '' ),
 				'is_active' => (bool) $rule['is_active'],
+				'is_trashed' => (bool) $rule['is_trashed'],
+				'revision' => (int) $rule['revision'],
+				'project_id' => (int) ( $rule['project_id'] ?? 0 ),
 			], $result['rows'] );
 			$page = (int) $result['page'];
 			$per_page = (int) $result['per_page'];
