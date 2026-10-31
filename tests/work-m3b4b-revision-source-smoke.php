@@ -6,7 +6,12 @@ $schema = (string) file_get_contents($root . '/src/Database/Schema.php');
 $repo = (string) file_get_contents($root . '/src/Repository/RecurrenceRules.php');
 $controller = (string) file_get_contents($root . '/src/Transport/Rest/WorkspaceRecurrenceEditorController.php');
 $runner = (string) file_get_contents($root . '/tools/check');
+$foundation = (string) file_get_contents($root . '/tests/recurrence-foundation-smoke.php');
+$runtime = (string) file_get_contents($root . '/tests/runtime-smoke.php');
 $checks = [
+	'foundation and runtime use current 2.5 schema contract' => str_contains($foundation, "CB_WORK_SCHEMA_VERSION', '2.5'")
+		&& str_contains($runtime, "CB_WORK_SCHEMA_VERSION, 'Work recurrence revision schema version 2.5.'")
+		&& str_contains($runtime, "cb_work_db_version'] = '2.5'"),
 	'additive 2.5 schema' => str_contains($bootstrap, "CB_WORK_SCHEMA_VERSION', '2.5'") && str_contains($schema, 'revision int unsigned NOT NULL DEFAULT 1,'),
 	'canonical revision row and hydration' => str_contains($repo, "'revision'             => " . '$normalized[\'revision\']') && str_contains($repo, "'revision'             => " . '(int) $row[\'revision\']'),
 	'locked optimistic update' => str_contains($repo, 'public static function update_if_revision(') && str_contains($repo, 'work_recurrence_revision_conflict') && str_contains($repo, 'FOR UPDATE'),
