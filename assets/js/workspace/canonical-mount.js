@@ -106,6 +106,21 @@ export function createCanonicalStatusSync(browser, callback, delay = 600) {
 }
 
 /** Reapply native disclosure state across canonical HTML replacements. */
+/**
+ * M3-UX3-F2A: remove redundant native Work Items chrome from the parsed,
+ * detached canonical fragment before it is imported into the Work Workspace.
+ *
+ * The original Operations renderer and its standalone WordPress route are
+ * untouched. Keep the real filter form, result count (used by the context
+ * header), toolbar, empty state and item renderers intact.
+ */
+export function stripWorkspaceCanonicalHeader(canonical) {
+	const header = canonical?.querySelector?.(':scope > header.cb-work-page-header');
+	if (!header || typeof header.remove !== 'function') return false;
+	header.remove();
+	return true;
+}
+
 export function composeCanonicalToolbar(canonical) {
 	const shortcuts = canonical?.querySelector?.('.cb-work-fast-paths');
 	const row = canonical?.querySelector?.('.cb-work-toolbar__row');
@@ -425,6 +440,7 @@ export function createCanonicalViewMount(panel, browser, notify) {
 			}
 			syncPreferredOrder(canonical);
 			composeCanonicalToolbar(canonical);
+			stripWorkspaceCanonicalHeader(canonical);
 			const inserted = document.importNode(canonical, true);
 			syncAdvancedFilters(inserted, advancedOpen);
 			const outgoing = destination.firstElementChild;
