@@ -111,12 +111,18 @@ final class WorkspaceReadController {
 				'sort' => in_array( $sort, [ 'title', 'next_occurrence', 'status', 'created' ], true ) ? $sort : 'next_occurrence',
 				'trash' => true === $request->get_param( 'trash' ),
 			] );
+			$site_today = current_time( 'Y-m-d' );
+			$site_date_format = get_option( 'date_format' );
 			$items = array_map( static fn( array $rule ): array => [
 				'id' => (int) $rule['id'],
 				'title' => (string) $rule['title'],
 				'frequency' => (string) $rule['frequency'],
 				'interval_count' => (int) $rule['interval_count'],
 				'next_occurrence_on' => (string) ( $rule['next_occurrence_on'] ?? '' ),
+				'next_occurrence_label' => empty( $rule['next_occurrence_on'] ) ? ''
+					: mysql2date( $site_date_format, (string) $rule['next_occurrence_on'] . ' 12:00:00' ),
+				'occurrence_state' => empty( $rule['next_occurrence_on'] ) ? 'complete'
+					: ( (string) $rule['next_occurrence_on'] < $site_today ? 'pending' : 'upcoming' ),
 				'is_active' => (bool) $rule['is_active'],
 				'is_trashed' => (bool) $rule['is_trashed'],
 				'revision' => (int) $rule['revision'],

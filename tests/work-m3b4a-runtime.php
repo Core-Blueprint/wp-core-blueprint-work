@@ -22,6 +22,9 @@ namespace {
 	function __( string $text, string $domain ): string { return $text; }
 	function rest_ensure_response( array $result ): WP_REST_Response { return new WP_REST_Response($result); }
 	function sanitize_text_field( string $value ): string { return trim( strip_tags( $value ) ); }
+	function current_time( string $format ): string { return '2026-10-31'; }
+	function get_option( string $key ): string { return 'F j, Y'; }
+	function mysql2date( string $format, string $value ): string { return substr( $value, 0, 10 ); }
 }
 namespace CB\Work {
 	final class Capabilities { public const MANAGE = 'manage_work'; }
@@ -56,8 +59,9 @@ namespace {
 	$check($result->data['page'] === 1 && $result->data['per_page'] === 25, 'bounded authoritative paging');
 	$check(count($result->data['items']) === 1, 'single list item');
 	$check(array_keys($result->data['items'][0]) === [
-		'id', 'title', 'frequency', 'interval_count', 'next_occurrence_on', 'is_active', 'is_trashed', 'revision', 'project_id'
+		'id', 'title', 'frequency', 'interval_count', 'next_occurrence_on', 'next_occurrence_label', 'occurrence_state', 'is_active', 'is_trashed', 'revision', 'project_id'
 	], 'no customer identity, assignments or description in list');
+	$check($result->data['items'][0]['occurrence_state'] === 'upcoming' && $result->data['items'][0]['next_occurrence_label'] === '2026-11-01', 'site-date classification and formatted date');
 	$check($GLOBALS['b4_filters'][0]['page'] === 2
 		&& $GLOBALS['b4_filters'][0]['status'] === 'active'
 		&& $GLOBALS['b4_filters'][0]['search'] === 'maintenance'

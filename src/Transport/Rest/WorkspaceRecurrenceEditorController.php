@@ -326,8 +326,19 @@ final class WorkspaceRecurrenceEditorController {
 		switch ( $body['action'] ) {
 			case 'activate':
 			case 'deactivate':
-				if ( ! empty( $rule['is_trashed'] ) || array_key_exists( 'confirmed', $body ) ) { return self::error( 409 ); }
+				if ( ! empty( $rule['is_trashed'] ) ) { return self::error( 409 ); }
 				$active = 'activate' === $body['action'];
+				$pending = $active && null !== $rule['next_occurrence_on']
+					&& (string) $rule['next_occurrence_on'] < current_time( 'Y-m-d' );
+				// A stale browser cannot silently start historical catch-up; the
+				// confirmation is specific to an overdue activation, never a
+				// generic override for other lifecycle actions.
+				if ( $pending && true !== ( $body['confirmed'] ?? null ) ) {
+					return new \WP_Error( 'work_recurrence_catchup_confirmation_required',
+						__( 'The requested Recurring Work lifecycle action could not be completed.', 'core-blueprint-work' ), [ 'status' => 409 ] );
+				}
+				if ( ! $pending && array_key_exists( 'confirmed', $body ) ) { return self::error( 400 ); }
+				if ( $pending && count( $body ) !== 3 ) { return self::error( 400 ); }
 				$result = RecurrenceRules::update_if_revision( $id, [ 'is_active' => $active, 'updated_by' => $actor ], $revision );
 				if ( is_wp_error( $result ) ) { return $result; }
 				Audit::record( Events::RECURRENCE_RULE_STATUS_CHANGED, 'notice', $meta + [ 'active' => $active ] );
@@ -396,6 +407,7 @@ final class WorkspaceRecurrenceEditorController {
 		}
 		$use_cursor = $locked || $unchanged;
 		$cursor = $use_cursor && null !== $current ? $current['next_occurrence_on'] : null;
+		$site_today = current_time( 'Y-m-d' );
 		$dates = Recurrence::preview_dates(
 			$schedule['frequency'],
 			$schedule['interval_count'],
@@ -412,6 +424,7 @@ final class WorkspaceRecurrenceEditorController {
 			'dates' => array_map( static fn( string $date ): array => [
 				'iso' => $date,
 				'label' => mysql2date( get_option( 'date_format' ), $date . ' 12:00:00' ),
+				'pending' => $date < $site_today,
 			], $dates ),
 			'schedule_locked' => $locked,
 		] );
