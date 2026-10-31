@@ -26,6 +26,7 @@ final class WorkspaceEngagementsPanel {
 			data-cb-work-m3-error="<?php esc_attr_e( 'The change could not be saved.', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-no-projects="<?php esc_attr_e( 'No projects found.', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-no-services="<?php esc_attr_e( 'No services found.', 'core-blueprint-work' ); ?>"
+			data-cb-work-m3-empty-search="<?php esc_attr_e( 'No matching services. Adjust your filters or add a service.', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-project="<?php esc_attr_e( 'Project', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-service="<?php esc_attr_e( 'Service', 'core-blueprint-work' ); ?>"
 			data-cb-work-m3-start="<?php esc_attr_e( 'Start date', 'core-blueprint-work' ); ?>"

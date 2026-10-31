@@ -189,6 +189,8 @@ node --experimental-default-type=module "$ROOT/tests/work-m3b4a-router-runtime.m
 php "$ROOT/tests/work-m3ux2-source-smoke.php"
 node --experimental-default-type=module "$ROOT/tests/work-m3ux2-operation-runtime.mjs"
 php "$ROOT/tests/work-m3ux1-source-smoke.php"
+php "$ROOT/tests/work-m3ux4-service-views-source-smoke.php"
+node --experimental-default-type=module "$ROOT/tests/work-m3ux4-service-views-runtime.mjs"
 node --experimental-default-type=module "$ROOT/tests/work-m3ux1-operations-runtime.mjs"
 php "$ROOT/tests/work-m3c2-time-source-smoke.php"
 php "$ROOT/tests/work-m3c2-time-runtime.php"

@@ -88,6 +88,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	}
 	function showError() {
 		clear();
+		panel.classList.add('is-error');
 		error.hidden = false;
 	}
 	function el(tag, text = '', className = '') {
@@ -125,6 +126,7 @@ export function mountWorkspaceEngagements(root, browser = window, onCreated = nu
 	const billingDialog = createEngagementBillingDialog(root, browser, request, async () => { await refresh(page); });
 	function paint(data) {
 		if (!validPage(data)) throw new TypeError('Invalid engagements payload');
+		panel.classList.remove('is-error');
 		list.replaceChildren(...data.items.map((item) => {
 			const row = el('li', '', 'cb-work-m3-engagements__record');
 			const title = el('strong', [item.project, item.service, item.label].filter(Boolean).join(' / '));

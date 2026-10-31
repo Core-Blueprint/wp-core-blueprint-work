@@ -1173,7 +1173,8 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 	> :not(.cb-work-uwe__context):not(.cb-work-uwe__service-views):not([data-cb-work-m3-services-inline]) {
 	display: none !important;
 }
-.cb-work-unified [data-cb-work-m3-services-inline][hidden] { display: none !important; }
+.cb-work-unified [data-cb-work-m3-services-inline][hidden],
+.cb-work-unified .cb-work-uwe__service-view[hidden] { display: none !important; }
 .cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements {
 	margin: 0;
 	padding: 0;
@@ -1183,6 +1184,9 @@ body.cb-admin-theme .cb-work-unified .cb-work-uwe__types-action.button:not(.butt
 .cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements__header,
 .cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements > a.button {
 	display: none;
+}
+.cb-work-unified [data-cb-work-m3-services-inline] .cb-work-m3-engagements.is-error > a.button {
+	display: inline-flex;
 }
 .cb-work-unified [data-cb-work-m3-services-inline] [data-cb-work-m3-engagements-empty]:not([hidden]) {
 	display: block;
