@@ -22,8 +22,8 @@ $checks = [
 		&& str_contains( $js, "'create_ahead_days'" )
 		&& str_contains( $js, "'due_offset_days'" )
 		&& str_contains( $js, "advanced.append(advancedGrid)" ),
-	'Optional end toggle is not persisted, locked dates keep current contracts' =>
-		str_contains( $js, "endCheck.type = 'checkbox';" )
+	'Optional end-mode selector is not persisted, locked dates keep current contracts' =>
+		str_contains( $js, "endSelect.removeAttribute('name');" )
 		&& str_contains( $js, 'endInput.required = enabled' )
 		&& str_contains( $js, "for (const key of ['frequency','interval_count','start_on','end_on'])" )
 		&& str_contains( $js, "schedulePreviewFields(form)" )

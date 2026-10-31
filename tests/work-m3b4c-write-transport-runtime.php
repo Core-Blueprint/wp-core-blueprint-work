@@ -121,5 +121,17 @@ namespace {
 	$denied = $c::create(new WP_REST_Request([], ['fields'=>$fields]));
 	$assert($denied instanceof WP_Error && $denied->data['status']===403, 'permission loss');
 	$assert(count($GLOBALS['events'])===3, 'audit events');
+	$GLOBALS['allow'] = true;
+	\CB\Work\Repository\RecurrenceRules::$rule['next_occurrence_on'] = '2026-10-14';
+	\CB\Work\Repository\RecurrenceRules::$rule['is_active'] = false;
+	$writesBefore = count($GLOBALS['writes']);
+	$pending = $c::lifecycle(new WP_REST_Request(['id'=>18], ['action'=>'activate','revision'=>3]));
+	$assert($pending instanceof WP_Error && $pending->code === 'work_recurrence_catchup_confirmation_required'
+		&& $pending->data['status'] === 409 && count($GLOBALS['writes']) === $writesBefore, 'past-due rule requires confirmation before write');
+	$accepted = $c::lifecycle(new WP_REST_Request(['id'=>18], ['action'=>'activate','revision'=>3,'confirmed'=>true]));
+	$assert($accepted instanceof WP_REST_Response && $accepted->data['revision'] === 4, 'explicit confirmed catch-up activates canonically');
+	\CB\Work\Repository\RecurrenceRules::$rule['next_occurrence_on'] = '2026-11-07';
+	$unnecessary = $c::lifecycle(new WP_REST_Request(['id'=>18], ['action'=>'deactivate','revision'=>4,'confirmed'=>true]));
+	$assert($unnecessary instanceof WP_Error && $unnecessary->data['status'] === 400, 'confirmed is not accepted for ordinary lifecycle');
 	echo "Work M3-B4-B3 REST write transport: PASS\n";
 }

@@ -97,6 +97,11 @@ namespace {
 		'rule_id'=>17,'frequency'=>'daily','interval_count'=>1,'start_on'=>'2026-10-31'
 	]));
 	$check($draft instanceof WP_REST_Response && $draft->data['dates'][0]['iso'] === '2026-10-31', 'unlocked draft starts new cursor');
+	$previewPast = $c::preview(new WP_REST_Request([], [
+		'rule_id'=>0,'frequency'=>'weekly','interval_count'=>1,'start_on'=>'2026-10-14','end_on'=>null
+	]));
+	$check($previewPast instanceof WP_REST_Response && $previewPast->data['dates'][0]['pending'] === true,
+		'past scheduled occurrence remains visible and classified pending');
 	$check($c::detail(new WP_REST_Request(['id'=>99])) instanceof WP_Error, 'missing rule fails closed');
 	$GLOBALS['b4b_allow'] = false;
 	$check($c::detail(new WP_REST_Request(['id'=>17])) instanceof WP_Error, 'permission denied');
