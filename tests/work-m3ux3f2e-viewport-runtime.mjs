@@ -9,8 +9,9 @@ assert.equal(edgeScrollStep(399, 0, 400), 18);
 assert.equal(edgeScrollStep(200, 0, 400), 0);
 
 function lane(status, scrollTop) {
-	const list={scrollTop,querySelectorAll:()=>[]};
-	return {dataset:{cbWorkStatusLane:status},querySelector:s=>s==='[data-cb-core-reorder-list]'?list:null,list};
+	const list={scrollTop,scrollHeight:1200,clientHeight:300,getBoundingClientRect(){return {top:280,bottom:580}},querySelectorAll:()=>[]};
+	return {dataset:{cbWorkStatusLane:status},querySelector:s=>s==='[data-cb-core-reorder-list]'?list:null,
+		getBoundingClientRect(){return status==='planned'?{left:0,right:300}:{left:300,right:900};},list};
 }
 const left=lane('planned',44),right=lane('blocked',99);
 const listeners=[],props={},observed=[],removed=[];
