@@ -147,7 +147,7 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 		item.service_id || 0, options.services || [], root.dataset.cbWorkM2NoService || 'No service'));
 	basics.append(selection(doc, root.dataset.cbWorkM2Type || 'Work Type', 'work_type_id',
 		item.work_type_id || 0, options.work_types || [], root.dataset.cbWorkM2NoType || 'No type'));
-	form.append(section(doc, 'Work details', basics));
+	form.append(section(doc, root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringDetails || 'Work details', basics));
 	if (pickerAvailable && options.customer_enabled) {
 		const customer = picker(doc, root.dataset.cbWorkM2Customer || 'Customer', 'customer_object_id',
 			item.customer ? [item.customer] : [], options.picker_nonce, 'cb_work_search_customers', false);
@@ -175,14 +175,14 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 		for (const key of ['frequency','interval_count','start_on','end_on']) {
 			scheduling.querySelector('[name="' + key + '"]').disabled = true;
 		}
-		scheduling.append(el(doc, 'p', 'description', 'Schedule is locked because Work Items have already been generated.'));
+		scheduling.append(el(doc, 'p', 'description', root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringLock || 'Schedule locked by history.'));
 	}
 	const preview = el(doc, 'div', 'cb-work-recurring__preview');
 	preview.setAttribute('aria-live', 'polite');
-	const previewButton = el(doc, 'button', 'button', 'Preview dates');
+	const previewButton = el(doc, 'button', 'button', root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringPreview || 'Rule Preview');
 	previewButton.type = 'button';
 	previewButton.dataset.cbWorkRecurringPreview = '1';
-	const scheduleBlock = section(doc, 'Planning', scheduling);
+	const scheduleBlock = section(doc, root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringSchedule || 'Schedule', scheduling);
 	scheduleBlock.append(previewButton, preview);
 	form.append(scheduleBlock);
 	if (pickerAvailable) {
@@ -190,10 +190,10 @@ function formView(doc, root, item, options, quick = false, pickerAvailable = fal
 			'assigned_user_ids', item.assignees || [], options.picker_nonce, 'cb_work_search_users', true);
 		const box = el(doc, 'div', 'cb-work-recurring__grid');
 		box.append(assignees.wrapper);
-		form.append(section(doc, 'Assignments', box));
+		form.append(section(doc, root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringAssignment || 'Assignment', box));
 	}
 	const advanced = el(doc, 'details', 'cb-work-recurring__advanced');
-	advanced.append(el(doc, 'summary', '', 'Advanced'));
+	advanced.append(el(doc, 'summary', '', root.querySelector('[data-cb-work-uwe-panel="recurring"]').dataset.cbWorkRecurringAdvanced || 'Show advanced settings'));
 	const advancedGrid = el(doc, 'div', 'cb-work-recurring__grid');
 	advancedGrid.append(priority, field(root.dataset.cbWorkM2Estimate || 'Estimated minutes', 'estimated_minutes',
 		item.estimated_minutes ?? 0, 'number', {min:0,max:2147483647}),
@@ -299,7 +299,7 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 		});
 		try {
 			const promise = browser.cbCore.modal.show({
-				title: (id ? (quick ? 'Quick Edit' : 'Edit recurring Work') : 'Add recurring Work'),
+				title: quick ? panel.dataset.cbWorkRecurringQuick : id ? panel.dataset.cbWorkRecurringEditLabel : panel.dataset.cbWorkRecurringAddLabel,
 				body, size: quick ? 'default' : 'workspace', expandable: !quick,
 				initialFocus: '[name="title"]',
 				confirmLabel: root.dataset.cbWorkM2Save || 'Save',
@@ -317,8 +317,8 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 						});
 						return true;
 					} catch (error) {
-						inform(error.status === 409 ? 'This rule changed or its schedule is locked. Reopen it to review the latest version.'
-							: error.status === 403 ? 'You no longer have permission to save this rule.'
+						inform(error.status === 409 ? panel.dataset.cbWorkRecurringStale
+							: error.status === 403 ? (root.dataset.cbWorkM2Denied || 'Permission denied.')
 							: error.message);
 						return false;
 					} finally { pending = false; }
@@ -342,13 +342,13 @@ export function mountRecurringWorkspace(root, browser, refresh) {
 			let confirmed = false;
 			try {
 				confirmed = await browser.cbCore.modal.show({
-					title: action === 'trash' ? 'Move rule to Trash?' : 'Delete rule permanently?',
-					body: action === 'trash' ? 'The rule will be paused and its history retained.'
-						: 'Permanent deletion is allowed only when there is no generation history.',
-					confirmLabel: action === 'trash' ? 'Move to Trash' : 'Delete permanently',
+					title: action === 'trash' ? panel.dataset.cbWorkRecurringTrash : panel.dataset.cbWorkRecurringDelete,
+					body: action === 'trash' ? panel.dataset.cbWorkRecurringTrashConfirm
+						: panel.dataset.cbWorkRecurringDeleteConfirm,
+					confirmLabel: action === 'trash' ? panel.dataset.cbWorkRecurringTrash : panel.dataset.cbWorkRecurringDelete,
 					confirmVariant: 'danger',
 					...(action === 'delete_permanently' ? {
-						confirmCheck: {label:'I understand that this cannot be undone.'},
+						confirmCheck: {label:panel.dataset.cbWorkRecurringDeleteAck},
 					} : {}),
 				});
 			} finally { dialogActive = false; }

@@ -167,6 +167,8 @@ export function mountWorkspace(root, browser = window) {
 				link.textContent = trash ? panel.dataset.cbWorkRecurringViewRules : panel.dataset.cbWorkRecurringViewTrash;
 				link.setAttribute('aria-pressed', String(trash));
 			}
+			const add = panel.querySelector('[data-cb-work-recurring-add]');
+			if (add) add.hidden = trash;
 		}
 	}
 
