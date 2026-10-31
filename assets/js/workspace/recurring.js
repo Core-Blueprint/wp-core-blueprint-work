@@ -118,7 +118,7 @@ export function schedulePreviewFields(form) {
 		![frequency, interval, start, end].every((field) => field.checkValidity())) return null;
 	const intervalCount = Number(interval.value);
 	if (!Number.isSafeInteger(intervalCount) || intervalCount < 1 || intervalCount > 999 ||
-		!/^\\d{4}-\\d{2}-\\d{2}$/.test(start.value)) return null;
+		!/^\d{4}-\d{2}-\d{2}$/.test(start.value)) return null;
 	return {
 		frequency: frequency.value,
 		interval_count: intervalCount,
