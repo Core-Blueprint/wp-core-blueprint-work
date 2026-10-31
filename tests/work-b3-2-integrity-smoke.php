@@ -13,15 +13,17 @@ $gate = file_get_contents( $root . '/tools/check' );
  * Validate transaction ownership at the method boundary. A strict total count
  * would block safely adding more guarded repository operations in the future.
  */
-$uses_transaction = static function ( string $source, string $method ): bool {
-	$signature = 'public static function ' . $method . '(';
+$method_body = static function ( string $source, string $method ): string {
+	$signature = 'static function ' . $method . '(';
 	$start = strpos( $source, $signature );
 	if ( false === $start ) {
-		return false;
+		return '';
 	}
 	$end = strpos( $source, "\n\t}", $start );
-	return false !== $end
-		&& str_contains( substr( $source, $start, $end - $start ), 'WorkSqlTransaction::run(' );
+	return false !== $end ? substr( $source, $start, $end - $start ) : '';
+};
+$uses_transaction = static function ( string $source, string $method ) use ( $method_body ): bool {
+	return str_contains( $method_body( $source, $method ), 'WorkSqlTransaction::run(' );
 };
 
 $checks = [
@@ -29,7 +31,10 @@ $checks = [
 	'B3.2 checks the finish statement' => str_contains( $tx, 'false === $wpdb->query( $finish )' ),
 	'B3.2 recurrence create and update retain transaction ownership' =>
 		$uses_transaction( $recurrence, 'create' )
-		&& $uses_transaction( $recurrence, 'update' )
+		&& $uses_transaction( $recurrence, 'update_with_revision' )
+		&& str_contains( $method_body( $recurrence, 'update' ), 'self::update_with_revision( $id, $input, null )' )
+		&& str_contains( $method_body( $recurrence, 'update_if_revision' ), 'self::update_with_revision( $id, $input, $expected_revision )' )
+		&& str_contains( $method_body( $recurrence, 'update_with_revision' ), 'FOR UPDATE' )
 		&& ! str_contains( $recurrence, "'START TRANSACTION'" )
 		&& ! str_contains( $recurrence, "'COMMIT'" ),
 	'New recurrence lifecycle operations preserve shared transaction ownership' =>
